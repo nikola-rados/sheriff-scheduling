@@ -16,3 +16,15 @@ services:
     image: ss-api
     ports:
       - 5000:5000
+    depends_on:
+      - db
+
+  db:
+    #Tried using a redhat image, but it required auth to get it.
+    image: centos/postgresql-12-centos7
+    environment:
+      - POSTGRESQL_USER=${POSTGRESQL_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+    ports:
+      - 5432:5432

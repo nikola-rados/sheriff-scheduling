@@ -37,6 +37,7 @@ usage() {
           Containers:
             - web
             - api
+			- db
 
   start - Creates the application containers from the built images
           and starts the services based on the docker-compose.yaml file.
@@ -147,6 +148,11 @@ configureEnvironment () {
     esac
   done
 
+  # ss-db
+  export POSTGRESQL_DATABASE="APP_DATABASE"
+  export POSTGRESQL_USER="DB_USER"
+  export POSTGRESQL_PASSWORD="DB_PASSWORD"
+  
   # ss-web
   export API_URL=${API_URL-http://api:5000/api/}
 }
