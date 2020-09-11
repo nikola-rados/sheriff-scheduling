@@ -18,6 +18,19 @@ To build the images, run:
 ./manage build
 ```
 
+## Restore a backup of the database
+
+Create a `/c/sheriff-scheduling/docker/tmp` folder if it does not exist.
+Place a backup archive in that folder.
+
+### Using the `restore` command (Recommended)
+
+This is the recommended approach to restore a backup in order to initialize/reset the API.  The `restore` command automates the process of resetting the API's database and restoring a fresh copy from backup, allowing you to easily initialize or reset the API during development and testing.
+```
+Wade@Epoch MINGW64 /c/sheriff-scheduling/docker (master)
+$ ./manage restore postgres-appdb_2020-03-06_13-42-56.sql.gz
+```
+
 ## Starting the Project
 
 To start the project, run:
