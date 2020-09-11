@@ -1,15 +1,18 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using SS.Api.Helpers;
 using SS.Api.Helpers.ContractResolver;
 using SS.Api.Helpers.Mapping;
 using SS.Api.Helpers.Middleware;
+using SS.Api.Models.DB;
 using System;
 using System.IO;
 using System.Reflection;
@@ -46,6 +49,8 @@ namespace SS.Api
             #endregion Cors
 
             #region Setup Services
+
+            services.AddDbContext<appdbContext>(options => options.UseNpgsql(Configuration.GetNonEmptyValue("ConnectionStrings.DB")));
 
             #endregion Setup Services
 
