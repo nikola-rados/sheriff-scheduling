@@ -4,8 +4,8 @@ description: |
   compliance.
 spec:
   - name: PIA
-    status: PIA_STATUS_HERE
-    last-updated: '2020-09-11T16:15:06.134Z'
+    status: in-progress
+    last-updated: '2020-09-11T16:16:15.021Z'
   - name: STRA
-    status: STRA_STATUS_HERE
-    last-updated: '2020-09-11T16:15:06.134Z'
+    status: in-progress
+    last-updated: '2020-09-11T16:16:15.021Z'
