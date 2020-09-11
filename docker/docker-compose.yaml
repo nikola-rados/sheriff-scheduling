@@ -28,3 +28,5 @@ services:
       - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
     ports:
       - 5432:5432
+    volumes:
+      - ./tmp:/tmp2
