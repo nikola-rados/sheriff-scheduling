@@ -4,7 +4,7 @@
 # Template File: templates/postgresql-deploy.yaml
 #=========================================================
 # NAME=postgresql
-# APP_NAME=virtual-hearing-form
+# APP_NAME=sheriff-scheduling
 # ROLE=db
 # IMAGE_NAMESPACE=tamjni-tools
 # SOURCE_IMAGE_NAME=postgresql

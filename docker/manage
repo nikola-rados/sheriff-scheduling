@@ -37,7 +37,7 @@ usage() {
           Containers:
             - web
             - api
-			- db
+            - db
 
   start - Creates the application containers from the built images
           and starts the services based on the docker-compose.yaml file.
