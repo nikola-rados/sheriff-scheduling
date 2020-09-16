@@ -14,6 +14,24 @@
     <DocumentationFile>bin\$(Configuration)\netcoreapp3.1\api.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Constants\**" />
+    <Compile Remove="Controllers\**" />
+    <Compile Remove="Infrastructure\**" />
+    <Compile Remove="Services\**" />
+    <Content Remove="Constants\**" />
+    <Content Remove="Controllers\**" />
+    <Content Remove="Infrastructure\**" />
+    <Content Remove="Services\**" />
+    <EmbeddedResource Remove="Constants\**" />
+    <EmbeddedResource Remove="Controllers\**" />
+    <EmbeddedResource Remove="Infrastructure\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <None Remove="Constants\**" />
+    <None Remove="Controllers\**" />
+    <None Remove="Infrastructure\**" />
+    <None Remove="Services\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="LazyCache.AspNetCore" Version="2.0.4" />
     <PackageReference Include="Mapster" Version="5.3.0" />
     <PackageReference Include="Mapster.DependencyInjection" Version="1.0.0" />
@@ -30,11 +48,5 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.4.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="5.4.1" />
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.4.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Constants\" />
-    <Folder Include="Controllers\" />
-    <Folder Include="Infrastructure\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 </Project>
