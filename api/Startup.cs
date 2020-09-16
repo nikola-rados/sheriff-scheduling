@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
@@ -5,9 +8,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+using SS.Api.Authorization;
 using SS.Api.Helpers;
 using SS.Api.Helpers.ContractResolver;
 using SS.Api.Helpers.Mapping;
@@ -16,6 +22,8 @@ using SS.Api.Models.DB;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace SS.Api
 {
@@ -28,35 +36,79 @@ namespace SS.Api
 
         private IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthorization();
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddCookie(options => {
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+            }
+            )
+            .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
+            {
+                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.Authority = Configuration.GetValue<string>("Keycloak:Authority");
+                options.ClientId = Configuration.GetValue<string>("Keycloak:Client");
+                options.ClientSecret = Configuration.GetValue<string>("Keycloak:Secret");
+                options.RequireHttpsMetadata = true;
+                options.GetClaimsFromUserInfoEndpoint = true;
+                options.ResponseType = OpenIdConnectResponseType.Code;
+                options.UsePkce = true;
+                options.SaveTokens = true;
+                options.Scope.Add("openid");
+                options.Scope.Add("email");
+            }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                var key = Encoding.ASCII.GetBytes(Configuration.GetValue<string>("Keycloak:Secret"));
+                options.Authority = Configuration.GetValue<string>("Keycloak:Authority");
+                options.Audience = Configuration.GetValue<string>("Keycloak:Audience");
+                options.RequireHttpsMetadata = true;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters()
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = false,
+                    ValidateAudience = false,
+                };
+                if (key.Length > 0) options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
+                options.Events = new JwtBearerEvents()
+                {
+                    OnAuthenticationFailed = context =>
+                    {
+                        context.NoResult();
+                        context.Response.StatusCode = 401;
+                        throw context.Exception;
+                    },
+                    OnForbidden = context =>
+                    {
+                        context.NoResult();
+                        context.Response.StatusCode = 403;
+                        return Task.CompletedTask;
+                    }
+                };
+            });
+
             services.AddMapster();
-
-            #region Cors
-
-            string corsDomain = Configuration.GetValue<string>("CORS_DOMAIN");
-            Console.WriteLine($"CORS_DOMAIN: {corsDomain}");
+            services.AddLazyCache();
 
             services.AddCors(options =>
             {
                 options.AddDefaultPolicy(builder =>
                 {
-                    builder.WithOrigins(corsDomain);
+                    builder.WithOrigins(Configuration.GetValue<string>("CORS_DOMAIN"));
                 });
             });
 
-            #endregion Cors
-
-            #region Setup Services
-
-            services.AddDbContext<appdbContext>(options => options.UseNpgsql(Configuration.GetNonEmptyValue("ConnectionStrings.DB")));
-
-            #endregion Setup Services
-
+            services.AddDbContext<SheriffDbContext>(options => options.UseNpgsql(Configuration.GetNonEmptyValue("ConnectionStrings.DB")));
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
-
-            #region Newtonsoft
 
             services.AddControllers().AddNewtonsoftJson(options =>
             {
@@ -65,11 +117,7 @@ namespace SS.Api
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             });
-
-            #endregion Newtonsoft
-
-            #region Swagger
-
+            
             services.AddSwaggerGen(options =>
             {
                 options.EnableAnnotations(true);
@@ -80,13 +128,8 @@ namespace SS.Api
             });
 
             services.AddSwaggerGenNewtonsoftSupport();
-
-            #endregion Swagger
-
-            services.AddLazyCache();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -112,6 +155,8 @@ namespace SS.Api
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

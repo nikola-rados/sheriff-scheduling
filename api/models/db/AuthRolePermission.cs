@@ -17,9 +17,6 @@ namespace SS.Api.Models.DB
         public DateTime UpdatedDtm { get; set; }
         public decimal RevisionCount { get; set; }
 
-        public virtual AuthFrontendScopePermission FrontendScopePermission { get; set; }
         public virtual AuthRole Role { get; set; }
-        public virtual AuthRoleApiScope RoleApiScope { get; set; }
-        public virtual AuthRoleFrontendScope RoleFrontendScope { get; set; }
     }
 }

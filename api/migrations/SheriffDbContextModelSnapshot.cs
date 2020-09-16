@@ -2,15 +2,14 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using NpgsqlTypes;
 using SS.Api.Models.DB;
 
 namespace SS.Api.Migrations
 {
-    [DbContext(typeof(appdbContext))]
-    partial class appdbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(SheriffDbContext))]
+    partial class SheriffDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

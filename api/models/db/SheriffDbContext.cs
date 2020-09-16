@@ -4,26 +4,20 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace SS.Api.Models.DB
 {
-    public partial class appdbContext : DbContext
+    public partial class SheriffDbContext : DbContext
     {
-        public appdbContext()
+        public SheriffDbContext()
         {
         }
 
-        public appdbContext(DbContextOptions<appdbContext> options)
+        public SheriffDbContext(DbContextOptions<SheriffDbContext> options)
             : base(options)
         {
         }
 
         public virtual DbSet<Assignment> Assignment { get; set; }
         public virtual DbSet<AudSheriffDuty> AudSheriffDuty { get; set; }
-        public virtual DbSet<AuthApiScope> AuthApiScope { get; set; }
-        public virtual DbSet<AuthFrontendScope> AuthFrontendScope { get; set; }
-        public virtual DbSet<AuthFrontendScopeApi> AuthFrontendScopeApi { get; set; }
-        public virtual DbSet<AuthFrontendScopePermission> AuthFrontendScopePermission { get; set; }
         public virtual DbSet<AuthRole> AuthRole { get; set; }
-        public virtual DbSet<AuthRoleApiScope> AuthRoleApiScope { get; set; }
-        public virtual DbSet<AuthRoleFrontendScope> AuthRoleFrontendScope { get; set; }
         public virtual DbSet<AuthRolePermission> AuthRolePermission { get; set; }
         public virtual DbSet<AuthUser> AuthUser { get; set; }
         public virtual DbSet<AuthUserRole> AuthUserRole { get; set; }
@@ -233,212 +227,6 @@ namespace SS.Api.Models.DB
                     .HasColumnType("timestamp with time zone");
             });
 
-            modelBuilder.Entity<AuthApiScope>(entity =>
-            {
-                entity.HasKey(e => e.ApiScopeId)
-                    .HasName("pk_api_scope");
-
-                entity.ToTable("auth_api_scope", "shersched");
-
-                entity.Property(e => e.ApiScopeId)
-                    .HasColumnName("api_scope_id")
-                    .ValueGeneratedNever();
-
-                entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasColumnName("created_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.CreatedDtm)
-                    .HasColumnName("created_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.Property(e => e.Description)
-                    .HasColumnName("description")
-                    .HasMaxLength(200);
-
-                entity.Property(e => e.RevisionCount)
-                    .HasColumnName("revision_count")
-                    .HasColumnType("numeric(10,0)");
-
-                entity.Property(e => e.ScopeCode)
-                    .IsRequired()
-                    .HasColumnName("scope_code")
-                    .HasMaxLength(128);
-
-                entity.Property(e => e.ScopeName)
-                    .IsRequired()
-                    .HasColumnName("scope_name")
-                    .HasMaxLength(128);
-
-                entity.Property(e => e.SystemScopeInd).HasColumnName("system_scope_ind");
-
-                entity.Property(e => e.UpdatedBy)
-                    .IsRequired()
-                    .HasColumnName("updated_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.UpdatedDtm)
-                    .HasColumnName("updated_dtm")
-                    .HasColumnType("timestamp with time zone");
-            });
-
-            modelBuilder.Entity<AuthFrontendScope>(entity =>
-            {
-                entity.HasKey(e => e.FrontendScopeId)
-                    .HasName("pk_frontend_scope");
-
-                entity.ToTable("auth_frontend_scope", "shersched");
-
-                entity.Property(e => e.FrontendScopeId)
-                    .HasColumnName("frontend_scope_id")
-                    .ValueGeneratedNever();
-
-                entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasColumnName("created_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.CreatedDtm)
-                    .HasColumnName("created_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.Property(e => e.Description)
-                    .HasColumnName("description")
-                    .HasMaxLength(200);
-
-                entity.Property(e => e.RevisionCount)
-                    .HasColumnName("revision_count")
-                    .HasColumnType("numeric(10,0)");
-
-                entity.Property(e => e.ScopeCode)
-                    .IsRequired()
-                    .HasColumnName("scope_code")
-                    .HasMaxLength(128);
-
-                entity.Property(e => e.ScopeName)
-                    .IsRequired()
-                    .HasColumnName("scope_name")
-                    .HasMaxLength(128);
-
-                entity.Property(e => e.SystemScopeInd).HasColumnName("system_scope_ind");
-
-                entity.Property(e => e.UpdatedBy)
-                    .IsRequired()
-                    .HasColumnName("updated_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.UpdatedDtm)
-                    .HasColumnName("updated_dtm")
-                    .HasColumnType("timestamp with time zone");
-            });
-
-            modelBuilder.Entity<AuthFrontendScopeApi>(entity =>
-            {
-                entity.HasKey(e => e.FrontendScopeApiId)
-                    .HasName("pk_frontend_scope_api");
-
-                entity.ToTable("auth_frontend_scope_api", "shersched");
-
-                entity.Property(e => e.FrontendScopeApiId)
-                    .HasColumnName("frontend_scope_api_id")
-                    .ValueGeneratedNever();
-
-                entity.Property(e => e.ApiScopeId).HasColumnName("api_scope_id");
-
-                entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasColumnName("created_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.CreatedDtm)
-                    .HasColumnName("created_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.Property(e => e.FrontendScopeId).HasColumnName("frontend_scope_id");
-
-                entity.Property(e => e.RevisionCount)
-                    .HasColumnName("revision_count")
-                    .HasColumnType("numeric(10,0)");
-
-                entity.Property(e => e.UpdatedBy)
-                    .IsRequired()
-                    .HasColumnName("updated_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.UpdatedDtm)
-                    .HasColumnName("updated_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.HasOne(d => d.ApiScope)
-                    .WithMany(p => p.AuthFrontendScopeApi)
-                    .HasForeignKey(d => d.ApiScopeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_api_scope_id");
-
-                entity.HasOne(d => d.FrontendScope)
-                    .WithMany(p => p.AuthFrontendScopeApi)
-                    .HasForeignKey(d => d.FrontendScopeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_frontend_scope_id");
-            });
-
-            modelBuilder.Entity<AuthFrontendScopePermission>(entity =>
-            {
-                entity.HasKey(e => e.FrontendScopePermissionId)
-                    .HasName("pk_frontend_scope_permission");
-
-                entity.ToTable("auth_frontend_scope_permission", "shersched");
-
-                entity.Property(e => e.FrontendScopePermissionId)
-                    .HasColumnName("frontend_scope_permission_id")
-                    .ValueGeneratedNever();
-
-                entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasColumnName("created_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.CreatedDtm)
-                    .HasColumnName("created_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.Property(e => e.Description)
-                    .HasColumnName("description")
-                    .HasMaxLength(200);
-
-                entity.Property(e => e.DisplayName)
-                    .IsRequired()
-                    .HasColumnName("display_name")
-                    .HasMaxLength(128);
-
-                entity.Property(e => e.FrontendScopeId).HasColumnName("frontend_scope_id");
-
-                entity.Property(e => e.PermissionCode)
-                    .IsRequired()
-                    .HasColumnName("permission_code")
-                    .HasMaxLength(128);
-
-                entity.Property(e => e.RevisionCount)
-                    .HasColumnName("revision_count")
-                    .HasColumnType("numeric(10,0)");
-
-                entity.Property(e => e.UpdatedBy)
-                    .IsRequired()
-                    .HasColumnName("updated_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.UpdatedDtm)
-                    .HasColumnName("updated_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.HasOne(d => d.FrontendScope)
-                    .WithMany(p => p.AuthFrontendScopePermission)
-                    .HasForeignKey(d => d.FrontendScopeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_frontend_scope");
-            });
-
             modelBuilder.Entity<AuthRole>(entity =>
             {
                 entity.HasKey(e => e.RoleId)
@@ -489,106 +277,6 @@ namespace SS.Api.Models.DB
                     .HasColumnType("timestamp with time zone");
             });
 
-            modelBuilder.Entity<AuthRoleApiScope>(entity =>
-            {
-                entity.HasKey(e => e.RoleApiScopeId)
-                    .HasName("pk_role_api_scope");
-
-                entity.ToTable("auth_role_api_scope", "shersched");
-
-                entity.Property(e => e.RoleApiScopeId)
-                    .HasColumnName("role_api_scope_id")
-                    .ValueGeneratedNever();
-
-                entity.Property(e => e.ApiScopeId).HasColumnName("api_scope_id");
-
-                entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasColumnName("created_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.CreatedDtm)
-                    .HasColumnName("created_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.Property(e => e.RevisionCount)
-                    .HasColumnName("revision_count")
-                    .HasColumnType("numeric(10,0)");
-
-                entity.Property(e => e.RoleId).HasColumnName("role_id");
-
-                entity.Property(e => e.UpdatedBy)
-                    .IsRequired()
-                    .HasColumnName("updated_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.UpdatedDtm)
-                    .HasColumnName("updated_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.HasOne(d => d.ApiScope)
-                    .WithMany(p => p.AuthRoleApiScope)
-                    .HasForeignKey(d => d.ApiScopeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_api_scope_id");
-
-                entity.HasOne(d => d.Role)
-                    .WithMany(p => p.AuthRoleApiScope)
-                    .HasForeignKey(d => d.RoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_role_id");
-            });
-
-            modelBuilder.Entity<AuthRoleFrontendScope>(entity =>
-            {
-                entity.HasKey(e => e.RoleFrontendScopeId)
-                    .HasName("pk_role_frontend_scope");
-
-                entity.ToTable("auth_role_frontend_scope", "shersched");
-
-                entity.Property(e => e.RoleFrontendScopeId)
-                    .HasColumnName("role_frontend_scope_id")
-                    .ValueGeneratedNever();
-
-                entity.Property(e => e.CreatedBy)
-                    .IsRequired()
-                    .HasColumnName("created_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.CreatedDtm)
-                    .HasColumnName("created_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.Property(e => e.FrontendScopeId).HasColumnName("frontend_scope_id");
-
-                entity.Property(e => e.RevisionCount)
-                    .HasColumnName("revision_count")
-                    .HasColumnType("numeric(10,0)");
-
-                entity.Property(e => e.RoleId).HasColumnName("role_id");
-
-                entity.Property(e => e.UpdatedBy)
-                    .IsRequired()
-                    .HasColumnName("updated_by")
-                    .HasMaxLength(100);
-
-                entity.Property(e => e.UpdatedDtm)
-                    .HasColumnName("updated_dtm")
-                    .HasColumnType("timestamp with time zone");
-
-                entity.HasOne(d => d.FrontendScope)
-                    .WithMany(p => p.AuthRoleFrontendScope)
-                    .HasForeignKey(d => d.FrontendScopeId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_frontend_scope_id");
-
-                entity.HasOne(d => d.Role)
-                    .WithMany(p => p.AuthRoleFrontendScope)
-                    .HasForeignKey(d => d.RoleId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("fk_role_id");
-            });
-
             modelBuilder.Entity<AuthRolePermission>(entity =>
             {
                 entity.HasKey(e => e.RolePermissionId)
@@ -631,21 +319,6 @@ namespace SS.Api.Models.DB
                 entity.Property(e => e.UpdatedDtm)
                     .HasColumnName("updated_dtm")
                     .HasColumnType("timestamp with time zone");
-
-                entity.HasOne(d => d.FrontendScopePermission)
-                    .WithMany(p => p.AuthRolePermission)
-                    .HasForeignKey(d => d.FrontendScopePermissionId)
-                    .HasConstraintName("fk_frontend_permission_id");
-
-                entity.HasOne(d => d.RoleApiScope)
-                    .WithMany(p => p.AuthRolePermission)
-                    .HasForeignKey(d => d.RoleApiScopeId)
-                    .HasConstraintName("fk_role_api_scope_id");
-
-                entity.HasOne(d => d.RoleFrontendScope)
-                    .WithMany(p => p.AuthRolePermission)
-                    .HasForeignKey(d => d.RoleFrontendScopeId)
-                    .HasConstraintName("fk_role_frontend_scope_id");
 
                 entity.HasOne(d => d.Role)
                     .WithMany(p => p.AuthRolePermission)

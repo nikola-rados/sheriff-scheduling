@@ -7,9 +7,6 @@ namespace SS.Api.Models.DB
     {
         public AuthRole()
         {
-            AuthRoleApiScope = new HashSet<AuthRoleApiScope>();
-            AuthRoleFrontendScope = new HashSet<AuthRoleFrontendScope>();
-            AuthRolePermission = new HashSet<AuthRolePermission>();
             AuthUserRole = new HashSet<AuthUserRole>();
         }
 
@@ -24,8 +21,6 @@ namespace SS.Api.Models.DB
         public DateTime UpdatedDtm { get; set; }
         public decimal RevisionCount { get; set; }
 
-        public virtual ICollection<AuthRoleApiScope> AuthRoleApiScope { get; set; }
-        public virtual ICollection<AuthRoleFrontendScope> AuthRoleFrontendScope { get; set; }
         public virtual ICollection<AuthRolePermission> AuthRolePermission { get; set; }
         public virtual ICollection<AuthUserRole> AuthUserRole { get; set; }
     }

@@ -10,7 +10,7 @@ using SS.Api.Models.DB;
 
 namespace SS.Api.Migrations
 {
-    [DbContext(typeof(appdbContext))]
+    [DbContext(typeof(SheriffDbContext))]
     [Migration("20200911212234_InitialCreate")]
     partial class InitialCreate
     {

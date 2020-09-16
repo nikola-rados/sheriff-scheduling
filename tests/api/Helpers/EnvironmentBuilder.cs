@@ -28,7 +28,7 @@ namespace tests.api.Helpers
             //Create HTTP client, usually done by Startup.cs - which handles the life cycle of HttpClient nicely.
             HttpClient = new HttpClient();
 
-            HttpClient.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(
+            HttpClient.DefaultRequestHeaders.Authorization = new SS.Api.Models.BasicAuthenticationHeaderValue(
                 Configuration.GetNonEmptyValue(usernameKey),
                 Configuration.GetNonEmptyValue(passwordKey));
 
