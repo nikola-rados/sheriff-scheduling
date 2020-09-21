@@ -6,7 +6,7 @@ module.exports = {
 			historyApiFallback: true,
 			proxy: {
 				'^/api': {
-					target: "https://localhost:44369",
+					target: "https://localhost:44370",
 					headers: {
 						Connection: 'keep-alive'
 					},

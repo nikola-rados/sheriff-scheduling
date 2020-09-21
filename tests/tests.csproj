@@ -6,6 +6,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="api\Controllers\**" />
+    <Compile Remove="api\Services\**" />
+    <EmbeddedResource Remove="api\Controllers\**" />
+    <EmbeddedResource Remove="api\Services\**" />
+    <None Remove="api\Controllers\**" />
+    <None Remove="api\Services\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="..\api\appsettings.json" Link="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -29,8 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="api\Controllers\" />
-    <Folder Include="api\Services\" />
+    <Folder Include="services\" />
   </ItemGroup>
 
 </Project>

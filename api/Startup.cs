@@ -13,10 +13,7 @@ using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
-using SS.Api.Authorization;
 using SS.Api.Helpers;
-using SS.Api.Helpers.ContractResolver;
-using SS.Api.Helpers.Mapping;
 using SS.Api.Helpers.Middleware;
 using SS.Api.Models.DB;
 using System;
@@ -24,22 +21,28 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SS.Api.infrastructure;
 
 namespace SS.Api
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private IWebHostEnvironment CurrentEnvironment { get; set; }
+
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
             Configuration = configuration;
+            CurrentEnvironment = env;
         }
 
         private IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthorization();
-
+            services.AddScoped<IClaimsTransformation, ClaimsTransformer>();
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -48,7 +51,8 @@ namespace SS.Api
             })
             .AddCookie(options => {
                 options.Cookie.HttpOnly = true;
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+                //Important to be None, otherwise a redirect loop will occur.
+                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
                 options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
             }
             )
@@ -63,8 +67,6 @@ namespace SS.Api
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.UsePkce = true;
                 options.SaveTokens = true;
-                options.Scope.Add("openid");
-                options.Scope.Add("email");
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 var key = Encoding.ASCII.GetBytes(Configuration.GetValue<string>("Keycloak:Secret"));
@@ -79,7 +81,7 @@ namespace SS.Api
                     ValidateAudience = false,
                 };
                 if (key.Length > 0) options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
-                options.Events = new JwtBearerEvents()
+                options.Events = new JwtBearerEvents
                 {
                     OnAuthenticationFailed = context =>
                     {
@@ -96,6 +98,14 @@ namespace SS.Api
                 };
             });
 
+            services.AddAuthorization(options =>
+                {
+                    options.AddPolicy("log in user",
+                        policy => policy.RequireClaim("CAN_LOGIN", "TRUE"));
+                }
+            );
+
+
             services.AddMapster();
             services.AddLazyCache();
 
@@ -107,12 +117,15 @@ namespace SS.Api
                 });
             });
 
-            services.AddDbContext<SheriffDbContext>(options => options.UseNpgsql(Configuration.GetNonEmptyValue("ConnectionStrings.DB")));
+            var enableSensitiveDataLogging = CurrentEnvironment.IsDevelopment();
+            services.AddDbContext<SheriffDbContext>(options => options.UseNpgsql(Configuration.GetNonEmptyValue("ConnectionStrings.DB")).EnableSensitiveDataLogging(enableSensitiveDataLogging));
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
-            services.AddControllers().AddNewtonsoftJson(options =>
+            services.AddSSServices(Configuration);
+
+            services.AddControllers(options => options.AddDefaultAuthorizationPolicyFilter()).AddNewtonsoftJson(options =>
             {
-                options.SerializerSettings.ContractResolver = new SafeContractResolver { NamingStrategy = new CamelCaseNamingStrategy() };
+                options.SerializerSettings.ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() };
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
