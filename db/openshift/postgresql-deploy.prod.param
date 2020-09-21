@@ -6,7 +6,7 @@
 # NAME=postgresql
 # APP_NAME=sheriff-scheduling
 # ROLE=db
-# IMAGE_NAMESPACE=tamjni-tools
+# IMAGE_NAMESPACE=jag-shuber
 # SOURCE_IMAGE_NAME=postgresql
 # PERSISTENT_VOLUME_SIZE=75Gi
 # PERSISTENT_VOLUME_CLASS=netapp-file-standard
