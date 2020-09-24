@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Reflection;
-using db.models;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +30,7 @@ namespace SS.Api.infrastructure
 
         public static IServiceCollection AddSSServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.AddTransient(s => s.GetService<IHttpContextAccessor>().HttpContext.User);
             services.AddScoped<ManageTypesService>();
             services.AddScoped<AuthService>();
             return services;
@@ -40,13 +41,12 @@ namespace SS.Api.infrastructure
             // Default authorization policy enforced via a global authorization filter
             AuthorizationPolicy requireLoginPolicy = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
-                .RequireClaim("CAN_LOGIN", "TRUE")
+                .RequireClaim(Permission.Login, "TRUE")
                 .Build();
 
             AuthorizeFilter filter = new AuthorizeFilter(requireLoginPolicy);
             options.Filters.Add(filter);
             return options;
         }
-
     }
 }

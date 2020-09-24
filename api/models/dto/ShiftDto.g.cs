@@ -1,20 +1,19 @@
 using System;
-using SS.Api.models.db;
+using System.Collections.Generic;
 using SS.Api.Models.DB;
+using SS.Api.Models.Dto;
 using SS.Db.models.auth;
+using SS.Db.models.scheduling;
 
 namespace SS.Api.Models.Dto
 {
-    public partial class LookupCodeDto
+    public partial class ShiftDto
     {
         public int Id { get; set; }
-        public LookupTypes Type { get; set; }
-        public string Code { get; set; }
-        public string SubCode { get; set; }
-        public string Description { get; set; }
-        public DateTime? EffectiveDate { get; set; }
-        public DateTime? ExpiryDate { get; set; }
-        public int? SortOrder { get; set; }
+        public ShiftType Type { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public ICollection<SheriffDto> AssignedSheriff { get; set; }
         public int? LocationId { get; set; }
         public Location Location { get; set; }
         public Guid? CreatedById { get; set; }

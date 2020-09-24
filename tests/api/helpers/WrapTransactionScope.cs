@@ -8,18 +8,18 @@ namespace tests.api.helpers
     /// </summary>
     public class WrapInTransactionScope : IDisposable
     {
-        private TransactionScope scope;
+        private readonly TransactionScope _scope;
         public bool CommitTxn { get; set; }
 
         public WrapInTransactionScope()
         {
-            scope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+            _scope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
         }
 
         public void Dispose()
         {
-            if (CommitTxn) scope.Complete();
-            scope.Dispose();
+            if (CommitTxn) _scope.Complete();
+            _scope.Dispose();
         }
     }
 }

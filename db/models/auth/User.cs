@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using db.models;
-using db.models.auth;
+using Mapster;
+using SS.Api.Models.DB;
 
 namespace SS.Db.models.auth
 {
-    public class User
+    public class User : BaseEntity
     {
         public User()
         {
@@ -14,19 +15,17 @@ namespace SS.Db.models.auth
         }
         [Key]
         public Guid Id { get; set; }
+        [AdaptIgnore]
+        public string PreferredUsername { get; set; }
+        [AdaptIgnore]
+        public Guid IdirId { get; set; }
         public bool IsDisabled { get; set;}
+        public Location HomeLocation { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public Gender Gender { get; set; }
-        public string BadgeNumber { get; set;}
-        public string Rank { get; set; }
-        public List<Role> Roles { get; set; }
-        public List<Permission> Permissions { get; set; }
-        public DateTime CreatedOn { get; set; }
-        public int? UpdatedById { get; set; }
-        public User UpdatedBy { get; set; }
-        public DateTime? UpdatedOn { get; set; }
+        public ICollection<UserRole> Roles { get; set; }
+        public ICollection<Permission> Permissions { get; set; }
         public DateTime? LastLogin { get; set; }
     }
 }

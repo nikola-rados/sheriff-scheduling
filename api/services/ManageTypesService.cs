@@ -1,41 +1,38 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SS.Api.models;
 using SS.Api.models.db;
-using SS.Api.Models.DB;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using db.models;
 using ss.db.models;
+using SS.Db.models;
 
 namespace SS.Api.services
 {
     public class ManageTypesService
     {
-        SheriffDbContext _db;
+        /// <summary>
+        /// Handles ManageTypes or LookupCodes. 
+        /// </summary>
+        /// 
+        readonly SheriffDbContext _db;
         public ManageTypesService(SheriffDbContext dbContext)
         {
             _db = dbContext;
         }
 
-        public async Task<int> Add(LookupCode courtRoleCode)
+        public async Task<LookupCode> Add(LookupCode courtRoleCode)
         {
-            _db.LookupCode.Add(courtRoleCode);
+            await _db.LookupCode.AddAsync(courtRoleCode);
             await _db.SaveChangesAsync();
-            return courtRoleCode.Id;
+            return courtRoleCode;
         }
 
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
         {
-            return await _db.LookupCode.Where(lc => (codeType == null || lc.Type == codeType) && (locationId == null || lc.LocationId == locationId)).ToListAsync();
-            //Different code path for CourtRooms, as it uses the JC-Interface. 
-            if (codeType == LookupTypes.CourtRoom)
-            {
-            }
-            else
-            {
-            }
+            return await _db.LookupCode.Where(lc =>
+                    (codeType == null || lc.Type == codeType) && 
+                    (locationId == null || lc.LocationId == locationId))
+                .ToListAsync();
         }
 
         public async ValueTask<LookupCode> Find(int id)
@@ -43,10 +40,11 @@ namespace SS.Api.services
             return await _db.LookupCode.FindAsync(id);
         }
 
-        public async Task<bool> Update(LookupCode lookupCode)
+        public async Task<LookupCode> Update(LookupCode lookupCode)
         {
             _db.LookupCode.Update(lookupCode);
-            return (await _db.SaveChangesAsync() > 0);
+            await _db.SaveChangesAsync();
+            return lookupCode;
         }
 
         public async Task Remove(int id)

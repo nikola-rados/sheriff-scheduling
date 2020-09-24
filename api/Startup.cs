@@ -19,12 +19,15 @@ using SS.Api.Models.DB;
 using System;
 using System.IO;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SS.Api.infrastructure;
+using SS.Db.models;
+using SS.Db.models.auth;
 
 namespace SS.Api
 {
@@ -100,11 +103,9 @@ namespace SS.Api
 
             services.AddAuthorization(options =>
                 {
-                    options.AddPolicy("log in user",
-                        policy => policy.RequireClaim("CAN_LOGIN", "TRUE"));
+                    options.AddPolicy("IsAdmin", policy => policy.RequireClaim(Permission.IsAdmin, "TRUE"));
                 }
             );
-
 
             services.AddMapster();
             services.AddLazyCache();
@@ -119,6 +120,8 @@ namespace SS.Api
 
             var enableSensitiveDataLogging = CurrentEnvironment.IsDevelopment();
             services.AddDbContext<SheriffDbContext>(options => options.UseNpgsql(Configuration.GetNonEmptyValue("ConnectionStrings.DB")).EnableSensitiveDataLogging(enableSensitiveDataLogging));
+
+
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
             services.AddSSServices(Configuration);
@@ -130,7 +133,7 @@ namespace SS.Api
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
             });
-            
+
             services.AddSwaggerGen(options =>
             {
                 options.EnableAnnotations(true);

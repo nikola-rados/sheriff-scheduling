@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace db.models
+namespace SS.Db.models.scheduling
 {
-    public enum Gender
+    class Assignment
     {
-        Male,
-        Female,
-        Other
+
     }
 }

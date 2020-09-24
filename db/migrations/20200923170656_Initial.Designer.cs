@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -9,9 +10,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200923170656_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -215,9 +217,6 @@ namespace SS.Db.Migrations
                     b.Property<int?>("HomeLocationId")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("IdirId")
-                        .HasColumnType("uuid");
-
                     b.Property<bool>("IsDisabled")
                         .HasColumnType("boolean");
 
@@ -225,9 +224,6 @@ namespace SS.Db.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("LastName")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PreferredUsername")
                         .HasColumnType("text");
 
                     b.Property<byte[]>("RowVersion")
@@ -468,9 +464,6 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<string>("Code")
-                        .HasColumnType("text");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -494,9 +487,6 @@ namespace SS.Db.Migrations
 
                     b.Property<int?>("SortOrder")
                         .HasColumnType("integer");
-
-                    b.Property<string>("SubCode")
-                        .HasColumnType("text");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");

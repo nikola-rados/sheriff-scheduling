@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using SS.Api.Models.DB;
+using SS.Db.models;
 
 namespace SS.Api.infrastructure
 {
@@ -31,7 +32,7 @@ namespace SS.Api.infrastructure
             {
                 //Load claims here from DB. 
                 claims = new List<Claim>();
-                var canLogin = await _db.AuthUser.FirstOrDefaultAsync(u => u.Id == Guid.Parse(nameIdentifier) && !u.IsDisabled) != null;
+                var canLogin = await _db.User.FirstOrDefaultAsync(u => u.Id == Guid.Parse(nameIdentifier) && !u.IsDisabled) != null;
                 var c = new Claim("CAN_LOGIN", "TRUE");
                 claims.Add(c);
                 _cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.AddMinutes(2));

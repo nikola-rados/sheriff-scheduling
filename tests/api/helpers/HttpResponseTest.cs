@@ -18,6 +18,14 @@ namespace tests.api.Helpers
             return result;
         }
 
+        public static void CheckForNoContentResponse<T>(ActionResult<T> actionResult)
+        {
+            Assert.NotNull(actionResult);
+            Assert.NotNull(actionResult.Result);
+            var noContentResult = actionResult.Result as NoContentResult;
+        }
+
+
         public static void CheckForNotFound<T>(ActionResult<T> actionResult)
         {
             Assert.NotNull(actionResult);

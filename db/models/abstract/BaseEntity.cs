@@ -1,5 +1,5 @@
 ﻿using System;
-using db.models.auth;
+using System.ComponentModel.DataAnnotations.Schema;
 using SS.Db.models.auth;
 
 /// <summary>
@@ -46,6 +46,12 @@ namespace db.models
         /// </summary>
         /// <value></value>
         public DateTime? UpdatedOn { get; set; }
+
+        /// <summary>
+        /// get/set - The concurrency row version.
+        /// </summary>
+        /// <value></value>
+        public byte[] RowVersion { get; set; }
         #endregion
 
         #region Constructors

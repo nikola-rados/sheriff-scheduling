@@ -15,7 +15,5 @@ namespace SS.Api.helpers.extensions
 
         public static bool IsInGroup(this ClaimsPrincipal user, string group) =>
             user.HasClaim(c => c.Type == ClaimTypes.GroupSid && c.Value.Equals(group, StringComparison.OrdinalIgnoreCase));
-
-
     }
 }
