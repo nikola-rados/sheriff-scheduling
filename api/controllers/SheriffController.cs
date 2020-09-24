@@ -109,11 +109,11 @@ namespace SS.Api.controllers
 
         [HttpPut]
         [Route("leave")]
-        public async Task<ActionResult> UpdateSheriffAwayLocation(SheriffLeaveDto sheriffAwayLocationDto)
+        public async Task<ActionResult> UpdateSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
         {
-            var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
-            var updatedSheriffAwayLocation = await _service.UpdateSheriffAwayLocation(sheriffAwayLocation);
-            return Ok(updatedSheriffAwayLocation);
+            var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
+            var updatedSheriffLeave = await _service.UpdateSheriffLeave(sheriffLeave);
+            return Ok(updatedSheriffLeave);
         }
 
         [HttpDelete]
@@ -130,8 +130,8 @@ namespace SS.Api.controllers
         [Route("training")]
         public async Task<ActionResult<SheriffAwayLocationDto>> AddSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
-            var sheriffTraining = sheriffTrainingDto.Adapt<SheriffAwayLocation>();
-            var createdSheriffTraining = await _service.AddSheriffAwayLocation(sheriffTraining);
+            var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
+            var createdSheriffTraining = await _service.AddSheriffTraining(sheriffTraining);
             return Ok(createdSheriffTraining);
         }
 
@@ -139,8 +139,8 @@ namespace SS.Api.controllers
         [Route("training")]
         public async Task<ActionResult> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
-            var sheriffTraining = sheriffTrainingDto.Adapt<SheriffAwayLocation>();
-            var updatedSheriffTraining = await _service.UpdateSheriffAwayLocation(sheriffTraining);
+            var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
+            var updatedSheriffTraining = await _service.UpdateSheriffTraining(sheriffTraining);
             return Ok(updatedSheriffTraining);
         }
 
