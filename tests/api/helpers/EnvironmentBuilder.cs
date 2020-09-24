@@ -5,6 +5,10 @@ using System.Net.Http;
 using SS.Api.Helpers;
 using SS.Api.Helpers.Extensions;
 using SS.Api.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.InMemory;
+using SS.Api.Models.DB;
+using SS.Db.models;
 
 namespace tests.api.Helpers
 {
@@ -22,7 +26,7 @@ namespace tests.api.Helpers
             //Load in secrets, this uses the secrets file as the API.
             var builder = new ConfigurationBuilder();
             builder.AddJsonFile("appsettings.json", optional: true);
-            //builder.AddUserSecrets<FilesControllerTests>();
+            builder.AddUserSecrets<EnvironmentBuilder>();
             Configuration = builder.Build();
 
             //Create HTTP client, usually done by Startup.cs - which handles the life cycle of HttpClient nicely.
@@ -43,6 +47,23 @@ namespace tests.api.Helpers
                     .AddConsole();
             });
         }
+
+        public static DbContextOptions<SheriffDbContext> SetupDbOptions(bool useMemoryDatabase = false)
+        {
+            var builder = new ConfigurationBuilder();
+            builder.AddJsonFile("appsettings.json", optional: true);
+            builder.AddUserSecrets<EnvironmentBuilder>();
+            var configuration = builder.Build();
+
+            var optionsBuilder = new DbContextOptionsBuilder<SheriffDbContext>();
+            if (useMemoryDatabase)
+                optionsBuilder.UseInMemoryDatabase("testingDb");
+            else
+                optionsBuilder.UseNpgsql(configuration.GetNonEmptyValue("ConnectionStrings.DB")).EnableSensitiveDataLogging(true);
+
+            return optionsBuilder.Options;
+        }
+
     }
 
 }
