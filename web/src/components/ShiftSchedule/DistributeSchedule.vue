@@ -4,7 +4,7 @@
         <b-card  align="left" >
             
             <b-card >
-                <b-card-title class="h2"> Temporary landing page for Sheriff Scheduling </b-card-title>
+                <b-card-title class="h2"> Temporary DistributeSchedule page </b-card-title>
             </b-card>   
 
         </b-card>
@@ -16,7 +16,7 @@
     import { namespace } from 'vuex-class'
 
     @Component
-    export default class Home extends Vue {
+    export default class DistributeSchedule extends Vue {
 
     }
 </script>

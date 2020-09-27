@@ -21,9 +21,9 @@ $bcgov-font-path: "../../node_modules/@bcgov/bootstrap-theme/dist/fonts/";
 }
 
 // used in survey markup (currently)
-.card-header {
-  border-bottom: 0;
-}
+// .card-header {
+//   border-bottom: 0;
+// }
 
 // FIXME replace with bootstrap 4 classes
 .mrgn-tp-sm {
@@ -58,24 +58,7 @@ $bcgov-font-path: "../../node_modules/@bcgov/bootstrap-theme/dist/fonts/";
   margin-left: 0.25em;
 }
 
-// needed for sidebar - override normal breakpoint-dependent container width
 
-.container {
-  width: auto;
-  @media (min-width: 768px) {
-    max-width: 750px;
-  }
-  @media (min-width: 992px) {
-    max-width: 970px;
-  }
-  @media (min-width: 1200px) {
-    max-width: 1170px;
-  }
-}
-
-.contentcontainer {
-  min-height: 40em;
-}
 
 // loading indicator
 @keyframes spin {
@@ -162,60 +145,10 @@ $indicator-thickness: 0.2em;
   }
 }
 
-//Below are styles for the FPO
-.app-content {
-  display: flex;
-  flex: 1 0 auto;
-  flex-flow: row nowrap;
-  max-width: 100%;
-  padding: 0;
-  min-height: 100%;
-}
-
-.app-main {
-  flex: auto;
-  padding: 0 15px 80px;
-}
-
 .app-outer {
   display: flex;
   flex-flow: column nowrap;
   min-height: 100%;
-}
-
-@include media-breakpoint-down(md) {
-  .navbar .navbar-text {
-    font-size: 1em;
-  }
-  .navbar .navbar-extra {
-    flex: 0 1 auto;
-  }
-}
-
-@include media-breakpoint-up(lg) {
-  .sidebar-left,
-  .sidebar-right {
-    width: $sidebar-width-lg;
-  }
-}
-
-.sidebar-left,
-.sidebar-right {
-  display: block;
-  flex: none;
-  overflow: hidden;
-  position: relative;
-  transition: width 0.2s ease-in;
-  width: $sidebar-width-md;
-  &.insert-hidden {
-    width: 0;
-  }
-}
-
-// Header styles
-
-.navbar > .container-fluid {
-  padding-right: 10em; // room for quick exit
 }
 
 .navbar-tag {
@@ -238,14 +171,3 @@ $indicator-thickness: 0.2em;
   flex: 1 1 auto;
   text-align: right;
 }
-
-// https://www.freecodecamp.org/news/how-to-keep-your-footer-where-it-belongs-59c6aa05c59c/
-
-// #footer {
-//   position: absolute;
-//   position: fixed;
-//   bottom: 0;
-//   width: 100%;
-//   height: 3.5rem; /* Footer height */
-// }
-

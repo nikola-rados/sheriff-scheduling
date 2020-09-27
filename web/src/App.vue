@@ -1,7 +1,7 @@
 <template>    
     <div class="app-outer fill-body" id="app">
         <navigation-topbar />
-            <router-view />
+        <router-view></router-view>
         <navigation-footer id="footer" />
     </div>
 </template>
@@ -16,7 +16,7 @@
             NavigationTopbar,
             NavigationFooter
         }
-    })
-    
-    export default class App extends Vue { }
+    })    
+    export default class App extends Vue {       
+     }
 </script>
