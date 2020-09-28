@@ -5,6 +5,7 @@ using SS.Api.services;
 using System;
 using System.Threading.Tasks;
 using SS.Api.controllers;
+using SS.Api.Models.DB;
 using SS.Db.models;
 using tests.api.helpers;
 using tests.api.Helpers;
@@ -18,9 +19,8 @@ namespace tests.controllers
     public class ManageTypesControllerTests : WrapInTransactionScope
     {
         #region Variables
-
         private readonly ManageTypesController _controller;
-        private SheriffDbContext _dbContext;
+        private readonly SheriffDbContext _dbContext;
         #endregion Variables
 
         public ManageTypesControllerTests()
@@ -40,7 +40,7 @@ namespace tests.controllers
                 Type = LookupTypes.CourtRole
             };
             var controllerResult = await _controller.Add(courtRole);
-            var response = HttpResponseTest.CheckForValidHttpResponseAndReturnValue(controllerResult);
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.True(response.Id > 0);
         }
 
@@ -49,25 +49,28 @@ namespace tests.controllers
         {
             await AddCourtRole();
             var controllerResult = await _controller.GetAll(LookupTypes.CourtRole, 5);
-            var response = HttpResponseTest.CheckForValidHttpResponseAndReturnValue(controllerResult);
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.True(response.Count >= 1);
 
             var controllerResult2 = await _controller.GetAll(LookupTypes.EscortRun, 5);
-            var response2 = HttpResponseTest.CheckForValidHttpResponseAndReturnValue(controllerResult2);
+            var response2 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult2);
             Assert.True(response2.Count == 0);
         }
 
         [Fact]
         public async Task UpdateLookupCode()
         {
+            var newLocation = new Location { Name = "6", Id = 6 };
+            await _dbContext.Location.AddAsync(newLocation);
+            await _dbContext.SaveChangesAsync();
+
+            Detach();
+
             var id = await AddCourtRole();
-            var result = HttpResponseTest.CheckForValidHttpResponseAndReturnValue(await _controller.Find(id));
+            var result = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.Find(id));
 
             Detach(); //We get an exception if we don't detach before the update. 
 
-            var createdById = new Guid();
-            result.CreatedById = createdById;
-            result.CreatedOn = DateTime.Now;
             result.Description = "test";
             result.EffectiveDate = DateTime.Now;
             result.Code = "gg";
@@ -75,28 +78,21 @@ namespace tests.controllers
             result.ExpiryDate = DateTime.Now;
             result.SortOrder = 5;
             result.Type = LookupTypes.JailRole;
-            var updatedById = new Guid();
-            result.UpdatedById = updatedById;
-            result.UpdatedOn = DateTime.Now;
-       
-            result.LocationId = 6;
+            result.Location = new LocationDto {Id = 6};
 
             var controllerResult = await _controller.Update(result);
-            HttpResponseTest.CheckForValidHttpResponseAndReturnValue(controllerResult);
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
-            result = HttpResponseTest.CheckForValidHttpResponseAndReturnValue(await _controller.Find(id));
+            result = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.Find(id));
 
-            Assert.Equal(createdById, result.CreatedById);
-            Assert.Equal(DateTime.Now, result.CreatedOn, TimeSpan.FromSeconds(10));
             Assert.Equal("test", result.Description);
             Assert.Equal(DateTime.Now, result.EffectiveDate.Value, TimeSpan.FromSeconds(10));
             Assert.Equal(DateTime.Now, result.ExpiryDate.Value, TimeSpan.FromSeconds(10));
             Assert.Equal(5, result.SortOrder);
             Assert.Equal(LookupTypes.JailRole, result.Type);
-            Assert.Equal(updatedById, result.UpdatedById);
-            Assert.Equal(DateTime.Now, result.UpdatedOn.Value, TimeSpan.FromSeconds(10));
             Assert.Equal("gg", result.Code);
             Assert.Equal("gg2", result.SubCode);
+            Assert.Equal(6, result.Location.Id);
         }
 
         [Fact]
@@ -111,20 +107,60 @@ namespace tests.controllers
             HttpResponseTest.CheckForNotFound(controllerResult3);
         }
 
+        [Fact]
+        public async Task LocationTest()
+        {
+            var newLocation = new Location { Name = "5", Id = 5 };
+            await _dbContext.Location.AddAsync(newLocation);
+            await _dbContext.SaveChangesAsync();
+
+            Detach();
+
+            var courtRole = new LookupCodeDto
+            {
+                Type = LookupTypes.CourtRole,
+                Location = new LocationDto { Id = 66},
+            };
+            var controllerResult = await _controller.Add(courtRole);
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
+            Assert.True(response.Id > 0);
+
+            controllerResult = await _controller.Find(response.Id);
+            response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
+
+            Assert.Null(response.Location);
+
+
+            courtRole = new LookupCodeDto
+            {
+                Type = LookupTypes.CourtRole,
+                Location = new LocationDto { Id = 5 },
+            };
+            controllerResult = await _controller.Add(courtRole);
+            response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
+            Assert.True(response.Id > 0);
+
+            controllerResult = await _controller.Find(response.Id);
+            response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
+
+            Assert.NotNull(response.Location);
+            Assert.Equal(5, response.Location.Id);
+        }
+
+        #region Helpers
         private async Task<int> AddCourtRole()
         {
             var courtRole = new LookupCodeDto
             {
                 Description = "test",
                 Type = LookupTypes.CourtRole,
-                LocationId = 5
+                Location = new LocationDto { Id = 5 },
             };
             var controllerResult = await _controller.Add(courtRole);
-            var result = HttpResponseTest.CheckForValidHttpResponseAndReturnValue(controllerResult);
+            var result = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             return result.Id;
         }
 
-        #region Helpers
         private void Detach()
         {
             foreach (var entity in _dbContext.ChangeTracker.Entries())

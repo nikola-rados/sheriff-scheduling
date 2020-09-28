@@ -20,18 +20,22 @@ namespace SS.Api.services
             _db = dbContext;
         }
 
-        public async Task<LookupCode> Add(LookupCode courtRoleCode)
+        public async Task<LookupCode> Add(LookupCode lookupCode)
         {
-            await _db.LookupCode.AddAsync(courtRoleCode);
+            //This needs to be associated, otherwise EF will create it. 
+            if (lookupCode.Location != null)
+                lookupCode.Location = await _db.Location.FindAsync(lookupCode.Location.Id);
+
+            await _db.LookupCode.AddAsync(lookupCode);
             await _db.SaveChangesAsync();
-            return courtRoleCode;
+            return lookupCode;
         }
 
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
         {
             return await _db.LookupCode.Where(lc =>
                     (codeType == null || lc.Type == codeType) && 
-                    (locationId == null || lc.LocationId == locationId))
+                    (locationId == null || lc.Location.Id == locationId))
                 .ToListAsync();
         }
 
@@ -42,6 +46,10 @@ namespace SS.Api.services
 
         public async Task<LookupCode> Update(LookupCode lookupCode)
         {
+            //This needs to be associated, otherwise EF will create it. 
+            if (lookupCode.Location != null)
+                lookupCode.Location = await _db.Location.FindAsync(lookupCode.Location.Id);
+
             _db.LookupCode.Update(lookupCode);
             await _db.SaveChangesAsync();
             return lookupCode;

@@ -15,16 +15,12 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using SS.Api.Helpers;
 using SS.Api.Helpers.Middleware;
-using SS.Api.Models.DB;
 using System;
 using System.IO;
 using System.Reflection;
-using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using SS.Api.infrastructure;
 using SS.Db.models;
 using SS.Db.models.auth;
@@ -81,7 +77,7 @@ namespace SS.Api
                 {
                     ValidateIssuerSigningKey = true,
                     ValidateIssuer = false,
-                    ValidateAudience = false,
+                    ValidateAudience = false
                 };
                 if (key.Length > 0) options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
                 options.Events = new JwtBearerEvents
@@ -103,7 +99,8 @@ namespace SS.Api
 
             services.AddAuthorization(options =>
                 {
-                    options.AddPolicy("IsAdmin", policy => policy.RequireClaim(Permission.IsAdmin, "TRUE"));
+                    options.AddPolicy(Permission.IsAdmin, policy => policy.RequireClaim(Permission.IsAdmin, "TRUE"));
+                    options.AddPolicy(Permission.Login, policy => policy.RequireClaim(Permission.Login, "TRUE"));
                 }
             );
 
@@ -126,7 +123,7 @@ namespace SS.Api
 
             services.AddSSServices(Configuration);
 
-            services.AddControllers(options => options.AddDefaultAuthorizationPolicyFilter()).AddNewtonsoftJson(options =>
+            services.AddControllers().AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() };
                 options.SerializerSettings.Formatting = Formatting.Indented;

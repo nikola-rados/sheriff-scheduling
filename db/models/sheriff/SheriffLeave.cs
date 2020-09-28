@@ -11,12 +11,13 @@ namespace SS.Db.models.sheriff
     {
         [Key]
         public int Id { get; set; }
+        public virtual LookupCode LeaveType { get; set; }
         public int? LeaveTypeId { get; set; }
-        public LookupCode LeaveType { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public bool IsFullDay { get; set; }
-        public Guid? SheriffId { get; set; }
-        public Sheriff Sheriff { get; set; }
+        [AdaptIgnore]
+        public virtual Sheriff Sheriff { get; set; }
+        public Guid SheriffId { get; set; }
     }
 }

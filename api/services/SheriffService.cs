@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using db.models;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
@@ -50,15 +51,20 @@ namespace SS.Api.services
 
         public async Task<Sheriff> GetSheriff(Guid id)
         {
-            return await _db.Sheriff.Include(s => s.AwayLocations)
-                .Include(s => s.Leaves)
+            return await _db.Sheriff.Include(s=> s.HomeLocation)
+                .Include(s => s.AwayLocation)
+                .Include(s => s.Leave)
                 .Include(s => s.Training)
                 .SingleOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<Sheriff> UpdateSheriff(Sheriff sheriff)
+        public async Task<Sheriff> UpdateBaseSheriff(Sheriff sheriff)
         {
-            _db.Sheriff.Update(sheriff);
+            var savedSheriff = await _db.Sheriff.FindAsync(sheriff.Id);
+            if (savedSheriff == null) throw new KeyNotFoundException($"{nameof(savedSheriff)} with the id: {savedSheriff.Id} could not be found. ");
+
+            _db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
+
             await _db.SaveChangesAsync();
             return sheriff;
         }
@@ -69,6 +75,8 @@ namespace SS.Api.services
 
         public async Task<SheriffAwayLocation> AddSheriffAwayLocation(SheriffAwayLocation sheriffAwayLocation)
         {
+            sheriffAwayLocation.Location = await _db.Location.FindAsync(sheriffAwayLocation.LocationId);
+            sheriffAwayLocation.Sheriff = await _db.Sheriff.FindAsync(sheriffAwayLocation.SheriffId);
             await _db.SheriffAwayLocation.AddAsync(sheriffAwayLocation);
             await _db.SaveChangesAsync();
             return sheriffAwayLocation;
@@ -76,7 +84,11 @@ namespace SS.Api.services
 
         public async Task<SheriffAwayLocation> UpdateSheriffAwayLocation(SheriffAwayLocation sheriffAwayLocation)
         {
-            _db.SheriffAwayLocation.Update(sheriffAwayLocation);
+            var savedAwayLocation = await _db.SheriffAwayLocation.FindAsync(sheriffAwayLocation.Id);
+            if (savedAwayLocation == null) throw new KeyNotFoundException($"{nameof(sheriffAwayLocation)} with the id: {sheriffAwayLocation.Id} could not be found. ");
+
+            _db.Entry(savedAwayLocation).CurrentValues.SetValues(sheriffAwayLocation);
+
             await _db.SaveChangesAsync();
             return sheriffAwayLocation;
         }
@@ -95,16 +107,22 @@ namespace SS.Api.services
 
         #region Sheriff Leave
 
-        public async Task<int> AddSheriffLeave(SheriffLeave sheriffLeave)
+        public async Task<SheriffLeave> AddSheriffLeave(SheriffLeave sheriffLeave)
         {
+            sheriffLeave.LeaveType = await _db.LookupCode.FindAsync(sheriffLeave.LeaveTypeId);
+            sheriffLeave.Sheriff = await _db.Sheriff.FindAsync(sheriffLeave.SheriffId);
             await _db.SheriffLeave.AddAsync(sheriffLeave);
             await _db.SaveChangesAsync();
-            return sheriffLeave.Id;
+            return sheriffLeave;
         }
 
         public async Task<SheriffLeave> UpdateSheriffLeave(SheriffLeave sheriffLeave)
         {
-            _db.SheriffLeave.Update(sheriffLeave);
+            var savedLeave = await _db.SheriffLeave.FindAsync(sheriffLeave.Id);
+            if (savedLeave == null) throw new KeyNotFoundException($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
+
+            _db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
+
             await _db.SaveChangesAsync();
             return sheriffLeave;
         }
@@ -123,16 +141,22 @@ namespace SS.Api.services
 
         #region Sheriff Training
 
-        public async Task<int> AddSheriffTraining(SheriffTraining sheriffTraining)
+        public async Task<SheriffTraining> AddSheriffTraining(SheriffTraining sheriffTraining)
         {
+            sheriffTraining.Sheriff = await _db.Sheriff.FindAsync(sheriffTraining.SheriffId);
+            sheriffTraining.TrainingType = await _db.LookupCode.FindAsync(sheriffTraining.TrainingTypeId);
             await _db.SheriffTraining.AddAsync(sheriffTraining);
             await _db.SaveChangesAsync();
-            return sheriffTraining.Id;
+            return sheriffTraining;
         }
 
         public async Task<SheriffTraining> UpdateSheriffTraining(SheriffTraining sheriffTraining)
         {
-            _db.SheriffTraining.Update(sheriffTraining);
+            var savedLeave = await _db.SheriffTraining.FindAsync(sheriffTraining.Id);
+            if (savedLeave == null) throw new KeyNotFoundException($"{nameof(sheriffTraining)} with the id: {sheriffTraining.Id} could not be found. ");
+
+            _db.Entry(savedLeave).CurrentValues.SetValues(sheriffTraining);
+
             await _db.SaveChangesAsync();
             return sheriffTraining;
         }

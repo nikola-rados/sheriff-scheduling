@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
@@ -20,31 +21,43 @@ namespace SS.Api.services
             _db = dbContext;
         }
 
-        public async Task<User> UpsertUserFromClaims(ClaimsIdentity claimsIdentity)
+        /// <summary>
+        /// This will see if the user exists, if it doesn't exist it will create a new user object with the ID from
+        /// the SSO. 
+        /// </summary>
+        /// <param name="claimsIdentity"></param>
+        /// <returns></returns>
+        public async Task RequestAccess(ClaimsIdentity claimsIdentity)
+        {
+            var claims = claimsIdentity.Claims.ToList();
+            var id = Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
+            if (await _db.User.AnyAsync(u => u.Id == id))
+                return;
+
+            var user = new User
+            {
+                Id = id,
+                PreferredUsername = claims.GetValueByType("preferred_username"),
+                IdirId = Guid.Parse(claims.GetValueByType("idir_userid")),
+                FirstName = claims.GetValueByType(ClaimTypes.GivenName),
+                LastName = claims.GetValueByType(ClaimTypes.Name),
+                Email = claims.GetValueByType(ClaimTypes.Email),
+                IsDisabled = true
+            };
+            await _db.User.AddAsync(user);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateUserLogin(ClaimsIdentity claimsIdentity)
         {
             var claims = claimsIdentity.Claims.ToList();
             var id = Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
             var user = await _db.User.FindAsync(id);
-            if (user != null && !user.IsDisabled)
-            {
-                user.LastLogin = DateTime.Now;
-            }
-            else if (user == null)
-            {
-                user = new User
-                {
-                    Id = id,
-                    PreferredUsername = claims.GetValueByType("preferred_username"),
-                    IdirId = Guid.Parse(claims.GetValueByType("idir_userid")),
-                    FirstName = claims.GetValueByType(ClaimTypes.GivenName),
-                    LastName = claims.GetValueByType(ClaimTypes.Name),
-                    Email = claims.GetValueByType(ClaimTypes.Email),
-                    IsDisabled = true
-                };
-                await _db.User.AddAsync(user);
-            }
+            if (user == null || user.IsDisabled)
+                return;
+                
+            user.LastLogin = DateTime.Now;
             await _db.SaveChangesAsync();
-            return user;
         }
 
         #region Permissions
@@ -63,8 +76,6 @@ namespace SS.Api.services
 
             var rolePermission = new RolePermission
             {
-                CreatedById = new Guid(), 
-                CreatedOn = DateTime.UtcNow,
                 Permission = permission,
                 Role = role
             };
@@ -148,5 +159,9 @@ namespace SS.Api.services
         }
 
         #endregion Roles
+
+        #region Helpers
+
+        #endregion
     }
 }

@@ -13,6 +13,7 @@ namespace SS.Api.controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize(Policy = Permission.IsAdmin)]
+    [Authorize(Policy = Permission.Login)]
     public class SheriffController : ControllerBase
     {
         private readonly SheriffService _service;
@@ -36,7 +37,7 @@ namespace SS.Api.controllers
         /// <returns>SheriffDto</returns>
         [HttpGet]
         [Route("{id}")]
-        public async Task<ActionResult> FindSheriff(Guid id)
+        public async Task<ActionResult<SheriffDto>> FindSheriff(Guid id)
         {
             var sheriff = await _service.GetSheriff(id);
             if (sheriff == null)
@@ -45,16 +46,16 @@ namespace SS.Api.controllers
         }
 
         [HttpPut]
-        public async Task<ActionResult> UpdateSheriff(SheriffDto sheriffDto)
+        public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffDto sheriffDto)
         {
             var sheriff = sheriffDto.Adapt<Sheriff>();
-            sheriff = await _service.UpdateSheriff(sheriff);
+            sheriff = await _service.UpdateBaseSheriff(sheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
         [HttpPut]
         [Route("enableSheriff/{id}")]
-        public async Task<ActionResult> EnableSheriff(Guid id)
+        public async Task<ActionResult<SheriffDto>> EnableSheriff(Guid id)
         {
             var sheriff = await _service.EnableSheriff(id);
             return Ok(sheriff.Adapt<SheriffDto>());
@@ -62,7 +63,7 @@ namespace SS.Api.controllers
 
         [HttpDelete]
         [Route("disableSheriff/{id}")]
-        public async Task<ActionResult> DisableSheriff(Guid id)
+        public async Task<ActionResult<SheriffDto>> DisableSheriff(Guid id)
         {
             var sheriff = await _service.DisableSheriff(id);
             return Ok(sheriff.Adapt<SheriffDto>());
@@ -76,16 +77,16 @@ namespace SS.Api.controllers
         {
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
             var createdSheriffAwayLocation = await _service.AddSheriffAwayLocation(sheriffAwayLocation);
-            return Ok(createdSheriffAwayLocation);
+            return Ok(createdSheriffAwayLocation.Adapt<SheriffAwayLocationDto>());
         }
 
         [HttpPut]
         [Route("awayLocation")]
-        public async Task<ActionResult> UpdateSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto)
+        public async Task<ActionResult<SheriffAwayLocationDto>> UpdateSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto)
         {
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
             var updatedSheriffAwayLocation = await _service.UpdateSheriffAwayLocation(sheriffAwayLocation);
-            return Ok(updatedSheriffAwayLocation);
+            return Ok(updatedSheriffAwayLocation.Adapt<SheriffAwayLocationDto>());
         }
 
         [HttpDelete]
@@ -100,20 +101,20 @@ namespace SS.Api.controllers
         #region SheriffLeave
         [HttpPost]
         [Route("leave")]
-        public async Task<ActionResult<SheriffAwayLocationDto>> AddSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
+        public async Task<ActionResult<SheriffLeaveDto>> AddSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
         {
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
             var createdSheriffLeave = await _service.AddSheriffLeave(sheriffLeave);
-            return Ok(createdSheriffLeave);
+            return Ok(createdSheriffLeave.Adapt<SheriffLeaveDto>());
         }
 
         [HttpPut]
         [Route("leave")]
-        public async Task<ActionResult> UpdateSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
+        public async Task<ActionResult<SheriffLeaveDto>> UpdateSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
         {
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
             var updatedSheriffLeave = await _service.UpdateSheriffLeave(sheriffLeave);
-            return Ok(updatedSheriffLeave);
+            return Ok(updatedSheriffLeave.Adapt<SheriffLeaveDto>());
         }
 
         [HttpDelete]
@@ -128,20 +129,20 @@ namespace SS.Api.controllers
         #region SheriffTraining
         [HttpPost]
         [Route("training")]
-        public async Task<ActionResult<SheriffAwayLocationDto>> AddSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
+        public async Task<ActionResult<SheriffTrainingDto>> AddSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
             var createdSheriffTraining = await _service.AddSheriffTraining(sheriffTraining);
-            return Ok(createdSheriffTraining);
+            return Ok(createdSheriffTraining.Adapt<SheriffTrainingDto>());
         }
 
         [HttpPut]
         [Route("training")]
-        public async Task<ActionResult> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
+        public async Task<ActionResult<SheriffTrainingDto>> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
             var updatedSheriffTraining = await _service.UpdateSheriffTraining(sheriffTraining);
-            return Ok(updatedSheriffTraining);
+            return Ok(updatedSheriffTraining.Adapt<SheriffTrainingDto>());
         }
 
         [HttpDelete]

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using SS.Api.services;
+using SS.Db.models.auth;
 
 namespace SS.Api.Controllers
 {
@@ -27,22 +28,34 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Login(string redirectUri = "")
         {
             //Create / update users from claims. 
-            var user = await _authService.UpsertUserFromClaims((ClaimsIdentity)User.Identity);
-            if (user.IsDisabled)
-            {
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-            }
+            //Check if they exist..
+            await _authService.UpdateUserLogin((ClaimsIdentity)User.Identity);
+            //Read from claims to see if user is allowed to login.
+            if (false)
+                return await Logout();
             return Ok();
             //return Redirect(redirectUri);
+        }
+
+        /// <summary>
+        /// This will create a new user object in the User table that is disabled.
+        /// The user is created with an ID from SSO, PreferredUserName, IdirId, Name, Email and IsDisabled = true.
+        /// Ensure the user is logged into the SSO before attempting any AJAX on this. Otherwise it will redirect to SSO. 
+        /// </summary>
+        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
+        [HttpGet("requestAccess")]
+        public async Task<IActionResult> RequestAccess()
+        {
+            await _authService.RequestAccess((ClaimsIdentity)User.Identity);
+            return NoContent();
         }
 
         /// <summary>
         /// Must be logged in to call this. 
         /// </summary>
         /// <returns>access_token and refresh_token for API calls.</returns>
-        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-        [HttpGet("get_token")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
+        [HttpGet("getToken")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetToken()

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using SS.Api.Models.DB;
+using Microsoft.Extensions.Hosting;
 using SS.Db.models;
+using SS.Db.models.auth;
 
 namespace SS.Api.infrastructure
 {
@@ -14,12 +16,14 @@ namespace SS.Api.infrastructure
     {
         private readonly SheriffDbContext _db;
         private readonly IMemoryCache _cache;
+        private readonly IWebHostEnvironment _hostEnvironment;
         private bool _isTransformed;
 
-        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache)
+        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache, IWebHostEnvironment hostEnvironment)
         {
             _db = db;
             _cache = cache;
+            _hostEnvironment = hostEnvironment;
         }
 
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -30,11 +34,17 @@ namespace SS.Api.infrastructure
             var nameIdentifier = principal.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!_cache.TryGetValue(nameIdentifier, out List<Claim> claims))
             {
-                //Load claims here from DB. 
                 claims = new List<Claim>();
-                var canLogin = await _db.User.FirstOrDefaultAsync(u => u.Id == Guid.Parse(nameIdentifier) && !u.IsDisabled) != null;
-                var c = new Claim("CAN_LOGIN", "TRUE");
-                claims.Add(c);
+                if (await _db.User.AnyAsync(u => u.Id == Guid.Parse(nameIdentifier) && !u.IsDisabled))
+                {
+                    claims.Add(new Claim(Permission.Login, "TRUE"));
+
+                    //TODO remove this later. 
+                    if (_hostEnvironment.IsDevelopment())
+                    {
+                        claims.Add(new Claim(Permission.IsAdmin, "TRUE"));
+                    }
+                }
                 _cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.AddMinutes(2));
             }
             currentPrincipal.AddClaims(claims);
