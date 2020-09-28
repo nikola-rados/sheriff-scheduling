@@ -1,0 +1,33 @@
+version: "3.4"
+services:
+
+  web:
+    image: ss-web
+    environment:
+      - API_URL=${API_URL}
+      - IpFilterRules=${IpFilterRules}
+      - RealIpFrom=${RealIpFrom}
+    ports:
+      - 8080:8080
+    depends_on:
+      - api
+
+  api:
+    image: ss-api
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+
+  db:
+    #Tried using a redhat image, but it required auth to get it.
+    image: centos/postgresql-12-centos7
+    environment:
+      - POSTGRESQL_USER=${POSTGRESQL_USER}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
+      - POSTGRESQL_ADMIN_PASSWORD=${POSTGRESQL_ADMIN_PASSWORD}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./tmp:/tmp2
