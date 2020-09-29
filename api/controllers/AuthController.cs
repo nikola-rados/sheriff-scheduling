@@ -25,16 +25,11 @@ namespace SS.Api.Controllers
         /// <returns></returns>
         [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
         [HttpGet("login")]
-        public async Task<IActionResult> Login(string redirectUri = "")
+        public async Task<IActionResult> Login(string redirectUri = "/api")
         {
-            //Create / update users from claims. 
-            //Check if they exist..
+            //update users from claims. 
             await _authService.UpdateUserLogin((ClaimsIdentity)User.Identity);
-            //Read from claims to see if user is allowed to login.
-            if (false)
-                return await Logout();
-            return Ok();
-            //return Redirect(redirectUri);
+            return Redirect(redirectUri);
         }
 
         /// <summary>
