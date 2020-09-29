@@ -41,10 +41,10 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.4.1" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="constants\" />
     <Folder Include="models\dto\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\db\db.csproj" />
+    <ProjectReference Include="..\jc-interface-client\jc-interface-client.csproj" />
   </ItemGroup>
 </Project>

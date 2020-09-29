@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "tests", "tests\tests.csproj
 EndProject
 Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "web", "web\web.njsproj", "{B73D5408-1350-4C28-95D6-6977B2306E32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "db", "db\db.csproj", "{691828B0-A8BA-4D23-838F-5339EAE23938}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "db", "db\db.csproj", "{691828B0-A8BA-4D23-838F-5339EAE23938}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "jc-interface-client", "jc-interface-client\jc-interface-client.csproj", "{644D4B7B-19E8-4A96-A6F9-47E179EFFE4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{691828B0-A8BA-4D23-838F-5339EAE23938}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{691828B0-A8BA-4D23-838F-5339EAE23938}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{691828B0-A8BA-4D23-838F-5339EAE23938}.Release|Any CPU.Build.0 = Release|Any CPU
+		{644D4B7B-19E8-4A96-A6F9-47E179EFFE4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{644D4B7B-19E8-4A96-A6F9-47E179EFFE4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{644D4B7B-19E8-4A96-A6F9-47E179EFFE4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{644D4B7B-19E8-4A96-A6F9-47E179EFFE4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

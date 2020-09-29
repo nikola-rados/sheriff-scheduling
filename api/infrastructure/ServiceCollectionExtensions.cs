@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Reflection;
+using JCCommon.Clients.LocationServices;
 using Mapster;
 using MapsterMapper;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SS.Api.Helpers;
+using SS.Api.Helpers.Extensions;
+using SS.Api.Models;
 using SS.Api.services;
-using SS.Db.models.auth;
 
 namespace SS.Api.infrastructure
 {
@@ -33,20 +33,17 @@ namespace SS.Api.infrastructure
             services.AddTransient(s => s.GetService<IHttpContextAccessor>().HttpContext.User);
             services.AddScoped<ManageTypesService>();
             services.AddScoped<AuthService>();
+            services.AddScoped<SheriffService>();
+
+            services.AddHttpClient<LocationServicesClient>(client =>
+            {
+                client.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(
+                    configuration.GetNonEmptyValue("LocationServicesClient:Username"),
+                    configuration.GetNonEmptyValue("LocationServicesClient:Password"));
+                client.BaseAddress = new Uri(configuration.GetNonEmptyValue("LocationServicesClient:Url").EnsureEndingForwardSlash());
+            });
+
             return services;
-        }
-
-        public static MvcOptions AddDefaultAuthorizationPolicyFilter(this MvcOptions options)
-        {
-            // Default authorization policy enforced via a global authorization filter
-            AuthorizationPolicy requireLoginPolicy = new AuthorizationPolicyBuilder()
-                .RequireAuthenticatedUser()
-                .RequireClaim(Permission.Login, "TRUE")
-                .Build();
-
-            AuthorizeFilter filter = new AuthorizeFilter(requireLoginPolicy);
-            options.Filters.Add(filter);
-            return options;
         }
     }
 }

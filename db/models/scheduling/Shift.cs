@@ -16,8 +16,8 @@ namespace SS.Db.models.scheduling
         public ShiftType Type { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public ICollection<Sheriff> AssignedSheriff { get; set; }
+        public virtual ICollection<Sheriff> AssignedSheriff { get; set; }
         public int? LocationId { get; set; }
-        public Location Location { get; set; }
+        public virtual Location Location { get; set; }
     }
 }

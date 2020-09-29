@@ -41,7 +41,7 @@ namespace SS.Db.models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyAllConfigurations(typeof(LocationConfiguration), this);
+            modelBuilder.ApplyAllConfigurations();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using db.models;
+using Mapster;
 
 namespace SS.Db.models.auth
 {
@@ -9,8 +10,9 @@ namespace SS.Db.models.auth
         [Key]
         public int Id { get; set; }
         public Guid UserId { get; set; }
-        public User User { get; set; }
+        [AdaptIgnore]
+        public virtual User User { get; set; }
         public int RoleId { get; set; }
-        public Role Role { get; set; }
+        public virtual Role Role { get; set; }
     }
 }
