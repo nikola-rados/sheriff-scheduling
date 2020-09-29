@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
+using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
 using SS.Db.models.auth;
@@ -64,12 +65,10 @@ namespace SS.Api.services
         public async Task AssignPermissionToRole(int roleId, int permissionId)
         {
             var role = await _db.Role.FindAsync(roleId);
-            if (role == null)
-                throw new BusinessLayerException($"Role with id {roleId} does not exist.");
+            role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             var permission = await _db.Permission.FindAsync(permissionId);
-            if (permission == null)
-                throw new BusinessLayerException($"Permission with id {permissionId} does not exist.");
+            permission.ThrowBusinessExceptionIfNull($"Permission with id {permissionId} does not exist.");
 
             if (role.RolePermissions.Any(rp => rp.Role.Id == roleId && rp.Permission.Id == permissionId))
                 return;
@@ -88,12 +87,10 @@ namespace SS.Api.services
         public async Task UnassignPermissionFromRole(int roleId, int permissionId)
         {
             var role = await _db.Role.FindAsync(roleId);
-            if (role == null)
-                throw new BusinessLayerException($"Role with id {roleId} does not exist.");
+            role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             var userPermission = role.RolePermissions.FirstOrDefault(p => p.Permission.Id == permissionId && p.Role.Id == roleId);
-            if (userPermission == null)
-                throw new BusinessLayerException($"Permission with id {permissionId} does not exist.");
+            userPermission.ThrowBusinessExceptionIfNull($"Permission with id {permissionId} does not exist.");
 
             role.RolePermissions.Remove(userPermission);
             await _db.SaveChangesAsync();
@@ -105,12 +102,10 @@ namespace SS.Api.services
         public async Task AssignRole(Guid userId, int roleId)
         {
             var user = await _db.User.FindAsync(userId);
-            if (user == null)
-                throw new BusinessLayerException($"User with id {userId} does not exist.");
+            user.ThrowBusinessExceptionIfNull($"User with id {userId} does not exist.");
 
             var role = await _db.Role.FindAsync(roleId);
-            if (role == null)
-                throw new BusinessLayerException($"Role with id {roleId} does not exist.");
+            role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             if (user.Roles.Any(r => r.UserId == userId && r.RoleId == roleId))
                 return;
@@ -141,12 +136,10 @@ namespace SS.Api.services
         public async Task UnassignRole(Guid userId, int roleId)
         {
             var user = await _db.User.FindAsync(userId);
-            if (user == null)
-                throw new BusinessLayerException($"User with id {userId} does not exist.");
+            user.ThrowBusinessExceptionIfNull($"User with id {userId} does not exist.");
 
             var userRole = user.Roles.FirstOrDefault(r => r.UserId == userId && r.RoleId == roleId);
-            if (userRole == null)
-                throw new BusinessLayerException($"UserRole with Userid: {userId}, RoleId: {roleId} does not exist.");
+            userRole.ThrowBusinessExceptionIfNull($"UserRole with Userid: {userId}, RoleId: {roleId} does not exist.");
 
             user.Roles.Remove(userRole);
             await _db.SaveChangesAsync();

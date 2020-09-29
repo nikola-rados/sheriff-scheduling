@@ -16,8 +16,8 @@ namespace SS.Api.controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = Permission.IsAdmin)]
-    [Authorize(Policy = Permission.Login)]
+    //[Authorize(Policy = Permission.IsAdmin)]
+    //[Authorize(Policy = Permission.Login)]
     public class ManageTypesController : ControllerBase
     {
         #region Variables

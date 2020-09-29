@@ -3,6 +3,8 @@ using SS.Api.models.db;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JCCommon.Clients.LocationServices;
+using SS.Api.Helpers.Extensions;
 using ss.db.models;
 using SS.Db.models;
 
@@ -15,16 +17,17 @@ namespace SS.Api.services
         /// </summary>
         /// 
         readonly SheriffDbContext _db;
-        public ManageTypesService(SheriffDbContext dbContext)
+
+        private readonly LocationServicesClient _locationClient;
+        public ManageTypesService(SheriffDbContext dbContext, LocationServicesClient locationClient)
         {
             _db = dbContext;
+            _locationClient = locationClient;
         }
 
         public async Task<LookupCode> Add(LookupCode lookupCode)
         {
-            //This needs to be associated, otherwise EF will create it. 
-            if (lookupCode.Location != null)
-                lookupCode.Location = await _db.Location.FindAsync(lookupCode.Location.Id);
+            lookupCode.Location = await _db.Location.FindAsync(lookupCode.LocationId);
 
             await _db.LookupCode.AddAsync(lookupCode);
             await _db.SaveChangesAsync();
@@ -33,6 +36,12 @@ namespace SS.Api.services
 
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
         {
+
+            if (codeType == LookupTypes.CourtRoom)
+            {
+                var locationRooms = await _locationClient.LocationsRoomsAsync();
+                return locationRooms.SelectToList(lr => new LookupCode {Code = lr.Code, LocationId = _db.Location.FirstOrDefault(l => l.JustinCode == lr.Flex)?.Id });
+            }
             return await _db.LookupCode.Where(lc =>
                     (codeType == null || lc.Type == codeType) && 
                     (locationId == null || lc.Location.Id == locationId))
@@ -46,9 +55,7 @@ namespace SS.Api.services
 
         public async Task<LookupCode> Update(LookupCode lookupCode)
         {
-            //This needs to be associated, otherwise EF will create it. 
-            if (lookupCode.Location != null)
-                lookupCode.Location = await _db.Location.FindAsync(lookupCode.Location.Id);
+            lookupCode.Location = await _db.Location.FindAsync(lookupCode.LocationId);
 
             _db.LookupCode.Update(lookupCode);
             await _db.SaveChangesAsync();

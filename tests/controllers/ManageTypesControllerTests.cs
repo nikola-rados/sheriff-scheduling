@@ -3,7 +3,9 @@ using SS.Api.models.db;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using JCCommon.Clients.LocationServices;
 using SS.Api.controllers;
 using SS.Api.Models.DB;
 using SS.Db.models;
@@ -25,8 +27,10 @@ namespace tests.controllers
 
         public ManageTypesControllerTests()
         {
+            var locationServices = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
+
             _dbContext = new SheriffDbContext(EnvironmentBuilder.SetupDbOptions(useMemoryDatabase:true));
-            _controller = new ManageTypesController(new ManageTypesService(_dbContext))
+            _controller = new ManageTypesController(new ManageTypesService(_dbContext, new LocationServicesClient(locationServices.HttpClient)))
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -78,7 +82,7 @@ namespace tests.controllers
             result.ExpiryDate = DateTime.Now;
             result.SortOrder = 5;
             result.Type = LookupTypes.JailRole;
-            result.Location = new LocationDto {Id = 6};
+            result.LocationId = 6;
 
             var controllerResult = await _controller.Update(result);
             HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
@@ -119,7 +123,7 @@ namespace tests.controllers
             var courtRole = new LookupCodeDto
             {
                 Type = LookupTypes.CourtRole,
-                Location = new LocationDto { Id = 66},
+                LocationId = 66
             };
             var controllerResult = await _controller.Add(courtRole);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
@@ -134,7 +138,7 @@ namespace tests.controllers
             courtRole = new LookupCodeDto
             {
                 Type = LookupTypes.CourtRole,
-                Location = new LocationDto { Id = 5 },
+                LocationId = 5
             };
             controllerResult = await _controller.Add(courtRole);
             response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
@@ -147,6 +151,14 @@ namespace tests.controllers
             Assert.Equal(5, response.Location.Id);
         }
 
+        [Fact]
+        public async Task GetCourtRooms()
+        {
+            var controllerResult = await _controller.GetAll(LookupTypes.CourtRoom, null);
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
+            Assert.True(response.Count > 0);
+        }
+
         #region Helpers
         private async Task<int> AddCourtRole()
         {
@@ -154,7 +166,7 @@ namespace tests.controllers
             {
                 Description = "test",
                 Type = LookupTypes.CourtRole,
-                Location = new LocationDto { Id = 5 },
+                LocationId = 5
             };
             var controllerResult = await _controller.Add(courtRole);
             var result = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);

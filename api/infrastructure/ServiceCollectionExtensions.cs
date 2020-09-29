@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Reflection;
+using JCCommon.Clients.LocationServices;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SS.Api.Helpers;
+using SS.Api.Helpers.Extensions;
+using SS.Api.Models;
 using SS.Api.services;
 
 namespace SS.Api.infrastructure
@@ -30,6 +34,15 @@ namespace SS.Api.infrastructure
             services.AddScoped<ManageTypesService>();
             services.AddScoped<AuthService>();
             services.AddScoped<SheriffService>();
+
+            services.AddHttpClient<LocationServicesClient>(client =>
+            {
+                client.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(
+                    configuration.GetNonEmptyValue("LocationServicesClient:Username"),
+                    configuration.GetNonEmptyValue("LocationServicesClient:Password"));
+                client.BaseAddress = new Uri(configuration.GetNonEmptyValue("LocationServicesClient:Url").EnsureEndingForwardSlash());
+            });
+
             return services;
         }
     }
