@@ -1,4 +1,4 @@
-name: APP (React)
+name: APP (Vue)
 
 on:
   push:
