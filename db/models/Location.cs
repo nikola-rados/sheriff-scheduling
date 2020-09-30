@@ -1,4 +1,4 @@
-﻿using SS.Api.models.db;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using db.models;
 using Mapster;
@@ -10,13 +10,14 @@ namespace SS.Api.Models.DB
     {
         [Key]
         public int Id { get; set; }
-        public string Code { get; set; }
+        [Required]
+        public string AgencyId { get; set; }
         public string Name { get; set; }
-        public int? JustinId { get; set; }
         public string JustinCode { get; set; }
         public int? ParentLocationId { get; set; }
         [AdaptIgnore]
         public virtual Region Region { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public int? RegionId { get; set; }
     }
 }

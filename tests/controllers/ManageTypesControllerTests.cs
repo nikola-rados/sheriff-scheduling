@@ -22,14 +22,11 @@ namespace tests.controllers
     {
         #region Variables
         private readonly ManageTypesController _controller;
-        private readonly SheriffDbContext _dbContext;
         #endregion Variables
 
-        public ManageTypesControllerTests()
+        public ManageTypesControllerTests() : base(true)
         {
             var locationServices = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-
-            _dbContext = new SheriffDbContext(EnvironmentBuilder.SetupDbOptions(useMemoryDatabase:true));
             _controller = new ManageTypesController(new ManageTypesService(_dbContext, new LocationServicesClient(locationServices.HttpClient)))
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
@@ -152,11 +149,18 @@ namespace tests.controllers
         }
 
         [Fact]
-        public async Task GetCourtRooms()
+        public async Task ExpireAndUnExpireLookup()
         {
-            var controllerResult = await _controller.GetAll(LookupTypes.CourtRoom, null);
+            var id = await AddCourtRole();
+            var controllerResult = await _controller.Expire(id);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
-            Assert.True(response.Count > 0);
+
+            Assert.NotNull(response.ExpiryDate);
+
+            controllerResult = await _controller.UnExpire(id);
+            response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
+
+            Assert.Null(response.ExpiryDate);
         }
 
         #region Helpers
@@ -173,11 +177,6 @@ namespace tests.controllers
             return result.Id;
         }
 
-        private void Detach()
-        {
-            foreach (var entity in _dbContext.ChangeTracker.Entries())
-                entity.State = EntityState.Detached;
-        }
         #endregion Helpers
     }
 }

@@ -4,7 +4,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using SS.Db.models;
@@ -31,19 +30,25 @@ namespace SS.Api.infrastructure
             if (!principal.Identity.IsAuthenticated || _isTransformed) return await Task.FromResult(principal);
             var currentPrincipal = (ClaimsIdentity)principal.Identity;
 
-            var nameIdentifier = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var nameIdentifier = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier));
             if (!_cache.TryGetValue(nameIdentifier, out List<Claim> claims))
             {
                 claims = new List<Claim>();
-                if (await _db.User.AnyAsync(u => u.Id == Guid.Parse(nameIdentifier) && !u.IsDisabled))
-                {
-                    claims.Add(new Claim(Permission.Login, "TRUE"));
 
-                    //TODO remove this later. 
-                    if (_hostEnvironment.IsDevelopment())
-                    {
-                        claims.Add(new Claim(Permission.IsAdmin, "TRUE"));
-                    }
+                //Enable all roles for now. 
+                if (_hostEnvironment.IsDevelopment())
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, Role.Sheriff));
+                    claims.Add(new Claim(ClaimTypes.Role, Role.Administrator));
+                    claims.Add(new Claim(ClaimTypes.Role, Role.SystemAdministrator));
+                }
+
+                var user = await _db.User.FindAsync(nameIdentifier);
+                if (user != null  && user.IsEnabled)
+                {
+                    foreach (var userRole in user.Roles)
+                        claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                    //Todo add permissions here. 
                 }
                 _cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.AddMinutes(2));
             }

@@ -42,5 +42,17 @@ namespace SS.Api.Helpers.Extensions
             return value ?? throw new BusinessLayerException(message);
         }
 
+        /// <summary>
+        /// Throw an ArgumentNullException if the value is null.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="message">message to include in the exception.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <exception type="BusinessLayerException">message</exception>
+        public static T ThrowBusinessExceptionIfNotNull<T>(this T value, string message) where T : class
+        {
+            return value ?? throw new BusinessLayerException(message);
+        }
+
     }
 }

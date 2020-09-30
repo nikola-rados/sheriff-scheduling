@@ -10,6 +10,7 @@ using SS.Api.Helpers;
 using SS.Api.Helpers.Extensions;
 using SS.Api.Models;
 using SS.Api.services;
+using BasicAuthenticationHeaderValue = SS.Api.models.BasicAuthenticationHeaderValue;
 
 namespace SS.Api.infrastructure
 {
@@ -30,10 +31,6 @@ namespace SS.Api.infrastructure
 
         public static IServiceCollection AddSSServices(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddTransient(s => s.GetService<IHttpContextAccessor>().HttpContext.User);
-            services.AddScoped<ManageTypesService>();
-            services.AddScoped<AuthService>();
-            services.AddScoped<SheriffService>();
 
             services.AddHttpClient<LocationServicesClient>(client =>
             {
@@ -42,6 +39,16 @@ namespace SS.Api.infrastructure
                     configuration.GetNonEmptyValue("LocationServicesClient:Password"));
                 client.BaseAddress = new Uri(configuration.GetNonEmptyValue("LocationServicesClient:Url").EnsureEndingForwardSlash());
             });
+
+            services.AddTransient(s => s.GetService<IHttpContextAccessor>().HttpContext.User);
+            services.AddScoped<ManageTypesService>();
+            services.AddScoped<AuthService>();
+            services.AddScoped<RoleService>();
+            services.AddScoped<UserService>();
+            services.AddScoped<SheriffService>();
+            services.AddScoped<JustinDataUpdaterService>();
+
+            services.AddHostedService<TimedDataUpdaterService>();
 
             return services;
         }

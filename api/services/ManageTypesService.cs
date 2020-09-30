@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using SS.Api.models.db;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,12 +37,6 @@ namespace SS.Api.services
 
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
         {
-
-            if (codeType == LookupTypes.CourtRoom)
-            {
-                var locationRooms = await _locationClient.LocationsRoomsAsync();
-                return locationRooms.SelectToList(lr => new LookupCode {Code = lr.Code, LocationId = _db.Location.FirstOrDefault(l => l.JustinCode == lr.Flex)?.Id });
-            }
             return await _db.LookupCode.Where(lc =>
                     (codeType == null || lc.Type == codeType) && 
                     (locationId == null || lc.Location.Id == locationId))
@@ -53,11 +48,30 @@ namespace SS.Api.services
             return await _db.LookupCode.FindAsync(id);
         }
 
+        public async Task<LookupCode> Expire(int id)
+        {
+            var entity = await _db.LookupCode.FindAsync(id);
+            entity.ThrowBusinessExceptionIfNull($"Couldn't find lookup code with id: {id}");
+            entity.ExpiryDate = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+            return entity;
+        }
+
+        public async Task<LookupCode> Unexpire(int id)
+        {
+            var entity = await _db.LookupCode.FindAsync(id);
+            entity.ThrowBusinessExceptionIfNull($"Couldn't find lookup code with id: {id}");
+            entity.ExpiryDate = null;
+            await _db.SaveChangesAsync();
+            return entity;
+        }
+
         public async Task<LookupCode> Update(LookupCode lookupCode)
         {
-            lookupCode.Location = await _db.Location.FindAsync(lookupCode.LocationId);
+            var savedLookup = await _db.LookupCode.FindAsync(lookupCode.Id);
+            savedLookup.Location = await _db.Location.FindAsync(lookupCode.LocationId);
 
-            _db.LookupCode.Update(lookupCode);
+            _db.Entry(savedLookup).CurrentValues.SetValues(lookupCode);
             await _db.SaveChangesAsync();
             return lookupCode;
         }
