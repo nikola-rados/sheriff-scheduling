@@ -21,6 +21,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using SS.Api.infrastructure;
 using SS.Db.models;
 using SS.Db.models.auth;
@@ -97,12 +98,7 @@ namespace SS.Api
                 };
             });
 
-            services.AddAuthorization(options =>
-                {
-                    options.AddPolicy(Permission.IsAdmin, policy => policy.RequireClaim(Permission.IsAdmin, "TRUE"));
-                    options.AddPolicy(Permission.Login, policy => policy.RequireClaim(Permission.Login, "TRUE"));
-                }
-            );
+            services.AddAuthorization();
 
             services.AddMapster();
             services.AddLazyCache();
@@ -175,7 +171,11 @@ namespace SS.Api
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllers();
+                //Note this will allow access everywhere for local development. 
+                if (env.IsDevelopment() && Configuration.GetNonEmptyValue("DisableAuthForDev").Equals("true"))
+                    endpoints.MapControllers().WithMetadata(new AllowAnonymousAttribute());
+                else
+                    endpoints.MapControllers();
             });
         }
     }

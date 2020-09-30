@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using SS.Api.services;
-using SS.Db.models.auth;
 
 namespace SS.Api.Controllers
 {

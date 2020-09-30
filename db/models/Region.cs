@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using Mapster;
 
 namespace db.models
@@ -8,7 +9,10 @@ namespace db.models
     {
         [Key]
         public int Id {get;set;}
+        [Required]
+        public int JustinId { get; set; }
         public string Code { get; set; }
         public string Name { get; set; }
+        public DateTime? ExpiryDate { get; set; }
     }
 }
