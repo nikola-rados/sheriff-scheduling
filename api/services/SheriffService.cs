@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using db.models;
+using Castle.Core.Internal;
 using Microsoft.EntityFrameworkCore;
+using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
 using SS.Db.models.sheriff;
@@ -21,32 +22,33 @@ namespace SS.Api.services
             _db = db;
         }
 
+        /// <summary>
+        /// </summary>
+        /// <returns></returns>
         #region Sheriff
-        public async Task<Sheriff> DisableSheriff(Guid id)
-        {
-            var sheriff = await _db.Sheriff.FindAsync(id);
-            if (sheriff == null)
-                throw new BusinessLayerException($"Sheriff with the id: {id} could not be found. ");
 
-            sheriff.IsDisabled = true;
+        public async Task<Sheriff> CreateSheriff(Sheriff sheriff)
+        {
+            if (sheriff.IdirName.IsNullOrEmpty())
+                throw new BusinessLayerException($"Missing {nameof(sheriff.IdirName)}.");
+
+            var existingSheriffWithBadge = await _db.Sheriff.FirstOrDefaultAsync(s => s.BadgeNumber == sheriff.BadgeNumber);
+            if (existingSheriffWithBadge != null)
+                throw new BusinessLayerException(
+                    $"Sheriff {existingSheriffWithBadge.LastName}, {existingSheriffWithBadge.FirstName} already has badge number: {sheriff.BadgeNumber}");
+
+            sheriff.AwayLocation = null;
+            sheriff.Training = null;
+            sheriff.Leave = null;
+            sheriff.HomeLocation = await _db.Location.FindAsync(sheriff.HomeLocationId);
+            await _db.Sheriff.AddAsync(sheriff);
             await _db.SaveChangesAsync();
             return sheriff;
         }
 
-        public async Task<Sheriff> EnableSheriff(Guid id)
+        public async Task<List<Sheriff>> GetSheriffs(int locationId)
         {
-            var sheriff = await _db.Sheriff.FindAsync(id);
-            if (sheriff == null)
-                throw new BusinessLayerException($"Sheriff with the id: {id} could not be found. ");
-
-            sheriff.IsDisabled = false;
-            await _db.SaveChangesAsync();
-            return sheriff;
-        }
-
-        public async Task<List<Sheriff>> GetSheriffs(bool includeDisabled)
-        {
-            return await _db.Sheriff.Where(s => !includeDisabled || s.IsDisabled).ToListAsync();
+            return await _db.Sheriff.Where(s => s.HomeLocationId == locationId && s.IsEnabled).ToListAsync();
         }
 
         public async Task<Sheriff> GetSheriff(Guid id)
@@ -61,7 +63,16 @@ namespace SS.Api.services
         public async Task<Sheriff> UpdateBaseSheriff(Sheriff sheriff)
         {
             var savedSheriff = await _db.Sheriff.FindAsync(sheriff.Id);
-            if (savedSheriff == null) throw new KeyNotFoundException($"{nameof(savedSheriff)} with the id: {savedSheriff.Id} could not be found. ");
+            savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {sheriff.Id} could not be found. ");
+
+            if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
+            {
+                var existingSheriffWithBadge =
+                    await _db.Sheriff.FirstOrDefaultAsync(s => s.BadgeNumber == sheriff.BadgeNumber);
+                if (existingSheriffWithBadge != null)
+                    throw new BusinessLayerException(
+                        $"Sheriff {existingSheriffWithBadge.LastName}, {existingSheriffWithBadge.FirstName} already has badge number: {sheriff.BadgeNumber}");
+            }
 
             _db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
 
@@ -85,7 +96,8 @@ namespace SS.Api.services
         public async Task<SheriffAwayLocation> UpdateSheriffAwayLocation(SheriffAwayLocation sheriffAwayLocation)
         {
             var savedAwayLocation = await _db.SheriffAwayLocation.FindAsync(sheriffAwayLocation.Id);
-            if (savedAwayLocation == null) throw new KeyNotFoundException($"{nameof(sheriffAwayLocation)} with the id: {sheriffAwayLocation.Id} could not be found. ");
+            savedAwayLocation.ThrowBusinessExceptionIfNull(
+                $"{nameof(sheriffAwayLocation)} with the id: {sheriffAwayLocation.Id} could not be found. ");
 
             _db.Entry(savedAwayLocation).CurrentValues.SetValues(sheriffAwayLocation);
 
@@ -96,8 +108,7 @@ namespace SS.Api.services
         public async Task RemoveSheriffAwayLocation(int id)
         {
             var sheriffAwayLocation = await _db.SheriffAwayLocation.FindAsync(id);
-            if (sheriffAwayLocation == null)
-                throw new BusinessLayerException($"SheriffAwayLocation with the id: {id} could not be found. ");
+            sheriffAwayLocation.ThrowBusinessExceptionIfNull($"SheriffAwayLocation with the id: {id} could not be found. ");
 
             _db.SheriffAwayLocation.Remove(sheriffAwayLocation);
             await _db.SaveChangesAsync();
@@ -119,7 +130,7 @@ namespace SS.Api.services
         public async Task<SheriffLeave> UpdateSheriffLeave(SheriffLeave sheriffLeave)
         {
             var savedLeave = await _db.SheriffLeave.FindAsync(sheriffLeave.Id);
-            if (savedLeave == null) throw new KeyNotFoundException($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
+            savedLeave.ThrowBusinessExceptionIfNull($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
 
             _db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
 
@@ -130,8 +141,7 @@ namespace SS.Api.services
         public async Task RemoveSheriffLeave(int id)
         {
             var sheriffLeave = await _db.SheriffLeave.FindAsync(id);
-            if (sheriffLeave == null)
-                throw new BusinessLayerException($"SheriffLeave with the id: {id} could not be found. ");
+            sheriffLeave.ThrowBusinessExceptionIfNull($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
 
             _db.SheriffLeave.Remove(sheriffLeave);
             await _db.SaveChangesAsync();
@@ -152,10 +162,10 @@ namespace SS.Api.services
 
         public async Task<SheriffTraining> UpdateSheriffTraining(SheriffTraining sheriffTraining)
         {
-            var savedLeave = await _db.SheriffTraining.FindAsync(sheriffTraining.Id);
-            if (savedLeave == null) throw new KeyNotFoundException($"{nameof(sheriffTraining)} with the id: {sheriffTraining.Id} could not be found. ");
+            var savedTraining = await _db.SheriffTraining.FindAsync(sheriffTraining.Id);
+            savedTraining.ThrowBusinessExceptionIfNull($"{nameof(savedTraining)} with the id: {sheriffTraining.Id} could not be found. ");
 
-            _db.Entry(savedLeave).CurrentValues.SetValues(sheriffTraining);
+            _db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
 
             await _db.SaveChangesAsync();
             return sheriffTraining;
@@ -164,8 +174,7 @@ namespace SS.Api.services
         public async Task RemoveSheriffTraining(int id)
         {
             var sheriffTraining = await _db.SheriffTraining.FindAsync(id);
-            if (sheriffTraining == null)
-                throw new BusinessLayerException($"SheriffTraining with the id: {id} could not be found. ");
+            sheriffTraining.ThrowBusinessExceptionIfNull($"{nameof(sheriffTraining)} with the id: {id} could not be found. ");
 
             _db.SheriffTraining.Remove(sheriffTraining);
             await _db.SaveChangesAsync();

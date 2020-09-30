@@ -16,19 +16,19 @@ namespace SS.Db.models.auth
         }
         [Key]
         public Guid Id { get; set; }
-        [AdaptIgnore]
-        public string PreferredUsername { get; set; }
+        public string IdirName { get; set; }
         [AdaptIgnore]
         public Guid IdirId { get; set; }
-        public bool IsDisabled { get; set;}
-        public int? HomeLocationId { get; set; }
-        [ForeignKey("HomeLocationId")]
-        public virtual Location HomeLocation { get; set; }
+        [AdaptIgnore]
+        public bool IsEnabled { get; set;}
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public virtual ICollection<UserRole> Roles { get; set; }
-        public virtual ICollection<Permission> Permissions { get; set; }
+        [AdaptIgnore]
+        public virtual ICollection<UserRole> Roles { get; set; } = new List<UserRole>();
+        [AdaptIgnore]
+        public virtual ICollection<Permission> Permissions { get; set; } = new List<Permission>();
+        [AdaptIgnore]
         public DateTime? LastLogin { get; set; }
     }
 }

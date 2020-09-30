@@ -1,32 +1,46 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Mapster;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SS.Api.infrastructure.authorization;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 
-namespace SS.Api.controllers
+namespace SS.Api.controllers.usermanagement
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = Permission.IsAdmin)]
-    [Authorize(Policy = Permission.Login)]
-    public class SheriffController : ControllerBase
+    [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]
+    public class SheriffController : UserController
     {
         private readonly SheriffService _service;
-        public SheriffController(SheriffService service)
+        public SheriffController(SheriffService service, UserService userService) : base (userService)
         {
             _service = service;
         }
 
         #region Sheriff
-        [HttpGet]
-        public async Task<ActionResult<SheriffDto>> GetAllSheriffs(bool includeDisabled)
+
+        //This uses Sheriff because it's an extended object of User. 
+        [HttpPost]
+        public async Task<ActionResult<SheriffDto>> CreateSheriff(SheriffDto sheriffDto)
         {
-            var sheriffs = await _service.GetSheriffs(includeDisabled);
+            var sheriff = sheriffDto.Adapt<Sheriff>();
+            sheriff = await _service.CreateSheriff(sheriff);
+            return Ok(sheriff.Adapt<SheriffDto>());
+        }
+
+
+        /// <summary>
+        /// This gets a general list of Sheriffs, without all the details. 
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<ActionResult<SheriffDto>> GetSheriffs(int locationId)
+        {
+            var sheriffs = await _service.GetSheriffs(locationId);
             return Ok(sheriffs.Adapt<SheriffDto>());
         }
 
@@ -44,28 +58,11 @@ namespace SS.Api.controllers
                 return NotFound($"Couldn't find sheriff with id: {id}");
             return Ok(sheriff.Adapt<SheriffDto>());
         }
-
         [HttpPut]
         public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffDto sheriffDto)
         {
             var sheriff = sheriffDto.Adapt<Sheriff>();
             sheriff = await _service.UpdateBaseSheriff(sheriff);
-            return Ok(sheriff.Adapt<SheriffDto>());
-        }
-
-        [HttpPut]
-        [Route("enableSheriff/{id}")]
-        public async Task<ActionResult<SheriffDto>> EnableSheriff(Guid id)
-        {
-            var sheriff = await _service.EnableSheriff(id);
-            return Ok(sheriff.Adapt<SheriffDto>());
-        }
-
-        [HttpDelete]
-        [Route("disableSheriff/{id}")]
-        public async Task<ActionResult<SheriffDto>> DisableSheriff(Guid id)
-        {
-            var sheriff = await _service.DisableSheriff(id);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
         #endregion Sheriff

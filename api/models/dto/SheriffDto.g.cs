@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using SS.Api.Models.Dto;
-using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 
 namespace SS.Api.Models.Dto
 {
     public partial class SheriffDto
     {
+        public int? HomeLocationId { get; set; }
+        public LocationDto HomeLocation { get; set; }
         public Gender Gender { get; set; }
         public string BadgeNumber { get; set; }
         public string Rank { get; set; }
@@ -16,15 +17,10 @@ namespace SS.Api.Models.Dto
         public List<SheriffTrainingDto> Training { get; set; }
         public byte[] Photo { get; set; }
         public Guid Id { get; set; }
-        public bool IsDisabled { get; set; }
-        public int? HomeLocationId { get; set; }
-        public LocationDto HomeLocation { get; set; }
+        public string IdirName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public ICollection<UserRole> Roles { get; set; }
-        public ICollection<Permission> Permissions { get; set; }
-        public DateTime? LastLogin { get; set; }
         public byte[] RowVersion { get; set; }
     }
 }

@@ -10,6 +10,7 @@ using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
+using SS.Db.models.lookupcodes;
 
 namespace SS.Db.models
 {
@@ -30,6 +31,7 @@ namespace SS.Db.models
 
         public virtual DbSet<Location> Location { get; set; }
         public virtual DbSet<LookupCode> LookupCode { get; set; }
+        public virtual DbSet<LookupSortOrder> LookupSortOrder { get; set; }
         public virtual DbSet<Region> Region { get; set; }
         public virtual DbSet<Sheriff> Sheriff { get; set; }
         public virtual DbSet<SheriffLeave> SheriffLeave { get; set; }
