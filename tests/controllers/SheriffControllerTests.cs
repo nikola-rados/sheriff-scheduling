@@ -47,11 +47,8 @@ namespace tests.controllers
                 HomeLocationId = 1
             };
 
-         
-
             var sheriffDto = newSheriff.Adapt<SheriffDto>();
-
-            Debug.Write(JsonConvert.SerializeObject(sheriffDto));
+            //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
             var sheriffResponse = response.Adapt<Sheriff>();

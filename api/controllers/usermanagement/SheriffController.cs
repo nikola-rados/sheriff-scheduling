@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +42,7 @@ namespace SS.Api.controllers.usermanagement
         public async Task<ActionResult<SheriffDto>> GetSheriffs(int locationId)
         {
             var sheriffs = await _service.GetSheriffs(locationId);
-            return Ok(sheriffs.Adapt<SheriffDto>());
+            return Ok(sheriffs.Adapt<List<SheriffDto>>());
         }
 
         /// <summary>
@@ -62,7 +63,7 @@ namespace SS.Api.controllers.usermanagement
         public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffDto sheriffDto)
         {
             var sheriff = sheriffDto.Adapt<Sheriff>();
-            sheriff = await _service.UpdateBaseSheriff(sheriff);
+            sheriff = await _service.UpdateSheriff(sheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
         #endregion Sheriff

@@ -22,9 +22,6 @@ namespace SS.Api.services
             _db = db;
         }
 
-        /// <summary>
-        /// </summary>
-        /// <returns></returns>
         #region Sheriff
 
         public async Task<Sheriff> CreateSheriff(Sheriff sheriff)
@@ -32,15 +29,13 @@ namespace SS.Api.services
             if (sheriff.IdirName.IsNullOrEmpty())
                 throw new BusinessLayerException($"Missing {nameof(sheriff.IdirName)}.");
 
-            var existingSheriffWithBadge = await _db.Sheriff.FirstOrDefaultAsync(s => s.BadgeNumber == sheriff.BadgeNumber);
-            if (existingSheriffWithBadge != null)
-                throw new BusinessLayerException(
-                    $"Sheriff {existingSheriffWithBadge.LastName}, {existingSheriffWithBadge.FirstName} already has badge number: {sheriff.BadgeNumber}");
+            await CheckForDuplicateBadgeNumber(sheriff.BadgeNumber);
 
             sheriff.AwayLocation = null;
             sheriff.Training = null;
             sheriff.Leave = null;
             sheriff.HomeLocation = await _db.Location.FindAsync(sheriff.HomeLocationId);
+            sheriff.IsEnabled = true;
             await _db.Sheriff.AddAsync(sheriff);
             await _db.SaveChangesAsync();
             return sheriff;
@@ -60,18 +55,14 @@ namespace SS.Api.services
                 .SingleOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<Sheriff> UpdateBaseSheriff(Sheriff sheriff)
+        public async Task<Sheriff> UpdateSheriff(Sheriff sheriff)
         {
             var savedSheriff = await _db.Sheriff.FindAsync(sheriff.Id);
             savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {sheriff.Id} could not be found. ");
 
             if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
             {
-                var existingSheriffWithBadge =
-                    await _db.Sheriff.FirstOrDefaultAsync(s => s.BadgeNumber == sheriff.BadgeNumber);
-                if (existingSheriffWithBadge != null)
-                    throw new BusinessLayerException(
-                        $"Sheriff {existingSheriffWithBadge.LastName}, {existingSheriffWithBadge.FirstName} already has badge number: {sheriff.BadgeNumber}");
+                await CheckForDuplicateBadgeNumber(sheriff.BadgeNumber);
             }
 
             _db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
@@ -180,6 +171,20 @@ namespace SS.Api.services
             await _db.SaveChangesAsync();
         }
 
+        #endregion
+
+        #region Helpers
+
+        private async Task CheckForDuplicateBadgeNumber(string badgeNumber)
+        {
+            if (string.IsNullOrEmpty(badgeNumber))
+                return;
+
+            var existingSheriffWithBadge = await _db.Sheriff.FirstOrDefaultAsync(s => s.BadgeNumber == badgeNumber);
+            if (existingSheriffWithBadge != null)
+                throw new BusinessLayerException(
+                    $"Sheriff {existingSheriffWithBadge.LastName}, {existingSheriffWithBadge.FirstName} already has badge number: {badgeNumber}");
+        }
         #endregion
     }
 }
