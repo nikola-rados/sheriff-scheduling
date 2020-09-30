@@ -1,0 +1,10 @@
+#=========================================================
+# OpenShift template parameters for:
+# Component: ss-db
+# Template File: templates/postgresql-build.json
+#=========================================================
+NAME=postgresql
+OUTPUT_IMAGE_TAG=latest
+SOURCE_IMAGE_KIND=DockerImage
+SOURCE_IMAGE_NAME=centos/postgresql-12-centos7
+SOURCE_IMAGE_TAG=latest
