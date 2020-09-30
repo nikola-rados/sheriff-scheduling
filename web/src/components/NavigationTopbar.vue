@@ -89,7 +89,13 @@
     @commonState.Action
     public UpdateLocation!: (newLocation: locationInfoType) => void
     
-    locationList: locationInfoType[] = [];
+    // locationList: locationInfoType[] = [];
+
+    @commonState.State
+    public locationList!: locationInfoType[];
+    
+    @commonState.Action
+    public UpdateLocationList!: (newLocationList: locationInfoType[]) => void
     
     selectedLocation: locationInfoType = {name: "", id:""};
     disableLocationChange = false;
@@ -106,6 +112,7 @@
     public getLocations(): void {
       //TODO: make call to GET all locations
       this.locationList = [{name: "abbotsford", id:"1"}, {name: "kelowna", id: "2"}]
+      
     }
     
     
