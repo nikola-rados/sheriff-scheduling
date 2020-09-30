@@ -10,11 +10,12 @@
   <ItemGroup>
     <Compile Remove="migrations\20200922142720_Initial.cs" />
     <Compile Remove="migrations\20200922142720_Initial.Designer.cs" />
+    <Compile Remove="migrations\20200925220406_Spell5.cs" />
+    <Compile Remove="migrations\20200925220406_Spell5.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="migrations\" />
-    <Folder Include="extensions\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
@@ -20,12 +21,14 @@ namespace SS.Db.models.auth
         [AdaptIgnore]
         public Guid IdirId { get; set; }
         public bool IsDisabled { get; set;}
-        public Location HomeLocation { get; set; }
+        public int? HomeLocationId { get; set; }
+        [ForeignKey("HomeLocationId")]
+        public virtual Location HomeLocation { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public ICollection<UserRole> Roles { get; set; }
-        public ICollection<Permission> Permissions { get; set; }
+        public virtual ICollection<UserRole> Roles { get; set; }
+        public virtual ICollection<Permission> Permissions { get; set; }
         public DateTime? LastLogin { get; set; }
     }
 }

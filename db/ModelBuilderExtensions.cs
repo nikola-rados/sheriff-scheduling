@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using SS.Db.models;
 
 // Credits to PIMS for this. 
-namespace SS.DB.Configuration
+namespace SS.Db
 {
     /// <summary>
     /// ModelBuilderExtensions static class, provides extension methods for ModelBuilder objects.
@@ -31,19 +31,6 @@ namespace SS.DB.Configuration
         }
 
         /// <summary>
-        /// Applies all of the IEntityTypeConfiguration objects in the assembly of the specified type.
-        /// </summary>
-        /// <param name="modelBuilder"></param>
-        /// <param name="type"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        public static ModelBuilder ApplyAllConfigurations(this ModelBuilder modelBuilder, Type type, SheriffDbContext context = null)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-            return modelBuilder.ApplyAllConfigurations(type.Assembly, context);
-        }
-
-        /// <summary>
         /// Applies all of the IEntityTypeConfiguration objects in the specified assembly.
         /// </summary>
         /// <param name="modelBuilder"></param>
@@ -59,15 +46,15 @@ namespace SS.DB.Configuration
             var configurations = assembly.GetTypes().Where(t => t.IsClass && t.GetInterfaces().Any(i => i.Name.Equals(type.Name)));
 
             // Fetch the ApplyConfiguration method so that it can be called on each configuration.
-            var method = typeof(ModelBuilder).GetMethods(BindingFlags.Instance | BindingFlags.Public).Where(m => m.Name.Equals(nameof(ModelBuilder.ApplyConfiguration)) && m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == type).First();
+            var method = typeof(ModelBuilder).GetMethods(BindingFlags.Instance | BindingFlags.Public).First(m => m.Name.Equals(nameof(ModelBuilder.ApplyConfiguration)) && m.GetParameters()[0].ParameterType.GetGenericTypeDefinition() == type);
             foreach (var config in configurations)
             {
                 if (!config.ContainsGenericParameters)
                 {
                     var includeContext = config.GetConstructors().Any(c => c.GetParameters().Any(p => p.ParameterType == typeof(SheriffDbContext)));
                     var entityConfig = includeContext ? Activator.CreateInstance(config, context) : Activator.CreateInstance(config);
-                    var entityType = config.GetInterfaces().FirstOrDefault().GetGenericArguments()[0];
-                    var applyConfigurationMethod = method.MakeGenericMethod(entityType);
+                    var entityType = config.GetInterfaces().FirstOrDefault()?.GetGenericArguments()[0];
+                    var applyConfigurationMethod = method.MakeGenericMethod(entityType ?? throw new InvalidOperationException());
                     applyConfigurationMethod.Invoke(modelBuilder, new[] { entityConfig });
                 }
             }

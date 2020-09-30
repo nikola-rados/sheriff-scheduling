@@ -2,7 +2,9 @@
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
+using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
 using SS.Db.models.auth;
@@ -20,51 +22,59 @@ namespace SS.Api.services
             _db = dbContext;
         }
 
-        public async Task<User> UpsertUserFromClaims(ClaimsIdentity claimsIdentity)
+        /// <summary>
+        /// This will see if the user exists, if it doesn't exist it will create a new user object with the ID from
+        /// the SSO. 
+        /// </summary>
+        /// <param name="claimsIdentity"></param>
+        /// <returns></returns>
+        public async Task RequestAccess(ClaimsIdentity claimsIdentity)
+        {
+            var claims = claimsIdentity.Claims.ToList();
+            var id = Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
+            if (await _db.User.AnyAsync(u => u.Id == id))
+                return;
+
+            var user = new User
+            {
+                Id = id,
+                PreferredUsername = claims.GetValueByType("preferred_username"),
+                IdirId = Guid.Parse(claims.GetValueByType("idir_userid")),
+                FirstName = claims.GetValueByType(ClaimTypes.GivenName),
+                LastName = claims.GetValueByType(ClaimTypes.Name),
+                Email = claims.GetValueByType(ClaimTypes.Email),
+                IsDisabled = true
+            };
+            await _db.User.AddAsync(user);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateUserLogin(ClaimsIdentity claimsIdentity)
         {
             var claims = claimsIdentity.Claims.ToList();
             var id = Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
             var user = await _db.User.FindAsync(id);
-            if (user != null && !user.IsDisabled)
-            {
-                user.LastLogin = DateTime.Now;
-            }
-            else if (user == null)
-            {
-                user = new User
-                {
-                    Id = id,
-                    PreferredUsername = claims.GetValueByType("preferred_username"),
-                    IdirId = Guid.Parse(claims.GetValueByType("idir_userid")),
-                    FirstName = claims.GetValueByType(ClaimTypes.GivenName),
-                    LastName = claims.GetValueByType(ClaimTypes.Name),
-                    Email = claims.GetValueByType(ClaimTypes.Email),
-                    IsDisabled = true
-                };
-                await _db.User.AddAsync(user);
-            }
+            if (user == null || user.IsDisabled)
+                return;
+                
+            user.LastLogin = DateTime.Now;
             await _db.SaveChangesAsync();
-            return user;
         }
 
         #region Permissions
         public async Task AssignPermissionToRole(int roleId, int permissionId)
         {
             var role = await _db.Role.FindAsync(roleId);
-            if (role == null)
-                throw new BusinessLayerException($"Role with id {roleId} does not exist.");
+            role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             var permission = await _db.Permission.FindAsync(permissionId);
-            if (permission == null)
-                throw new BusinessLayerException($"Permission with id {permissionId} does not exist.");
+            permission.ThrowBusinessExceptionIfNull($"Permission with id {permissionId} does not exist.");
 
             if (role.RolePermissions.Any(rp => rp.Role.Id == roleId && rp.Permission.Id == permissionId))
                 return;
 
             var rolePermission = new RolePermission
             {
-                CreatedById = new Guid(), 
-                CreatedOn = DateTime.UtcNow,
                 Permission = permission,
                 Role = role
             };
@@ -77,12 +87,10 @@ namespace SS.Api.services
         public async Task UnassignPermissionFromRole(int roleId, int permissionId)
         {
             var role = await _db.Role.FindAsync(roleId);
-            if (role == null)
-                throw new BusinessLayerException($"Role with id {roleId} does not exist.");
+            role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             var userPermission = role.RolePermissions.FirstOrDefault(p => p.Permission.Id == permissionId && p.Role.Id == roleId);
-            if (userPermission == null)
-                throw new BusinessLayerException($"Permission with id {permissionId} does not exist.");
+            userPermission.ThrowBusinessExceptionIfNull($"Permission with id {permissionId} does not exist.");
 
             role.RolePermissions.Remove(userPermission);
             await _db.SaveChangesAsync();
@@ -94,12 +102,10 @@ namespace SS.Api.services
         public async Task AssignRole(Guid userId, int roleId)
         {
             var user = await _db.User.FindAsync(userId);
-            if (user == null)
-                throw new BusinessLayerException($"User with id {userId} does not exist.");
+            user.ThrowBusinessExceptionIfNull($"User with id {userId} does not exist.");
 
             var role = await _db.Role.FindAsync(roleId);
-            if (role == null)
-                throw new BusinessLayerException($"Role with id {roleId} does not exist.");
+            role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             if (user.Roles.Any(r => r.UserId == userId && r.RoleId == roleId))
                 return;
@@ -130,12 +136,10 @@ namespace SS.Api.services
         public async Task UnassignRole(Guid userId, int roleId)
         {
             var user = await _db.User.FindAsync(userId);
-            if (user == null)
-                throw new BusinessLayerException($"User with id {userId} does not exist.");
+            user.ThrowBusinessExceptionIfNull($"User with id {userId} does not exist.");
 
             var userRole = user.Roles.FirstOrDefault(r => r.UserId == userId && r.RoleId == roleId);
-            if (userRole == null)
-                throw new BusinessLayerException($"UserRole with Userid: {userId}, RoleId: {roleId} does not exist.");
+            userRole.ThrowBusinessExceptionIfNull($"UserRole with Userid: {userId}, RoleId: {roleId} does not exist.");
 
             user.Roles.Remove(userRole);
             await _db.SaveChangesAsync();
@@ -148,5 +152,9 @@ namespace SS.Api.services
         }
 
         #endregion Roles
+
+        #region Helpers
+
+        #endregion
     }
 }

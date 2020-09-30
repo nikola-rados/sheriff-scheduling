@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Mapster;
 
 namespace db.models
 {
-    public class Region
+    [AdaptTo("[name]Dto")]
+    public class Region : BaseEntity
     {
         [Key]
         public int Id {get;set;}

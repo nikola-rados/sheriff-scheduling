@@ -7,7 +7,9 @@ namespace SS.Db.models.auth
     {
         [Key]
         public int Id { get; set; }
-        public Role Role { get; set; }
-        public Permission Permission { get; set; }
+        public virtual Role Role { get; set; }
+        public int RoleId { get; set; }
+        public virtual Permission Permission { get; set; }
+        public int PermissionId { get; set; }
     }
 }
