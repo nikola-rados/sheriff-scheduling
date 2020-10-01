@@ -9,8 +9,9 @@ export interface teamMemberInfoType {
     firstName?: string;
     lastName?: string;
     email?: string;
-    badgeNumber: number|null;
+    badgeNumber: string;
     gender: string;
     fullName?: string;
+    image?: string;
 }
 

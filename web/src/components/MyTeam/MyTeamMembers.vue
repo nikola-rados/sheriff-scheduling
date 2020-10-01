@@ -20,14 +20,19 @@
                 </template> 
             </b-overlay> 
         </b-card>
+      
 
-        <b-card v-else no-body class="mx-3 mb-5">
-            <b-card-group  deck >                 
-                <b-card v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" @click="OpenMemberDetails('testing ID')">
-                    <user-summary-template :userBadgeNumber="teamMember.badgeNumber" :userName="teamMember.fullName" :userRole="teamMember.rank" :editMode="false" />
-                </b-card>                                                       
-            </b-card-group>
-        </b-card>
+        <div v-else class="container mb-5" id="app">
+            <div class="row">
+                <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <user-summary-template :userBadgeNumber="teamMember.badgeNumber" :userName="teamMember.fullName" :userRole="teamMember.rank" :userImage="teamMember.image" :editMode="false" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <b-modal size="xl" v-model="showMemberDetails" id="bv-modal-team-member-details" header-class="bg-primary text-light">            
             <template v-slot:modal-title>                
@@ -37,35 +42,44 @@
             <b-card v-if="isUserDataMounted">
                 <b-row>
                     <b-col cols="4">
-                        <user-summary-template userId="teamMemberId" userName="teamMemberName" userRole="teamMemberRole" :editMode="editMode"/>
+                        <user-summary-template :userBadgeNumber="user.badgeNumber" :userName="user.firstName + ' ' + user.lastName" :userRole="user.rank" :userImage="user.image" :editMode="editMode"/>
                     </b-col>
                     <b-col>
                         <b-card no-body>
                             <b-tabs card v-model="tabIndex">
                                 <b-tab title="Identification" >
-                                    <b-form>
-                                        <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
-                                            <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
-                                        </b-form-group>
-                                        <b-form-group><label>First Name<span class="text-danger">*</span></label>
+                                    
+                                    <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
+                                        <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
+                                    </b-form-group>
+
+                                    <b-row class="mx-1"> 
+                                        <b-form-group class="mr-1" style="width: 20rem"><label>First Name<span class="text-danger">*</span></label>
                                             <b-form-input v-model="user.firstName" placeholder="Enter First Name" :state = "firstNameState?null:false"></b-form-input>
-                                        </b-form-group>
-                                        <b-form-group><label>Last Name<span class="text-danger">*</span></label>
+                                        </b-form-group>                                    
+                                        <b-form-group class="ml-1" style="width: 20rem"><label>Last Name<span class="text-danger">*</span></label>
                                             <b-form-input v-model="user.lastName" placeholder="Enter Last Name" :state = "lastNameState?null:false"></b-form-input>
                                         </b-form-group>
-                                        <b-form-group><label>Gender<span class="text-danger">*</span></label>
+                                    </b-row>
+
+                                    <b-row class="mx-1">   
+                                        <b-form-group class="mr-1" style="width: 10rem"><label>Gender<span class="text-danger">*</span></label>
                                             <b-form-select v-model="user.gender" :options="genderOptions" :state = "selectedGenderState?null:false"></b-form-select>
                                         </b-form-group>
-                                        <b-form-group><label>Badge Number<span class="text-danger">*</span></label>
-                                            <b-form-input v-model="user.badgeNumber" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
-                                        </b-form-group>
-                                        <b-form-group><label>Email<span class="text-danger">*</span></label>
+                                        <b-form-group class="ml-1" style="width: 30rem"><label>Email<span class="text-danger">*</span></label>
                                             <b-form-input v-model="user.email" placeholder="Enter Email" :state = "emailState?null:false" type="email"></b-form-input>
                                         </b-form-group>
-                                        <b-form-group><label>Rank<span class="text-danger">*</span></label>
+                                    </b-row>
+
+                                    <b-row class="mx-1">
+                                        <b-form-group class="mr-1" style="width: 20rem"><label>Badge Number<span class="text-danger">*</span></label>
+                                            <b-form-input v-model="user.badgeNumber" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
+                                        </b-form-group>                                            
+                                        <b-form-group class="ml-1" style="width: 15rem"><label>Rank<span class="text-danger">*</span></label>
                                             <b-form-select v-model="user.rank" placeholder="Select Rank" :options="commonInfo.sheriffRankList" :state = "selectedRankState?null:false"></b-form-select>
                                         </b-form-group>
-                                    </b-form>
+                                    </b-row>
+                                    
                                 </b-tab>
 
                                 <b-tab title="Locations">                                    
@@ -173,7 +187,7 @@
                 .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
                 ).then(data => {
                     if(data){
-                        //console.log(data)
+                        console.log(data)
                         this.ExtractMyTeam(data);                        
                     }
                     this.isMyTeamDataMounted = true;
@@ -183,9 +197,10 @@
         public ExtractMyTeam(data: any)
         {
             this.myTeamData = [];
+            
             for(const myteaminfo of data)
             {
-                const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:null, gender:'' }
+                const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:'', gender:'' }
                 myteam.fullName = this.getFullNameOfPerson(myteaminfo.firstName ,myteaminfo.lastName);
                 myteam.gender = myteaminfo.gender;
                 myteam.rank = myteaminfo.rank;
@@ -209,7 +224,6 @@
             this.editMode = true;
             this.showMemberDetails=true;
             this.loadUserDetails("1234");
-
         }
 
         public closeProfileWindow() {
@@ -322,13 +336,34 @@
             }             
         }
 
+
         public updateProfile(): void {
             console.log("updating profile")
 
         }
 
-        public createProfile(): void {
+        public createProfile() {
             console.log("creating profile")
+            const body = {
+                homeLocationId: this.commonInfo.location.id,               
+                gender: this.user.gender,
+                badgeNumber: this.user.badgeNumber,
+                rank: this.user.rank,
+                idirName: this.user.idirUserName,
+                firstName:this.user.firstName,
+                lastName: this.user.lastName,
+                email: this.user.email
+            }
+            
+            this.$http.post('/api/sheriff', body )
+                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
+                ).then(data => {
+                    if(data){
+                        console.log(data) 
+                        this.GetSheriffs();                     
+                    }
+                });
+   
             
         }
 
