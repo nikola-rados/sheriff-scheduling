@@ -112,6 +112,24 @@
                   &times;</b-button>
             </template>           
         </b-modal>
+
+        <b-modal v-model="showCancelWarning" id="bv-modal-team-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>                
+                 <h2 v-if="editMode" class="mb-0 text-light"> Unsaved Profile Changes </h2>
+                 <h2 v-else-if="createMode" class="mb-0 text-light"> Unsaved New Profile </h2>                
+            </template>
+            <p>Are you sure you want to cancel without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-team-cancel-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="closeWarningWindow()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>
     </b-card>
 </template>
 
@@ -142,6 +160,7 @@
 
         sectionHeader = "";
         showMemberDetails = false;
+        showCancelWarning = false;
         //TODO: get user role and Make sure only super-admin can see the "add a user" yellow button
         user = {} as teamMemberInfoType;
         userJson = {} as teamMemberJsonType;
@@ -227,8 +246,18 @@
         }
 
         public closeProfileWindow() {
+            // if (1 != 1) {
+            //     this.showMemberDetails = false;
+            //     this.resetProfileWindowState();
+            // } else {
+                this.showCancelWarning = true;
+            // }
+            
+        }
+
+        public closeWarningWindow() {            
+            this.showCancelWarning = false;
             this.showMemberDetails = false;
-            this.resetProfileWindowState();
         }
 
         public resetProfileWindowState() {
@@ -254,7 +283,7 @@
         }
 
         public loadUserDetails(userId): void {
-            console.log("loading user info")
+            console.log("loading user info" + userId)
 
             // this.editMode = true;
             // this.errorCode = 0;
