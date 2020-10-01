@@ -2,10 +2,10 @@
     <b-card bg-variant="white">
         <b-row>
             <b-col cols="11">
-                <page-header :pageHeaderText="'My Team - ' + this.location.name"></page-header>
+                <page-header :pageHeaderText="'My Team - ' + this.commonInfo.location.name"></page-header>
             </b-col>
-            <b-col>
-                    <b-button variant="primary"> Add User </b-button>
+            <b-col style="padding: 0;">
+                <b-button style="max-height: 40px;" size="sm" variant="warning" @click="AddMember()"><b-icon-plus/>Add a User</b-button>
             </b-col>
         </b-row>
         
@@ -19,12 +19,13 @@
 
         <b-modal size="xl" v-model="showMemberDetails" id="bv-modal-team-member-details" header-class="bg-primary text-light">            
             <template v-slot:modal-title>                
-                 <h2 class="mb-0 text-light"> Updating User Profile </h2>                
+                 <h2 v-if="editMode" class="mb-0 text-light"> Updating User Profile </h2>
+                 <h2 v-else-if="createMode" class="mb-0 text-light"> Creating User Profile </h2>                
             </template>
             <b-card>
                 <b-row>
                     <b-col cols="4">
-                        <user-summary-template userId="teamMemberId" userName="teamMemberName" userRole="teamMemberRole" :editMode="true"/>
+                        <user-summary-template userId="teamMemberId" userName="teamMemberName" userRole="teamMemberRole" :editMode="editMode"/>
                     </b-col>
                     <b-col>
                         <b-card no-body>
@@ -49,105 +50,11 @@
                                     </b-form>
                                 </b-tab>
 
-                                <b-tab title="Locations">
-                                    <b-form>
-                                        <b-form-group label="Home Location" label-for="homeLocationField">
-                                            <b-form-select id="homeLocationField" :v-model="user.homeLocation" :options="locationOptions" :state = "selectedRankState?null:false"></b-form-select>
-                                        </b-form-group>
-                                    </b-form>
-                                    <b-card border-variant="white">
-                                        <h4>
-                                            {{selectedLocation.name}} {{activetab.label}}
-                                        </h4>
-                                        <hr  style="border-top: 1px dashed gray"/>      
-                                    </b-card>
-                                    <b-table
-                                        :items="callInformation"
-                                        :fields="fields"
-                                        :sort-by.sync="sortBy"
-                                        :sort-desc.sync="sortDesc"
-                                        :no-sort-reset="true"
-                                        sort-icon-left
-                                        striped
-                                        borderless
-                                        small
-                                        responsive="sm"
-                                        >  
-                                        
-                                        <template v-slot:head(locationId)="data">                         
-                                            <b v-if="activetab.key !=='CourtRooms'" >{{data.label}}</b>
-                                            <b v-else></b>
-                                        </template>
-
-                                        <template v-slot:cell(locationId)="data">                         
-                                            <span v-if="activetab.key !='CourtRooms'" >
-                                                <b-dropdown variant="bg-white" no-caret :text="data.item.locationId?'Custom Role':'Default Role'">
-                                                    <b-dropdown-item @click="setScope(data,'Custom Role')">Custom Role</b-dropdown-item>
-                                                    <b-dropdown-item @click="setScope(data,'Default Role')">Default Role</b-dropdown-item>
-                                                </b-dropdown>
-                                            </span>
-                                            
-                                            <b v-else></b>
-                                        </template>
-
-                                        <template v-slot:head(name)>
-                                            <b v-if="activetab.key =='CourtRooms'">Courtroom </b>
-                                            <b v-else>Type</b>
-                                        </template> 
-
-                                        <template v-slot:cell(name)="data" >
-                                            <span v-if="activetab.key =='CourtRooms'">{{data.item.name}}</span>
-                                            <span v-else-if="activetab.key =='EscortRuns'">{{data.item.title}}</span>
-                                            <span v-else>{{data.item.description}}</span> 
-                                        </template>
-
-                                        <template v-slot:cell(expire)="data" >
-                                            <b-button size="sm" variant="warning" @click="ExpireCell(data)">
-                                                <b-icon icon="clock">
-                                                </b-icon>
-                                            </b-button> 
-                                        </template>
-
-                                        <template v-slot:cell(delete)="data" >
-                                            <b-button size="sm" variant="danger" @click="DeleteCell(data)">
-                                                <b-icon icon="trash">
-                                                </b-icon>
-                                            </b-button> 
-                                        </template>
-                                    </b-table>
-                                    <b-card border-variant="white" no-body>
-                                        <b-input-group class="mb-3">
-                                            <b-form-select
-                                                style="height: 100%;"
-                                                v-model="fullDayLocation"               
-                                                >
-                                                <b-form-select-option
-                                                v-for="location in locationList"
-                                                :key="location.id"                  
-                                                :value="location">{{location.name}}
-                                                </b-form-select-option>                  
-                                            </b-form-select>                           
-                                            <b-form-datepicker placeholder="Select Start Date"
-                                                v-model="fullDayStartDate"
-                                                right
-                                                locale="en-US"
-                                            ></b-form-datepicker>                                            
-                                            <b-form-datepicker placeholder="Select End Date"
-                                                v-model="fullDayEndDate"
-                                                right
-                                                locale="en-US"
-                                            ></b-form-datepicker>
-                                            <b-button @click="AddCell()"><b-icon-plus></b-icon-plus></b-button>                           
-                                        </b-input-group> 
-                                    </b-card>                                    
+                                <b-tab title="Locations">                                    
                                 </b-tab>
-
-                                <b-tab title="Leaves">
-                                    
+                                <b-tab title="Leaves">                                    
                                 </b-tab>
-
-                                <b-tab title="Training">                        
-                                    
+                                <b-tab title="Training"> 
                                 </b-tab>
                             </b-tabs>
                         </b-card>
@@ -180,10 +87,9 @@
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import PageHeader from "@components/common/PageHeader.vue";
-    import UserDetailsModal from "./UserDetailsModal.vue";
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
     import "@store/modules/CommonInformation";  
-    import {locationInfoType} from '../../types/common';
+    import {commonInfoType} from '../../types/common';
     import {teamMemberInfoType} from '../../types/MyTeam';
     import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
     const commonState = namespace("CommonInformation");
@@ -191,14 +97,16 @@
     @Component({
         components: {
             PageHeader,
-            UserDetailsModal,
             UserSummaryTemplate
         }
     })
     export default class MyTeamMembers extends Vue {
 
         @commonState.State
-        public location!: locationInfoType;
+        public commonInfo!: commonInfoType;
+
+        @commonState.Action
+        public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
 
         sectionHeader = "";
         showMemberDetails = false;
@@ -206,31 +114,45 @@
         user = {} as teamMemberInfoType;
         userJson = {} as teamMemberJsonType;
 
-        genderOptions = ["Male", "Female", "Other"]
+        genderOptions = [{text:"Male", value: 0}, {text:"Female", value: 1}, {text:"Other", value: 2}]
         rankOptions = ["Deputy Sheriff"]
+        idirUsernameState = true;
         firstNameState = true;
         lastNameState = true;
+        emailState = true;
         selectedGenderState = true;
         badgeNumberState = true;
         selectedRankState = true;
 
-        tabIndex = 1;
+        tabIndex = 0;
         errorCode = 0;
         errorText = '';
         isUserDataMounted = false;
+        editMode = false;
+        createMode = false;
 
 
         mounted() {
-            this.sectionHeader = "My Team - " + this.location.name;
+            this.sectionHeader = "My Team - " + this.commonInfo.location.name;
         }
 
         public OpenMemberDetails(data)
         {
             console.log(data)
             // TODO: pass data to modal
+            this.createMode = false;
+            this.editMode = true;
             this.showMemberDetails=true;
             this.loadUserDetails("1234");
 
+        }
+
+        public AddMember()
+        {            
+            // TODO: pass data to modal
+            this.createMode = true;
+            this.editMode = false;
+            this.showMemberDetails=true;
         }
 
         public loadUserDetails(userId): void {
