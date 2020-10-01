@@ -144,12 +144,16 @@
     import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
     const commonState = namespace("CommonInformation");
 
+    enum gender {'Male'=0, 'Female', 'Other'}
+
     @Component({
         components: {
             PageHeader,
             UserSummaryTemplate
         }
     })
+
+    
     export default class MyTeamMembers extends Vue {
 
         @commonState.State
@@ -164,8 +168,7 @@
         //TODO: get user role and Make sure only super-admin can see the "add a user" yellow button
         user = {} as teamMemberInfoType;
         userJson = {} as teamMemberJsonType;
-        //TODO: define gender as enum
-        genderOptions = [{text:"Male", value: 0}, {text:"Female", value: 1}, {text:"Other", value: 2}]
+        genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
         genderValues = [0, 1, 2]        
         idirUsernameState = true;
         firstNameState = true;
@@ -245,17 +248,26 @@
             this.loadUserDetails("1234");
         }
 
-        public closeProfileWindow() {
-            // if (1 != 1) {
-            //     this.showMemberDetails = false;
-            //     this.resetProfileWindowState();
-            // } else {
+        public closeProfileWindow() 
+        {         
+            if(this.isEmpty(this.user))
+            {
+                this.showMemberDetails = false;
+                this.resetProfileWindowState();
+            }   
+            else
                 this.showCancelWarning = true;
-            // }
-            
         }
 
-        public closeWarningWindow() {            
+        public isEmpty(obj){
+            for(const prop in obj) 
+                if(obj[prop] != null)
+                    return false;
+            return true;
+        }
+
+        public closeWarningWindow() {   
+            this.resetProfileWindowState();         
             this.showCancelWarning = false;
             this.showMemberDetails = false;
         }
