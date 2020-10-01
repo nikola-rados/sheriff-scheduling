@@ -79,6 +79,7 @@
                                             <b-form-select v-model="user.rank" placeholder="Select Rank" :options="commonInfo.sheriffRankList" :state = "selectedRankState?null:false"></b-form-select>
                                         </b-form-group>
                                     </b-row>
+                                    <h2 class="mx-1 mt-0"><b-badge v-if="duplicateBadge" variant="danger"> Duplicate Badge</b-badge></h2>
                                     
                                 </b-tab>
 
@@ -178,6 +179,7 @@
         badgeNumberState = true;
         selectedRankState = true;
         idirUserNameState = true;
+        duplicateBadge = false;
 
         tabIndex = 0;
         errorCode = 0;
@@ -282,6 +284,7 @@
             this.emailState = true;
             this.selectedRankState = true;
             this.idirUserNameState = true;
+            this.duplicateBadge = false;
             this.user = {} as teamMemberInfoType;
         }
 
@@ -349,6 +352,7 @@
                 requiredErrorTab.push(0);
             } else {
                 this.badgeNumberState = true;
+                this.duplicateBadge = false;
             }
             if (!this.user.email) {
                 this.emailState = false;
@@ -366,11 +370,7 @@
             if (requiredErrorTab.length == 0) {
                 if (this.editMode) this.updateProfile();
                 if (this.createMode) this.createProfile();
-                this.resetProfileWindowState();
-                
-                //SAVE
-
-                this.showMemberDetails = false;
+               
 
             } else {                
                 this.tabIndex= requiredErrorTab[0];
@@ -397,11 +397,22 @@
             }
             
             this.$http.post('/api/sheriff', body )
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
+                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.data.details;console.log(err);}        
                 ).then(data => {
+                    //console.log(data);
+                    //console.log(this.errorCode)
                     if(data){
-                        console.log(data) 
+                        this.resetProfileWindowState();
+                        this.showMemberDetails = false;
                         this.GetSheriffs();                     
+                    }
+                    else
+                    {
+                        if(this.errorText.includes('already has badge number'))
+                        {
+                            this.badgeNumberState = false;
+                            this.duplicateBadge = true;
+                        }
                     }
                 });
    
