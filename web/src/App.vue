@@ -54,7 +54,6 @@
 
         public extractSheriffRankInfo(sheriffRankList)
         {
-            console.log(sheriffRankList)
             let sheriffRank: sheriffRankJsonType;
 
             for(sheriffRank of sheriffRankList)
