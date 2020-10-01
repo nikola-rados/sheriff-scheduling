@@ -34,7 +34,7 @@
                  <h2 v-if="editMode" class="mb-0 text-light"> Updating User Profile </h2>
                  <h2 v-else-if="createMode" class="mb-0 text-light"> Creating User Profile </h2>                
             </template>
-            <b-card>
+            <b-card v-if="isUserDataMounted">
                 <b-row>
                     <b-col cols="4">
                         <user-summary-template userId="teamMemberId" userName="teamMemberName" userRole="teamMemberRole" :editMode="editMode"/>
@@ -44,20 +44,26 @@
                             <b-tabs card v-model="tabIndex">
                                 <b-tab title="Identification" >
                                     <b-form>
-                                        <b-form-group label="First Name" label-for="firstNameField">
-                                            <b-form-input id="firstNameField" :v-model="user.firstName" placeholder="Enter First Name" :state = "firstNameState?null:false"></b-form-input>
+                                        <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
+                                            <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
                                         </b-form-group>
-                                        <b-form-group label="Last Name" label-for="lastNameField">
-                                            <b-form-input id="lastNameField" :v-model="user.lastName" placeholder="Enter Last Name" :state = "lastNameState?null:false"></b-form-input>
+                                        <b-form-group><label>First Name<span class="text-danger">*</span></label>
+                                            <b-form-input v-model="user.firstName" placeholder="Enter First Name" :state = "firstNameState?null:false"></b-form-input>
                                         </b-form-group>
-                                        <b-form-group label="Gender" label-for="genderField">
-                                            <b-form-select id="genderField" :v-model="user.gender" :options="genderOptions" :state = "selectedGenderState?null:false"></b-form-select>
+                                        <b-form-group><label>Last Name<span class="text-danger">*</span></label>
+                                            <b-form-input v-model="user.lastName" placeholder="Enter Last Name" :state = "lastNameState?null:false"></b-form-input>
                                         </b-form-group>
-                                        <b-form-group label="Badge Number" label-for="badgeNumberField">
-                                            <b-form-input id="badgeNumberField" :v-model="user.badgeNumber" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
+                                        <b-form-group><label>Gender<span class="text-danger">*</span></label>
+                                            <b-form-select v-model="user.gender" :options="genderOptions" :state = "selectedGenderState?null:false"></b-form-select>
                                         </b-form-group>
-                                        <b-form-group label="Rank" label-for="rankField">
-                                            <b-form-select id="rankField" :v-model="user.rank" :options="rankOptions" :state = "selectedRankState?null:false"></b-form-select>
+                                        <b-form-group><label>Badge Number<span class="text-danger">*</span></label>
+                                            <b-form-input v-model="user.badgeNumber" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
+                                        </b-form-group>
+                                        <b-form-group><label>Email<span class="text-danger">*</span></label>
+                                            <b-form-input v-model="user.email" placeholder="Enter Email" :state = "emailState?null:false" type="email"></b-form-input>
+                                        </b-form-group>
+                                        <b-form-group><label>Rank<span class="text-danger">*</span></label>
+                                            <b-form-select v-model="user.rank" placeholder="Select Rank" :options="commonInfo.sheriffRankList" :state = "selectedRankState?null:false"></b-form-select>
                                         </b-form-group>
                                     </b-form>
                                 </b-tab>
@@ -76,11 +82,11 @@
             <template v-slot:modal-footer>
                 <b-button
                   variant="secondary" 
-                  @click="$bvModal.hide('bv-modal-team-member-details')"                  
+                  @click="closeProfileWindow()"                  
                 ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
                 <b-button                 
                   variant="success" 
-                  @click="UpdateMemberProfile('testing updates')"
+                  @click="saveMemberProfile('testing updates')"
                 ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
@@ -122,12 +128,12 @@
 
         sectionHeader = "";
         showMemberDetails = false;
-
+        //TODO: get user role and Make sure only super-admin can see the "add a user" yellow button
         user = {} as teamMemberInfoType;
         userJson = {} as teamMemberJsonType;
-
+        //TODO: define gender as enum
         genderOptions = [{text:"Male", value: 0}, {text:"Female", value: 1}, {text:"Other", value: 2}]
-        rankOptions = ["Deputy Sheriff"]
+        genderValues = [0, 1, 2]        
         idirUsernameState = true;
         firstNameState = true;
         lastNameState = true;
@@ -135,6 +141,7 @@
         selectedGenderState = true;
         badgeNumberState = true;
         selectedRankState = true;
+        idirUserNameState = true;
 
         tabIndex = 0;
         errorCode = 0;
@@ -205,71 +212,124 @@
 
         }
 
+        public closeProfileWindow() {
+            this.showMemberDetails = false;
+            this.resetProfileWindowState();
+        }
+
+        public resetProfileWindowState() {
+            this.createMode = false;
+            this.editMode = false;
+            this.firstNameState = true;
+            this.lastNameState = true;
+            this.selectedGenderState = true;
+            this.badgeNumberState = true;
+            this.emailState = true;
+            this.selectedRankState = true;
+            this.idirUserNameState = true;
+            this.user = {} as teamMemberInfoType;
+        }
+
         public AddMember()
         {            
             // TODO: pass data to modal
             this.createMode = true;
             this.editMode = false;
+            this.isUserDataMounted = true;
             this.showMemberDetails=true;
         }
 
         public loadUserDetails(userId): void {
+            console.log("loading user info")
 
-            this.errorCode = 0;
-            this.$http.get('/api/sheriff/' + userId)
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-                ).then(data => {
-                    if(data){
-                        this.userJson = data
-                        this.extractUserInfo();
-                        
-                    }
-                    this.isUserDataMounted = true;
-                });
+            // this.editMode = true;
+            // this.errorCode = 0;
+            // this.$http.get('/api/sheriff/' + userId)
+            //     .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
+            //     ).then(data => {
+            //         if(data){
+            //             this.userJson = data
+            //             this.extractUserInfo();
+            //             this.isUserDataMounted = true;                        
+            //         }
+                    
+            //     });
         }
 
-        public extractUserInfo(): void {
-            this.user.firstName = this.userJson.firstName;
-            this.user.lastName = this.userJson.lastName;
+        // public extractUserInfo(): void {
+        //     this.user.firstName = this.userJson.firstName;
+        //     this.user.lastName = this.userJson.lastName;
 
-        }
+        // }
 
-        public UpdateMemberProfile() {
-            console.log("saving on submit")
+        public saveMemberProfile() {            
             const requiredErrorTab: number[] = [];
+
+            if (!this.user.idirUserName) {
+                this.idirUserNameState = false;
+                requiredErrorTab.push(0);
+            } else {
+                this.idirUserNameState = true;
+            }
             if (!this.user.firstName) {
                 this.firstNameState = false;
                 requiredErrorTab.push(0);
+            } else {
+                this.firstNameState = true;
             }
             if (!this.user.lastName) {
                 this.lastNameState = false;
                 requiredErrorTab.push(0);
+            } else {
+                this.lastNameState = true;
             }
-            if (!this.user.gender) {
+            if (this.genderValues.toString().indexOf(this.user.gender) == -1) {
                 this.selectedGenderState = false;
                 requiredErrorTab.push(0);
+            } else {
+                this.selectedGenderState = true;
             }
             if (!this.user.badgeNumber) {
                 this.badgeNumberState = false;
                 requiredErrorTab.push(0);
+            } else {
+                this.badgeNumberState = true;
+            }
+            if (!this.user.email) {
+                this.emailState = false;
+                requiredErrorTab.push(0);
+            } else {
+                this.emailState = true;
             }
             if (!this.user.rank) {
                 this.selectedRankState = false;
                 requiredErrorTab.push(0);
+            } else {
+                this.selectedRankState = true;
             }
             
             if (requiredErrorTab.length == 0) {
+                if (this.editMode) this.updateProfile();
+                if (this.createMode) this.createProfile();
+                this.resetProfileWindowState();
+                
                 //SAVE
 
                 this.showMemberDetails = false;
 
-            } else {
-                
+            } else {                
                 this.tabIndex= requiredErrorTab[0];
+            }             
+        }
 
-            }
+        public updateProfile(): void {
+            console.log("updating profile")
 
-             
+        }
+
+        public createProfile(): void {
+            console.log("creating profile")
+            
         }
 
     }
@@ -286,5 +346,10 @@
         padding: 0;
         margin: 0;
     }
+
+    .form-group.required .label:after {
+  content:"*";
+  color:red;
+}
 
 </style>
