@@ -7,9 +7,9 @@
             ></b-card-img> -->
             <b-icon-person-circle class="mb-3" variant="secondary" font-scale="7.5"></b-icon-person-circle>
             <b-card no-body class="mb-5 mt-2" v-if="editMode"><b-button variant="outline-secondary">Browse for File</b-button></b-card>
-            <b-card-sub-title>{{userId}}</b-card-sub-title>
+            <b-card-sub-title>{{userBadgeNumber}}</b-card-sub-title>
             <b-card-title>{{userName}}</b-card-title>
-            <b-card-sub-title>{{userRole}}</b-card-sub-title>
+            <b-card-sub-title>{{userRole|capitilize}}</b-card-sub-title>
     </b-card>   
 </template>
 
@@ -28,7 +28,7 @@
         public location!: locationInfoType;
 
         @Prop({required: true})
-        userId!: string;
+        userBadgeNumber!: string;
 
         @Prop({required: true})
         userName!: string;

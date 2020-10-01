@@ -9,11 +9,23 @@
             </b-col>
         </b-row>
         
-        <b-card no-body class="mx-3 mb-5">
-            <b-card-group deck>    
-                <b-card @click="OpenMemberDetails('testing ID')">
-                    <user-summary-template userId="teamMemberId" userName="teamMemberName" userRole="teamMemberRole" :editMode="false" />
-                </b-card>                                         
+        <b-card bg-variant="light" v-if= "!isMyTeamDataMounted" >
+            <b-overlay :show= "true"> 
+                <b-card  style="min-height: 100px;"/>                   
+                <template v-slot:overlay>               
+                <div> 
+                    <loading-spinner/> 
+                    <p id="loading-label">Loading ...</p>
+                </div>                
+                </template> 
+            </b-overlay> 
+        </b-card>
+
+        <b-card v-else no-body class="mx-3 mb-5">
+            <b-card-group  deck >                 
+                <b-card v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" @click="OpenMemberDetails('testing ID')">
+                    <user-summary-template :userBadgeNumber="teamMember.badgeNumber" :userName="teamMember.fullName" :userRole="teamMember.rank" :editMode="false" />
+                </b-card>                                                       
             </b-card-group>
         </b-card>
 
@@ -84,7 +96,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import PageHeader from "@components/common/PageHeader.vue";
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
@@ -131,9 +143,55 @@
         editMode = false;
         createMode = false;
 
+        isMyTeamDataMounted = false;
+        myTeamData: teamMemberInfoType[] =[];
+
+
+        
+        @Watch('commonInfo.location.id', { immediate: true })
+        locationChange()
+        {
+            this.GetSheriffs()
+        }
 
         mounted() {
             this.sectionHeader = "My Team - " + this.commonInfo.location.name;
+            this.GetSheriffs();
+        }
+
+        public GetSheriffs()
+        {
+            this.isMyTeamDataMounted = false;
+            this.$http.get('/api/sheriff?locationId=' + this.commonInfo.location.id)
+                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
+                ).then(data => {
+                    if(data){
+                        //console.log(data)
+                        this.ExtractMyTeam(data);                        
+                    }
+                    this.isMyTeamDataMounted = true;
+                });
+        }
+
+        public ExtractMyTeam(data: any)
+        {
+            this.myTeamData = [];
+            for(const myteaminfo of data)
+            {
+                const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:null, gender:'' }
+                myteam.fullName = this.getFullNameOfPerson(myteaminfo.firstName ,myteaminfo.lastName);
+                myteam.gender = myteaminfo.gender;
+                myteam.rank = myteaminfo.rank;
+                myteam.badgeNumber = myteaminfo.badgeNumber;
+
+                this.myTeamData.push(myteam);
+            }
+        }
+
+
+        public getFullNameOfPerson(first: string, last: string)
+        {            
+            return Vue.filter('capitilize')(first) + ' ' + Vue.filter('capitilize')(last);
         }
 
         public OpenMemberDetails(data)
