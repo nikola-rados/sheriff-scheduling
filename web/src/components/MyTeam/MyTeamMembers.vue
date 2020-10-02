@@ -136,6 +136,7 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import axios from "axios";
     import PageHeader from "@components/common/PageHeader.vue";
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
     import "@store/modules/CommonInformation";  
@@ -205,7 +206,19 @@
         public GetSheriffs()
         {
             this.isMyTeamDataMounted = false;
-            this.$http.get('/api/sheriff?locationId=' + this.commonInfo.location.id)
+            // this.$http.get('/api/sheriff?locationId=' + this.commonInfo.location.id)
+            //     .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
+            //     ).then(data => {
+            //         if(data){
+            //             console.log(data)
+            //             this.ExtractMyTeam(data);                        
+            //         }
+            //         this.isMyTeamDataMounted = true;
+            //     });
+
+            const url = '/api/sheriff?locationId=' + this.commonInfo.location.id
+            const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
+            this.$http.get(url, options)
                 .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
                 ).then(data => {
                     if(data){
@@ -214,6 +227,8 @@
                     }
                     this.isMyTeamDataMounted = true;
                 });
+
+
         }
 
         public ExtractMyTeam(data: any)
