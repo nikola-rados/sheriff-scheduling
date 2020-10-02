@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
@@ -197,7 +199,7 @@ namespace tests.controllers
 
             var controllerResult6 = await _controller.FindSheriff(sheriffObject.Id);
             var response6 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult6);
-            Assert.Empty(response6.AwayLocation);
+            Assert.NotNull(response6.AwayLocation.First().ExpiryDate);
         }
 
         [Fact]
@@ -281,7 +283,7 @@ namespace tests.controllers
 
             var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
             var response5 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult5);
-            Assert.Empty(response5.Leave);
+            Assert.NotNull(response5.Leave.First().ExpiryDate);
         }
        
         [Fact]
@@ -353,7 +355,7 @@ namespace tests.controllers
 
             var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
             var response5 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult5);
-            Assert.Empty(response5.Training);
+            Assert.NotNull(response5.Training.First().ExpiryDate);
         }
 
         #region Helpers
@@ -368,7 +370,6 @@ namespace tests.controllers
                 BadgeNumber = "555",
                 Email = "Ted@Teddy.com",
                 Gender = Gender.Female,
-                Id = new Guid(),
                 IdirId = new Guid(),
                 IdirName = "ted@fakeidir",
                 HomeLocation =  new Location { Name = "Teds Place", AgencyId = "5555555435353535353535353"},

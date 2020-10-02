@@ -32,6 +32,8 @@
     <Compile Remove="migrations\20200930011847_Data.Designer.cs" />
     <Compile Remove="migrations\20200930185342_Data.cs" />
     <Compile Remove="migrations\20200930185342_Data.Designer.cs" />
+    <Compile Remove="migrations\20201001192757_KeyCloakId.cs" />
+    <Compile Remove="migrations\20201001192757_KeyCloakId.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +52,10 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.csproj" />
   </ItemGroup>
   <Target Name="Mapster" AfterTargets="AfterBuild">
     <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />

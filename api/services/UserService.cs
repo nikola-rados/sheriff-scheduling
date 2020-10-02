@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
@@ -18,8 +20,6 @@ namespace SS.Api.services
             _db = sheriffDbContext;
         }
         
-
-
         public async Task<User> DisableUser(Guid id)
         {
             var user = await _db.User.FindAsync(id);
@@ -47,13 +47,13 @@ namespace SS.Api.services
 
             foreach (var roleId in roleIds)
             {
-                var role = await _db.Role.FindAsync(roleId);
+                var role = await _db.Role.Include(r => r.UserRoles).FirstOrDefaultAsync(r => r.Id == roleId);
                 role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
-                if (user.Roles.Any(r => r.UserId == userId && r.RoleId == roleId))
+                if (user.UserRoles.Any(r => r.UserId == userId && r.RoleId == roleId))
                     return;
 
-                user.Roles.Add(new UserRole
+                user.UserRoles.Add(new UserRole
                 {
                     Role = role,
                     User = user
@@ -68,7 +68,7 @@ namespace SS.Api.services
             var user = await _db.User.FindAsync(userId);
             user.ThrowBusinessExceptionIfNull($"User with id {userId} does not exist.");
 
-            _db.RemoveRange(user.Roles.Where(r => r.UserId == userId && roleIds.Contains(r.RoleId)));
+            _db.RemoveRange(user.UserRoles.Where(r => r.UserId == userId && roleIds.Contains(r.RoleId)));
 
             await _db.SaveChangesAsync();
         }
