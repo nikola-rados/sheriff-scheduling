@@ -43,7 +43,6 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
             return Ok();
         }
 
@@ -58,8 +57,7 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> GetToken()
         {
             var accessToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "access_token");
-            var refreshToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "refresh_token");
-            return Ok(new { access_token = accessToken, refresh_token = refreshToken });
+            return Ok(new { access_token = accessToken });
         }
 
         /// <summary>
