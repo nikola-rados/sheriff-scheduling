@@ -25,6 +25,7 @@ namespace SS.Api.controllers.usermanagement
         #region Sheriff
 
         //This uses Sheriff because it's an extended object of User. 
+        [AuthorizeRoles(Role.SystemAdministrator)]
         [HttpPost]
         public async Task<ActionResult<SheriffDto>> CreateSheriff(SheriffDto sheriffDto)
         {
@@ -32,7 +33,6 @@ namespace SS.Api.controllers.usermanagement
             sheriff = await _service.CreateSheriff(sheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
-
 
         /// <summary>
         /// This gets a general list of Sheriffs, without all the details. 
