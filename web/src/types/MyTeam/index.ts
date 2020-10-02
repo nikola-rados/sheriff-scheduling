@@ -3,11 +3,15 @@ import {} from '../DutyRoster/jsonTypes';
 
 export interface teamMemberInfoType {
 
-    "Id": string,
-    "rank": string,
-    "firstName": string,
-    "lastName": string,
-    "badgeNumber": number,
-    "gender": string
+    id?: string;
+    idirUserName?: string;
+    rank: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    badgeNumber: string;
+    gender: string;
+    fullName?: string;
+    image?: string;
 }
 
