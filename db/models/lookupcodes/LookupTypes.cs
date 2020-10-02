@@ -8,6 +8,7 @@
         EscortRun,
         OtherAssignment,
         LeaveType,
-        TrainingType
+        TrainingType,
+        SheriffRank
     }
 }

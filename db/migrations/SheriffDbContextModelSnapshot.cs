@@ -24,9 +24,11 @@ namespace SS.Db.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'200', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<string>("Code")
+                    b.Property<string>("AgencyId")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<Guid?>("CreatedById")
@@ -35,22 +37,24 @@ namespace SS.Db.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("JustinCode")
                         .HasColumnType("text");
-
-                    b.Property<int>("JustinId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<int>("ParentLocationId")
+                    b.Property<int?>("ParentLocationId")
                         .HasColumnType("integer");
 
                     b.Property<int?>("RegionId")
                         .HasColumnType("integer");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
@@ -60,6 +64,9 @@ namespace SS.Db.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AgencyId")
+                        .IsUnique();
 
                     b.HasIndex("CreatedById");
 
@@ -68,6 +75,22 @@ namespace SS.Db.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("Location");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AgencyId = "FAKE",
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 924, DateTimeKind.Utc).AddTicks(7930),
+                            Name = "Dummy Location"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AgencyId = "FAKE2",
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 924, DateTimeKind.Utc).AddTicks(9186),
+                            Name = "Dummy Location2"
+                        });
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.Permission", b =>
@@ -75,6 +98,7 @@ namespace SS.Db.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'50', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<Guid?>("CreatedById")
@@ -90,6 +114,8 @@ namespace SS.Db.Migrations
                         .HasColumnType("text");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
@@ -98,18 +124,22 @@ namespace SS.Db.Migrations
                     b.Property<DateTime?>("UpdatedOn")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("UpdatedById");
 
-                    b.HasIndex("UserId");
-
                     b.ToTable("Permission");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 939, DateTimeKind.Utc).AddTicks(9870),
+                            Description = "Permission to login to the application",
+                            Name = "Login"
+                        });
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.Role", b =>
@@ -117,6 +147,7 @@ namespace SS.Db.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'50', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<Guid?>("CreatedById")
@@ -132,6 +163,8 @@ namespace SS.Db.Migrations
                         .HasColumnType("text");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
@@ -147,6 +180,29 @@ namespace SS.Db.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("Role");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(2756),
+                            Description = "System Administrator",
+                            Name = "System Administrator"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(3683),
+                            Description = "Administrator",
+                            Name = "Administrator"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(3716),
+                            Description = "Sheriff",
+                            Name = "Sheriff"
+                        });
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.RolePermission", b =>
@@ -162,13 +218,15 @@ namespace SS.Db.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp without time zone");
 
-                    b.Property<int?>("PermissionId")
+                    b.Property<int>("PermissionId")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("RoleId")
+                    b.Property<int>("RoleId")
                         .HasColumnType("integer");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
@@ -194,7 +252,8 @@ namespace SS.Db.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'200', '1', '', '', 'False', '1'");
 
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
@@ -215,11 +274,17 @@ namespace SS.Db.Migrations
                     b.Property<int?>("HomeLocationId")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("IdirId")
+                    b.Property<Guid?>("IdirId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("IsDisabled")
+                    b.Property<string>("IdirName")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsEnabled")
                         .HasColumnType("boolean");
+
+                    b.Property<Guid?>("KeyCloakId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime?>("LastLogin")
                         .HasColumnType("timestamp without time zone");
@@ -227,10 +292,9 @@ namespace SS.Db.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
-                    b.Property<string>("PreferredUsername")
-                        .HasColumnType("text");
-
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
@@ -269,6 +333,8 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
@@ -293,6 +359,57 @@ namespace SS.Db.Migrations
                     b.ToTable("UserRole");
                 });
 
+            modelBuilder.Entity("SS.Db.models.lookupcodes.LookupSortOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int?>("LocationId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("LookupCodeId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LookupType")
+                        .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("LocationId");
+
+                    b.HasIndex("LookupCodeId");
+
+                    b.HasIndex("LookupType");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("LookupSortOrder");
+                });
+
             modelBuilder.Entity("SS.Db.models.sheriff.SheriffAwayLocation", b =>
                 {
                     b.Property<int>("Id")
@@ -309,6 +426,9 @@ namespace SS.Db.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<bool>("IsFullDay")
                         .HasColumnType("boolean");
 
@@ -316,9 +436,11 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
-                    b.Property<Guid?>("SheriffId")
+                    b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("StartDate")
@@ -359,6 +481,9 @@ namespace SS.Db.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<bool>("IsFullDay")
                         .HasColumnType("boolean");
 
@@ -366,9 +491,11 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
-                    b.Property<Guid?>("SheriffId")
+                    b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("StartDate")
@@ -409,13 +536,18 @@ namespace SS.Db.Migrations
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("timestamp without time zone");
 
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<bool>("IsFullDay")
                         .HasColumnType("boolean");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
-                    b.Property<Guid?>("SheriffId")
+                    b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("StartDate")
@@ -453,10 +585,40 @@ namespace SS.Db.Migrations
                     b.Property<string>("Code")
                         .HasColumnType("text");
 
+                    b.Property<Guid?>("CreatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("JustinId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("JustinId")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedById");
 
                     b.ToTable("Region");
                 });
@@ -466,6 +628,7 @@ namespace SS.Db.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'200', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("Code")
@@ -490,6 +653,8 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("bytea");
 
                     b.Property<int?>("SortOrder")
@@ -516,6 +681,57 @@ namespace SS.Db.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("LookupCode");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(6582),
+                            Description = "Chief Sheriff",
+                            Type = 7
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7471),
+                            Description = "Superintendent",
+                            Type = 7
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7493),
+                            Description = "Staff Inspector",
+                            Type = 7
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7494),
+                            Description = "Inspector",
+                            Type = 7
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7496),
+                            Description = "Staff Sergeant",
+                            Type = 7
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7497),
+                            Description = "Sergeant",
+                            Type = 7
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7498),
+                            Description = "Deputy Sheriff",
+                            Type = 7
+                        });
                 });
 
             modelBuilder.Entity("SS.Db.models.sheriff.Sheriff", b =>
@@ -561,10 +777,6 @@ namespace SS.Db.Migrations
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
-
-                    b.HasOne("SS.Db.models.auth.User", null)
-                        .WithMany("Permissions")
-                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.Role", b =>
@@ -586,11 +798,15 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.Permission", "Permission")
                         .WithMany()
-                        .HasForeignKey("PermissionId");
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SS.Db.models.auth.Role", "Role")
                         .WithMany("RolePermissions")
-                        .HasForeignKey("RoleId");
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
@@ -619,7 +835,7 @@ namespace SS.Db.Migrations
                         .HasForeignKey("CreatedById");
 
                     b.HasOne("SS.Db.models.auth.Role", "Role")
-                        .WithMany("Users")
+                        .WithMany("UserRoles")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
@@ -629,10 +845,31 @@ namespace SS.Db.Migrations
                         .HasForeignKey("UpdatedById");
 
                     b.HasOne("SS.Db.models.auth.User", "User")
-                        .WithMany("Roles")
+                        .WithMany("UserRoles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("SS.Db.models.lookupcodes.LookupSortOrder", b =>
+                {
+                    b.HasOne("SS.Db.models.auth.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
+
+                    b.HasOne("SS.Api.Models.DB.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("ss.db.models.LookupCode", "LookupCode")
+                        .WithMany()
+                        .HasForeignKey("LookupCodeId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
                 });
 
             modelBuilder.Entity("SS.Db.models.sheriff.SheriffAwayLocation", b =>
@@ -643,11 +880,14 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Api.Models.DB.Location", "Location")
                         .WithMany()
-                        .HasForeignKey("LocationId");
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
-                        .WithMany("AwayLocations")
-                        .HasForeignKey("SheriffId");
+                        .WithMany("AwayLocation")
+                        .HasForeignKey("SheriffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
@@ -665,8 +905,10 @@ namespace SS.Db.Migrations
                         .HasForeignKey("LeaveTypeId");
 
                     b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
-                        .WithMany("Leaves")
-                        .HasForeignKey("SheriffId");
+                        .WithMany("Leave")
+                        .HasForeignKey("SheriffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
@@ -681,11 +923,24 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
                         .WithMany("Training")
-                        .HasForeignKey("SheriffId");
+                        .HasForeignKey("SheriffId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("ss.db.models.LookupCode", "TrainingType")
                         .WithMany()
                         .HasForeignKey("TrainingTypeId");
+
+                    b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("UpdatedById");
+                });
+
+            modelBuilder.Entity("db.models.Region", b =>
+                {
+                    b.HasOne("SS.Db.models.auth.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById");
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
