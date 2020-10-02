@@ -60,10 +60,10 @@ namespace SS.Api.services
             var savedSheriff = await _db.Sheriff.FindAsync(sheriff.Id);
             savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {sheriff.Id} could not be found. ");
 
+            //This is handled in another route. 
+            sheriff.IsEnabled = savedSheriff.IsEnabled;
             if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
-            {
                 await CheckForDuplicateBadgeNumber(sheriff.BadgeNumber);
-            }
 
             _db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
 
@@ -91,7 +91,6 @@ namespace SS.Api.services
                 $"{nameof(sheriffAwayLocation)} with the id: {sheriffAwayLocation.Id} could not be found. ");
 
             _db.Entry(savedAwayLocation).CurrentValues.SetValues(sheriffAwayLocation);
-
             await _db.SaveChangesAsync();
             return sheriffAwayLocation;
         }
@@ -99,9 +98,9 @@ namespace SS.Api.services
         public async Task RemoveSheriffAwayLocation(int id)
         {
             var sheriffAwayLocation = await _db.SheriffAwayLocation.FindAsync(id);
-            sheriffAwayLocation.ThrowBusinessExceptionIfNull($"SheriffAwayLocation with the id: {id} could not be found. ");
-
-            _db.SheriffAwayLocation.Remove(sheriffAwayLocation);
+            sheriffAwayLocation.ThrowBusinessExceptionIfNull(
+                $"SheriffAwayLocation with the id: {id} could not be found. ");
+            sheriffAwayLocation.ExpiryDate = DateTime.UtcNow;
             await _db.SaveChangesAsync();
         }
 
@@ -121,10 +120,9 @@ namespace SS.Api.services
         public async Task<SheriffLeave> UpdateSheriffLeave(SheriffLeave sheriffLeave)
         {
             var savedLeave = await _db.SheriffLeave.FindAsync(sheriffLeave.Id);
-            savedLeave.ThrowBusinessExceptionIfNull($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
-
+            savedLeave.ThrowBusinessExceptionIfNull(
+                $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
             _db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
-
             await _db.SaveChangesAsync();
             return sheriffLeave;
         }
@@ -132,9 +130,9 @@ namespace SS.Api.services
         public async Task RemoveSheriffLeave(int id)
         {
             var sheriffLeave = await _db.SheriffLeave.FindAsync(id);
-            sheriffLeave.ThrowBusinessExceptionIfNull($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
-
-            _db.SheriffLeave.Remove(sheriffLeave);
+            sheriffLeave.ThrowBusinessExceptionIfNull(
+                $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
+            sheriffLeave.ExpiryDate = DateTime.UtcNow;
             await _db.SaveChangesAsync();
         }
 
@@ -154,10 +152,10 @@ namespace SS.Api.services
         public async Task<SheriffTraining> UpdateSheriffTraining(SheriffTraining sheriffTraining)
         {
             var savedTraining = await _db.SheriffTraining.FindAsync(sheriffTraining.Id);
-            savedTraining.ThrowBusinessExceptionIfNull($"{nameof(savedTraining)} with the id: {sheriffTraining.Id} could not be found. ");
+            savedTraining.ThrowBusinessExceptionIfNull(
+                $"{nameof(savedTraining)} with the id: {sheriffTraining.Id} could not be found. ");
 
             _db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
-
             await _db.SaveChangesAsync();
             return sheriffTraining;
         }
@@ -165,9 +163,9 @@ namespace SS.Api.services
         public async Task RemoveSheriffTraining(int id)
         {
             var sheriffTraining = await _db.SheriffTraining.FindAsync(id);
-            sheriffTraining.ThrowBusinessExceptionIfNull($"{nameof(sheriffTraining)} with the id: {id} could not be found. ");
-
-            _db.SheriffTraining.Remove(sheriffTraining);
+            sheriffTraining.ThrowBusinessExceptionIfNull(
+                $"{nameof(sheriffTraining)} with the id: {id} could not be found. ");
+            sheriffTraining.ExpiryDate = DateTime.UtcNow;
             await _db.SaveChangesAsync();
         }
 

@@ -42,13 +42,13 @@ namespace tests.controllers
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
             var entity = await _dbContext.User.FindAsync(user.Id);
-            Assert.True(entity.Roles.Count > 0);
+            Assert.True(entity.UserRoles.Count > 0);
 
             controllerResult = await _controller.UnassignRoles(user.Id, new List<int> { role.Id });
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
             entity = await _dbContext.User.FindAsync(user.Id);
-            Assert.True(entity.Roles.Count == 0);
+            Assert.True(entity.UserRoles.Count == 0);
         }
 
 
@@ -98,7 +98,6 @@ namespace tests.controllers
                 FirstName = "Ted",
                 LastName = "Tums",
                 Email = "Ted@Teddy.com",
-                Id = new Guid(),
                 IdirId = new Guid(),
                 IdirName = "ted@fakeidir"
             };

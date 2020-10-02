@@ -16,13 +16,16 @@ using Newtonsoft.Json.Serialization;
 using SS.Api.Helpers;
 using SS.Api.Helpers.Middleware;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.OpenApi.Models;
 using SS.Api.infrastructure;
+using SS.Api.infrastructure.authorization;
 using SS.Db.models;
 using SS.Db.models.auth;
 
@@ -59,9 +62,9 @@ namespace SS.Api
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
             {
                 options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.Authority = Configuration.GetValue<string>("Keycloak:Authority");
-                options.ClientId = Configuration.GetValue<string>("Keycloak:Client");
-                options.ClientSecret = Configuration.GetValue<string>("Keycloak:Secret");
+                options.Authority = Configuration.GetNonEmptyValue("Keycloak:Authority");
+                options.ClientId = Configuration.GetNonEmptyValue("Keycloak:Client");
+                options.ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret");
                 options.RequireHttpsMetadata = true;
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.ResponseType = OpenIdConnectResponseType.Code;
@@ -69,17 +72,18 @@ namespace SS.Api
                 options.SaveTokens = true;
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
-                var key = Encoding.ASCII.GetBytes(Configuration.GetValue<string>("Keycloak:Secret"));
-                options.Authority = Configuration.GetValue<string>("Keycloak:Authority");
-                options.Audience = Configuration.GetValue<string>("Keycloak:Audience");
+                var key = Encoding.ASCII.GetBytes(Configuration.GetNonEmptyValue("Keycloak:Secret"));
+                options.Authority = Configuration.GetNonEmptyValue("Keycloak:Authority");
+                options.Audience = Configuration.GetNonEmptyValue("Keycloak:Audience");
                 options.RequireHttpsMetadata = true;
                 options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters()
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
+                options.SecurityTokenValidators.Clear();
                 if (key.Length > 0) options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
                 options.Events = new JwtBearerEvents
                 {
@@ -119,7 +123,12 @@ namespace SS.Api
 
             services.AddSSServices(Configuration);
 
-            services.AddControllers().AddNewtonsoftJson(options =>
+            services.AddControllers((opts) =>
+            {
+                //This fills in the claims, that AllowAnonymous wont trigger.
+                if (CurrentEnvironment.IsDevelopment() && Configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true"))
+                    opts.Filters.Add<DevelopmentEnvironmentClaimsFilter>();
+            }).AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver { NamingStrategy = new CamelCaseNamingStrategy() };
                 options.SerializerSettings.Formatting = Formatting.Indented;
@@ -131,6 +140,25 @@ namespace SS.Api
             {
                 options.EnableAnnotations(true);
                 options.CustomSchemaIds(o => o.FullName);
+
+                options.AddSecurityDefinition("Bearer", //Name the security scheme
+                new OpenApiSecurityScheme
+                {
+                        Description = "JWT Authorization header using the Bearer scheme.",
+                        Type = SecuritySchemeType.Http, //We set the scheme type to http since we're using bearer authentication
+                        Scheme = "bearer" //The name of the HTTP Authorization scheme to be used in the Authorization header. In this case "bearer".
+                });
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement{
+                    {
+                        new OpenApiSecurityScheme{
+                            Reference = new OpenApiReference{
+                                Id = "Bearer", //The name of the previously defined security scheme.
+                                Type = ReferenceType.SecurityScheme
+                            }
+                        },new List<string>()
+                    }
+                });
+
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 options.IncludeXmlComments(xmlPath);
@@ -172,7 +200,7 @@ namespace SS.Api
             app.UseEndpoints(endpoints =>
             {
                 //Note this will allow access everywhere for local development. 
-                if (env.IsDevelopment() && Configuration.GetNonEmptyValue("DisableAuthForDev").Equals("true"))
+                if (env.IsDevelopment() && Configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true"))
                     endpoints.MapControllers().WithMetadata(new AllowAnonymousAttribute());
                 else
                     endpoints.MapControllers();

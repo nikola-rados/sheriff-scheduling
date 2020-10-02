@@ -7,7 +7,7 @@ namespace SS.Api.helpers.extensions
 {
     public static class ClaimExtensions
     {
-        public static string GetValueByType(this List<Claim> claims, string type) =>
+        public static string GetValueByType(this IEnumerable<Claim> claims, string type) =>
             claims.FirstOrDefault(c => c.Type == type)?.Value;
 
         public static bool HasPermissions(this ClaimsPrincipal user, params string[] permissions) =>
