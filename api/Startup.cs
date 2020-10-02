@@ -18,9 +18,11 @@ using SS.Api.Helpers.Middleware;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.OpenApi.Models;
@@ -57,6 +59,51 @@ namespace SS.Api
                 //Important to be None, otherwise a redirect loop will occur.
                 options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
                 options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                options.Events = new CookieAuthenticationEvents
+                {
+                    // After the auth cookie has been validated, this event is called.
+                    // In it we see if the access token is close to expiring.  If it is
+                    // then we use the refresh token to get a new access token and save them.
+                    // If the refresh token does not work for some reason then we redirect to 
+                    // the login screen.
+                    OnValidatePrincipal = async cookieCtx =>
+                    {
+                        var accessTokenExpiration = DateTimeOffset.Parse(cookieCtx.Properties.GetTokenValue("expires_at"));
+                        var timeRemaining = accessTokenExpiration.Subtract(DateTimeOffset.UtcNow);
+                        var refreshThresholdMinutes = Configuration.GetNonEmptyValue("TokenRefreshThresholdMinutes");
+                        var refreshThreshold = TimeSpan.FromMinutes(int.Parse(refreshThresholdMinutes));
+
+                        if (timeRemaining < refreshThreshold)
+                        {
+                            var refreshToken = cookieCtx.Properties.GetTokenValue("refresh_token");
+                            var response = await new HttpClient().RequestRefreshTokenAsync(new RefreshTokenRequest
+                            {
+                                Address = Configuration.GetNonEmptyValue("Keycloak:Authority") + "/protocol/openid-connect/token",
+                                ClientId = Configuration.GetNonEmptyValue("Keycloak:Client"),
+                                ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret"),
+                                RefreshToken = refreshToken
+                            });
+
+                            if (response.IsError)
+                            {
+                                cookieCtx.RejectPrincipal();
+                                await cookieCtx.HttpContext.SignOutAsync(CookieAuthenticationDefaults
+                                    .AuthenticationScheme);
+                            }
+                            else 
+                            {
+                                var expiresInSeconds = response.ExpiresIn;
+                                var updatedExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+                                cookieCtx.Properties.UpdateTokenValue("expires_at", updatedExpiresAt.ToString());
+                                cookieCtx.Properties.UpdateTokenValue("access_token", response.AccessToken);
+                                cookieCtx.Properties.UpdateTokenValue("refresh_token", response.RefreshToken);
+
+                                // Indicate to the cookie middleware that the cookie should be remade (since we have updated it)
+                                cookieCtx.ShouldRenew = true;
+                            }
+                        }
+                    }
+                };
             }
             )
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
@@ -70,6 +117,7 @@ namespace SS.Api
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.UsePkce = true;
                 options.SaveTokens = true;
+                options.UseTokenLifetime = true;
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 var key = Encoding.ASCII.GetBytes(Configuration.GetNonEmptyValue("Keycloak:Secret"));
@@ -81,9 +129,9 @@ namespace SS.Api
                 {
                     ValidateIssuerSigningKey = true,
                     ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero
                 };
-                options.SecurityTokenValidators.Clear();
                 if (key.Length > 0) options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
                 options.Events = new JwtBearerEvents
                 {
