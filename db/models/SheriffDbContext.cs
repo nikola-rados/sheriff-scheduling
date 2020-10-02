@@ -10,6 +10,8 @@ using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
+using SS.Api.infrastructure.authorization;
+using SS.Db.models.lookupcodes;
 
 namespace SS.Db.models
 {
@@ -30,6 +32,7 @@ namespace SS.Db.models
 
         public virtual DbSet<Location> Location { get; set; }
         public virtual DbSet<LookupCode> LookupCode { get; set; }
+        public virtual DbSet<LookupSortOrder> LookupSortOrder { get; set; }
         public virtual DbSet<Region> Region { get; set; }
         public virtual DbSet<Sheriff> Sheriff { get; set; }
         public virtual DbSet<SheriffLeave> SheriffLeave { get; set; }
@@ -41,7 +44,7 @@ namespace SS.Db.models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyAllConfigurations(typeof(LocationConfiguration), this);
+            modelBuilder.ApplyAllConfigurations();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -63,7 +66,7 @@ namespace SS.Db.models
             var modifiedEntries = ChangeTracker.Entries()
                 .Where(x => (x.State == EntityState.Added || x.State == EntityState.Modified));
 
-            var userId = GetUserId(_httpContextAccessor?.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetUserId(_httpContextAccessor?.HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value);
             foreach (var entry in modifiedEntries)
             {
                 if (entry.Entity is BaseEntity entity)

@@ -1,13 +1,17 @@
 import {} from '../common';
 import {} from '../DutyRoster/jsonTypes';
 
-export interface placeHolderInfoType {
+export interface teamMemberInfoType {
 
-    "ID": string,
-    "Role": string,
-    "First Name": string,
-    "Last Name": string,
-    "Name": string,
-    "Index": number
+    id?: string;
+    idirUserName?: string;
+    rank: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    badgeNumber: string;
+    gender: string;
+    fullName?: string;
+    image?: string | null;
 }
 

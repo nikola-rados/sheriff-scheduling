@@ -1,21 +1,21 @@
-import {locationInfoType} from '../../types/common';
+import {commonInfoType, locationInfoType} from '../../types/common';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 
 @Module({
   namespaced: true
 })
 class CommonInformation extends VuexModule {
-  
-  public location: locationInfoType = {name: '', id: ''}
+
+  public commonInfo: commonInfoType = {location: {name: '', id: ''}, sheriffRankList: []}
 
   @Mutation
-  public setLocation(location): void {   
-    this.location = location
+  public setCommonInfo(commonInfo): void {   
+    this.commonInfo = commonInfo
   }
 
   @Action
-  public UpdateLocation(newLocation): void {
-    this.context.commit('setLocation', newLocation)
+  public UpdateCommonInfo(newCommonInfo): void {
+    this.context.commit('setCommonInfo', newCommonInfo)
   }
 
   public locationList: locationInfoType[] = [];

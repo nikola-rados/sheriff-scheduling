@@ -15,6 +15,7 @@
     <DocumentationFile>bin\$(Configuration)\netcoreapp3.1\api.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="3.1.0" />
     <PackageReference Include="IdentityModel" Version="4.4.0" />
     <PackageReference Include="LazyCache.AspNetCore" Version="2.0.4" />
     <PackageReference Include="Mapster" Version="6.5.0" />
@@ -42,10 +43,12 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.4.1" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="constants\" />
+    <Folder Include="controllers\scheduling\" />
+    <Folder Include="controllers\usermanagement\" />
     <Folder Include="models\dto\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\db\db.csproj" />
+    <ProjectReference Include="..\jc-interface-client\jc-interface-client.csproj" />
   </ItemGroup>
 </Project>
