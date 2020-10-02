@@ -25,7 +25,7 @@
         <div v-else class="container mb-5" id="app">
             <div class="row">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
-                    <div class="card h-100">
+                    <div @click="OpenMemberDetails(teamMember.id)" class="card h-100">
                         <div class="card-body">
                             <user-summary-template :userBadgeNumber="teamMember.badgeNumber" :userName="teamMember.fullName" :userRole="teamMember.rank" :userImage="teamMember.image" :editMode="false" />
                         </div>
@@ -300,25 +300,25 @@
         public loadUserDetails(userId): void {
             console.log("loading user info" + userId)
 
-            // this.editMode = true;
-            // this.errorCode = 0;
-            // this.$http.get('/api/sheriff/' + userId)
-            //     .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-            //     ).then(data => {
-            //         if(data){
-            //             this.userJson = data
-            //             this.extractUserInfo();
-            //             this.isUserDataMounted = true;                        
-            //         }
+            this.editMode = true;
+            this.errorCode = 0;
+            this.$http.get('/api/sheriff/' + userId)
+                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
+                ).then(data => {
+                    if(data){
+                        this.userJson = data
+                        this.extractUserInfo();
+                        this.isUserDataMounted = true;                        
+                    }
                     
-            //     });
+                });
         }
 
-        // public extractUserInfo(): void {
-        //     this.user.firstName = this.userJson.firstName;
-        //     this.user.lastName = this.userJson.lastName;
+        public extractUserInfo(): void {
+            this.user.firstName = this.userJson.firstName;
+            this.user.lastName = this.userJson.lastName;
 
-        // }
+        }
 
         public saveMemberProfile() {            
             const requiredErrorTab: number[] = [];
