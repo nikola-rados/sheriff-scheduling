@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using db.models;
 using Mapster;
 using SS.Api.Models.DB;
 using SS.Db.models.auth;
@@ -11,9 +9,6 @@ namespace SS.Db.models.sheriff
     [AdaptTo("[name]Dto")]
     public class Sheriff : User
     {
-        public int? HomeLocationId { get; set; }
-        [ForeignKey("HomeLocationId")]
-        public virtual Location HomeLocation { get; set; }
         public Gender Gender { get; set; }
         public string BadgeNumber { get; set; }
         public string Rank { get; set; }

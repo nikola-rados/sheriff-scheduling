@@ -10,6 +10,7 @@ using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
+using SS.Api.infrastructure.authorization;
 using SS.Db.models.lookupcodes;
 
 namespace SS.Db.models
@@ -65,7 +66,7 @@ namespace SS.Db.models
             var modifiedEntries = ChangeTracker.Entries()
                 .Where(x => (x.State == EntityState.Added || x.State == EntityState.Modified));
 
-            var userId = GetUserId(_httpContextAccessor?.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetUserId(_httpContextAccessor?.HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value);
             foreach (var entry in modifiedEntries)
             {
                 if (entry.Entity is BaseEntity entity)
