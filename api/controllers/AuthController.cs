@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -32,7 +31,7 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Login(string redirectUri = "/api")
         {
             //update users from claims. 
-            await _authService.UpdateUserLogin((ClaimsIdentity)User.Identity);
+            //await _authService.UpdateUserLogin((ClaimsIdentity)User.Identity);
             return Redirect(redirectUri);
         }
 
@@ -70,7 +69,7 @@ namespace SS.Api.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
         [Route("api/info")]
-        public ActionResult userInfo()
+        public ActionResult UserInfo()
         {
             var isImpersonated = !User.Identity.IsAuthenticated;
             var roles = HttpContext.User.FindAll(ClaimTypes.Role).SelectToList(r => r.Value);
