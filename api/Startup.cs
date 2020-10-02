@@ -73,34 +73,36 @@ namespace SS.Api
                         var refreshThresholdMinutes = Configuration.GetNonEmptyValue("TokenRefreshThresholdMinutes");
                         var refreshThreshold = TimeSpan.FromMinutes(int.Parse(refreshThresholdMinutes));
 
-                        if (timeRemaining < refreshThreshold)
+                        if (timeRemaining > refreshThreshold)
+                            return;
+
+                        var refreshToken = cookieCtx.Properties.GetTokenValue("refresh_token");
+                        var httpClientFactory = cookieCtx.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>();
+                        var httpClient = httpClientFactory.CreateClient(nameof(CookieAuthenticationEvents));
+                        var response = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
                         {
-                            var refreshToken = cookieCtx.Properties.GetTokenValue("refresh_token");
-                            var response = await new HttpClient().RequestRefreshTokenAsync(new RefreshTokenRequest
-                            {
-                                Address = Configuration.GetNonEmptyValue("Keycloak:Authority") + "/protocol/openid-connect/token",
-                                ClientId = Configuration.GetNonEmptyValue("Keycloak:Client"),
-                                ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret"),
-                                RefreshToken = refreshToken
-                            });
+                            Address = Configuration.GetNonEmptyValue("Keycloak:Authority") + "/protocol/openid-connect/token",
+                            ClientId = Configuration.GetNonEmptyValue("Keycloak:Client"),
+                            ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret"),
+                            RefreshToken = refreshToken
+                        });
 
-                            if (response.IsError)
-                            {
-                                cookieCtx.RejectPrincipal();
-                                await cookieCtx.HttpContext.SignOutAsync(CookieAuthenticationDefaults
-                                    .AuthenticationScheme);
-                            }
-                            else 
-                            {
-                                var expiresInSeconds = response.ExpiresIn;
-                                var updatedExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
-                                cookieCtx.Properties.UpdateTokenValue("expires_at", updatedExpiresAt.ToString());
-                                cookieCtx.Properties.UpdateTokenValue("access_token", response.AccessToken);
-                                cookieCtx.Properties.UpdateTokenValue("refresh_token", response.RefreshToken);
+                        if (response.IsError)
+                        {
+                            cookieCtx.RejectPrincipal();
+                            await cookieCtx.HttpContext.SignOutAsync(CookieAuthenticationDefaults
+                                .AuthenticationScheme);
+                        }
+                        else 
+                        {
+                            var expiresInSeconds = response.ExpiresIn;
+                            var updatedExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+                            cookieCtx.Properties.UpdateTokenValue("expires_at", updatedExpiresAt.ToString());
+                            cookieCtx.Properties.UpdateTokenValue("access_token", response.AccessToken);
+                            cookieCtx.Properties.UpdateTokenValue("refresh_token", response.RefreshToken);
 
-                                // Indicate to the cookie middleware that the cookie should be remade (since we have updated it)
-                                cookieCtx.ShouldRenew = true;
-                            }
+                            // Indicate to the cookie middleware that the cookie should be remade (since we have updated it)
+                            cookieCtx.ShouldRenew = true;
                         }
                     }
                 };
