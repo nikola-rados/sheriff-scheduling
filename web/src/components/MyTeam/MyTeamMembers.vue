@@ -137,6 +137,7 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import * as _ from 'underscore';
     import PageHeader from "@components/common/PageHeader.vue";
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
     import "@store/modules/CommonInformation";  
@@ -153,8 +154,6 @@
             UserSummaryTemplate
         }
     })
-
-    
     export default class MyTeamMembers extends Vue {
 
         @commonState.State
@@ -168,6 +167,7 @@
         showCancelWarning = false;
         //TODO: get user role and Make sure only super-admin can see the "add a user" yellow button
         user = {} as teamMemberInfoType;
+        originalUser = {} as teamMemberInfoType;
         userJson = {} as teamMemberJsonType;
         genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
         genderValues = [0, 1, 2]        
@@ -180,18 +180,14 @@
         selectedRankState = true;
         idirUserNameState = true;
         duplicateBadge = false;
-
         tabIndex = 0;
         errorCode = 0;
         errorText = '';
         isUserDataMounted = false;
         editMode = false;
         createMode = false;
-
         isMyTeamDataMounted = false;
         myTeamData: teamMemberInfoType[] =[];
-
-
         
         @Watch('commonInfo.location.id', { immediate: true })
         locationChange()
@@ -211,7 +207,6 @@
                 .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
                 ).then(data => {
                     if(data){
-                        console.log(data)
                         this.ExtractMyTeam(data);                        
                     }
                     this.isMyTeamDataMounted = true;
@@ -226,39 +221,44 @@
             {
                 const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:'', gender:'' }
                 myteam.fullName = this.getFullNameOfPerson(myteaminfo.firstName ,myteaminfo.lastName);
-                myteam.gender = myteaminfo.gender;
                 myteam.rank = myteaminfo.rank;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
-
+                myteam.id = myteaminfo.id;
                 this.myTeamData.push(myteam);
             }
         }
-
 
         public getFullNameOfPerson(first: string, last: string)
         {            
             return Vue.filter('capitilize')(first) + ' ' + Vue.filter('capitilize')(last);
         }
 
-        public OpenMemberDetails(data)
-        {
-            console.log(data)
-            // TODO: pass data to modal
+        public OpenMemberDetails(userId: string)
+        {           
             this.createMode = false;
             this.editMode = true;
             this.showMemberDetails=true;
-            this.loadUserDetails("1234");
+            this.loadUserDetails(userId);
         }
 
         public closeProfileWindow() 
         {         
-            if(this.isEmpty(this.user))
+            if(this.createMode && this.isEmpty(this.user))
             {
                 this.showMemberDetails = false;
                 this.resetProfileWindowState();
-            }   
+            } 
+            else if(this.editMode && !this.changesMade())
+            {
+                this.showMemberDetails = false;
+                this.resetProfileWindowState();
+            }    
             else
                 this.showCancelWarning = true;
+        }
+
+        public changesMade(): boolean {
+            return !_.isEqual(this.originalUser, this.user)
         }
 
         public isEmpty(obj){
@@ -288,9 +288,7 @@
             this.user = {} as teamMemberInfoType;
         }
 
-        public AddMember()
-        {            
-            // TODO: pass data to modal
+        public AddMember() {
             this.createMode = true;
             this.editMode = false;
             this.isUserDataMounted = true;
@@ -298,8 +296,6 @@
         }
 
         public loadUserDetails(userId): void {
-            console.log("loading user info" + userId)
-
             this.editMode = true;
             this.errorCode = 0;
             this.$http.get('/api/sheriff/' + userId)
@@ -309,21 +305,25 @@
                         this.userJson = data
                         this.extractUserInfo();
                         this.isUserDataMounted = true;                        
-                    }
-                    
+                    }                    
                 });
         }
 
-        public extractUserInfo(): void {
-            this.user.firstName = this.userJson.firstName;
-            this.user.lastName = this.userJson.lastName;
-
+        public extractUserInfo(): void {            
+            this.user.firstName = this.originalUser.firstName = this.userJson.firstName;
+            this.user.lastName = this.originalUser.lastName = this.userJson.lastName;
+            this.user.gender = this.originalUser.gender = gender[this.userJson.gender];
+            this.user.rank = this.originalUser.rank = this.userJson.rank;
+            this.user.email = this.originalUser.email = this.userJson.email;
+            this.user.badgeNumber = this.originalUser.badgeNumber = this.userJson.badgeNumber;
+            this.user.id = this.originalUser.id = this.userJson.id;
+            this.user.image = this.originalUser.image = this.userJson['image']? this.userJson['image'] :null ;  
         }
 
-        public saveMemberProfile() {            
+        public saveMemberProfile() {       
             const requiredErrorTab: number[] = [];
 
-            if (!this.user.idirUserName) {
+            if (this.createMode && !this.user.idirUserName) {
                 this.idirUserNameState = false;
                 requiredErrorTab.push(0);
             } else {
@@ -369,8 +369,7 @@
             
             if (requiredErrorTab.length == 0) {
                 if (this.editMode) this.updateProfile();
-                if (this.createMode) this.createProfile();
-               
+                if (this.createMode) this.createProfile();              
 
             } else {                
                 this.tabIndex= requiredErrorTab[0];
@@ -379,12 +378,6 @@
 
 
         public updateProfile(): void {
-            console.log("updating profile")
-
-        }
-
-        public createProfile() {
-            console.log("creating profile")
             const body = {
                 homeLocationId: this.commonInfo.location.id,               
                 gender: this.user.gender,
@@ -393,14 +386,13 @@
                 idirName: this.user.idirUserName,
                 firstName:this.user.firstName,
                 lastName: this.user.lastName,
-                email: this.user.email
+                email: this.user.email,
+                id: this.user.id
             }
             
-            this.$http.post('/api/sheriff', body )
+            this.$http.put('/api/sheriff', body )
                 .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.data.details;console.log(err);}        
                 ).then(data => {
-                    //console.log(data);
-                    //console.log(this.errorCode)
                     if(data){
                         this.resetProfileWindowState();
                         this.showMemberDetails = false;
@@ -415,10 +407,38 @@
                         }
                     }
                 });
-   
-            
         }
 
+        public createProfile() {
+            const body = {
+                homeLocationId: this.commonInfo.location.id,               
+                gender: this.user.gender,
+                badgeNumber: this.user.badgeNumber,
+                rank: this.user.rank,
+                idirName: this.user.idirUserName,
+                firstName:this.user.firstName,
+                lastName: this.user.lastName,
+                email: this.user.email
+            }
+            
+            this.$http.post('/api/sheriff', body )
+                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.data.details;console.log(err);}        
+                ).then(data => {
+                    if(data){
+                        this.resetProfileWindowState();
+                        this.showMemberDetails = false;
+                        this.GetSheriffs();                     
+                    }
+                    else
+                    {
+                        if(this.errorText.includes('already has badge number'))
+                        {
+                            this.badgeNumberState = false;
+                            this.duplicateBadge = true;
+                        }
+                    }
+                });            
+        }
     }
 </script>
 

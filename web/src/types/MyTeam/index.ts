@@ -12,6 +12,6 @@ export interface teamMemberInfoType {
     badgeNumber: string;
     gender: string;
     fullName?: string;
-    image?: string;
+    image?: string | null;
 }
 
