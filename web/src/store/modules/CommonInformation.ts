@@ -6,7 +6,9 @@ import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 })
 class CommonInformation extends VuexModule {
 
-  public commonInfo: commonInfoType = {token: '' ,location: {name: '', id: ''}, sheriffRankList: []}
+  public commonInfo: commonInfoType = {location: {name: '', id: ''}, sheriffRankList: []};
+
+  public token = '';
 
   @Mutation
   public setCommonInfo(commonInfo): void {   
@@ -17,6 +19,17 @@ class CommonInformation extends VuexModule {
   public UpdateCommonInfo(newCommonInfo): void {
     this.context.commit('setCommonInfo', newCommonInfo)
   }
+
+  @Mutation
+  public setToken(token): void {   
+    this.token = token
+  }
+
+  @Action
+  public UpdateToken(newToken): void {
+    this.context.commit('setToken', newToken)
+  }
+  
   
 
 }

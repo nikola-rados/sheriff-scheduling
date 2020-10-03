@@ -163,6 +163,12 @@
         @commonState.Action
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
 
+         @commonState.State
+        public token!: string;
+
+        @commonState.Action
+        public UpdateToken!: (newToken: string) => void
+
         sectionHeader = "";
         showMemberDetails = false;
         showCancelWarning = false;
@@ -206,9 +212,9 @@
             this.isMyTeamDataMounted = false;
 
             const url = 'api/sheriff?locationId=' + this.commonInfo.location.id
-            const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
             console.log(options)
-            this.$http.get(url, options)
+            axios.get(url, options)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)
@@ -398,7 +404,7 @@
                 email: this.user.email
             }
             const url = 'api/sheriff';
-            const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
             
             this.$http.post(url, body, options )
                 .then(data => {

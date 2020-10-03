@@ -4,7 +4,6 @@ export interface locationInfoType {
 }
 
 export interface commonInfoType {
-    "token": string,
     "location": locationInfoType,
     "sheriffRankList": string[]
 }

@@ -12,28 +12,6 @@ import DefineRolesAccess from '@components/MyTeam/DefineRolesAccess.vue'
 import AssignmentTypes from '@components/ManageTypes/AssignmentTypes.vue'
 import LeaveTrainingTypes from '@components/ManageTypes/LeaveTrainingTypes.vue'
 
-// function authGuard(to: any, from: any, next: any) { 
-
-//   get('/user-info/')
-//   .then((response) => {
-//     const userId = response.data.user_id;
-//     const loginUrl = response.data.login_uri;
-    
-//     if (userId) {
-//       const userName = response.data.first_name + " " + response.data.last_name;
-//       store.dispatch("application/setUserName", userName);
-//       store.dispatch("common/setUserId", userId);
-//       next();
-//     } else {
-//       location.replace(loginUrl);
-//     }
-//   }).catch((error) => {
-//     //TODO: determine workflow
-//     console.log(error)   
-    
-//   });
-// }
-
 const routes: Array<RouteConfig> = [
   {
     path: '/',

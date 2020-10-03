@@ -2,7 +2,7 @@
     <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady">
         <navigation-topbar />
         <b-button @click="go()"> Login </b-button>
-        <b-button @click="token()"> Token </b-button>
+        <b-button @click="getToken()"> Token </b-button>
         <router-view></router-view>
         <navigation-footer id="footer" />
     </div>
@@ -17,6 +17,7 @@
     import {sheriffRankJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";  
     const commonState = namespace("CommonInformation");
+    import axios from "axios";
 
     @Component({
         components: {
@@ -32,6 +33,12 @@
         @commonState.Action
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
 
+        @commonState.State
+        public token!: string;
+
+        @commonState.Action
+        public UpdateToken!: (newToken: string) => void
+
         errorCode = 0;
         errorText = '';
         isCommonDataReady= true;
@@ -40,39 +47,32 @@
 
         public go()
         {
-            location.replace('api/auth/login?redirectUri=/'+this.$route);
+            location.replace('api/auth/login?redirectUri='+this.$route.fullPath);
         }
 
-        token()
+        getToken()
         {
             const url = 'api/auth/token'
-            this.$http.get(url)
+            axios.get(url)
                .then(response => {
                     if(response.data){
                         console.log(response.data.access_token)
                         //localStorage.setItem('token', response.data.access_token);
-                        this.UpdateCommonInfo({ token: response.data.access_token,
-                            location: this.commonInfo.location,
-                            sheriffRankList: this.commonInfo.sheriffRankList 
-                        })
+                        this.UpdateToken(response.data.access_token)
                         this.loadSheriffRankList()
                     }                    
                 });
         }
-        mounted() {          
-
-            //location.replace('api/auth/login?redirectUri=%2Fapi');
+        mounted() { 
+            //location.replace('api/auth/login?redirectUri='+this.$route.fullPath);
             this.errorCode=0;
             const url = 'api/auth/token'
-            this.$http.get(url)
+            axios.get(url)
                .then(response => {
                     if(response.data){
                         console.log(response.data.access_token)
                         //localStorage.setItem('token', response.data.access_token);
-                        this.UpdateCommonInfo({ token: response.data.access_token,
-                            location: this.commonInfo.location,
-                            sheriffRankList: this.commonInfo.sheriffRankList 
-                        })
+                        this.UpdateToken(response.data.access_token)
                         this.loadSheriffRankList()
                     }                    
                 });
@@ -81,9 +81,9 @@
         public loadSheriffRankList()  
         {  
             const url = 'api/managetypes?codeType=SheriffRank'
-            const options = {headers:{'Authorization' :'Bearer '+this.commonInfo.token}}
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
             console.log(options)
-            this.$http.get(url, options)
+            axios.get(url, options)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)
@@ -105,7 +105,7 @@
                 this.sheriffRankList.push(sheriffRank.description)
             }
             
-            this.UpdateCommonInfo({ token: this.commonInfo.token,
+            this.UpdateCommonInfo({
                 location: this.currentLocation,
                 sheriffRankList: this.sheriffRankList 
             })
