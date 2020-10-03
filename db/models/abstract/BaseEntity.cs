@@ -60,7 +60,9 @@ namespace db.models
         /// </summary>
         /// <value></value>
         [Timestamp]
-        public byte[] RowVersion { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        [Column("xmin", TypeName = "xid")]
+        public uint ConcurrencyToken { get; set; }
         #endregion
 
         #region Constructors

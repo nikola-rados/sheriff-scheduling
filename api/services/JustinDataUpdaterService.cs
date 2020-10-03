@@ -39,7 +39,7 @@ namespace SS.Api.services
         public async Task SyncLocations()
         {
             var locationLookups = await _locationClient.LocationsAsync(null, true, false);
-            var locations = locationLookups.SelectToList(loc => new Location {AgencyId = loc.Code, Name = loc.LongDesc});
+            var locations = locationLookups.SelectToList(loc => new Location {JustinCode = loc.ShortDesc, Name = loc.LongDesc, AgencyId = loc.Code});
 
             await _db.Location.UpsertRange(locations)
                                .On(v => v.AgencyId)
@@ -55,8 +55,12 @@ namespace SS.Api.services
         public async Task SyncRegions()
         {
             var regionLookups = await _locationClient.RegionsAsync();
+            foreach (var region in regionLookups)
+            {
+                var go = await _locationClient.RegionsRegionIdLocationsCodesAsync("1");
+            }
             var regions = regionLookups.SelectToList(r => new db.models.Region { JustinId = r.RegionId, Name = r.RegionName });
-
+            var locationLookups = await _locationClient.LocationsAsync(null, true, false);
             await _db.Region.UpsertRange(regions)
                 .On(v => v.JustinId)
                 .WhenMatched(r => new db.models.Region

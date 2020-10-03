@@ -48,7 +48,12 @@ namespace SS.Api.Controllers
             return Ok(new { host = HttpContext.Request.Host} );
         }
 
-        
+        [HttpGet("requestAccess")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> RequestAccess()
+        {
+            return Ok();
+        }
 
         /// <summary>
         /// Must be logged in to call this. 
