@@ -219,6 +219,8 @@
                         this.ExtractMyTeam(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
+                }).catch((error) => {
+                    this.UpdateToken('api/auth/login?redirectUri='+this.$route.fullPath);
                 });
         }
 
@@ -404,12 +406,14 @@
             const url = 'api/sheriff';
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             
-            this.$http.post(url, body, options )
+            axios.post(url, body, options )
                 .then(data => {
                     if(data){
                         console.log(data) 
                         this.GetSheriffs();                     
                     }
+                }).catch((error) => {
+                    this.UpdateToken('api/auth/login?redirectUri='+this.$route.fullPath);
                 });            
         }
 

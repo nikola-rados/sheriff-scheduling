@@ -44,7 +44,7 @@
         sheriffRankList: string[] = []
         currentLocation = {name: "abbotsford", id:"1"};
        
-        mounted() {            
+        mounted() {                      
             const url = 'api/auth/token'
             axios.get(url)
                .then(response => {
@@ -73,6 +73,8 @@
                             this.isCommonDataReady = true;
                         }
                     }                   
+                }).catch((error) => {
+                    this.UpdateToken('api/auth/login?redirectUri='+this.$route.fullPath);
                 });           
         }        
 
@@ -83,8 +85,7 @@
             for(sheriffRank of sheriffRankList)
             {                
                 this.sheriffRankList.push(sheriffRank.description)
-            }
-            
+            }            
             this.UpdateCommonInfo({
                 location: this.currentLocation,
                 sheriffRankList: this.sheriffRankList 
