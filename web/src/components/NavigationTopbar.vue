@@ -100,18 +100,16 @@
     selectedLocation: locationInfoType = {name: "", id:""};
     disableLocationChange = false;
 
-    mounted() {
-      //TODO: determine based on user's location
-      // this.UpdateLocation({name: "abbotsford", id:"1"});
-      this.selectedLocation = this.commonInfo.location;
+    mounted() {      
       //TODO: determine based on user role
       // this.disableLocationChange = true;
       this.getLocations();
+      this.selectedLocation = this.commonInfo.location;
     }
 
     public getLocations(): void {
       //TODO: make call to GET all locations
-      this.locationList = [{name: "abbotsford", id:"1"}, {name: "kelowna", id: "2"}]
+      this.UpdateLocationList([{name: "abbotsford", id:"1"}, {name: "kelowna", id: "2"}])     
       
     }
 

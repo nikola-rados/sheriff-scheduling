@@ -36,8 +36,30 @@
         sheriffRankList: string[] = []
         currentLocation = {name: "abbotsford", id:"1"};
 
-        mounted() {          
+        mounted() {
 
+            this.loadRequiredInfo();
+            
+        }
+
+        public loadRequiredInfo() {
+
+            this.errorCode=0;            
+            this.$http.get('/api/info')
+            .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
+            ).then(data => {
+                if(data){
+                    this.extractSheriffRankInfo(data);
+                    if(this.commonInfo.sheriffRankList.length>0)
+                    {                    
+                        this.isCommonDataReady = true;                    
+                    }
+                }                
+            });
+
+        }
+
+        public loadSheriffRankList() {
             this.errorCode=0;            
             this.$http.get('/api/managetypes?codeType=SheriffRank')
             .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
