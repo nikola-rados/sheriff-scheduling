@@ -11,6 +11,6 @@ namespace SS.Api.Models.Dto
         public int? ParentLocationId { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public int? RegionId { get; set; }
-        public byte[] RowVersion { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }

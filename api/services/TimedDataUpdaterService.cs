@@ -24,7 +24,7 @@ namespace SS.Api.services
             _logger.LogInformation("Timed Background Service is starting.");
 
             _timer = new Timer(DoWork, null, TimeSpan.Zero,
-                TimeSpan.FromHours(1));
+                TimeSpan.FromMinutes(2));
 
             return Task.CompletedTask;
         }
@@ -38,9 +38,9 @@ namespace SS.Api.services
                 scope.ServiceProvider
                     .GetRequiredService<JustinDataUpdaterService>();
 
-            /*await justinDataUpdaterService.SyncRegions();
-            await justinDataUpdaterService.SyncLocations();
-            await justinDataUpdaterService.SyncCourtRooms();*/
+            //await justinDataUpdaterService.SyncRegions();
+            //await justinDataUpdaterService.SyncLocations();
+            //await justinDataUpdaterService.SyncCourtRooms();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

@@ -16,6 +16,6 @@ namespace SS.Api.Models.Dto
         public int? SortOrder { get; set; }
         public LocationDto Location { get; set; }
         public int? LocationId { get; set; }
-        public byte[] RowVersion { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }
