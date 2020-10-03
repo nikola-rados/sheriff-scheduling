@@ -32,20 +32,6 @@ RUN chmod g+rw /var/cache/nginx \
                /etc/nginx/nginx.conf \
                /tmp
 # =================================================================================
-
-# Create self-signed SSL certificates
-RUN openssl req -newkey rsa:4096 \
-            -x509 \
-            -sha256 \
-            -days 3650 \
-            -nodes \
-            -out /etc/ssl/nginx-selfsigned.crt \
-            -keyout /etc/ssl/nginx-selfsigned.key \
-            -subj "/C=CA/ST=BC/L=BC/O=BCGOV/OU=Testing"
-
-RUN chmod g+rw /etc/ssl/nginx-selfsigned.crt \
-               /etc/ssl/nginx-selfsigned.key
-
 # Work-around for issues with S2I builds on Windows
 WORKDIR /tmp
 

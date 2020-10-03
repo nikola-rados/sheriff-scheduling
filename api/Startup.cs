@@ -26,13 +26,11 @@ using System.Threading.Tasks;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
 using SS.Api.infrastructure;
 using SS.Api.infrastructure.authorization;
 using SS.Db.models;
-using SS.Db.models.auth;
 
 namespace SS.Api
 {

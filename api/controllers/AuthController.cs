@@ -49,6 +49,7 @@ namespace SS.Api.Controllers
         }
 
         [HttpGet("requestAccess")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
         public async Task<IActionResult> RequestAccess()
         {
             return Ok();

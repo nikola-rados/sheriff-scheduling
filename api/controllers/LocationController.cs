@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mapster;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Helpers.Extensions;
@@ -14,6 +15,7 @@ namespace SS.Api.controllers
     /// Used to fetch Locations, plus expire locations. 
     /// </summary>
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class LocationController : ControllerBase
     {
