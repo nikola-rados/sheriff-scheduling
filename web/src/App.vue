@@ -39,17 +39,21 @@
         mounted() {          
 
             this.errorCode=0;            
-            this.$http.get('/api/managetypes?codeType=SheriffRank')
-            .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-            ).then(data => {
-                if(data){
-                    this.extractSheriffRankInfo(data);
-                    if(this.commonInfo.sheriffRankList.length>0)
-                    {                    
+            // this.$http.get('/api/managetypes?codeType=SheriffRank')
+            // .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
+            // ).then(data => {
+            //     if(data){
+            //         this.extractSheriffRankInfo(data);
+            //         if(this.commonInfo.sheriffRankList.length>0)
+            //         {  
+                this.UpdateCommonInfo({
+                location: this.currentLocation,
+                sheriffRankList: this.sheriffRankList 
+            })                  
                         this.isCommonDataReady = true;                    
-                    }
-                }                
-            });
+            //         }
+            //     }                
+            // });
         }
 
         public extractSheriffRankInfo(sheriffRankList)
