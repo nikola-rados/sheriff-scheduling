@@ -1,7 +1,8 @@
 <template>    
     <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady">
         <navigation-topbar />
-        <b-button @click="go()"> go </b-button>
+        <b-button @click="go()"> Login </b-button>
+        <b-button @click="token()"> Token </b-button>
         <router-view></router-view>
         <navigation-footer id="footer" />
     </div>
@@ -39,7 +40,24 @@
 
         public go()
         {
-            location.replace('api/auth/login?redirectUri=%2Fapi');
+            location.replace('api/auth/login?redirectUri=/'+this.$route);
+        }
+
+        token()
+        {
+            const url = 'api/auth/token'
+            this.$http.get(url)
+               .then(response => {
+                    if(response.data){
+                        console.log(response.data.access_token)
+                        //localStorage.setItem('token', response.data.access_token);
+                        this.UpdateCommonInfo({ token: response.data.access_token,
+                            location: this.commonInfo.location,
+                            sheriffRankList: this.commonInfo.sheriffRankList 
+                        })
+                        this.loadSheriffRankList()
+                    }                    
+                });
         }
         mounted() {          
 
@@ -50,7 +68,11 @@
                .then(response => {
                     if(response.data){
                         console.log(response.data.access_token)
-                        localStorage.setItem('token', response.data.access_token);
+                        //localStorage.setItem('token', response.data.access_token);
+                        this.UpdateCommonInfo({ token: response.data.access_token,
+                            location: this.commonInfo.location,
+                            sheriffRankList: this.commonInfo.sheriffRankList 
+                        })
                         this.loadSheriffRankList()
                     }                    
                 });
@@ -58,8 +80,8 @@
 
         public loadSheriffRankList()  
         {  
-            const url = '/api/managetypes?codeType=SheriffRank'
-            const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
+            const url = 'api/managetypes?codeType=SheriffRank'
+            const options = {headers:{'Authorization' :'Bearer '+this.commonInfo.token}}
             console.log(options)
             this.$http.get(url, options)
                 .then(response => {
@@ -83,7 +105,7 @@
                 this.sheriffRankList.push(sheriffRank.description)
             }
             
-            this.UpdateCommonInfo({
+            this.UpdateCommonInfo({ token: this.commonInfo.token,
                 location: this.currentLocation,
                 sheriffRankList: this.sheriffRankList 
             })

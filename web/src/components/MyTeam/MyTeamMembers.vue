@@ -205,7 +205,7 @@
         {
             this.isMyTeamDataMounted = false;
 
-            const url = '/api/sheriff?locationId=' + this.commonInfo.location.id
+            const url = 'api/sheriff?locationId=' + this.commonInfo.location.id
             const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
             console.log(options)
             this.$http.get(url, options)
@@ -397,10 +397,10 @@
                 lastName: this.user.lastName,
                 email: this.user.email
             }
-            const url = '/api/sheriff';
+            const url = 'api/sheriff';
             const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
             
-            this.$http.post('/api/sheriff', body, options )
+            this.$http.post(url, body, options )
                 .then(data => {
                     if(data){
                         console.log(data) 
