@@ -110,6 +110,7 @@
 
     public updateLocation (): void {
       this.UpdateCommonInfo({
+        token: this.commonInfo.token,
         location: this.selectedLocation,
         sheriffRankList: this.commonInfo.sheriffRankList 
       })
