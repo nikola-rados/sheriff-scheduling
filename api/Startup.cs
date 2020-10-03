@@ -18,6 +18,7 @@ using SS.Api.Helpers.Middleware;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
@@ -25,6 +26,8 @@ using System.Threading.Tasks;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.CookiePolicy;
+using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
 using SS.Api.infrastructure;
 using SS.Api.infrastructure.authorization;
@@ -57,8 +60,10 @@ namespace SS.Api
             .AddCookie(options => {
                 options.Cookie.HttpOnly = true;
                 //Important to be None, otherwise a redirect loop will occur.
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
-                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                //This should prevent resending this cookie on every request.
+                options.Cookie.Path = "/api/auth";
                 options.Events = new CookieAuthenticationEvents
                 {
                     // After the auth cookie has been validated, this event is called.
@@ -68,6 +73,8 @@ namespace SS.Api
                     // the login screen.
                     OnValidatePrincipal = async cookieCtx =>
                     {
+
+                        var go = cookieCtx.Properties.Items.Values.Sum(x => x.Length);
                         var accessTokenExpiration = DateTimeOffset.Parse(cookieCtx.Properties.GetTokenValue("expires_at"));
                         var timeRemaining = accessTokenExpiration.Subtract(DateTimeOffset.UtcNow);
                         var refreshThresholdMinutes = Configuration.GetNonEmptyValue("TokenRefreshThresholdMinutes");
@@ -114,12 +121,13 @@ namespace SS.Api
                 options.Authority = Configuration.GetNonEmptyValue("Keycloak:Authority");
                 options.ClientId = Configuration.GetNonEmptyValue("Keycloak:Client");
                 options.ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret");
-                options.RequireHttpsMetadata = true;
+                options.RequireHttpsMetadata = true; 
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.UsePkce = true;
                 options.SaveTokens = true;
                 options.UseTokenLifetime = true;
+                options.CallbackPath = "/api/auth/signin-oidc";
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 var key = Encoding.ASCII.GetBytes(Configuration.GetNonEmptyValue("Keycloak:Secret"));
@@ -166,8 +174,10 @@ namespace SS.Api
             });
 
             var enableSensitiveDataLogging = CurrentEnvironment.IsDevelopment();
-            services.AddDbContext<SheriffDbContext>(options => options.UseNpgsql(Configuration.GetNonEmptyValue("ConnectionStrings.DB")).EnableSensitiveDataLogging(enableSensitiveDataLogging));
-
+            services.AddDbContext<SheriffDbContext>(options => 
+                options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"))
+                    .EnableSensitiveDataLogging(enableSensitiveDataLogging)
+                );
 
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
@@ -223,6 +233,8 @@ namespace SS.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UpdateDatabase<Startup>();
 
             app.UseCors();
 
