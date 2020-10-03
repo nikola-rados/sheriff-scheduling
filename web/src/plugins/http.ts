@@ -2,19 +2,13 @@ import axios from "axios";
 import Vue from 'vue';
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
 
-
-
-
-
-const refreshAuthLogic = failedRequest => axios.get('/api/token').then(tokenRefreshResponse => {
-    localStorage.setItem('token', tokenRefreshResponse.data.token);
-    failedRequest.response.config.headers['Authorization'] = 'Bearer ' + tokenRefreshResponse.data.token;
+const refreshAuthLogic = failedRequest => axios.get('/api/auth/tokens').then(tokenRefreshResponse => {
+    localStorage.setItem('token', tokenRefreshResponse.data.access_token);
+    failedRequest.response.config.headers['Authorization'] = 'Bearer ' + tokenRefreshResponse.data.access_token;
     return Promise.resolve();
 }).catch((error) => {
-    axios.get('/login').then(response => {console.log(response)})
-}
-
-);
+    location.replace('/api/auth/login?redirectUri=%2Fapi');
+});
 
 function configureInstance(){
     createAuthRefreshInterceptor(axios, refreshAuthLogic);    

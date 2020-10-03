@@ -189,8 +189,6 @@
 
         isMyTeamDataMounted = false;
         myTeamData: teamMemberInfoType[] =[];
-
-
         
         @Watch('commonInfo.location.id', { immediate: true })
         locationChange()
@@ -206,29 +204,18 @@
         public GetSheriffs()
         {
             this.isMyTeamDataMounted = false;
-            // this.$http.get('/api/sheriff?locationId=' + this.commonInfo.location.id)
-            //     .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-            //     ).then(data => {
-            //         if(data){
-            //             console.log(data)
-            //             this.ExtractMyTeam(data);                        
-            //         }
-            //         this.isMyTeamDataMounted = true;
-            //     });
 
             const url = '/api/sheriff?locationId=' + this.commonInfo.location.id
             const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
+            console.log(options)
             this.$http.get(url, options)
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-                ).then(data => {
-                    if(data){
-                        console.log(data)
-                        this.ExtractMyTeam(data);                        
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)
+                        this.ExtractMyTeam(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
                 });
-
-
         }
 
         public ExtractMyTeam(data: any)
@@ -410,17 +397,16 @@
                 lastName: this.user.lastName,
                 email: this.user.email
             }
+            const url = '/api/sheriff';
+            const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
             
-            this.$http.post('/api/sheriff', body )
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-                ).then(data => {
+            this.$http.post('/api/sheriff', body, options )
+                .then(data => {
                     if(data){
                         console.log(data) 
                         this.GetSheriffs();                     
                     }
-                });
-   
-            
+                });            
         }
 
     }

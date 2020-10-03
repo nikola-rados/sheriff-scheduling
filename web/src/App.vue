@@ -1,6 +1,7 @@
 <template>    
     <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady">
         <navigation-topbar />
+        <b-button @click="go()"> go </b-button>
         <router-view></router-view>
         <navigation-footer id="footer" />
     </div>
@@ -32,29 +33,46 @@
 
         errorCode = 0;
         errorText = '';
-        isCommonDataReady= false;
+        isCommonDataReady= true;
         sheriffRankList: string[] = []
         currentLocation = {name: "abbotsford", id:"1"};
 
+        public go()
+        {
+            location.replace('api/auth/login?redirectUri=%2Fapi');
+        }
         mounted() {          
 
-            this.errorCode=0;            
-            // this.$http.get('/api/managetypes?codeType=SheriffRank')
-            // .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-            // ).then(data => {
-            //     if(data){
-            //         this.extractSheriffRankInfo(data);
-            //         if(this.commonInfo.sheriffRankList.length>0)
-            //         {  
-                this.UpdateCommonInfo({
-                location: this.currentLocation,
-                sheriffRankList: this.sheriffRankList 
-            })                  
-                        this.isCommonDataReady = true;                    
-            //         }
-            //     }                
-            // });
+            //location.replace('api/auth/login?redirectUri=%2Fapi');
+            this.errorCode=0;
+            const url = 'api/auth/token'
+            this.$http.get(url)
+               .then(response => {
+                    if(response.data){
+                        console.log(response.data.access_token)
+                        localStorage.setItem('token', response.data.access_token);
+                        this.loadSheriffRankList()
+                    }                    
+                });
         }
+
+        public loadSheriffRankList()  
+        {  
+            const url = '/api/managetypes?codeType=SheriffRank'
+            const options = {headers:{'Authorization' :'Bearer '+localStorage.getItem('token')||''}}
+            console.log(options)
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)
+                        this.extractSheriffRankInfo(response.data);
+                        if(this.commonInfo.sheriffRankList.length>0)
+                        {                              
+                            this.isCommonDataReady = true;
+                        }
+                    }                   
+                });           
+        }        
 
         public extractSheriffRankInfo(sheriffRankList)
         {
@@ -69,8 +87,7 @@
                 location: this.currentLocation,
                 sheriffRankList: this.sheriffRankList 
             })
-        }
-        
+        }       
         
      }
 </script>
