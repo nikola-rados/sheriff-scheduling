@@ -14,6 +14,7 @@ using SS.Api.services;
 
 namespace SS.Api.Controllers
 {
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -44,15 +45,17 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok();
+            return Ok(new { host = HttpContext.Request.Host} );
         }
+
+        
 
         /// <summary>
         /// Must be logged in to call this. 
         /// </summary>
         /// <returns>access_token and refresh_token for API calls.</returns>
         [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
-        [HttpGet("api/token")]
+        [HttpGet("token")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetToken()
@@ -68,7 +71,7 @@ namespace SS.Api.Controllers
         /// <returns></returns>
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
-        [Route("api/info")]
+        [Route("info")]
         public ActionResult UserInfo()
         {
             var isImpersonated = !User.Identity.IsAuthenticated;

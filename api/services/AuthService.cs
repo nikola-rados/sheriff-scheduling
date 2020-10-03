@@ -59,8 +59,8 @@ namespace SS.Api.services
             claims.AddRange(user.UserRoles.SelectToList(ur => new Claim(ClaimTypes.Role, ur.Role.Name)));
             claims.AddRange(user.Permissions.SelectToList(p => new Claim(CustomClaimTypes.Permission, p.Name)));
             claims.Add(new Claim(CustomClaimTypes.UserId, user.Id.ToString()));
-            claims.Add(new Claim(CustomClaimTypes.HomeLocationId, user.HomeLocationId?.ToString()));
-
+            if (user.HomeLocationId.HasValue)
+                claims.Add(new Claim(CustomClaimTypes.HomeLocationId, user.HomeLocationId.ToString()));
             return claims;
         }
 

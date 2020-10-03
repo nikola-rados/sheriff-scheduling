@@ -51,7 +51,7 @@ namespace SS.Db.models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("Name=ConnectionStrings.DB");
+                optionsBuilder.UseNpgsql("Name=DatabaseConnectionString");
             }
         }
 
