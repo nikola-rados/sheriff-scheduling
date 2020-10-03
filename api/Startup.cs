@@ -173,11 +173,13 @@ namespace SS.Api
                 });
             });
 
-            var enableSensitiveDataLogging = CurrentEnvironment.IsDevelopment();
-            services.AddDbContext<SheriffDbContext>(options => 
-                options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"))
-                    .EnableSensitiveDataLogging(enableSensitiveDataLogging)
-                );
+            services.AddDbContext<SheriffDbContext>(options =>
+                {
+                    options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"));
+                    if (CurrentEnvironment.IsDevelopment())
+                        options.EnableSensitiveDataLogging();
+                }
+            );
 
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 

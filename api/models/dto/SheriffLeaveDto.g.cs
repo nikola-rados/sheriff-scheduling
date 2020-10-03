@@ -13,6 +13,6 @@ namespace SS.Api.Models.Dto
         public DateTime? ExpiryDate { get; set; }
         public bool IsFullDay { get; set; }
         public Guid SheriffId { get; set; }
-        public byte[] RowVersion { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }
