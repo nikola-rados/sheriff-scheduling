@@ -13,8 +13,10 @@
     import { namespace } from 'vuex-class';
     import {commonInfoType} from './types/common';
     import {sheriffRankJsonType} from './types/common/jsonTypes'
-    import "@store/modules/CommonInformation";  
+    import "@store/modules/CommonInformation";
+    import store from "./store";  
     const commonState = namespace("CommonInformation");
+    import axios from "axios";
 
     @Component({
         components: {
@@ -30,27 +32,49 @@
         @commonState.Action
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
 
+        @commonState.State
+        public token!: string;
+
+        @commonState.Action
+        public UpdateToken!: (newToken: string) => void
+
         errorCode = 0;
         errorText = '';
-        isCommonDataReady= false;
+        isCommonDataReady= true;
         sheriffRankList: string[] = []
         currentLocation = {name: "abbotsford", id:"1"};
-
-        mounted() {          
-
-            this.errorCode=0;            
-            this.$http.get('/api/managetypes?codeType=SheriffRank')
-            .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-            ).then(data => {
-                if(data){
-                    this.extractSheriffRankInfo(data);
-                    if(this.commonInfo.sheriffRankList.length>0)
-                    {                    
-                        this.isCommonDataReady = true;                    
-                    }
-                }                
-            });
+       
+        mounted() {            
+            const url = 'api/auth/token'
+            axios.get(url)
+               .then(response => {
+                    if(response.data){
+                        // console.log(response.data.access_token)
+                        store.commit('CommonInformation/setToken', response.data.access_token)
+                        this.loadSheriffRankList()
+                    }                    
+                }).catch((error) => {
+                    this.UpdateToken('api/auth/login?redirectUri='+this.$route.fullPath);
+                });
         }
+
+        public loadSheriffRankList()  
+        {  
+            const url = 'api/managetypes?codeType=SheriffRank'
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            // console.log(options)
+            axios.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)
+                        this.extractSheriffRankInfo(response.data);
+                        if(this.commonInfo.sheriffRankList.length>0)
+                        {                              
+                            this.isCommonDataReady = true;
+                        }
+                    }                   
+                });           
+        }        
 
         public extractSheriffRankInfo(sheriffRankList)
         {
@@ -65,8 +89,7 @@
                 location: this.currentLocation,
                 sheriffRankList: this.sheriffRankList 
             })
-        }
-        
+        }       
         
      }
 </script>

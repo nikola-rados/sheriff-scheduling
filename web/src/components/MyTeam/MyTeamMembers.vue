@@ -137,6 +137,7 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import axios from "axios";
     import PageHeader from "@components/common/PageHeader.vue";
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
     import "@store/modules/CommonInformation";  
@@ -152,9 +153,7 @@
             PageHeader,
             UserSummaryTemplate
         }
-    })
-
-    
+    })    
     export default class MyTeamMembers extends Vue {
 
         @commonState.State
@@ -162,6 +161,12 @@
 
         @commonState.Action
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
+
+         @commonState.State
+        public token!: string;
+
+        @commonState.Action
+        public UpdateToken!: (newToken: string) => void
 
         sectionHeader = "";
         showMemberDetails = false;
@@ -190,8 +195,6 @@
 
         isMyTeamDataMounted = false;
         myTeamData: teamMemberInfoType[] =[];
-
-
         
         @Watch('commonInfo.location.id', { immediate: true })
         locationChange()
@@ -207,12 +210,15 @@
         public GetSheriffs()
         {
             this.isMyTeamDataMounted = false;
-            this.$http.get('/api/sheriff?locationId=' + this.commonInfo.location.id)
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-                ).then(data => {
-                    if(data){
-                        console.log(data)
-                        this.ExtractMyTeam(data);                        
+
+            const url = 'api/sheriff?locationId=' + this.commonInfo.location.id
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            console.log(options)
+            axios.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)
+                        this.ExtractMyTeam(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
                 });
@@ -395,12 +401,10 @@
                 lastName: this.user.lastName,
                 email: this.user.email
             }
-            
-            this.$http.post('/api/sheriff', body )
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.data.details;console.log(err);}        
-                ).then(data => {
-                    //console.log(data);
-                    //console.log(this.errorCode)
+            const url = 'api/sheriff';
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.post(url, body, options )
+                .then(data => {
                     if(data){
                         this.resetProfileWindowState();
                         this.showMemberDetails = false;
@@ -414,9 +418,7 @@
                             this.duplicateBadge = true;
                         }
                     }
-                });
-   
-            
+                }); 
         }
 
     }

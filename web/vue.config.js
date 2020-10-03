@@ -3,6 +3,8 @@ const vueSrc = "src";
 module.exports = {
 	configureWebpack: {
 		devServer: {
+			open: true,
+			https: true,
 			historyApiFallback: true,
 			proxy: {
 				'^/api': {

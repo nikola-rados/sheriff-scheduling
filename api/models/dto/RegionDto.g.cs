@@ -9,6 +9,6 @@ namespace SS.Api.Models.Dto
         public string Code { get; set; }
         public string Name { get; set; }
         public DateTime? ExpiryDate { get; set; }
-        public byte[] RowVersion { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }

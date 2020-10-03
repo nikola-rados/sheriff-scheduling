@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +15,8 @@ namespace SS.Api.controllers.usermanagement
     /// <summary>
     /// This was made abstract, so it can be reused. The idea is you could take the User object and reuse with minimal changes in another project. 
     /// </summary>
+    /// 
+    [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]
     public abstract class UserController : ControllerBase
     {
         private readonly UserService _service;
@@ -60,7 +63,5 @@ namespace SS.Api.controllers.usermanagement
             var user = await _service.DisableUser(id);
             return Ok(user.Adapt<SheriffDto>());
         }
-
-
     }
 }

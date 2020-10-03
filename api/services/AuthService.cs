@@ -3,56 +3,71 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using SS.Api.helpers.extensions;
 using SS.Api.Helpers.Extensions;
+using SS.Api.infrastructure.authorization;
 using SS.Db.models;
 using SS.Db.models.auth;
 
 namespace SS.Api.services
 {
     /// <summary>
-    /// This should handle all the permissions / roles / base user updates. 
+    /// This should load up our User context with claims from the database. 
     /// </summary>
     public class AuthService
     {
         private readonly SheriffDbContext _db;
-        public AuthService(SheriffDbContext dbContext)
+        private readonly IWebHostEnvironment _hostEnvironment;
+
+        public AuthService(SheriffDbContext dbContext, IWebHostEnvironment hostEnvironment)
         {
             _db = dbContext;
+            _hostEnvironment = hostEnvironment;
         }
 
-        /// <summary>
-        /// This will see if the user exists, if it doesn't exist it will create a new user object with the ID from
-        /// the SSO. 
-        /// </summary>
-        /// <param name="claimsIdentity"></param>
-        /// <returns></returns>
-        public async Task RequestAccess(ClaimsIdentity claimsIdentity)
+        public async Task<List<Claim>> GenerateClaims(List<Claim> currentClaims)
         {
-            var claims = claimsIdentity.Claims.ToList();
-            var id = Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
-            if (await _db.User.AnyAsync(u => u.Id == id))
-                return;
+            var claims = new List<Claim>();
 
-            var user = new User
+            //Enable all roles for now. 
+            if (_hostEnvironment.IsDevelopment())
+                claims.Add(new Claim(ClaimTypes.Role, Role.SystemAdministrator));
+
+            var idirName = currentClaims.GetValueByType("preferred_username").Replace("@idir", "");
+            var idirId = Guid.Parse(currentClaims.GetValueByType("idir_userid"));
+
+            //Match by IdirID (already logged into SSO before) or Idir with no IdirID (created, but hasn't logged in yet).
+            //Hopefully IdirID doesn't change when the base IdirName does (getting married / divorced etc).
+            var user = await _db.User.Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .ThenInclude(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
+                .FirstOrDefaultAsync(u => u.IdirId == idirId || !u.IdirId.HasValue && u.IdirName == idirName);
+
+            if (user?.IsEnabled != true) 
+                return claims;
+
+            if (!user.IdirId.HasValue)
             {
-                Id = id,
-                IdirName = claims.GetValueByType("preferred_username"),
-                IdirId = Guid.Parse(claims.GetValueByType("idir_userid")),
-                FirstName = claims.GetValueByType(ClaimTypes.GivenName),
-                LastName = claims.GetValueByType(ClaimTypes.Name),
-                Email = claims.GetValueByType(ClaimTypes.Email),
-                IsEnabled = false
-            };
-            await _db.User.AddAsync(user);
-            await _db.SaveChangesAsync();
+                user.IdirId = idirId;
+                user.KeyCloakId = Guid.Parse(currentClaims.GetValueByType(ClaimTypes.NameIdentifier));
+                await _db.SaveChangesAsync();
+            }
+            claims.AddRange(user.UserRoles.SelectToList(ur => new Claim(ClaimTypes.Role, ur.Role.Name)));
+            claims.AddRange(user.Permissions.SelectToList(p => new Claim(CustomClaimTypes.Permission, p.Name)));
+            claims.Add(new Claim(CustomClaimTypes.UserId, user.Id.ToString()));
+            if (user.HomeLocationId.HasValue)
+                claims.Add(new Claim(CustomClaimTypes.HomeLocationId, user.HomeLocationId.ToString()));
+            return claims;
         }
 
         public async Task UpdateUserLogin(ClaimsIdentity claimsIdentity)
         {
             var claims = claimsIdentity.Claims.ToList();
-            var id = Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
+            var id = Guid.Parse(claims.GetValueByType(CustomClaimTypes.UserId));
             var user = await _db.User.FindAsync(id);
             if (user == null || !user.IsEnabled)
                 return;

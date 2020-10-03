@@ -14,6 +14,6 @@ namespace SS.Api.Models.Dto
         public ICollection<SheriffDto> AssignedSheriff { get; set; }
         public int? LocationId { get; set; }
         public LocationDto Location { get; set; }
-        public byte[] RowVersion { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }

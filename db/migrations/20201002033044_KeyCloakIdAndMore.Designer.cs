@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -9,9 +10,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201002033044_KeyCloakIdAndMore")]
+    partial class KeyCloakIdAndMore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,12 +32,6 @@ namespace SS.Db.Migrations
                     b.Property<string>("AgencyId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
 
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
@@ -57,6 +53,11 @@ namespace SS.Db.Migrations
 
                     b.Property<int?>("RegionId")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
@@ -80,18 +81,16 @@ namespace SS.Db.Migrations
                     b.HasData(
                         new
                         {
-                            Id = -1,
+                            Id = 1,
                             AgencyId = "FAKE",
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 687, DateTimeKind.Utc).AddTicks(4793),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 924, DateTimeKind.Utc).AddTicks(7930),
                             Name = "Dummy Location"
                         },
                         new
                         {
-                            Id = -2,
+                            Id = 2,
                             AgencyId = "FAKE2",
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 687, DateTimeKind.Utc).AddTicks(5995),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 924, DateTimeKind.Utc).AddTicks(9186),
                             Name = "Dummy Location2"
                         });
                 });
@@ -104,12 +103,6 @@ namespace SS.Db.Migrations
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'50', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -121,6 +114,11 @@ namespace SS.Db.Migrations
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
@@ -140,8 +138,7 @@ namespace SS.Db.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 702, DateTimeKind.Utc).AddTicks(9060),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 939, DateTimeKind.Utc).AddTicks(9870),
                             Description = "Permission to login to the application",
                             Name = "Login"
                         });
@@ -155,12 +152,6 @@ namespace SS.Db.Migrations
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'50', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -172,6 +163,11 @@ namespace SS.Db.Migrations
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
@@ -191,24 +187,21 @@ namespace SS.Db.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 705, DateTimeKind.Utc).AddTicks(5052),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(2756),
                             Description = "System Administrator",
                             Name = "System Administrator"
                         },
                         new
                         {
                             Id = 2,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 705, DateTimeKind.Utc).AddTicks(6001),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(3683),
                             Description = "Administrator",
                             Name = "Administrator"
                         },
                         new
                         {
                             Id = 3,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 705, DateTimeKind.Utc).AddTicks(6042),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(3716),
                             Description = "Sheriff",
                             Name = "Sheriff"
                         });
@@ -221,12 +214,6 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -238,6 +225,11 @@ namespace SS.Db.Migrations
 
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
@@ -264,12 +256,6 @@ namespace SS.Db.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasAnnotation("Npgsql:IdentitySequenceOptions", "'200', '1', '', '', 'False', '1'");
-
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
 
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
@@ -308,6 +294,11 @@ namespace SS.Db.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
+
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
@@ -332,14 +323,7 @@ namespace SS.Db.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'100', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
-
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
 
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
@@ -349,6 +333,11 @@ namespace SS.Db.Migrations
 
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
@@ -379,12 +368,6 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -399,6 +382,11 @@ namespace SS.Db.Migrations
 
                     b.Property<int>("LookupType")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
@@ -431,12 +419,6 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -454,6 +436,11 @@ namespace SS.Db.Migrations
 
                     b.Property<int?>("LocationId")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
@@ -487,12 +474,6 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -510,6 +491,11 @@ namespace SS.Db.Migrations
 
                     b.Property<int?>("LeaveTypeId")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
@@ -543,12 +529,6 @@ namespace SS.Db.Migrations
                         .HasColumnType("integer")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -563,6 +543,11 @@ namespace SS.Db.Migrations
 
                     b.Property<bool>("IsFullDay")
                         .HasColumnType("boolean");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
@@ -602,12 +587,6 @@ namespace SS.Db.Migrations
                     b.Property<string>("Code")
                         .HasColumnType("text");
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -622,6 +601,11 @@ namespace SS.Db.Migrations
 
                     b.Property<string>("Name")
                         .HasColumnType("text");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
@@ -652,12 +636,6 @@ namespace SS.Db.Migrations
                     b.Property<string>("Code")
                         .HasColumnType("text");
 
-                    b.Property<uint>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnName("xmin")
-                        .HasColumnType("xid");
-
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
@@ -675,6 +653,11 @@ namespace SS.Db.Migrations
 
                     b.Property<int?>("LocationId")
                         .HasColumnType("integer");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bytea");
 
                     b.Property<int?>("SortOrder")
                         .HasColumnType("integer");
@@ -705,56 +688,49 @@ namespace SS.Db.Migrations
                         new
                         {
                             Id = 1,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(378),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(6582),
                             Description = "Chief Sheriff",
                             Type = 7
                         },
                         new
                         {
                             Id = 2,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1361),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7471),
                             Description = "Superintendent",
                             Type = 7
                         },
                         new
                         {
                             Id = 3,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1383),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7493),
                             Description = "Staff Inspector",
                             Type = 7
                         },
                         new
                         {
                             Id = 4,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1385),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7494),
                             Description = "Inspector",
                             Type = 7
                         },
                         new
                         {
                             Id = 5,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1386),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7496),
                             Description = "Staff Sergeant",
                             Type = 7
                         },
                         new
                         {
                             Id = 6,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1387),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7497),
                             Description = "Sergeant",
                             Type = 7
                         },
                         new
                         {
                             Id = 7,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1389),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7498),
                             Description = "Deputy Sheriff",
                             Type = 7
                         });

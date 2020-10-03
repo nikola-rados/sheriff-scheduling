@@ -10,8 +10,9 @@ namespace SS.Api.Models.Dto
         public int? LeaveTypeId { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
         public bool IsFullDay { get; set; }
         public Guid SheriffId { get; set; }
-        public byte[] RowVersion { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }

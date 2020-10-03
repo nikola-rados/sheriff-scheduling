@@ -3,11 +3,13 @@ using System.Reflection;
 using JCCommon.Clients.LocationServices;
 using Mapster;
 using MapsterMapper;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SS.Api.Helpers;
 using SS.Api.Helpers.Extensions;
+using SS.Api.infrastructure.authorization;
 using SS.Api.Models;
 using SS.Api.services;
 using BasicAuthenticationHeaderValue = SS.Api.models.BasicAuthenticationHeaderValue;
@@ -31,7 +33,6 @@ namespace SS.Api.infrastructure
 
         public static IServiceCollection AddSSServices(this IServiceCollection services, IConfiguration configuration)
         {
-
             services.AddHttpClient<LocationServicesClient>(client =>
             {
                 client.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(
@@ -39,6 +40,8 @@ namespace SS.Api.infrastructure
                     configuration.GetNonEmptyValue("LocationServicesClient:Password"));
                 client.BaseAddress = new Uri(configuration.GetNonEmptyValue("LocationServicesClient:Url").EnsureEndingForwardSlash());
             });
+
+            services.AddHttpClient(nameof(CookieAuthenticationEvents));
 
             services.AddTransient(s => s.GetService<IHttpContextAccessor>().HttpContext.User);
             services.AddScoped<ManageTypesService>();

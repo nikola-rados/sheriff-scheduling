@@ -62,7 +62,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPut]
-        [Route("{id}/assignPermissions")]
+        [Route("{roleId}/assignPermissions")]
         public async Task<ActionResult> AssignPermissions(int roleId, List<int> permissionIds)
         {
             await _service.AssignPermissionsToRole(roleId, permissionIds);
@@ -70,7 +70,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPut]
-        [Route("{id}/unassignPermissions")]
+        [Route("{roleId}/unassignPermissions")]
         public async Task<ActionResult> UnassignPermissions(int roleId, List<int> permissionIds)
         {
             await _service.UnassignPermissionsFromRole(roleId, permissionIds);

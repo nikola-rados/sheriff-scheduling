@@ -7,8 +7,6 @@ namespace SS.Api.Models.Dto
 {
     public partial class SheriffDto
     {
-        public int? HomeLocationId { get; set; }
-        public LocationDto HomeLocation { get; set; }
         public Gender Gender { get; set; }
         public string BadgeNumber { get; set; }
         public string Rank { get; set; }
@@ -21,6 +19,8 @@ namespace SS.Api.Models.Dto
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
-        public byte[] RowVersion { get; set; }
+        public int? HomeLocationId { get; set; }
+        public LocationDto HomeLocation { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }

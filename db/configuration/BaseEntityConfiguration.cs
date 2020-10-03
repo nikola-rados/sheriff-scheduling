@@ -1,6 +1,8 @@
 ﻿using db.models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System;
 
 //Thanks to PIMS for this. 
 namespace SS.DB.Configuration
