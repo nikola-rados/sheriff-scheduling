@@ -32,7 +32,7 @@ namespace SS.Api.services
         public async Task<Role> AddRole(Role role)
         {
             role.RolePermissions = null;
-            role.Users = null;
+            role.UserRoles = null;
             await _db.Role.AddAsync(role);
             await _db.SaveChangesAsync();
             return role;
@@ -55,7 +55,8 @@ namespace SS.Api.services
 
         public async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)
         {
-            var role = await _db.Role.FindAsync(roleId);
+            var role = await _db.Role.Include(r => r.RolePermissions)
+                                     .FirstOrDefaultAsync( r=> r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             foreach (var permissionId in permissionIds)
@@ -76,7 +77,8 @@ namespace SS.Api.services
 
         public async Task UnassignPermissionsFromRole(int roleId, List<int> permissionIds)
         {
-            var role = await _db.Role.FindAsync(roleId);
+            var role = await _db.Role.Include(r => r.RolePermissions)
+                                     .FirstOrDefaultAsync(r => r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
             
             _db.RemoveRange(role.RolePermissions.Where(rp => permissionIds.Contains(rp.PermissionId) && rp.Role.Id == roleId));

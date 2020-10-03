@@ -6,6 +6,7 @@ using SS.Db.models.auth;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
@@ -86,14 +87,16 @@ namespace tests.controllers
             var permission = await CreatePermission();
 
             HttpResponseTest.CheckForNoContentResponse(await _controller.AssignPermissions(role.Id, new List<int> { permission.Id }));
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.GetRole(role.Id));
 
-            var savedRole = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.GetRole(role.Id));
-            Assert.NotEmpty(savedRole.RolePermissions);
+            var dbRole = _dbContext.Role.Include(r => r.RolePermissions).FirstOrDefault(r => r.Id == role.Id);
+            Assert.NotEmpty(dbRole?.RolePermissions);
 
             HttpResponseTest.CheckForNoContentResponse(await _controller.UnassignPermissions(role.Id, new List<int> { permission.Id }));
 
             var savedRole2 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.GetRole(role.Id));
-            Assert.Empty(savedRole2.RolePermissions);
+            dbRole = _dbContext.Role.Include(r => r.RolePermissions).FirstOrDefault(r => r.Id == role.Id);
+            Assert.Empty(dbRole?.RolePermissions);
         }
 
         private async Task<Permission> CreatePermission()

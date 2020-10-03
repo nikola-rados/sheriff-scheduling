@@ -18,7 +18,7 @@ namespace SS.Api.controllers.usermanagement
     [AuthorizeRoles(Role.SystemAdministrator)]
     public class PermissionController : ControllerBase
     {
-        private SheriffDbContext _db;
+        private readonly SheriffDbContext _db;
         public PermissionController(SheriffDbContext dbContext)
         {
             _db = dbContext;

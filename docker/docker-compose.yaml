@@ -14,8 +14,21 @@ services:
 
   api:
     image: ss-api
+    environment: 
+      - LocationServicesClient__Username=${LocationServicesClientUsername}
+      - LocationServicesClient__Password=${LocationServicesClientPassword}
+      - LocationServicesClient__Url=${LocationServicesClientUrl}
+      - Keycloak__Client=${KeycloakClient}
+      - Keycloak__Authority=${KeycloakAuthority}
+      - Keycloak__Secret=${KeycloakSecret}
+      - Keycloak__Audience=${KeycloakAudience}
+      - DatabaseConnectionString=${DatabaseConnectionString}
+      - ASPNETCORE_URLS=${ASPNETCORE_URLS}
     ports:
       - 5000:5000
+      - 5001:5001
+    volumes:
+      - ~/.aspnet/https:/https:ro
     depends_on:
       - db
 

@@ -1,3 +1,4 @@
+using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -6,10 +7,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using SS.Api.Helpers.Extensions;
+using SS.Api.infrastructure.authorization;
 using SS.Api.services;
 
 namespace SS.Api.Controllers
 {
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -17,6 +22,7 @@ namespace SS.Api.Controllers
         {
             _authService = authService;
         }
+
         /// <summary>
         /// This cannot be called from AJAX or SWAGGER. It must be loaded in the browser location, because it brings the user to the SSO page. 
         /// </summary>
@@ -27,36 +33,8 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Login(string redirectUri = "/api")
         {
             //update users from claims. 
-            await _authService.UpdateUserLogin((ClaimsIdentity)User.Identity);
+            //await _authService.UpdateUserLogin((ClaimsIdentity)User.Identity);
             return Redirect(redirectUri);
-        }
-
-        /// <summary>
-        /// This will create a new user object in the User table that is disabled.
-        /// The user is created with an ID from SSO, PreferredUserName, IdirId, Name, Email and IsDisabled = true.
-        /// Ensure the user is logged into the SSO before attempting any AJAX on this. Otherwise it will redirect to SSO. 
-        /// </summary>
-        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
-        [HttpGet("requestAccess")]
-        public async Task<IActionResult> RequestAccess()
-        {
-            await _authService.RequestAccess((ClaimsIdentity)User.Identity);
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Must be logged in to call this. 
-        /// </summary>
-        /// <returns>access_token and refresh_token for API calls.</returns>
-        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
-        [HttpGet("getToken")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> GetToken()
-        {
-            var accessToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "access_token");
-            var refreshToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "refresh_token");
-            return Ok(new { access_token = accessToken, refresh_token = refreshToken });
         }
 
         /// <summary>
@@ -67,8 +45,41 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-            return Ok();
+            return Ok(new { host = HttpContext.Request.Host} );
+        }
+
+        
+
+        /// <summary>
+        /// Must be logged in to call this. 
+        /// </summary>
+        /// <returns>access_token and refresh_token for API calls.</returns>
+        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
+        [HttpGet("token")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> GetToken()
+        {
+            var accessToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "access_token");
+            var expiresAt = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "expires_at");
+            return Ok(new { access_token = accessToken, expires_at = expiresAt, current = DateTime.UtcNow.ToString() });
+        }
+
+        /// <summary>
+        /// Provides Permissions, Roles, UserId, HomeLocationId via from claims to JSON.
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        [HttpGet]
+        [Route("info")]
+        public ActionResult UserInfo()
+        {
+            var isImpersonated = !User.Identity.IsAuthenticated;
+            var roles = HttpContext.User.FindAll(ClaimTypes.Role).SelectToList(r => r.Value);
+            var permissions = HttpContext.User.FindAll(CustomClaimTypes.Permission).SelectToList(r => r.Value);
+            var userId = HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value;
+            var homeLocationId = HttpContext.User.FindFirst(CustomClaimTypes.HomeLocationId)?.Value;
+            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, isImpersonated });
         }
     }
 }

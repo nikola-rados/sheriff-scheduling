@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -9,9 +10,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201002033044_KeyCloakIdAndMore")]
+    partial class KeyCloakIdAndMore
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,16 +81,16 @@ namespace SS.Db.Migrations
                     b.HasData(
                         new
                         {
-                            Id = -1,
+                            Id = 1,
                             AgencyId = "FAKE",
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 795, DateTimeKind.Utc).AddTicks(8309),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 924, DateTimeKind.Utc).AddTicks(7930),
                             Name = "Dummy Location"
                         },
                         new
                         {
-                            Id = -2,
+                            Id = 2,
                             AgencyId = "FAKE2",
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 795, DateTimeKind.Utc).AddTicks(9545),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 924, DateTimeKind.Utc).AddTicks(9186),
                             Name = "Dummy Location2"
                         });
                 });
@@ -136,7 +138,7 @@ namespace SS.Db.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 810, DateTimeKind.Utc).AddTicks(2302),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 939, DateTimeKind.Utc).AddTicks(9870),
                             Description = "Permission to login to the application",
                             Name = "Login"
                         });
@@ -185,21 +187,21 @@ namespace SS.Db.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 812, DateTimeKind.Utc).AddTicks(4271),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(2756),
                             Description = "System Administrator",
                             Name = "System Administrator"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 812, DateTimeKind.Utc).AddTicks(5210),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(3683),
                             Description = "Administrator",
                             Name = "Administrator"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 812, DateTimeKind.Utc).AddTicks(5242),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 942, DateTimeKind.Utc).AddTicks(3716),
                             Description = "Sheriff",
                             Name = "Sheriff"
                         });
@@ -321,7 +323,6 @@ namespace SS.Db.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'100', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<Guid?>("CreatedById")
@@ -687,49 +688,49 @@ namespace SS.Db.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 808, DateTimeKind.Utc).AddTicks(1158),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(6582),
                             Description = "Chief Sheriff",
                             Type = 7
                         },
                         new
                         {
                             Id = 2,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 808, DateTimeKind.Utc).AddTicks(2071),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7471),
                             Description = "Superintendent",
                             Type = 7
                         },
                         new
                         {
                             Id = 3,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 808, DateTimeKind.Utc).AddTicks(2095),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7493),
                             Description = "Staff Inspector",
                             Type = 7
                         },
                         new
                         {
                             Id = 4,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 808, DateTimeKind.Utc).AddTicks(2096),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7494),
                             Description = "Inspector",
                             Type = 7
                         },
                         new
                         {
                             Id = 5,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 808, DateTimeKind.Utc).AddTicks(2097),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7496),
                             Description = "Staff Sergeant",
                             Type = 7
                         },
                         new
                         {
                             Id = 6,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 808, DateTimeKind.Utc).AddTicks(2099),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7497),
                             Description = "Sergeant",
                             Type = 7
                         },
                         new
                         {
                             Id = 7,
-                            CreatedOn = new DateTime(2020, 10, 2, 20, 24, 27, 808, DateTimeKind.Utc).AddTicks(2100),
+                            CreatedOn = new DateTime(2020, 10, 2, 3, 30, 43, 937, DateTimeKind.Utc).AddTicks(7498),
                             Description = "Deputy Sheriff",
                             Type = 7
                         });
