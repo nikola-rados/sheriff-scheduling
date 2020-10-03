@@ -13,13 +13,6 @@ module.exports = {
 						Connection: 'keep-alive'
 					},
 					changeOrigin: true
-				},
-				'^/login': {
-					target: "https://localhost:44370",
-					headers: {
-						Connection: 'keep-alive'
-					},
-					changeOrigin: true
 				}
 			}
 		},
