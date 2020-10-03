@@ -1,8 +1,6 @@
 <template>    
     <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady">
         <navigation-topbar />
-        <b-button @click="go()"> Login </b-button>
-        <b-button @click="getToken()"> Token </b-button>
         <router-view></router-view>
         <navigation-footer id="footer" />
     </div>
@@ -15,7 +13,8 @@
     import { namespace } from 'vuex-class';
     import {commonInfoType} from './types/common';
     import {sheriffRankJsonType} from './types/common/jsonTypes'
-    import "@store/modules/CommonInformation";  
+    import "@store/modules/CommonInformation";
+    import store from "./store";  
     const commonState = namespace("CommonInformation");
     import axios from "axios";
 
@@ -44,37 +43,18 @@
         isCommonDataReady= true;
         sheriffRankList: string[] = []
         currentLocation = {name: "abbotsford", id:"1"};
-
-        public go()
-        {
-            location.replace('api/auth/login?redirectUri='+this.$route.fullPath);
-        }
-
-        getToken()
-        {
+       
+        mounted() {            
             const url = 'api/auth/token'
             axios.get(url)
                .then(response => {
                     if(response.data){
-                        console.log(response.data.access_token)
-                        //localStorage.setItem('token', response.data.access_token);
-                        this.UpdateToken(response.data.access_token)
+                        // console.log(response.data.access_token)
+                        store.commit('CommonInformation/setToken', response.data.access_token)
                         this.loadSheriffRankList()
                     }                    
-                });
-        }
-        mounted() { 
-            //location.replace('api/auth/login?redirectUri='+this.$route.fullPath);
-            this.errorCode=0;
-            const url = 'api/auth/token'
-            axios.get(url)
-               .then(response => {
-                    if(response.data){
-                        console.log(response.data.access_token)
-                        //localStorage.setItem('token', response.data.access_token);
-                        this.UpdateToken(response.data.access_token)
-                        this.loadSheriffRankList()
-                    }                    
+                }).catch((error) => {
+                    this.UpdateToken('api/auth/login?redirectUri='+this.$route.fullPath);
                 });
         }
 
@@ -82,7 +62,7 @@
         {  
             const url = 'api/managetypes?codeType=SheriffRank'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            console.log(options)
+            // console.log(options)
             axios.get(url, options)
                 .then(response => {
                     if(response.data){

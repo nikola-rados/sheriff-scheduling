@@ -152,9 +152,7 @@
             PageHeader,
             UserSummaryTemplate
         }
-    })
-
-    
+    })    
     export default class MyTeamMembers extends Vue {
 
         @commonState.State
