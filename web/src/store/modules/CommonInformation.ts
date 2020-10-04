@@ -27,21 +27,8 @@ class CommonInformation extends VuexModule {
   }
 
   @Action
-  public UpdateToken(redirectPath): void {
-
-    axios.get('api/auth/token').then(tokenRefreshResponse => {
-      console.log("INSIDE STORE")
-      this.context.commit('setToken', tokenRefreshResponse.data.access_token);
-        
-    }).catch((error) => {
-        console.log('______NOT LOGGEDIN___REDIRECTING' + error)
-        location.replace(redirectPath);
-    });
-
-
-
-
-    // this.context.commit('setToken', newToken)
+  public UpdateToken(newToken): void {
+     this.context.commit('setToken', newToken)
   }
   
   

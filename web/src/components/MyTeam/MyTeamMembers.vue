@@ -136,7 +136,6 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import axios from "axios";
     import PageHeader from "@components/common/PageHeader.vue";
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
     import "@store/modules/CommonInformation";  
@@ -212,7 +211,7 @@
             const url = 'api/sheriff?locationId=' + this.commonInfo.location.id
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             console.log(options)
-            axios.get(url, options)
+            this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)
@@ -401,6 +400,7 @@
                 lastName: this.user.lastName,
                 email: this.user.email
             }
+            console.log(body)
             const url = 'api/sheriff';
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             

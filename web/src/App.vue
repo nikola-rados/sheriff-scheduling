@@ -16,7 +16,6 @@
     import "@store/modules/CommonInformation";
     import store from "./store";  
     const commonState = namespace("CommonInformation");
-    import axios from "axios";
 
     @Component({
         components: {
@@ -42,20 +41,10 @@
         errorText = '';
         isCommonDataReady= true;
         sheriffRankList: string[] = []
-        currentLocation = {name: "abbotsford", id:"1"};
+        currentLocation = {name: "abbotsford", id:"-1"};
        
         mounted() {            
-            const url = 'api/auth/token'
-            axios.get(url)
-               .then(response => {
-                    if(response.data){
-                        // console.log(response.data.access_token)
-                        store.commit('CommonInformation/setToken', response.data.access_token)
-                        this.loadSheriffRankList()
-                    }                    
-                }).catch((error) => {
-                    this.UpdateToken('api/auth/login?redirectUri='+this.$route.fullPath);
-                });
+                    this.loadSheriffRankList()
         }
 
         public loadSheriffRankList()  
@@ -63,7 +52,7 @@
             const url = 'api/managetypes?codeType=SheriffRank'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             // console.log(options)
-            axios.get(url, options)
+            this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)

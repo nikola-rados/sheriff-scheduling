@@ -4,16 +4,14 @@ import store from "@/store";
 
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
 
-const refreshAuthLogic = failedRequest => axios.get('api/auth/tokens').then(tokenRefreshResponse => {
+const refreshAuthLogic = failedRequest => axios.get('api/auth/token').then(tokenRefreshResponse => {
     
     store.commit('CommonInformation/setToken',tokenRefreshResponse.data.access_token);
-    console.log(store.state.CommonInformation.token)
-    //localStorage.setItem('token', tokenRefreshResponse.data.access_token);
+    //console.log(store.state.CommonInformation.token)
     failedRequest.response.config.headers['Authorization'] = 'Bearer ' + tokenRefreshResponse.data.access_token;
     return Promise.resolve();
 }).catch((error) => {
-    console.log('______NOT LOGGEDIN___')
-    location.replace('/api/auth/login?redirectUri=%2Fapi');
+    location.replace('/api/auth/login?redirectUri=/');
 });
 
 function configureInstance(){
