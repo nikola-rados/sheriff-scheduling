@@ -208,13 +208,11 @@
         locationChange()
         {
             this.getSheriffs()
+            this.sectionHeader = "My Team - " + this.location.name;
         }  
 
         mounted() {
-                        
-            console.log(this.userDetails)
-            this.userIsAdmin = this.userDetails.roles.indexOf("Administrator") > -1;
-            console.log(this.userIsAdmin)            
+            this.userIsAdmin = (this.userDetails.roles.indexOf("Administrator") > -1) || (this.userDetails.roles.indexOf("System Administrator") > -1);
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
         }
@@ -224,16 +222,13 @@
             this.isMyTeamDataMounted = false;
             const url = 'api/sheriff?locationId=' + this.location.id
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            console.log(options)
             this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)
                         this.extractMyTeam(response.data);                        
                     }
-
                     this.isMyTeamDataMounted = true;
-
                 })
         }
 
@@ -260,8 +255,6 @@
 
         public openMemberDetails(data)
         {
-            console.log(data)
-            // TODO: pass data to modal
             this.createMode = false;
             this.editMode = true;
             this.showMemberDetails=true;
@@ -306,8 +299,7 @@
         }
 
         public AddMember()
-        {            
-            // TODO: pass data to modal
+        {  
             this.createMode = true;
             this.editMode = false;
             this.isUserDataMounted = true;
@@ -404,7 +396,6 @@
         }
 
         public createProfile() {
-            console.log("creating profile")
             const body = {
                 homeLocationId: this.location.id,               
                 gender: this.user.gender,
@@ -422,7 +413,6 @@
             this.$http.post(url, body, options )
                 .then(data => {
                     if(data){
-                        console.log(data) 
                         this.getSheriffs();                     
                     }
                 })            

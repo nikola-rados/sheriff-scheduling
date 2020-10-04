@@ -53,7 +53,7 @@
         errorText = '';
         isCommonDataReady= false;
         sheriffRankList: string[] = []
-        currentLocation = {name: "abbotsford", id:"-1"};
+        currentLocation = {name: "abbotsford", id:"1"};
        
         mounted() {            
             this.loadUserDetails()
@@ -62,11 +62,9 @@
         public loadUserDetails() {
             const url = 'api/auth/info'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            // console.log(options)
             this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
                         const userData = response.data;
                         this.UpdateUser({
                             roles: userData.roles,
@@ -82,11 +80,9 @@
         {  
             const url = 'api/managetypes?codeType=SheriffRank'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            // console.log(options)
             this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
                         this.extractSheriffRankInfo(response.data);
                         if(this.commonInfo.sheriffRankList.length>0 && this.location.id && this.userDetails.homeLocationId)
                         {                              
