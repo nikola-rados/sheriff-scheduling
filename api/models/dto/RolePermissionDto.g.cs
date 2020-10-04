@@ -8,6 +8,6 @@ namespace SS.Api.Models.Dto
         public int RoleId { get; set; }
         public PermissionDto Permission { get; set; }
         public int PermissionId { get; set; }
-        public byte[] RowVersion { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }

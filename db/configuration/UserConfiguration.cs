@@ -12,8 +12,7 @@ namespace SS.Db.configuration
         {
             builder.Property(b => b.Id).HasIdentityOptions(startValue: 200);
 
-            //builder.HasMany(m => m.Roles).WithOne(m => m.User).HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.ClientCascade);
-            //builder.HasMany(m => m.Permissions).WithOne(m => m.Id).HasForeignKey(m => m.RoleId).OnDelete(DeleteBehavior.ClientCascade);
+            builder.HasMany(m => m.UserRoles).WithOne(m => m.User).HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.ClientCascade);
 
             base.Configure(builder);
         }

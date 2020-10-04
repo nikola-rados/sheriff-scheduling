@@ -15,16 +15,14 @@ namespace SS.Api.infrastructure
     {
         private readonly SheriffDbContext _db;
         private readonly IMemoryCache _cache;
-        private readonly IWebHostEnvironment _hostEnvironment;
         private bool _isTransformed;
         private bool _checkForAuthenticate = true;
         private readonly AuthService _authService;
         
-        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache, IWebHostEnvironment hostEnvironment, AuthService authService)
+        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache,  AuthService authService)
         {
             _db = db;
             _cache = cache;
-            _hostEnvironment = hostEnvironment;
             _authService = authService;
             _checkForAuthenticate = true;
         }

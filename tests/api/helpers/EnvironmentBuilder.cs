@@ -60,7 +60,7 @@ namespace tests.api.Helpers
             if (useMemoryDatabase)
                 optionsBuilder.UseInMemoryDatabase("testingDb");
             else
-                optionsBuilder.UseNpgsql(configuration.GetNonEmptyValue("ConnectionStrings.DB")).EnableSensitiveDataLogging(true);
+                optionsBuilder.UseNpgsql(configuration.GetNonEmptyValue("DatabaseConnectionString")).EnableSensitiveDataLogging(true);
 
             return optionsBuilder.Options;
         }
