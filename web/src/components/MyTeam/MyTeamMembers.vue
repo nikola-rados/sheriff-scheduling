@@ -218,7 +218,7 @@
                         this.ExtractMyTeam(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
-                });
+                })
         }
 
         public ExtractMyTeam(data: any)
@@ -410,7 +410,7 @@
                         console.log(data) 
                         this.GetSheriffs();                     
                     }
-                });            
+                })            
         }
 
     }

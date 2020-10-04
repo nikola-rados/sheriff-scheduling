@@ -44,7 +44,7 @@
         currentLocation = {name: "abbotsford", id:"-1"};
        
         mounted() {            
-                    this.loadSheriffRankList()
+            this.loadSheriffRankList()
         }
 
         public loadSheriffRankList()  
@@ -62,7 +62,7 @@
                             this.isCommonDataReady = true;
                         }
                     }                   
-                });           
+                })          
         }        
 
         public extractSheriffRankInfo(sheriffRankList)
@@ -72,8 +72,7 @@
             for(sheriffRank of sheriffRankList)
             {                
                 this.sheriffRankList.push(sheriffRank.description)
-            }
-            
+            }            
             this.UpdateCommonInfo({
                 location: this.currentLocation,
                 sheriffRankList: this.sheriffRankList 

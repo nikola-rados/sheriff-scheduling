@@ -1,6 +1,6 @@
 import {commonInfoType, locationInfoType} from '../../types/common';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
-import axios from "axios";
+
 
 @Module({
   namespaced: true
