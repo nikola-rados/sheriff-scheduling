@@ -25,7 +25,7 @@
         <div v-else class="container mb-5" id="app">
             <div class="row">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
-                    <div @click="OpenMemberDetails(teamMember.id)" class="card h-100">
+                    <div @click="openMemberDetails(teamMember.id)" class="card h-100">
                         <div class="card-body">
                             <user-summary-template :userBadgeNumber="teamMember.badgeNumber" :userName="teamMember.fullName" :userRole="teamMember.rank" :userImage="teamMember.image" :editMode="false" />
                         </div>
@@ -182,7 +182,7 @@
         showCancelWarning = false;
         user = {} as teamMemberInfoType;
         originalUser = {} as teamMemberInfoType;
-        userJson = {} as teamMemberJsonType;
+        userJson;
         genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
         genderValues = [0, 1, 2]        
         idirUsernameState = true;
@@ -318,13 +318,14 @@
         }
 
         public loadUserDetails(userId): void {
-            this.editMode = true;
-            this.errorCode = 0;
-            this.$http.get('/api/sheriff/' + userId)
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-                ).then(data => {
-                    if(data){
-                        this.userJson = data
+            this.editMode = true;            
+            const url = 'api/sheriff/' + userId
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        this.userJson = response.data;
+                        console.log(this.userJson)
                         this.extractUserInfo();
                         this.isUserDataMounted = true;                        
                     }                    
@@ -411,23 +412,25 @@
                 email: this.user.email,
                 id: this.user.id
             }
-            
-            this.$http.put('/api/sheriff', body )
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.data.details;console.log(err);}        
-                ).then(data => {
-                    if(data){
+
+            const url = 'api/sheriff';
+            const options = {headers:{'Authorization' :'Bearer '+this.token}} 
+            this.$http.put(url, body, options)
+                .then(response => {
+                    if(response.data){
                         this.resetProfileWindowState();
                         this.showMemberDetails = false;
                         this.getSheriffs();                     
-                    }
-                    else
+                    }                    
+                }, err => {
+                    this.errorText = err.response.data.error
+                     
+                    if(this.errorText.includes('already has badge number'))
                     {
-                        if(this.errorText.includes('already has badge number'))
-                        {
-                            this.badgeNumberState = false;
-                            this.duplicateBadge = true;
-                        }
+                        this.badgeNumberState = false;
+                        this.duplicateBadge = true;
                     }
+
                 });
         }
 
@@ -447,8 +450,8 @@
             const options = {headers:{'Authorization' :'Bearer '+this.token}}           
             
             this.$http.post(url, body, options )
-                .then(data => {
-                    if(data){
+                .then(response => {
+                    if(response.data){
                         this.resetProfileWindowState();
                         this.showMemberDetails = false;
                         this.getSheriffs();                     

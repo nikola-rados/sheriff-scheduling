@@ -84,9 +84,12 @@
                 .then(response => {
                     if(response.data){
                         this.extractSheriffRankInfo(response.data);
+                        console.log(this.commonInfo.sheriffRankList.length + this.location.id + this.userDetails.homeLocationId)
+
                         if(this.commonInfo.sheriffRankList.length>0 && this.location.id && this.userDetails.homeLocationId)
                         {                              
                             this.isCommonDataReady = true;
+                            console.log("data ready")
                         }
                     }                   
                 })          
