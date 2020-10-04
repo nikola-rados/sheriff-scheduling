@@ -7,7 +7,6 @@ import createAuthRefreshInterceptor from 'axios-auth-refresh';
 const refreshAuthLogic = failedRequest => axios.get('api/auth/token').then(tokenRefreshResponse => {
     
     store.commit('CommonInformation/setToken',tokenRefreshResponse.data.access_token);
-    //console.log(store.state.CommonInformation.token)
     failedRequest.response.config.headers['Authorization'] = 'Bearer ' + tokenRefreshResponse.data.access_token;
     return Promise.resolve();
 }).catch((error) => {
@@ -18,7 +17,6 @@ function configureInstance(){
     createAuthRefreshInterceptor(axios, refreshAuthLogic);    
     return axios
 }
-
 
 const httpInstance = configureInstance();
 export default {

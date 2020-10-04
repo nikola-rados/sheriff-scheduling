@@ -179,7 +179,6 @@
         
         showMemberDetails = false;
         showCancelWarning = false;
-        //TODO: get user role and Make sure only super-admin can see the "add a user" yellow button
         user = {} as teamMemberInfoType;
         userJson = {} as teamMemberJsonType;
         genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
@@ -227,7 +226,7 @@
             this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
+                        // console.log(response.data)
                         this.extractMyTeam(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
@@ -236,8 +235,7 @@
 
         public extractMyTeam(data: any)
         {
-            this.myTeamData = [];
-            
+            this.myTeamData = [];            
             for(const myteaminfo of data)
             {
                 const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:'', gender:'' }
@@ -248,7 +246,6 @@
                 this.myTeamData.push(myteam);
             }
         }
-
 
         public getFullNameOfPerson(first: string, last: string)
         {            
@@ -406,7 +403,7 @@
                 lastName: this.user.lastName,
                 email: this.user.email
             }
-            console.log(body)
+            // console.log(body)
             const url = 'api/sheriff';
             const options = {headers:{'Authorization' :'Bearer '+this.token}}           
             
@@ -417,15 +414,16 @@
                         this.showMemberDetails = false;
                         this.getSheriffs();                     
                     }
-                    else
+                }, err => {
+                    this.errorText = err.response.data.error
+                     
+                    if(this.errorText.includes('already has badge number'))
                     {
-                        if(this.errorText.includes('already has badge number'))
-                        {
-                            this.badgeNumberState = false;
-                            this.duplicateBadge = true;
-                        }
+                        this.badgeNumberState = false;
+                        this.duplicateBadge = true;
                     }
-                })        
+
+                })   
         }
     }
 </script>
