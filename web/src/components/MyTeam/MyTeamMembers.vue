@@ -211,7 +211,7 @@
         {
             this.isMyTeamDataMounted = false;
 
-            const url = 'api/sheriff?locationId=' + this.commonInfo.location.id
+            const url = 'api/sheriff?locationId=' + this.commonInfo.location.id;
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             console.log(options)
             axios.get(url, options)
@@ -221,6 +221,8 @@
                         this.ExtractMyTeam(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
+                }).catch((error) => {
+                    this.UpdateToken('api/auth/login?redirectUri='+this.$route.fullPath);
                 });
         }
 
@@ -402,8 +404,9 @@
                 email: this.user.email
             }
             const url = 'api/sheriff';
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.post(url, body, options )
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}           
+            
+            axios.post(url, body, options )
                 .then(data => {
                     if(data){
                         this.resetProfileWindowState();
@@ -418,7 +421,9 @@
                             this.duplicateBadge = true;
                         }
                     }
-                }); 
+                }).catch((error) => {
+                    this.UpdateToken('api/auth/login?redirectUri='+this.$route.fullPath);
+                });            
         }
 
     }
