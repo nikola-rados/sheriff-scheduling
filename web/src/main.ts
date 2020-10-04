@@ -2,7 +2,6 @@ import 'core-js/stable'
 import 'regenerator-runtime/runtime'
 import 'intersection-observer'
 import Vue from 'vue'
-import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import "@styles/index.scss";
@@ -13,11 +12,10 @@ import http from "./plugins/http";
 import "./filters"
 import LoadingSpinner from "@components/LoadingSpinner.vue";
 
-// Vue.use(VueResource);
 Vue.use(VueRouter);
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
-// Vue.use(http);
+Vue.use(http);
 Vue.config.productionTip = true;
 Vue.component('loading-spinner', LoadingSpinner);
 

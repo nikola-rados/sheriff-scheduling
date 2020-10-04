@@ -1,13 +1,17 @@
-import {commonInfoType, locationInfoType} from '../../types/common';
+import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
-import axios from "axios";
+
 
 @Module({
   namespaced: true
 })
 class CommonInformation extends VuexModule {
 
-  public commonInfo: commonInfoType = {location: {name: '', id: ''}, sheriffRankList: []};
+  public commonInfo: commonInfoType = {sheriffRankList: []};
+
+  public location: locationInfoType = {name: '', id: ''};
+
+  public userDetails: userInfoType = {roles: [], homeLocationId: ''}
 
   public token = '';
 
@@ -22,20 +26,36 @@ class CommonInformation extends VuexModule {
   }
 
   @Mutation
+  public setLocation(location): void {   
+    this.location = location
+  }
+
+  @Action
+  public UpdateLocation(newLocation): void {
+    this.context.commit('setLocation', newLocation)
+  }
+
+  @Mutation
+  public setUser(user): void {   
+    this.userDetails = user
+  }
+
+  @Action
+  public UpdateUser(newUser): void {
+    this.context.commit('setUser', newUser)
+  }
+
+  @Mutation
   public setToken(token): void {   
     this.token = token
   }
 
   @Action
-  public UpdateToken(redirectPath): void {
-
-    axios.get('api/auth/token').then(tokenRefreshResponse => {
-      this.context.commit('setToken', tokenRefreshResponse.data.access_token);
-        
-    }).catch((error) => {
-        location.replace(redirectPath);
-    });
-  } 
+  public UpdateToken(newToken): void {
+     this.context.commit('setToken', newToken)
+  }
+  
+  
 
 }
 
