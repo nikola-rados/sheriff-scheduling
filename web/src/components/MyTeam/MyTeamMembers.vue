@@ -2,10 +2,10 @@
     <b-card bg-variant="white">
         <b-row>
             <b-col cols="11">
-                <page-header :pageHeaderText="'My Team - ' + this.commonInfo.location.name"></page-header>
+                <page-header :pageHeaderText="sectionHeader"></page-header>
             </b-col>
             <b-col style="padding: 0;">
-                <b-button style="max-height: 40px;" size="sm" variant="warning" @click="AddMember()"><b-icon-plus/>Add a User</b-button>
+                <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="warning" @click="AddMember()"><b-icon-plus/>Add a User</b-button>
             </b-col>
         </b-row>
         
@@ -139,10 +139,11 @@
     import PageHeader from "@components/common/PageHeader.vue";
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
     import "@store/modules/CommonInformation";  
-    import {commonInfoType} from '../../types/common';
+    import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
     import {teamMemberInfoType} from '../../types/MyTeam';
     import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
     const commonState = namespace("CommonInformation");
+    import store from '../../store'
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -150,7 +151,7 @@
         components: {
             PageHeader,
             UserSummaryTemplate
-        }
+        }        
     })    
     export default class MyTeamMembers extends Vue {
 
@@ -166,7 +167,15 @@
         @commonState.Action
         public UpdateToken!: (newToken: string) => void
 
-        sectionHeader = "";
+        @commonState.State
+        public location!: locationInfoType;
+
+        @commonState.Action
+        public UpdateLocation!: (newLocation: locationInfoType) => void
+
+        @commonState.State
+        public userDetails!: userInfoType;
+        
         showMemberDetails = false;
         showCancelWarning = false;
         //TODO: get user role and Make sure only super-admin can see the "add a user" yellow button
@@ -182,6 +191,7 @@
         badgeNumberState = true;
         selectedRankState = true;
         idirUserNameState = true;
+        userIsAdmin = false;
 
         tabIndex = 0;
         errorCode = 0;
@@ -189,39 +199,45 @@
         isUserDataMounted = false;
         editMode = false;
         createMode = false;
+        sectionHeader = '';
 
         isMyTeamDataMounted = false;
         myTeamData: teamMemberInfoType[] =[];
         
-        @Watch('commonInfo.location.id', { immediate: true })
+        @Watch('location.id', { immediate: true })
         locationChange()
         {
-            this.GetSheriffs()
-        }
+            this.getSheriffs()
+        }  
 
         mounted() {
-            this.sectionHeader = "My Team - " + this.commonInfo.location.name;
-            this.GetSheriffs();
+                        
+            console.log(this.userDetails)
+            this.userIsAdmin = this.userDetails.roles.indexOf("Administrator") > -1;
+            console.log(this.userIsAdmin)            
+            this.getSheriffs();
+            this.sectionHeader = "My Team - " + this.location.name;
         }
 
-        public GetSheriffs()
+        public getSheriffs()
         {
             this.isMyTeamDataMounted = false;
-
-            const url = 'api/sheriff?locationId=' + this.commonInfo.location.id
+            const url = 'api/sheriff?locationId=' + this.location.id
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             console.log(options)
             this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)
-                        this.ExtractMyTeam(response.data);                        
+                        this.extractMyTeam(response.data);                        
                     }
+
                     this.isMyTeamDataMounted = true;
+
                 })
         }
 
-        public ExtractMyTeam(data: any)
+        public extractMyTeam(data: any)
         {
             this.myTeamData = [];
             
@@ -232,7 +248,6 @@
                 myteam.gender = myteaminfo.gender;
                 myteam.rank = myteaminfo.rank;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
-
                 this.myTeamData.push(myteam);
             }
         }
@@ -243,7 +258,7 @@
             return Vue.filter('capitilize')(first) + ' ' + Vue.filter('capitilize')(last);
         }
 
-        public OpenMemberDetails(data)
+        public openMemberDetails(data)
         {
             console.log(data)
             // TODO: pass data to modal
@@ -391,7 +406,7 @@
         public createProfile() {
             console.log("creating profile")
             const body = {
-                homeLocationId: this.commonInfo.location.id,               
+                homeLocationId: this.location.id,               
                 gender: this.user.gender,
                 badgeNumber: this.user.badgeNumber,
                 rank: this.user.rank,
@@ -408,11 +423,10 @@
                 .then(data => {
                     if(data){
                         console.log(data) 
-                        this.GetSheriffs();                     
+                        this.getSheriffs();                     
                     }
                 })            
         }
-
     }
 </script>
 

@@ -11,7 +11,7 @@
     import NavigationFooter from "@components/NavigationFooter.vue";
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import {commonInfoType} from './types/common';
+    import {commonInfoType, locationInfoType, userInfoType} from './types/common';
     import {sheriffRankJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";
     import store from "./store";  
@@ -37,14 +37,45 @@
         @commonState.Action
         public UpdateToken!: (newToken: string) => void
 
+        @commonState.State
+        public location!: locationInfoType;
+
+        @commonState.Action
+        public UpdateLocation!: (newLocation: locationInfoType) => void
+
+        @commonState.State
+        public userDetails!: userInfoType;
+
+        @commonState.Action
+        public UpdateUser!: (newUser: userInfoType) => void
+
         errorCode = 0;
         errorText = '';
-        isCommonDataReady= true;
+        isCommonDataReady= false;
         sheriffRankList: string[] = []
         currentLocation = {name: "abbotsford", id:"-1"};
        
         mounted() {            
-            this.loadSheriffRankList()
+            this.loadUserDetails()
+        }
+
+        public loadUserDetails() {
+            const url = 'api/auth/info'
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            // console.log(options)
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)
+                        const userData = response.data;
+                        this.UpdateUser({
+                            roles: userData.roles,
+                            homeLocationId: userData.homeLocationId
+                        })                        
+                        this.UpdateLocation(this.currentLocation) 
+                        this.loadSheriffRankList()                        
+                    }                   
+                })  
         }
 
         public loadSheriffRankList()  
@@ -57,7 +88,7 @@
                     if(response.data){
                         console.log(response.data)
                         this.extractSheriffRankInfo(response.data);
-                        if(this.commonInfo.sheriffRankList.length>0)
+                        if(this.commonInfo.sheriffRankList.length>0 && this.location.id && this.userDetails.homeLocationId)
                         {                              
                             this.isCommonDataReady = true;
                         }
@@ -72,9 +103,8 @@
             for(sheriffRank of sheriffRankList)
             {                
                 this.sheriffRankList.push(sheriffRank.description)
-            }            
+            }                       
             this.UpdateCommonInfo({
-                location: this.currentLocation,
                 sheriffRankList: this.sheriffRankList 
             })
         }       
