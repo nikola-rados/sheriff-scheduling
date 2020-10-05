@@ -7,7 +7,7 @@ namespace tests.api.Helpers
 {
     public class HttpResponseTest
     {
-        public static T CheckForValidHttpResponseAndReturnValue<T>(ActionResult<T> actionResult)
+        public static T CheckForValid200HttpResponseAndReturnValue<T>(ActionResult<T> actionResult)
         {
             Assert.NotNull(actionResult);
             Assert.NotNull(actionResult.Result);
@@ -23,6 +23,13 @@ namespace tests.api.Helpers
             Assert.NotNull(actionResult);
             Assert.NotNull(actionResult.Result);
             var noContentResult = actionResult.Result as NoContentResult;
+        }
+
+        public static void CheckForNoContentResponse(ActionResult actionResult)
+        {
+            Assert.NotNull(actionResult);
+            var noContentResult = actionResult as NoContentResult;
+            Assert.NotNull(noContentResult);
         }
 
 

@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using db.models;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using Mapster;
+using SS.Api.Models.DB;
 using SS.Db.models.auth;
 
 namespace SS.Db.models.sheriff
@@ -12,9 +12,9 @@ namespace SS.Db.models.sheriff
         public Gender Gender { get; set; }
         public string BadgeNumber { get; set; }
         public string Rank { get; set; }
-        public List<SheriffAwayLocation> AwayLocations { get; set; }
-        public List<SheriffLeave> Leaves { get; set; }
-        public List<SheriffTraining> Training { get; set; }
+        public virtual List<SheriffAwayLocation> AwayLocation { get; set; } = new List<SheriffAwayLocation>();
+        public virtual List<SheriffLeave> Leave { get; set; } = new List<SheriffLeave>();
+        public virtual List<SheriffTraining> Training { get; set; } = new List<SheriffTraining>();
         public byte[] Photo { get; set; }
     }
 }

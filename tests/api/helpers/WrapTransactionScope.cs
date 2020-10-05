@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Transactions;
+using Microsoft.EntityFrameworkCore;
+using SS.Db.models;
+using tests.api.Helpers;
 
 namespace tests.api.helpers
 {
@@ -11,9 +14,18 @@ namespace tests.api.helpers
         private readonly TransactionScope _scope;
         public bool CommitTxn { get; set; }
 
-        public WrapInTransactionScope()
+        protected readonly SheriffDbContext _dbContext;
+
+        public WrapInTransactionScope(bool useMemoryDatabase)
         {
+            _dbContext = new SheriffDbContext(EnvironmentBuilder.SetupDbOptions(useMemoryDatabase: useMemoryDatabase));
             _scope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
+        }
+        
+        protected void Detach()
+        {
+            foreach (var entity in _dbContext.ChangeTracker.Entries())
+                entity.State = EntityState.Detached;
         }
 
         public void Dispose()
@@ -21,5 +33,6 @@ namespace tests.api.helpers
             if (CommitTxn) _scope.Complete();
             _scope.Dispose();
         }
+
     }
 }

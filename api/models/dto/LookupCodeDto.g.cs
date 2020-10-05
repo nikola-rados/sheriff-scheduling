@@ -1,7 +1,6 @@
 using System;
 using SS.Api.models.db;
-using SS.Api.Models.DB;
-using SS.Db.models.auth;
+using SS.Api.Models.Dto;
 
 namespace SS.Api.Models.Dto
 {
@@ -15,14 +14,8 @@ namespace SS.Api.Models.Dto
         public DateTime? EffectiveDate { get; set; }
         public DateTime? ExpiryDate { get; set; }
         public int? SortOrder { get; set; }
+        public LocationDto Location { get; set; }
         public int? LocationId { get; set; }
-        public Location Location { get; set; }
-        public Guid? CreatedById { get; set; }
-        public User CreatedBy { get; set; }
-        public DateTime CreatedOn { get; set; }
-        public Guid? UpdatedById { get; set; }
-        public User UpdatedBy { get; set; }
-        public DateTime? UpdatedOn { get; set; }
-        public byte[] RowVersion { get; set; }
+        public uint ConcurrencyToken { get; set; }
     }
 }

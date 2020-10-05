@@ -112,6 +112,12 @@ namespace SS.Api.Helpers.Middleware
                     message = ex.Message;
                     break;
 
+                case JCCommon.Clients.LocationServices.ApiException exception:
+                    code = (HttpStatusCode)exception.StatusCode;
+                    message = exception.Message;
+                    _logger.LogError(ex, ex.Message);
+                    break;
+
                 default:
                     _logger.LogError(ex, "Middleware caught unhandled exception.");
                     break;

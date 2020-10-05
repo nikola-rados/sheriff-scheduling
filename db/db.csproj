@@ -10,14 +10,40 @@
   <ItemGroup>
     <Compile Remove="migrations\20200922142720_Initial.cs" />
     <Compile Remove="migrations\20200922142720_Initial.Designer.cs" />
+    <Compile Remove="migrations\20200925220406_Spell5.cs" />
+    <Compile Remove="migrations\20200925220406_Spell5.Designer.cs" />
+    <Compile Remove="migrations\20200929185800_t2.cs" />
+    <Compile Remove="migrations\20200929185800_t2.Designer.cs" />
+    <Compile Remove="migrations\20200929190318_t2.cs" />
+    <Compile Remove="migrations\20200929190318_t2.Designer.cs" />
+    <Compile Remove="migrations\20200929191200_expiryForLocation.cs" />
+    <Compile Remove="migrations\20200929191200_expiryForLocation.Designer.cs" />
+    <Compile Remove="migrations\20200929193057_t3.cs" />
+    <Compile Remove="migrations\20200929193057_t3.Designer.cs" />
+    <Compile Remove="migrations\20200929193313_t3.cs" />
+    <Compile Remove="migrations\20200929193313_t3.Designer.cs" />
+    <Compile Remove="migrations\20200929212354_PermissionSeedData.cs" />
+    <Compile Remove="migrations\20200929212354_PermissionSeedData.Designer.cs" />
+    <Compile Remove="migrations\20200930002122_sheriffRankSeed.cs" />
+    <Compile Remove="migrations\20200930002122_sheriffRankSeed.Designer.cs" />
+    <Compile Remove="migrations\20200930005546_updateUser.cs" />
+    <Compile Remove="migrations\20200930005546_updateUser.Designer.cs" />
+    <Compile Remove="migrations\20200930011847_Data.cs" />
+    <Compile Remove="migrations\20200930011847_Data.Designer.cs" />
+    <Compile Remove="migrations\20200930185342_Data.cs" />
+    <Compile Remove="migrations\20200930185342_Data.Designer.cs" />
+    <Compile Remove="migrations\20201001192757_KeyCloakId.cs" />
+    <Compile Remove="migrations\20201001192757_KeyCloakId.Designer.cs" />
+    <Compile Remove="migrations\20201002182317_SeedUsers.cs" />
+    <Compile Remove="migrations\20201002182317_SeedUsers.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="migrations\" />
-    <Folder Include="extensions\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="3.1.0" />
     <PackageReference Include="Mapster" Version="6.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
@@ -28,6 +54,10 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\common\common.csproj" />
   </ItemGroup>
   <Target Name="Mapster" AfterTargets="AfterBuild">
     <Exec WorkingDirectory="$(ProjectDir)" Command="dotnet tool restore" />

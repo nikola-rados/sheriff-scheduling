@@ -7,6 +7,7 @@ using SS.Api.Helpers.Extensions;
 using SS.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.InMemory;
+using SS.Api.models;
 using SS.Api.Models.DB;
 using SS.Db.models;
 
@@ -32,7 +33,7 @@ namespace tests.api.Helpers
             //Create HTTP client, usually done by Startup.cs - which handles the life cycle of HttpClient nicely.
             HttpClient = new HttpClient();
 
-            HttpClient.DefaultRequestHeaders.Authorization = new SS.Api.Models.BasicAuthenticationHeaderValue(
+            HttpClient.DefaultRequestHeaders.Authorization = new SS.Api.models.BasicAuthenticationHeaderValue(
                 Configuration.GetNonEmptyValue(usernameKey),
                 Configuration.GetNonEmptyValue(passwordKey));
 
@@ -59,7 +60,7 @@ namespace tests.api.Helpers
             if (useMemoryDatabase)
                 optionsBuilder.UseInMemoryDatabase("testingDb");
             else
-                optionsBuilder.UseNpgsql(configuration.GetNonEmptyValue("ConnectionStrings.DB")).EnableSensitiveDataLogging(true);
+                optionsBuilder.UseNpgsql(configuration.GetNonEmptyValue("DatabaseConnectionString")).EnableSensitiveDataLogging(true);
 
             return optionsBuilder.Options;
         }
