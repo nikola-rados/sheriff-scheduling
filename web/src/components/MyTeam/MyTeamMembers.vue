@@ -2,10 +2,10 @@
     <b-card bg-variant="white">
         <b-row>
             <b-col cols="11">
-                <page-header :pageHeaderText="'My Team - ' + this.commonInfo.location.name"></page-header>
+                <page-header :pageHeaderText="sectionHeader"></page-header>
             </b-col>
             <b-col style="padding: 0;">
-                <b-button style="max-height: 40px;" size="sm" variant="warning" @click="AddMember()"><b-icon-plus/>Add a User</b-button>
+                <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="warning" @click="AddMember()"><b-icon-plus/>Add a User</b-button>
             </b-col>
         </b-row>
         
@@ -25,7 +25,7 @@
         <div v-else class="container mb-5" id="app">
             <div class="row">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
-                    <div @click="OpenMemberDetails(teamMember.id)" class="card h-100">
+                    <div @click="openMemberDetails(teamMember.id)" class="card h-100">
                         <div class="card-body">
                             <user-summary-template :userBadgeNumber="teamMember.badgeNumber" :userName="teamMember.fullName" :userRole="teamMember.rank" :userImage="teamMember.image" :editMode="false" />
                         </div>
@@ -141,10 +141,11 @@
     import PageHeader from "@components/common/PageHeader.vue";
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
     import "@store/modules/CommonInformation";  
-    import {commonInfoType} from '../../types/common';
+    import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
     import {teamMemberInfoType} from '../../types/MyTeam';
     import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
     const commonState = namespace("CommonInformation");
+    import store from '../../store'
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -152,8 +153,8 @@
         components: {
             PageHeader,
             UserSummaryTemplate
-        }
-    })
+        }        
+    })    
     export default class MyTeamMembers extends Vue {
 
         @commonState.State
@@ -162,13 +163,26 @@
         @commonState.Action
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
 
-        sectionHeader = "";
+         @commonState.State
+        public token!: string;
+
+        @commonState.Action
+        public UpdateToken!: (newToken: string) => void
+
+        @commonState.State
+        public location!: locationInfoType;
+
+        @commonState.Action
+        public UpdateLocation!: (newLocation: locationInfoType) => void
+
+        @commonState.State
+        public userDetails!: userInfoType;
+        
         showMemberDetails = false;
         showCancelWarning = false;
-        //TODO: get user role and Make sure only super-admin can see the "add a user" yellow button
         user = {} as teamMemberInfoType;
         originalUser = {} as teamMemberInfoType;
-        userJson = {} as teamMemberJsonType;
+        userJson;
         genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
         genderValues = [0, 1, 2]        
         idirUsernameState = true;
@@ -180,43 +194,50 @@
         selectedRankState = true;
         idirUserNameState = true;
         duplicateBadge = false;
+        userIsAdmin = false;
+
         tabIndex = 0;
         errorCode = 0;
         errorText = '';
         isUserDataMounted = false;
         editMode = false;
         createMode = false;
+        sectionHeader = '';
+
         isMyTeamDataMounted = false;
         myTeamData: teamMemberInfoType[] =[];
         
-        @Watch('commonInfo.location.id', { immediate: true })
+        @Watch('location.id', { immediate: true })
         locationChange()
         {
-            this.GetSheriffs()
-        }
+            this.getSheriffs()
+            this.sectionHeader = "My Team - " + this.location.name;
+        }  
 
         mounted() {
-            this.sectionHeader = "My Team - " + this.commonInfo.location.name;
-            this.GetSheriffs();
+            this.userIsAdmin = (this.userDetails.roles.indexOf("Administrator") > -1) || (this.userDetails.roles.indexOf("System Administrator") > -1);
+            this.getSheriffs();
+            this.sectionHeader = "My Team - " + this.location.name;
         }
 
-        public GetSheriffs()
+        public getSheriffs()
         {
             this.isMyTeamDataMounted = false;
-            this.$http.get('/api/sheriff?locationId=' + this.commonInfo.location.id)
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-                ).then(data => {
-                    if(data){
-                        this.ExtractMyTeam(data);                        
+            const url = 'api/sheriff?locationId=' + this.location.id
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        // console.log(response.data)
+                        this.extractMyTeam(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
-                });
+                })
         }
 
-        public ExtractMyTeam(data: any)
+        public extractMyTeam(data: any)
         {
-            this.myTeamData = [];
-            
+            this.myTeamData = [];            
             for(const myteaminfo of data)
             {
                 const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:'', gender:'' }
@@ -233,11 +254,12 @@
             return Vue.filter('capitilize')(first) + ' ' + Vue.filter('capitilize')(last);
         }
 
-        public OpenMemberDetails(userId: string)
-        {           
+        public openMemberDetails(userId)
+        {
             this.createMode = false;
             this.editMode = true;
-            this.showMemberDetails=true;
+            this.badgeNumberState = true;
+            this.duplicateBadge = false;
             this.loadUserDetails(userId);
         }
 
@@ -288,7 +310,8 @@
             this.user = {} as teamMemberInfoType;
         }
 
-        public AddMember() {
+        public AddMember()
+        {  
             this.createMode = true;
             this.editMode = false;
             this.isUserDataMounted = true;
@@ -296,15 +319,17 @@
         }
 
         public loadUserDetails(userId): void {
-            this.editMode = true;
-            this.errorCode = 0;
-            this.$http.get('/api/sheriff/' + userId)
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.statusText;console.log(err);}        
-                ).then(data => {
-                    if(data){
-                        this.userJson = data
+            this.editMode = true;            
+            const url = 'api/sheriff/' + userId
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        this.userJson = response.data;
+                        console.log(this.userJson)
                         this.extractUserInfo();
-                        this.isUserDataMounted = true;                        
+                        this.isUserDataMounted = true;
+                        this.showMemberDetails=true;                        
                     }                    
                 });
         }
@@ -379,7 +404,7 @@
 
         public updateProfile(): void {
             const body = {
-                homeLocationId: this.commonInfo.location.id,               
+                homeLocationId: this.location.id,               
                 gender: this.user.gender,
                 badgeNumber: this.user.badgeNumber,
                 rank: this.user.rank,
@@ -389,29 +414,33 @@
                 email: this.user.email,
                 id: this.user.id
             }
-            
-            this.$http.put('/api/sheriff', body )
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.data.details;console.log(err);}        
-                ).then(data => {
-                    if(data){
+
+            const url = 'api/sheriff';
+            const options = {headers:{'Authorization' :'Bearer '+this.token}} 
+            this.$http.put(url, body, options)
+                .then(response => {
+                    if(response.data){
                         this.resetProfileWindowState();
                         this.showMemberDetails = false;
-                        this.GetSheriffs();                     
-                    }
-                    else
+                        this.getSheriffs();                     
+                    }                    
+                }, err => {
+                    //console.log(err.response)
+                    this.errorText = err.response.data.error
+                     
+                    //if(this.errorText.includes('already has badge number'))
+                    if(err.response.status == 500)
                     {
-                        if(this.errorText.includes('already has badge number'))
-                        {
-                            this.badgeNumberState = false;
-                            this.duplicateBadge = true;
-                        }
+                        this.badgeNumberState = false;
+                        this.duplicateBadge = true;
                     }
+
                 });
         }
 
         public createProfile() {
             const body = {
-                homeLocationId: this.commonInfo.location.id,               
+                homeLocationId: this.location.id,               
                 gender: this.user.gender,
                 badgeNumber: this.user.badgeNumber,
                 rank: this.user.rank,
@@ -420,24 +449,28 @@
                 lastName: this.user.lastName,
                 email: this.user.email
             }
+            // console.log(body)
+            const url = 'api/sheriff';
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}           
             
-            this.$http.post('/api/sheriff', body )
-                .then(Response => Response.json(), err => {this.errorCode= err.status;this.errorText= err.data.details;console.log(err);}        
-                ).then(data => {
-                    if(data){
+            this.$http.post(url, body, options )
+                .then(response => {
+                    if(response.data){
                         this.resetProfileWindowState();
                         this.showMemberDetails = false;
-                        this.GetSheriffs();                     
+                        this.getSheriffs();                     
                     }
-                    else
+                }, err => {
+                    this.errorText = err.response.data.error
+                    
+                    if(err.response.status == 500)
+                    //if(this.errorText.includes('already has badge number'))
                     {
-                        if(this.errorText.includes('already has badge number'))
-                        {
-                            this.badgeNumberState = false;
-                            this.duplicateBadge = true;
-                        }
+                        this.badgeNumberState = false;
+                        this.duplicateBadge = true;
                     }
-                });            
+
+                })   
         }
     }
 </script>

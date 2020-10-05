@@ -34,6 +34,8 @@
     <Compile Remove="migrations\20200930185342_Data.Designer.cs" />
     <Compile Remove="migrations\20201001192757_KeyCloakId.cs" />
     <Compile Remove="migrations\20201001192757_KeyCloakId.Designer.cs" />
+    <Compile Remove="migrations\20201002182317_SeedUsers.cs" />
+    <Compile Remove="migrations\20201002182317_SeedUsers.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

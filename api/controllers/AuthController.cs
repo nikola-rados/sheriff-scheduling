@@ -1,3 +1,4 @@
+using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -13,6 +14,7 @@ using SS.Api.services;
 
 namespace SS.Api.Controllers
 {
+    [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -43,7 +45,13 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            return Ok(new { host = HttpContext.Request.Host} );
+        }
+
+        [HttpGet("requestAccess")]
+        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
+        public async Task<IActionResult> RequestAccess()
+        {
             return Ok();
         }
 
@@ -52,14 +60,14 @@ namespace SS.Api.Controllers
         /// </summary>
         /// <returns>access_token and refresh_token for API calls.</returns>
         [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
-        [HttpGet("api/token")]
+        [HttpGet("token")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetToken()
         {
             var accessToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "access_token");
-            var refreshToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "refresh_token");
-            return Ok(new { access_token = accessToken, refresh_token = refreshToken });
+            var expiresAt = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "expires_at");
+            return Ok(new { access_token = accessToken, expires_at = expiresAt, current = DateTime.UtcNow.ToString() });
         }
 
         /// <summary>
@@ -68,7 +76,7 @@ namespace SS.Api.Controllers
         /// <returns></returns>
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         [HttpGet]
-        [Route("api/info")]
+        [Route("info")]
         public ActionResult UserInfo()
         {
             var isImpersonated = !User.Identity.IsAuthenticated;

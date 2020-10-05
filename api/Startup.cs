@@ -18,16 +18,19 @@ using SS.Api.Helpers.Middleware;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.OpenApi.Models;
 using SS.Api.infrastructure;
 using SS.Api.infrastructure.authorization;
 using SS.Db.models;
-using SS.Db.models.auth;
 
 namespace SS.Api
 {
@@ -55,8 +58,59 @@ namespace SS.Api
             .AddCookie(options => {
                 options.Cookie.HttpOnly = true;
                 //Important to be None, otherwise a redirect loop will occur.
-                options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None;
-                options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                //This should prevent resending this cookie on every request.
+                options.Cookie.Path = "/api/auth";
+                options.Events = new CookieAuthenticationEvents
+                {
+                    // After the auth cookie has been validated, this event is called.
+                    // In it we see if the access token is close to expiring.  If it is
+                    // then we use the refresh token to get a new access token and save them.
+                    // If the refresh token does not work for some reason then we redirect to 
+                    // the login screen.
+                    OnValidatePrincipal = async cookieCtx =>
+                    {
+
+                        var go = cookieCtx.Properties.Items.Values.Sum(x => x.Length);
+                        var accessTokenExpiration = DateTimeOffset.Parse(cookieCtx.Properties.GetTokenValue("expires_at"));
+                        var timeRemaining = accessTokenExpiration.Subtract(DateTimeOffset.UtcNow);
+                        var refreshThresholdMinutes = Configuration.GetNonEmptyValue("TokenRefreshThresholdMinutes");
+                        var refreshThreshold = TimeSpan.FromMinutes(int.Parse(refreshThresholdMinutes));
+
+                        if (timeRemaining > refreshThreshold)
+                            return;
+
+                        var refreshToken = cookieCtx.Properties.GetTokenValue("refresh_token");
+                        var httpClientFactory = cookieCtx.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>();
+                        var httpClient = httpClientFactory.CreateClient(nameof(CookieAuthenticationEvents));
+                        var response = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
+                        {
+                            Address = Configuration.GetNonEmptyValue("Keycloak:Authority") + "/protocol/openid-connect/token",
+                            ClientId = Configuration.GetNonEmptyValue("Keycloak:Client"),
+                            ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret"),
+                            RefreshToken = refreshToken
+                        });
+
+                        if (response.IsError)
+                        {
+                            cookieCtx.RejectPrincipal();
+                            await cookieCtx.HttpContext.SignOutAsync(CookieAuthenticationDefaults
+                                .AuthenticationScheme);
+                        }
+                        else 
+                        {
+                            var expiresInSeconds = response.ExpiresIn;
+                            var updatedExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
+                            cookieCtx.Properties.UpdateTokenValue("expires_at", updatedExpiresAt.ToString());
+                            cookieCtx.Properties.UpdateTokenValue("access_token", response.AccessToken);
+                            cookieCtx.Properties.UpdateTokenValue("refresh_token", response.RefreshToken);
+
+                            // Indicate to the cookie middleware that the cookie should be remade (since we have updated it)
+                            cookieCtx.ShouldRenew = true;
+                        }
+                    }
+                };
             }
             )
             .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
@@ -65,11 +119,13 @@ namespace SS.Api
                 options.Authority = Configuration.GetNonEmptyValue("Keycloak:Authority");
                 options.ClientId = Configuration.GetNonEmptyValue("Keycloak:Client");
                 options.ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret");
-                options.RequireHttpsMetadata = true;
+                options.RequireHttpsMetadata = true; 
                 options.GetClaimsFromUserInfoEndpoint = true;
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.UsePkce = true;
                 options.SaveTokens = true;
+                options.UseTokenLifetime = true;
+                options.CallbackPath = "/api/auth/signin-oidc";
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 var key = Encoding.ASCII.GetBytes(Configuration.GetNonEmptyValue("Keycloak:Secret"));
@@ -81,9 +137,9 @@ namespace SS.Api
                 {
                     ValidateIssuerSigningKey = true,
                     ValidateIssuer = false,
-                    ValidateAudience = false
+                    ValidateAudience = false,
+                    ClockSkew = TimeSpan.Zero
                 };
-                options.SecurityTokenValidators.Clear();
                 if (key.Length > 0) options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
                 options.Events = new JwtBearerEvents
                 {
@@ -115,9 +171,13 @@ namespace SS.Api
                 });
             });
 
-            var enableSensitiveDataLogging = CurrentEnvironment.IsDevelopment();
-            services.AddDbContext<SheriffDbContext>(options => options.UseNpgsql(Configuration.GetNonEmptyValue("ConnectionStrings.DB")).EnableSensitiveDataLogging(enableSensitiveDataLogging));
-
+            services.AddDbContext<SheriffDbContext>(options =>
+                {
+                    options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"));
+                    if (CurrentEnvironment.IsDevelopment())
+                        options.EnableSensitiveDataLogging();
+                }
+            );
 
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
@@ -173,6 +233,8 @@ namespace SS.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UpdateDatabase<Startup>();
 
             app.UseCors();
 

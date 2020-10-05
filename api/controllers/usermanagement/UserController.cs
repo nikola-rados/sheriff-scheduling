@@ -26,8 +26,6 @@ namespace SS.Api.controllers.usermanagement
             _service = userService;
         }
 
-
-
         [HttpPut]
         [Route("{id}/assignRoles")]
         [AuthorizeRoles(Role.SystemAdministrator)]

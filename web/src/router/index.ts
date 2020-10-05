@@ -1,4 +1,5 @@
 import { RouteConfig } from 'vue-router'
+import VueResource from 'vue-resource'
 import Home from '@components/Home.vue'
 import DutyRoster from '@components/DutyRoster/DutyRoster.vue'
 import SetUp from '@components/DutyRoster/SetUp.vue'

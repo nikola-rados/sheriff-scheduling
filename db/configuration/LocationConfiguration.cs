@@ -13,8 +13,8 @@ namespace SS.Db.configuration
             builder.Property(b => b.Id).HasIdentityOptions(startValue: 200);
 
             builder.HasData(
-                new Location { Id = 1, Name = "Dummy Location", AgencyId = "FAKE" },
-                new Location { Id = 2, Name = "Dummy Location2", AgencyId = "FAKE2" }
+                new Location { Id = -1, Name = "Dummy Location", AgencyId = "FAKE" },
+                new Location { Id = -2, Name = "Dummy Location2", AgencyId = "FAKE2" }
             );
 
             builder.HasIndex(b => b.AgencyId).IsUnique();

@@ -46,7 +46,7 @@
               style="height: 100%;"
               v-model="selectedLocation"                
               :disabled="disableLocationChange"
-              @change="updateLocation(selectedLocation)"                
+              @change="UpdateLocation(selectedLocation)"                
               >
               <b-form-select-option
               v-for="location in locationList"
@@ -88,38 +88,27 @@
 
     @commonState.Action
     public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
-    
-    // locationList: locationInfoType[] = [];
 
     @commonState.State
-    public locationList!: locationInfoType[];
+    public locationList!: locationInfoType[];      
     
-    @commonState.Action
-    public UpdateLocationList!: (newLocationList: locationInfoType[]) => void
-    
-    selectedLocation: locationInfoType = {name: "", id:""};
-    disableLocationChange = false;
+    @commonState.State
+    public location!: locationInfoType;
 
-    mounted() {      
+    @commonState.Action
+    public UpdateLocation!: (newLocation: locationInfoType) => void
+    
+    disableLocationChange = false;
+    selectedLocation: locationInfoType = {name: '', id: ""};
+     
+    mounted() {
+      //TODO: determine based on user's location     
+      this.selectedLocation = this.location;
       //TODO: determine based on user role
       // this.disableLocationChange = true;
-      this.getLocations();
-      this.selectedLocation = this.commonInfo.location;
-    }
-
-    public getLocations(): void {
-      //TODO: make call to GET all locations
-      this.UpdateLocationList([{name: "abbotsford", id:"1"}, {name: "kelowna", id: "2"}])     
       
     }
 
-    public updateLocation (): void {
-      this.UpdateCommonInfo({
-        location: this.selectedLocation,
-        sheriffRankList: this.commonInfo.sheriffRankList 
-      })
-    }
-    
     
 
   }
