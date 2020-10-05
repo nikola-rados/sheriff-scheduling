@@ -111,7 +111,7 @@
 
     public getLocations(): void {
       //TODO: make call to GET all locations
-      this.locationList = [{name: "abbotsford", id:"1"}, {name: "kelowna", id: "2"}]
+      this.locationList = [{name: "abbotsford", id:"-1"}, {name: "kelowna", id: "-2"}]
     }  
     
     

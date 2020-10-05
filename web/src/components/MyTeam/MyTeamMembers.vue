@@ -258,7 +258,8 @@
         {
             this.createMode = false;
             this.editMode = true;
-            this.showMemberDetails=true;
+            this.badgeNumberState = true;
+            this.duplicateBadge = false;
             this.loadUserDetails(userId);
         }
 
@@ -327,7 +328,8 @@
                         this.userJson = response.data;
                         console.log(this.userJson)
                         this.extractUserInfo();
-                        this.isUserDataMounted = true;                        
+                        this.isUserDataMounted = true;
+                        this.showMemberDetails=true;                        
                     }                    
                 });
         }
@@ -423,9 +425,11 @@
                         this.getSheriffs();                     
                     }                    
                 }, err => {
+                    //console.log(err.response)
                     this.errorText = err.response.data.error
                      
-                    if(this.errorText.includes('already has badge number'))
+                    //if(this.errorText.includes('already has badge number'))
+                    if(err.response.status == 500)
                     {
                         this.badgeNumberState = false;
                         this.duplicateBadge = true;
@@ -458,8 +462,9 @@
                     }
                 }, err => {
                     this.errorText = err.response.data.error
-                     
-                    if(this.errorText.includes('already has badge number'))
+                    
+                    if(err.response.status == 500)
+                    //if(this.errorText.includes('already has badge number'))
                     {
                         this.badgeNumberState = false;
                         this.duplicateBadge = true;

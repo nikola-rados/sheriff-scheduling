@@ -53,7 +53,7 @@
         errorText = '';
         isCommonDataReady= false;
         sheriffRankList: string[] = []
-        currentLocation = {name: "abbotsford", id:"1"};
+        currentLocation = {name: "abbotsford", id:"-1"};
        
         mounted() {            
             this.loadUserDetails()
