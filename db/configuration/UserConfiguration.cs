@@ -14,6 +14,13 @@ namespace SS.Db.configuration
 
             builder.HasMany(m => m.UserRoles).WithOne(m => m.User).HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.ClientCascade);
 
+            builder.HasOne(l => l.HomeLocation).WithMany().HasForeignKey(m => m.HomeLocationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasData(
+                new User { Id = User.SystemUser, FirstName = "SYSTEM", LastName = "SYSTEM", IsEnabled = false }
+            );
+
             base.Configure(builder);
         }
     }

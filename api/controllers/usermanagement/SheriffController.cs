@@ -59,6 +59,7 @@ namespace SS.Api.controllers.usermanagement
                 return NotFound($"Couldn't find sheriff with id: {id}");
             return Ok(sheriff.Adapt<SheriffDto>());
         }
+
         [HttpPut]
         public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffDto sheriffDto)
         {
@@ -66,6 +67,15 @@ namespace SS.Api.controllers.usermanagement
             sheriff = await _service.UpdateSheriff(sheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
+
+        [HttpPost]
+        [Route("uploadPhoto")]
+        public async Task<ActionResult> UploadPhoto(Guid? id, string badgeNumber, byte[] photoData)
+        {
+            var sheriff = await _service.UpdateSheriffPhoto(id, badgeNumber, photoData);
+            return Ok(sheriff);
+        }
+
         #endregion Sheriff
 
         #region SheriffAwayLocation
