@@ -21,14 +21,7 @@
     }
 </script>
 
-<style scoped>
-    button {
-        background-color: #036
-    }
-
-    input, select {
-        width: 300px;
-    }
+<style scoped>   
 
     .card {
         border: white;

@@ -1,4 +1,5 @@
 ﻿using db.models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SS.DB.Configuration;
 

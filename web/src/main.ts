@@ -8,12 +8,14 @@ import "@styles/index.scss";
 import App from './App.vue';
 import routes from './router/index'
 import store from './store/index'
+import http from "./plugins/http";
 import "./filters"
 import LoadingSpinner from "@components/LoadingSpinner.vue";
 
 Vue.use(VueRouter);
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
+Vue.use(http);
 Vue.config.productionTip = true;
 Vue.component('loading-spinner', LoadingSpinner);
 

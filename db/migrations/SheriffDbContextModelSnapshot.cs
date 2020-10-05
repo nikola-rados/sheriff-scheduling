@@ -76,24 +76,6 @@ namespace SS.Db.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("Location");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = -1,
-                            AgencyId = "FAKE",
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 687, DateTimeKind.Utc).AddTicks(4793),
-                            Name = "Dummy Location"
-                        },
-                        new
-                        {
-                            Id = -2,
-                            AgencyId = "FAKE2",
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 687, DateTimeKind.Utc).AddTicks(5995),
-                            Name = "Dummy Location2"
-                        });
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.Permission", b =>
@@ -141,7 +123,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 702, DateTimeKind.Utc).AddTicks(9060),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 653, DateTimeKind.Utc).AddTicks(1086),
                             Description = "Permission to login to the application",
                             Name = "Login"
                         });
@@ -170,6 +152,9 @@ namespace SS.Db.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
@@ -192,7 +177,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 705, DateTimeKind.Utc).AddTicks(5052),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 655, DateTimeKind.Utc).AddTicks(7819),
                             Description = "System Administrator",
                             Name = "System Administrator"
                         },
@@ -200,7 +185,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 2,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 705, DateTimeKind.Utc).AddTicks(6001),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 655, DateTimeKind.Utc).AddTicks(8690),
                             Description = "Administrator",
                             Name = "Administrator"
                         },
@@ -208,7 +193,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 3,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 705, DateTimeKind.Utc).AddTicks(6042),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 655, DateTimeKind.Utc).AddTicks(8711),
                             Description = "Sheriff",
                             Name = "Sheriff"
                         });
@@ -219,6 +204,7 @@ namespace SS.Db.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:IdentitySequenceOptions", "'100', '1', '', '', 'False', '1'")
                         .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<uint>("ConcurrencyToken")
@@ -325,6 +311,17 @@ namespace SS.Db.Migrations
                     b.ToTable("User");
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("User");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTime(2020, 10, 5, 12, 37, 40, 663, DateTimeKind.Local).AddTicks(4121),
+                            FirstName = "SYSTEM",
+                            IsEnabled = false,
+                            LastName = "SYSTEM"
+                        });
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.UserRole", b =>
@@ -699,6 +696,9 @@ namespace SS.Db.Migrations
 
                     b.HasIndex("UpdatedById");
 
+                    b.HasIndex("Type", "Code", "LocationId")
+                        .IsUnique();
+
                     b.ToTable("LookupCode");
 
                     b.HasData(
@@ -706,7 +706,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(378),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 650, DateTimeKind.Utc).AddTicks(841),
                             Description = "Chief Sheriff",
                             Type = 7
                         },
@@ -714,7 +714,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 2,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1361),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 650, DateTimeKind.Utc).AddTicks(1969),
                             Description = "Superintendent",
                             Type = 7
                         },
@@ -722,7 +722,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 3,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1383),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 650, DateTimeKind.Utc).AddTicks(2002),
                             Description = "Staff Inspector",
                             Type = 7
                         },
@@ -730,7 +730,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 4,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1385),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 650, DateTimeKind.Utc).AddTicks(2004),
                             Description = "Inspector",
                             Type = 7
                         },
@@ -738,7 +738,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 5,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1386),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 650, DateTimeKind.Utc).AddTicks(2006),
                             Description = "Staff Sergeant",
                             Type = 7
                         },
@@ -746,7 +746,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 6,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1387),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 650, DateTimeKind.Utc).AddTicks(2007),
                             Description = "Sergeant",
                             Type = 7
                         },
@@ -754,7 +754,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 7,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 3, 15, 43, 31, 700, DateTimeKind.Utc).AddTicks(1389),
+                            CreatedOn = new DateTime(2020, 10, 5, 19, 37, 40, 650, DateTimeKind.Utc).AddTicks(2008),
                             Description = "Deputy Sheriff",
                             Type = 7
                         });
@@ -783,44 +783,52 @@ namespace SS.Db.Migrations
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("db.models.Region", "Region")
                         .WithMany()
-                        .HasForeignKey("RegionId");
+                        .HasForeignKey("RegionId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.Permission", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.Role", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.RolePermission", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.Permission", "Permission")
                         .WithMany()
@@ -836,29 +844,34 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.User", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Api.Models.DB.Location", "HomeLocation")
                         .WithMany()
-                        .HasForeignKey("HomeLocationId");
+                        .HasForeignKey("HomeLocationId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SS.Db.models.auth.UserRole", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.Role", "Role")
                         .WithMany("UserRoles")
@@ -868,7 +881,8 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.User", "User")
                         .WithMany("UserRoles")
@@ -881,7 +895,8 @@ namespace SS.Db.Migrations
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Api.Models.DB.Location", "Location")
                         .WithMany()
@@ -895,14 +910,16 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SS.Db.models.sheriff.SheriffAwayLocation", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Api.Models.DB.Location", "Location")
                         .WithMany()
@@ -917,7 +934,8 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("SS.Db.models.sheriff.SheriffLeave", b =>
@@ -966,18 +984,21 @@ namespace SS.Db.Migrations
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("ss.db.models.LookupCode", b =>
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Api.Models.DB.Location", "Location")
                         .WithMany()
@@ -985,7 +1006,8 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 #pragma warning restore 612, 618
         }
