@@ -68,7 +68,7 @@
                         const userData = response.data;
                         this.UpdateUser({
                             roles: userData.roles,
-                            homeLocationId: userData.homeLocationId
+                            homeLocationId: this.currentLocation.id
                         })                        
                         this.UpdateLocation(this.currentLocation) 
                         this.loadSheriffRankList()                        
