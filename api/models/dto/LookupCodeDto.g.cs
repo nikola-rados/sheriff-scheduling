@@ -1,6 +1,6 @@
 using System;
-using SS.Api.models.db;
 using SS.Api.Models.Dto;
+using SS.Db.models.lookupcodes;
 
 namespace SS.Api.Models.Dto
 {

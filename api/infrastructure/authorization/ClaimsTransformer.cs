@@ -4,27 +4,28 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using SS.Api.Helpers;
 using SS.Api.services;
 using SS.Db.models;
 
-namespace SS.Api.infrastructure
+namespace SS.Api.infrastructure.authorization
 {
     public class ClaimsTransformer : IClaimsTransformation
     {
         private readonly SheriffDbContext _db;
         private readonly IMemoryCache _cache;
         private bool _isTransformed;
-        private bool _checkForAuthenticate = true;
         private readonly AuthService _authService;
-        
-        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache,  AuthService authService)
+        private readonly TimeSpan _claimCachePeriod;
+
+        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache,  AuthService authService, IConfiguration configuration)
         {
             _db = db;
             _cache = cache;
             _authService = authService;
-            _checkForAuthenticate = true;
+            _claimCachePeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("ClaimsCachePeriod"));
         }
 
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -37,7 +38,7 @@ namespace SS.Api.infrastructure
             if (!_cache.TryGetValue(nameIdentifier, out List<Claim> claims))
             {
                 claims = await _authService.GenerateClaims(currentClaims);
-                _cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.AddMinutes(2));
+                _cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.Add(_claimCachePeriod));
             }
             currentPrincipal.AddClaims(claims);
             _isTransformed = true;

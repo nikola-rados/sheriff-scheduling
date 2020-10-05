@@ -60,8 +60,10 @@ namespace SS.Api.services
             var savedSheriff = await _db.Sheriff.FindAsync(sheriff.Id);
             savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {sheriff.Id} could not be found. ");
 
-            //This is handled in another route. 
+            //These are handled in another route. 
             sheriff.IsEnabled = savedSheriff.IsEnabled;
+            sheriff.Photo = savedSheriff.Photo;
+
             if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
                 await CheckForDuplicateBadgeNumber(sheriff.BadgeNumber);
 
@@ -69,6 +71,14 @@ namespace SS.Api.services
 
             await _db.SaveChangesAsync();
             return sheriff;
+        }
+
+        public async Task<Sheriff> UpdateSheriffPhoto(Guid? id, string badgeNumber, byte[] photoData)
+        {
+            var savedSheriff = await _db.Sheriff.FirstOrDefaultAsync(s => (id.HasValue && s.Id == id) || (!id.HasValue && s.BadgeNumber == badgeNumber));
+            savedSheriff.Photo = photoData;
+            await _db.SaveChangesAsync();
+            return savedSheriff;
         }
 
         #endregion

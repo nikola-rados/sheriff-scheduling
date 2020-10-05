@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SS.Api.models.db;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using System;
@@ -9,6 +8,7 @@ using JCCommon.Clients.LocationServices;
 using SS.Api.controllers;
 using SS.Api.Models.DB;
 using SS.Db.models;
+using SS.Db.models.lookupcodes;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
