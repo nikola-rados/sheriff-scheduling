@@ -8,3 +8,12 @@ Vue.filter('beautify-date', function(date){
 	else
 		return ''
 })
+
+Vue.filter('capitilize', function(str: string){
+	
+	if(str)
+		return str.charAt(0).toUpperCase() + (str.slice(1)).toLowerCase();
+	else
+		return ''
+	
+})
