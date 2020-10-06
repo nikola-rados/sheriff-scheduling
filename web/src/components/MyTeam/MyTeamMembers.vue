@@ -326,7 +326,6 @@
                 .then(response => {
                     if(response.data){
                         this.userJson = response.data;
-                        console.log(this.userJson)
                         this.extractUserInfo();
                         this.isUserDataMounted = true;
                         this.showMemberDetails=true;                        

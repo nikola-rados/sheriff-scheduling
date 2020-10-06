@@ -60,7 +60,6 @@
         isCommonDataReady= false;
         sheriffRankList: string[] = []
         currentLocation;
-        //  = {name: "abbotsford", id:"-1"};
        
         mounted() {            
             this.loadUserDetails()
@@ -75,7 +74,7 @@
                         const userData = response.data;
                         this.UpdateUser({
                             roles: userData.roles,
-                            homeLocationId: 200
+                            homeLocationId: userData.homeLocationId
                         }) 
                         this.getLocations()                        
                     }                   
