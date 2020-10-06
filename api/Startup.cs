@@ -240,7 +240,7 @@ namespace SS.Api
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseForwardedHeaders();
             app.UpdateDatabase<Startup>();
 
             app.UseCors();
