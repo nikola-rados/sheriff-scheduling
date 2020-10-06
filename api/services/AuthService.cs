@@ -50,12 +50,11 @@ namespace SS.Api.services
             if (user?.IsEnabled != true) 
                 return claims;
 
-            if (!user.IdirId.HasValue)
-            {
-                user.IdirId = idirId;
-                user.KeyCloakId = Guid.Parse(currentClaims.GetValueByType(ClaimTypes.NameIdentifier));
-                await _db.SaveChangesAsync();
-            }
+            user.IdirId ??= idirId;
+            user.LastLogin = DateTime.UtcNow;
+            user.KeyCloakId = Guid.Parse(currentClaims.GetValueByType(ClaimTypes.NameIdentifier));
+            await _db.SaveChangesAsync();
+
             claims.AddRange(user.UserRoles.SelectToList(ur => new Claim(ClaimTypes.Role, ur.Role.Name)));
             claims.AddRange(user.Permissions.SelectToList(p => new Claim(CustomClaimTypes.Permission, p.Name)));
             claims.Add(new Claim(CustomClaimTypes.UserId, user.Id.ToString()));

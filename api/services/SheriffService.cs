@@ -61,14 +61,17 @@ namespace SS.Api.services
             var savedSheriff = await _db.Sheriff.FindAsync(sheriff.Id);
             savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {sheriff.Id} could not be found. ");
 
-            //These are handled in another route. 
-            sheriff.IsEnabled = savedSheriff.IsEnabled;
-            sheriff.Photo = savedSheriff.Photo;
-
             if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
                 await CheckForDuplicateBadgeNumber(sheriff.BadgeNumber);
 
             _db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
+
+            _db.Entry(savedSheriff).Property(x => x.IsEnabled).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.Photo).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.KeyCloakId).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.IdirId).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.IdirName).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.LastLogin).IsModified = false;
 
             await _db.SaveChangesAsync();
             return sheriff;
