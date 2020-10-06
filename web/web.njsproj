@@ -53,11 +53,31 @@
     <Folder Include="src\" />
     <Folder Include="src\assets\" />
     <Folder Include="src\components\" />
+    <Folder Include="src\components\Assignment\" />
+    <Folder Include="src\components\common\" />
+    <Folder Include="src\components\DutyRoster\" />
+    <Folder Include="src\components\ManageTypes\" />
+    <Folder Include="src\components\MyTeam\" />
+    <Folder Include="src\components\ShiftSchedule\" />
     <Folder Include="src\filters\" />
+    <Folder Include="src\plugins\" />
     <Folder Include="src\router\" />
     <Folder Include="src\store\" />
     <Folder Include="src\store\modules\" />
     <Folder Include="src\styles\" />
+    <Folder Include="src\types\" />
+    <Folder Include="src\types\Assignment\" />
+    <Folder Include="src\types\Assignment\jsonTypes\" />
+    <Folder Include="src\types\common\" />
+    <Folder Include="src\types\common\jsonTypes\" />
+    <Folder Include="src\types\DutyRoster\" />
+    <Folder Include="src\types\DutyRoster\jsonTypes\" />
+    <Folder Include="src\types\ManageTypes\" />
+    <Folder Include="src\types\ManageTypes\jsonTypes\" />
+    <Folder Include="src\types\MyTeam\" />
+    <Folder Include="src\types\MyTeam\jsonTypes\" />
+    <Folder Include="src\types\ShiftSchedule\" />
+    <Folder Include="src\types\ShiftSchedule\jsonTypes\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <Target Name="BeforeBuild" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

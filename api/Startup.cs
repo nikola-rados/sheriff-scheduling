@@ -27,6 +27,7 @@ using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi.Models;
 using SS.Api.infrastructure;
 using SS.Api.infrastructure.authorization;
@@ -71,8 +72,6 @@ namespace SS.Api
                     // the login screen.
                     OnValidatePrincipal = async cookieCtx =>
                     {
-
-                        var go = cookieCtx.Properties.Items.Values.Sum(x => x.Length);
                         var accessTokenExpiration = DateTimeOffset.Parse(cookieCtx.Properties.GetTokenValue("expires_at"));
                         var timeRemaining = accessTokenExpiration.Subtract(DateTimeOffset.UtcNow);
                         var refreshThreshold = TimeSpan.Parse(Configuration.GetNonEmptyValue("TokenRefreshThreshold"));
@@ -193,6 +192,12 @@ namespace SS.Api
                 options.SerializerSettings.Formatting = Formatting.Indented;
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+            });
+
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
             });
 
             services.AddSwaggerGen(options =>

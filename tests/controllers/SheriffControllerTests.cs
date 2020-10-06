@@ -46,7 +46,7 @@ namespace tests.controllers
                 Gender = Gender.Female,
                 IdirId = new Guid(),
                 IdirName = "ted@fakeidir",
-                HomeLocationId = 1
+                HomeLocationId = null
             };
 
             var sheriffDto = newSheriff.Adapt<SheriffDto>();
@@ -57,6 +57,40 @@ namespace tests.controllers
 
             Assert.NotNull(await _dbContext.Sheriff.FindAsync(sheriffResponse.Id));
         }
+
+        [Fact]
+        public async Task CreateSheriffSameIdir()
+        {
+            var newSheriff = new Sheriff
+            {
+                FirstName = "Ted",
+                LastName = "Tums",
+                BadgeNumber = "556",
+                Email = "Ted@Teddy.com",
+                Gender = Gender.Female,
+                IdirId = new Guid(),
+                IdirName = "ted@fakeidir",
+                HomeLocationId = null
+            };
+
+            var sheriffDto = newSheriff.Adapt<SheriffDto>();
+            //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
+
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
+            var sheriffResponse = response.Adapt<Sheriff>();
+
+            Assert.NotNull(await _dbContext.Sheriff.FindAsync(sheriffResponse.Id));
+
+            newSheriff.BadgeNumber = "554";
+            sheriffDto = newSheriff.Adapt<SheriffDto>();
+            //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
+
+            response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
+            sheriffResponse = response.Adapt<Sheriff>();
+
+            Assert.Null(await _dbContext.Sheriff.FindAsync(sheriffResponse.Id));
+        }
+
 
         [Fact]
         public async Task FindSheriff()
@@ -213,7 +247,7 @@ namespace tests.controllers
 
             var lookupCode = new LookupCode
             {
-                Code = "zz",
+                Code = "zz4",
                 Description = "gg",
                 LocationId = newLocation.Id
             };
@@ -298,7 +332,7 @@ namespace tests.controllers
 
             var lookupCode = new LookupCode
             {
-                Code = "zz",
+                Code = "zz4",
                 Description = "gg",
                 LocationId = newLocation.Id
             };
