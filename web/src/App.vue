@@ -12,7 +12,7 @@
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import {commonInfoType, locationInfoType, userInfoType} from './types/common';
-    import {sheriffRankJsonType} from './types/common/jsonTypes'
+    import {sheriffRankJsonType, locationJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";
     import store from "./store";  
     const commonState = namespace("CommonInformation");
@@ -49,11 +49,18 @@
         @commonState.Action
         public UpdateUser!: (newUser: userInfoType) => void
 
+        @commonState.State
+        public locationList!: locationInfoType[];
+        
+        @commonState.Action
+        public UpdateLocationList!: (newLocationList: locationInfoType[]) => void
+
         errorCode = 0;
         errorText = '';
         isCommonDataReady= false;
         sheriffRankList: string[] = []
-        currentLocation = {name: "abbotsford", id:"-1"};
+        currentLocation;
+        //  = {name: "abbotsford", id:"-1"};
        
         mounted() {            
             this.loadUserDetails()
@@ -68,10 +75,9 @@
                         const userData = response.data;
                         this.UpdateUser({
                             roles: userData.roles,
-                            homeLocationId: this.currentLocation.id
-                        })                        
-                        this.UpdateLocation(this.currentLocation) 
-                        this.loadSheriffRankList()                        
+                            homeLocationId: 200
+                        }) 
+                        this.getLocations()                        
                     }                   
                 })  
         }
@@ -84,12 +90,10 @@
                 .then(response => {
                     if(response.data){
                         this.extractSheriffRankInfo(response.data);
-                        console.log(this.commonInfo.sheriffRankList.length + this.location.id + this.userDetails.homeLocationId)
-
-                        if(this.commonInfo.sheriffRankList.length>0 && this.location.id && this.userDetails.homeLocationId)
+                        if(this.commonInfo.sheriffRankList.length>0 && 
+                        this.userDetails.homeLocationId && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
-                            console.log("data ready")
                         }
                     }                   
                 })          
@@ -106,7 +110,32 @@
             this.UpdateCommonInfo({
                 sheriffRankList: this.sheriffRankList 
             })
-        }       
+        }
+        
+        public getLocations(): void {
+
+            const url = 'api/location'
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        this.extractLocationInfo(response.data);
+                        this.loadSheriffRankList();
+                    }                   
+                }) 
+        }
+        
+        public extractLocationInfo(locationListJson)
+        {
+            let locationJson: locationJsonType;
+
+            for(locationJson of locationListJson)
+            {
+                const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name}
+                this.locationList.push(locationInfo)
+            }                       
+            this.UpdateLocationList(this.locationList);
+        }
         
      }
 </script>
