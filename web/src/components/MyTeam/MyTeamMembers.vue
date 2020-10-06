@@ -334,6 +334,7 @@
         }
 
         public extractUserInfo(): void {            
+            this.user.idirUserName = this.originalUser.idirUserName = this.userJson.idirName;
             this.user.firstName = this.originalUser.firstName = this.userJson.firstName;
             this.user.lastName = this.originalUser.lastName = this.userJson.lastName;
             this.user.gender = this.originalUser.gender = gender[this.userJson.gender];

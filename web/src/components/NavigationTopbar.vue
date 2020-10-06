@@ -114,13 +114,21 @@
 
     public getCurrentLocation()
     {
-      const homeLocation =this.locationList.filter(locationInfo => {
+      let currentLocation;
+      if (this.userDetails.homeLocationId) {
+        const matchingLocation =this.locationList.filter(locationInfo => {
             if (locationInfo.id == this.userDetails.homeLocationId) {
                 return true
             }
-      });
+        });
+        currentLocation = matchingLocation[0]
+
+      } else {
+        currentLocation = this.locationList[0]
+      }
       
-      this.UpdateLocation(homeLocation[0]);
+      
+      this.UpdateLocation(currentLocation);
       this.selectedLocation = this.location;
       if (this.selectedLocation.name.length > 0) this.locationDataReady = true;
     }

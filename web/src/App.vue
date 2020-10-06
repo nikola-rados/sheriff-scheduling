@@ -90,7 +90,7 @@
                     if(response.data){
                         this.extractSheriffRankInfo(response.data);
                         if(this.commonInfo.sheriffRankList.length>0 && 
-                        this.userDetails.homeLocationId && this.locationList.length>0)
+                        this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
                         }
