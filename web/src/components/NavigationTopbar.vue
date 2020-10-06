@@ -46,7 +46,7 @@
               style="height: 100%;"
               v-model="selectedLocation"                
               :disabled="disableLocationChange"
-              @change="UpdateLocation"                
+              @change="UpdateLocation(selectedLocation)"                
               >
               <b-form-select-option
               v-for="location in locationList"
@@ -76,7 +76,7 @@
   import { Component, Vue } from 'vue-property-decorator';
   import { namespace } from "vuex-class";
   import "@store/modules/CommonInformation";  
-  import {locationInfoType} from '../types/common';  
+  import {commonInfoType, locationInfoType} from '../types/common';  
   const commonState = namespace("CommonInformation");
 
 
@@ -84,19 +84,25 @@
   export default class NavigationTopbar extends Vue {
 
     @commonState.State
-    public location!: locationInfoType;
+    public commonInfo!: commonInfoType;
+
+    @commonState.Action
+    public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
     
+    locationList: locationInfoType[] = [];
+    selectedLocation: locationInfoType = {name: '', id: ""};
+    
+    @commonState.State
+    public location!: locationInfoType;
+
     @commonState.Action
     public UpdateLocation!: (newLocation: locationInfoType) => void
     
-    locationList: locationInfoType[] = [];
-    
-    selectedLocation: locationInfoType = {name: "", id:""};
     disableLocationChange = false;
 
     mounted() {
       //TODO: determine based on user's location
-      this.UpdateLocation({name: "abbotsford", id:"1"});
+      // this.UpdateLocation({name: "abbotsford", id:"1"});
       this.selectedLocation = this.location;
       //TODO: determine based on user role
       // this.disableLocationChange = true;
@@ -105,8 +111,8 @@
 
     public getLocations(): void {
       //TODO: make call to GET all locations
-      this.locationList = [{name: "abbotsford", id:"1"}, {name: "kelowna", id: "2"}]
-    }
+      this.locationList = [{name: "abbotsford", id:"-1"}, {name: "kelowna", id: "-2"}]
+    }  
     
     
 

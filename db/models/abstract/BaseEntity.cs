@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Mapster;
 using SS.Db.models.auth;
 
 /// <summary>
@@ -15,43 +17,52 @@ namespace db.models
         /// get/set - The foreign key to the user who created this entity.
         /// </summary>
         /// <value></value>
+        [AdaptIgnore]
         public Guid? CreatedById { get; set; }
 
         /// <summary>
         /// get/set - The user who created this entity.
         /// </summary>
         /// <value></value>
+        [AdaptIgnore]
         public User CreatedBy { get; set; }
 
         /// <summary>
         /// get/set - When this entity was created.
         /// </summary>
         /// <value></value>
+        [AdaptIgnore]
         public DateTime CreatedOn { get; set; }
 
         /// <summary>
         /// get/set - Who updated this entity last.
         /// </summary>
         /// <value></value>
+        [AdaptIgnore]
         public Guid? UpdatedById { get; set; }
 
         /// <summary>
         /// get/set - The user updated this entity last.
         /// </summary>
         /// <value></value>
+        [AdaptIgnore]
         public User UpdatedBy { get; set; }
 
         /// <summary>
         /// get/set - When this entity was updated.
         /// </summary>
         /// <value></value>
+        [AdaptIgnore]
         public DateTime? UpdatedOn { get; set; }
 
         /// <summary>
         /// get/set - The concurrency row version.
         /// </summary>
         /// <value></value>
-        public byte[] RowVersion { get; set; }
+        [Timestamp]
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        [Column("xmin", TypeName = "xid")]
+        public uint ConcurrencyToken { get; set; }
         #endregion
 
         #region Constructors

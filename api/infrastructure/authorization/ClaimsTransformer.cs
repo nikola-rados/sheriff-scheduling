@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
-using SS.Api.Models.DB;
+using SS.Api.services;
 using SS.Db.models;
 
 namespace SS.Api.infrastructure
@@ -15,26 +16,27 @@ namespace SS.Api.infrastructure
         private readonly SheriffDbContext _db;
         private readonly IMemoryCache _cache;
         private bool _isTransformed;
-
-        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache)
+        private bool _checkForAuthenticate = true;
+        private readonly AuthService _authService;
+        
+        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache,  AuthService authService)
         {
             _db = db;
             _cache = cache;
+            _authService = authService;
+            _checkForAuthenticate = true;
         }
 
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
         {
             if (!principal.Identity.IsAuthenticated || _isTransformed) return await Task.FromResult(principal);
             var currentPrincipal = (ClaimsIdentity)principal.Identity;
+            var currentClaims = currentPrincipal.Claims.ToList();
 
-            var nameIdentifier = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+            var nameIdentifier = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier));
             if (!_cache.TryGetValue(nameIdentifier, out List<Claim> claims))
             {
-                //Load claims here from DB. 
-                claims = new List<Claim>();
-                var canLogin = await _db.User.FirstOrDefaultAsync(u => u.Id == Guid.Parse(nameIdentifier) && !u.IsDisabled) != null;
-                var c = new Claim("CAN_LOGIN", "TRUE");
-                claims.Add(c);
+                claims = await _authService.GenerateClaims(currentClaims);
                 _cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.AddMinutes(2));
             }
             currentPrincipal.AddClaims(claims);
