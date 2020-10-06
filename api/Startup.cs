@@ -240,6 +240,11 @@ namespace SS.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.Use((context, next) =>
+            {
+                context.Request.Scheme = "https";
+                return next();
+            });
             app.UseForwardedHeaders();
             app.UpdateDatabase<Startup>();
 
