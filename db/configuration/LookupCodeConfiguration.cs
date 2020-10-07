@@ -18,6 +18,9 @@ namespace SS.Db.configuration
 
             builder.HasIndex(lc => new {lc.Type, lc.Code, lc.LocationId}).IsUnique();
 
+            builder.HasOne(b => b.Location).WithMany().HasForeignKey(lc => lc.LocationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             builder.HasData(
                 new LookupCode { Id = 1, Description = "Chief Sheriff", Type = LookupTypes.SheriffRank },
                 new LookupCode { Id = 2, Description = "Superintendent", Type = LookupTypes.SheriffRank },
