@@ -9,9 +9,11 @@ class CommonInformation extends VuexModule {
 
   public commonInfo: commonInfoType = {sheriffRankList: []};
 
-  public location: locationInfoType = {name: '', id: ''};
+  public location: locationInfoType = {name: '', id: 0};
 
-  public userDetails: userInfoType = {roles: [], homeLocationId: ''}
+  public locationList: locationInfoType[] = [];
+
+  public userDetails: userInfoType = {roles: [], homeLocationId: 0}
 
   public token = '';
 
@@ -23,6 +25,16 @@ class CommonInformation extends VuexModule {
   @Action
   public UpdateCommonInfo(newCommonInfo): void {
     this.context.commit('setCommonInfo', newCommonInfo)
+  } 
+
+  @Mutation
+  public setLocationList(locationList): void {   
+    this.locationList = locationList
+  }
+
+  @Action
+  public UpdateLocationList(newLocationList): void {
+    this.context.commit('setLocationList', newLocationList)
   }
 
   @Mutation

@@ -15,8 +15,8 @@ namespace SS.DB.Configuration
         #region Methods
         protected void BaseConfigure(EntityTypeBuilder<TBase> builder)
         {
-            builder.HasOne(m => m.CreatedBy).WithMany().HasForeignKey(m => m.CreatedById).OnDelete(DeleteBehavior.ClientSetNull);
-            builder.HasOne(m => m.UpdatedBy).WithMany().HasForeignKey(m => m.UpdatedById).OnDelete(DeleteBehavior.ClientSetNull);
+            builder.HasOne(m => m.CreatedBy).WithMany().HasForeignKey(m => m.CreatedById).OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(m => m.UpdatedBy).WithMany().HasForeignKey(m => m.UpdatedById).OnDelete(DeleteBehavior.SetNull);
         }
 
         public virtual void Configure(EntityTypeBuilder<TBase> builder)

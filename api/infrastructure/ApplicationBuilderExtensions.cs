@@ -31,6 +31,7 @@ namespace SS.Api.infrastructure
             {
                 using var context = serviceScope.ServiceProvider.GetService<SheriffDbContext>();
                 context.Database.Migrate();
+                logger.LogInformation("Migrations complete.");
             }
             catch (Exception ex)
             {
