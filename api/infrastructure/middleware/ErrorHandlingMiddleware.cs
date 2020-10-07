@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using SS.Api.infrastructure.exceptions;
 
 namespace SS.Api.Helpers.Middleware
 {
@@ -106,6 +107,7 @@ namespace SS.Api.Helpers.Middleware
                     message = ex.Message;
                     break;
 
+                case BusinessLayerException _:
                 case BadRequestException _:
                 case InvalidOperationException _:
                     code = HttpStatusCode.BadRequest;

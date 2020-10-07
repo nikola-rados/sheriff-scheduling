@@ -19,7 +19,7 @@ namespace SS.Api.controllers
     [ApiController]
     public class RegionController : ControllerBase
     {
-        private SheriffDbContext _db;
+        private readonly SheriffDbContext _db;
 
         public RegionController(SheriffDbContext dbContext)
         {

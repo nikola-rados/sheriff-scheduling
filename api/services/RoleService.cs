@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Helpers.Extensions;
+using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
 using SS.Db.models.auth;
 
@@ -31,6 +32,10 @@ namespace SS.Api.services
 
         public async Task<Role> AddRole(Role role)
         {
+            var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name == role.Name);
+            if (roleAlreadyExistsWithName)
+                throw new BusinessLayerException($"Role with name {role.Name} already exists.");
+
             role.RolePermissions = null;
             role.UserRoles = null;
             await _db.Role.AddAsync(role);
@@ -48,6 +53,13 @@ namespace SS.Api.services
         public async Task<Role> UpdateRole(Role role)
         {
             var savedRole = await _db.Role.FindAsync(role.Id);
+            if (savedRole.Name != role.Name)
+            {
+                var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name == role.Name);
+                if (roleAlreadyExistsWithName)
+                    throw new BusinessLayerException($"Role with name {role.Name} already exists.");
+            }
+
             _db.Entry(savedRole).CurrentValues.SetValues(role);
             await _db.SaveChangesAsync();
             return role;
