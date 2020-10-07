@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using db.models;
 using Mapster;
@@ -19,5 +20,6 @@ namespace SS.Db.models.auth
         public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
         [AdaptIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+        public DateTime? ExpiryDate { get; set; }
     }
 }

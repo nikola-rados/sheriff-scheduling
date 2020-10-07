@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="seeders\**" />
+    <EmbeddedResource Remove="seeders\**" />
+    <None Remove="seeders\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="migrations\20200922142720_Initial.cs" />
     <Compile Remove="migrations\20200922142720_Initial.Designer.cs" />
     <Compile Remove="migrations\20200925220406_Spell5.cs" />
@@ -36,6 +42,8 @@
     <Compile Remove="migrations\20201001192757_KeyCloakId.Designer.cs" />
     <Compile Remove="migrations\20201002182317_SeedUsers.cs" />
     <Compile Remove="migrations\20201002182317_SeedUsers.Designer.cs" />
+    <Compile Remove="migrations\20201004171704_LocationToRegion.cs" />
+    <Compile Remove="migrations\20201004171704_LocationToRegion.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
