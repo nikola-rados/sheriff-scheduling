@@ -7,6 +7,7 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SS.Api.controllers.usermanagement;
+using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
 using SS.Api.Models.Dto;
 using SS.Api.services;
@@ -85,10 +86,20 @@ namespace tests.controllers
             sheriffDto = newSheriff.Adapt<SheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
-            response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
-            sheriffResponse = response.Adapt<Sheriff>();
+            BusinessLayerException ble = null;
+            try
+            {
+                response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
+                    await _controller.CreateSheriff(sheriffDto));
+                sheriffResponse = response.Adapt<Sheriff>();
+            }
+            catch (Exception e)
+            {
+                Assert.True(e is BusinessLayerException);
+                ble = (BusinessLayerException) e;
+            }
 
-            Assert.Null(await _dbContext.Sheriff.FindAsync(sheriffResponse.Id));
+            Assert.True(ble.Message.Contains("has IDIR name"));
         }
 
 
