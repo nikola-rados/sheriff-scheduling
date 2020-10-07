@@ -12,6 +12,7 @@ using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.Models;
 using SS.Api.services;
+using SS.Api.services.JC;
 using BasicAuthenticationHeaderValue = SS.Api.models.BasicAuthenticationHeaderValue;
 
 namespace SS.Api.infrastructure
@@ -49,7 +50,7 @@ namespace SS.Api.infrastructure
             services.AddScoped<RoleService>();
             services.AddScoped<UserService>();
             services.AddScoped<SheriffService>();
-            services.AddScoped<JustinDataUpdaterService>();
+            services.AddScoped<JCDataUpdaterService>();
 
             services.AddHostedService<TimedDataUpdaterService>();
 

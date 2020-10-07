@@ -76,8 +76,7 @@ namespace SS.Api
                         var go = cookieCtx.Properties.Items.Values.Sum(x => x.Length);
                         var accessTokenExpiration = DateTimeOffset.Parse(cookieCtx.Properties.GetTokenValue("expires_at"));
                         var timeRemaining = accessTokenExpiration.Subtract(DateTimeOffset.UtcNow);
-                        var refreshThresholdMinutes = Configuration.GetNonEmptyValue("TokenRefreshThresholdMinutes");
-                        var refreshThreshold = TimeSpan.FromMinutes(int.Parse(refreshThresholdMinutes));
+                        var refreshThreshold = TimeSpan.Parse(Configuration.GetNonEmptyValue("TokenRefreshThreshold"));
 
                         if (timeRemaining > refreshThreshold)
                             return;

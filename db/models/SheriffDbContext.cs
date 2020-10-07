@@ -67,6 +67,7 @@ namespace SS.Db.models
                 .Where(x => (x.State == EntityState.Added || x.State == EntityState.Modified));
 
             var userId = GetUserId(_httpContextAccessor?.HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value);
+            userId ??= auth.User.SystemUser;
             foreach (var entry in modifiedEntries)
             {
                 if (entry.Entity is BaseEntity entity)

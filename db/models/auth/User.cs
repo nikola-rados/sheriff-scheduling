@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -16,6 +15,9 @@ namespace SS.Db.models.auth
         {
             CreatedOn = DateTime.Now;
         }
+        [AdaptIgnore]
+        [NotMapped]
+        public static readonly Guid SystemUser = new Guid("00000000-0000-0000-0000-000000000001");
         [Key]
         public Guid Id { get; set; }
         public string IdirName { get; set; }
@@ -29,7 +31,6 @@ namespace SS.Db.models.auth
         public string LastName { get; set; }
         public string Email { get; set; }
         public int? HomeLocationId { get; set; }
-        [ForeignKey("HomeLocationId")]
         public virtual Location HomeLocation { get; set; }
         [AdaptIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();

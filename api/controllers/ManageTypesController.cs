@@ -5,11 +5,11 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.Helpers.Exceptions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.models.db;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using ss.db.models;
 using SS.Db.models.auth;
+using SS.Db.models.lookupcodes;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SS.Api.controllers

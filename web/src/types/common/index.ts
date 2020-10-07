@@ -1,11 +1,11 @@
 export interface locationInfoType {
     "name": string,
-    "id": string
+    "id": number
 }
 
 export interface userInfoType {
     "roles": string[],
-    "homeLocationId": string
+    "homeLocationId": number
 }
 
 export interface commonInfoType {

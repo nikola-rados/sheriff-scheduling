@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
-using SS.Api.models.db;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,6 +7,7 @@ using JCCommon.Clients.LocationServices;
 using SS.Api.Helpers.Extensions;
 using ss.db.models;
 using SS.Db.models;
+using SS.Db.models.lookupcodes;
 
 namespace SS.Api.services
 {
