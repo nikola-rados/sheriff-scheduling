@@ -122,7 +122,6 @@ namespace SS.Api
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.UsePkce = true;
                 options.SaveTokens = true;
-                options.UseTokenLifetime = true;
                 options.CallbackPath = "/api/auth/signin-oidc";
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {

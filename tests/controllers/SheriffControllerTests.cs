@@ -99,7 +99,7 @@ namespace tests.controllers
                 ble = (BusinessLayerException) e;
             }
 
-            Assert.True(ble.Message.Contains("has IDIR name"));
+            Assert.Contains("has IDIR name", ble.Message);
         }
 
 

@@ -5,8 +5,11 @@ import store from "@/store";
 import createAuthRefreshInterceptor from 'axios-auth-refresh';
 
 const refreshAuthLogic = failedRequest => axios.get('api/auth/token').then(tokenRefreshResponse => {
-    
-    store.commit('CommonInformation/setToken',tokenRefreshResponse.data.access_token);
+    if (tokenRefreshResponse.data.access_token == null) {
+        location.replace('/api/auth/login?redirectUri=/');
+        return Promise.resolve();
+    }
+	store.commit('CommonInformation/setToken',tokenRefreshResponse.data.access_token);
     failedRequest.response.config.headers['Authorization'] = 'Bearer ' + tokenRefreshResponse.data.access_token;
     return Promise.resolve();
 }).catch((error) => {
