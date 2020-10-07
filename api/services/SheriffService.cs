@@ -32,6 +32,7 @@ namespace SS.Api.services
             await CheckForDuplicateIdirName(sheriff.IdirName);
             await CheckForDuplicateBadgeNumber(sheriff.BadgeNumber);
 
+            sheriff.IdirName = sheriff.IdirName.ToLower();
             sheriff.AwayLocation = null;
             sheriff.Training = null;
             sheriff.Leave = null;
