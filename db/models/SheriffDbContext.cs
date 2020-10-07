@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using db.models;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Models.DB;
@@ -55,6 +57,11 @@ namespace SS.Db.models
             }
         }
 
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            HandleSaveChanges();
+            return await base.SaveChangesAsync(cancellationToken);
+        }
         //Credit to PIMS for this. 
         /// <summary>
         /// Save the entities with who created them or updated them.
@@ -62,11 +69,16 @@ namespace SS.Db.models
         /// <returns></returns>
         public override int SaveChanges()
         {
-            // get entries that are being Added or Updated
+            HandleSaveChanges();
+            return base.SaveChanges();
+        }
+
+        private void HandleSaveChanges()
+        {
             var modifiedEntries = ChangeTracker.Entries()
                 .Where(x => (x.State == EntityState.Added || x.State == EntityState.Modified));
 
-            var userId = GetUserId(_httpContextAccessor?.HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value);
+            var userId = GetUserId(_httpContextAccessor?.HttpContext?.User.FindFirst(CustomClaimTypes.UserId)?.Value);
             userId ??= auth.User.SystemUser;
             foreach (var entry in modifiedEntries)
             {
@@ -84,8 +96,6 @@ namespace SS.Db.models
                     }
                 }
             }
-
-            return base.SaveChanges();
         }
 
         private Guid? GetUserId(string claimValue)
