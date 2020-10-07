@@ -59,15 +59,13 @@ namespace SS.Api.Controllers
         /// Must be logged in to call this. 
         /// </summary>
         /// <returns>access_token and refresh_token for API calls.</returns>
-        [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
         [HttpGet("token")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetToken()
         {
             var accessToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "access_token");
-            var expiresAt = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "expires_at");
-            return Ok(new { access_token = accessToken, expires_at = expiresAt, current = DateTime.UtcNow.ToString() });
+            return Ok(new { access_token = accessToken });
         }
 
         /// <summary>
