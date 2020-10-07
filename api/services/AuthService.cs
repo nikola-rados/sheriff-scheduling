@@ -62,17 +62,5 @@ namespace SS.Api.services
                 claims.Add(new Claim(CustomClaimTypes.HomeLocationId, user.HomeLocationId.ToString()));
             return claims;
         }
-
-        public async Task UpdateUserLogin(ClaimsIdentity claimsIdentity)
-        {
-            var claims = claimsIdentity.Claims.ToList();
-            var id = Guid.Parse(claims.GetValueByType(CustomClaimTypes.UserId));
-            var user = await _db.User.FindAsync(id);
-            if (user == null || !user.IsEnabled)
-                return;
-                
-            user.LastLogin = DateTime.Now;
-            await _db.SaveChangesAsync();
-        }
     }
 }
