@@ -21,8 +21,7 @@
           <b-nav-item-dropdown text="Duty Roster" dropdown >
             <b-dropdown-item to="/duty-roster">Duty Roster</b-dropdown-item>
             <b-dropdown-item to="/duty-roster-setup">Set-Up</b-dropdown-item>
-          </b-nav-item-dropdown>        
-          <b-nav-item to="/assignment" style="width: 100%;">Add Assignment</b-nav-item>
+          </b-nav-item-dropdown>
           <b-nav-item-dropdown text="Shift Schedule" dropdown >
             <b-dropdown-item to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
             <b-dropdown-item to="/distribute-shift-schedule">Distribute Schedule</b-dropdown-item>
@@ -125,15 +124,12 @@
 
       } else {
         currentLocation = this.locationList[0]
-      }
-      
+      }      
       
       this.UpdateLocation(currentLocation);
       this.selectedLocation = this.location;
       if (this.selectedLocation.name.length > 0) this.locationDataReady = true;
-    }
-
-    
+    }   
 
   }
 </script>

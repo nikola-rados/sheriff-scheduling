@@ -15,3 +15,17 @@ export interface teamMemberInfoType {
     image?: string | null;
 }
 
+export interface permissionInfoType {
+    id?: string;    
+    name?: string;
+    description?: string;
+}
+
+export interface roleInfoType {
+    id?: string;    
+    name?: string;
+    description?: string;
+    expiryDate?: string
+}
+
+
