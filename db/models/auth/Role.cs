@@ -16,7 +16,6 @@ namespace SS.Db.models.auth
         public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
-        [AdaptIgnore]
         public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
         [AdaptIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
