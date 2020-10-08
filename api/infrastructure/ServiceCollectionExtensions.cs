@@ -43,7 +43,7 @@ namespace SS.Api.infrastructure
             });
 
             services.AddHttpClient(nameof(CookieAuthenticationEvents));
-
+            services.AddHttpContextAccessor();
             services.AddTransient(s => s.GetService<IHttpContextAccessor>().HttpContext.User);
             services.AddScoped<ManageTypesService>();
             services.AddScoped<AuthService>();

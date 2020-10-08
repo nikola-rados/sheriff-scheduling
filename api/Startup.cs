@@ -72,8 +72,6 @@ namespace SS.Api
                     // the login screen.
                     OnValidatePrincipal = async cookieCtx =>
                     {
-
-                        var go = cookieCtx.Properties.Items.Values.Sum(x => x.Length);
                         var accessTokenExpiration = DateTimeOffset.Parse(cookieCtx.Properties.GetTokenValue("expires_at"));
                         var timeRemaining = accessTokenExpiration.Subtract(DateTimeOffset.UtcNow);
                         var refreshThreshold = TimeSpan.Parse(Configuration.GetNonEmptyValue("TokenRefreshThreshold"));
@@ -124,7 +122,6 @@ namespace SS.Api
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.UsePkce = true;
                 options.SaveTokens = true;
-                options.UseTokenLifetime = true;
                 options.CallbackPath = "/api/auth/signin-oidc";
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {

@@ -29,8 +29,10 @@ namespace SS.Api.services
             if (sheriff.IdirName.IsNullOrEmpty())
                 throw new BusinessLayerException($"Missing {nameof(sheriff.IdirName)}.");
 
+            await CheckForDuplicateIdirName(sheriff.IdirName);
             await CheckForDuplicateBadgeNumber(sheriff.BadgeNumber);
 
+            sheriff.IdirName = sheriff.IdirName.ToLower();
             sheriff.AwayLocation = null;
             sheriff.Training = null;
             sheriff.Leave = null;
@@ -60,14 +62,17 @@ namespace SS.Api.services
             var savedSheriff = await _db.Sheriff.FindAsync(sheriff.Id);
             savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {sheriff.Id} could not be found. ");
 
-            //These are handled in another route. 
-            sheriff.IsEnabled = savedSheriff.IsEnabled;
-            sheriff.Photo = savedSheriff.Photo;
-
             if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
                 await CheckForDuplicateBadgeNumber(sheriff.BadgeNumber);
 
             _db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
+
+            _db.Entry(savedSheriff).Property(x => x.IsEnabled).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.Photo).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.KeyCloakId).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.IdirId).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.IdirName).IsModified = false;
+            _db.Entry(savedSheriff).Property(x => x.LastLogin).IsModified = false;
 
             await _db.SaveChangesAsync();
             return sheriff;
@@ -182,6 +187,17 @@ namespace SS.Api.services
         #endregion
 
         #region Helpers
+
+        private async Task CheckForDuplicateIdirName(string idirName)
+        {
+            if (string.IsNullOrEmpty(idirName))
+                return;
+
+            var existingSheriffWithIdir = await _db.Sheriff.FirstOrDefaultAsync(s => s.IdirName == idirName);
+            if (existingSheriffWithIdir != null)
+                throw new BusinessLayerException(
+                    $"Sheriff {existingSheriffWithIdir.LastName}, {existingSheriffWithIdir.FirstName} has IDIR name: {existingSheriffWithIdir.IdirName}");
+        }
 
         private async Task CheckForDuplicateBadgeNumber(string badgeNumber)
         {
