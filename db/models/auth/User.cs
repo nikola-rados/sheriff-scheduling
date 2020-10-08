@@ -32,7 +32,6 @@ namespace SS.Db.models.auth
         public string Email { get; set; }
         public int? HomeLocationId { get; set; }
         public virtual Location HomeLocation { get; set; }
-        [AdaptIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
         [AdaptIgnore]
         [NotMapped]
