@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using SS.Api.models.dto;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
@@ -44,7 +45,13 @@ namespace tests.controllers
                 Name = "Super"
             };
 
-            var controllerResult = await _controller.AddRole(roleDto);
+            var addRoleDto = new AddRoleDto()
+            {
+                Role = roleDto,
+                PermissionIds = new List<int> {1}
+            };
+
+            var controllerResult = await _controller.AddRole(addRoleDto);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
             Assert.Equal(roleDto.Description, response.Description);

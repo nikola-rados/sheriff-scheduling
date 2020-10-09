@@ -2,7 +2,10 @@
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
+using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
+using SS.Api.infrastructure.exceptions;
+using SS.Api.models.dto;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
@@ -39,10 +42,14 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPost]
-        public async Task<ActionResult<RoleDto>> AddRole(RoleDto role)
+        public async Task<ActionResult<RoleDto>> AddRole(AddRoleDto addRole)
         {
-            var entity = role.Adapt<Role>();
-            var createdRole = await _service.AddRole(entity);
+            addRole.ThrowBusinessExceptionIfNull("AddRole was null");
+            addRole.Role.ThrowBusinessExceptionIfNull("Role was null");
+            addRole.PermissionIds.ThrowBusinessExceptionIfEmpty("Permission Ids was empty");
+            
+            var entity = addRole.Role.Adapt<Role>();
+            var createdRole = await _service.AddRole(entity, addRole.PermissionIds);
             return Ok(createdRole.Adapt<RoleDto>());
         }
 
