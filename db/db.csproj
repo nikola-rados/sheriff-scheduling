@@ -44,6 +44,8 @@
     <Compile Remove="migrations\20201002182317_SeedUsers.Designer.cs" />
     <Compile Remove="migrations\20201004171704_LocationToRegion.cs" />
     <Compile Remove="migrations\20201004171704_LocationToRegion.Designer.cs" />
+    <Compile Remove="migrations\20201009192719_go.cs" />
+    <Compile Remove="migrations\20201009192719_go.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
