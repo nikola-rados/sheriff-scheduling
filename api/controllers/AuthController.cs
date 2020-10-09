@@ -30,7 +30,7 @@ namespace SS.Api.Controllers
         /// <returns></returns>
         [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
         [HttpGet("login")]
-        public async Task<IActionResult> Login(string redirectUri = "/api")
+        public IActionResult Login(string redirectUri = "/api")
         {
             return Redirect(redirectUri);
         }

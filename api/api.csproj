@@ -45,7 +45,7 @@
   <ItemGroup>
     <Folder Include="controllers\scheduling\" />
     <Folder Include="controllers\usermanagement\" />
-    <Folder Include="models\dto\" />
+    <Folder Include="models\dto\generated\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\db\db.csproj" />
