@@ -9,6 +9,6 @@ namespace SS.Api.models.dto
     public class UpdateRoleDto
     {
         public RoleDto Role { get; set; }
-        public List<int> PermissionIds { get; set; }
+        public List<int> PermissionIds { get; set; } = new List<int>();
     }
 }

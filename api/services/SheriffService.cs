@@ -43,9 +43,9 @@ namespace SS.Api.services
             return sheriff;
         }
 
-        public async Task<List<Sheriff>> GetSheriffs(int locationId)
+        public async Task<List<Sheriff>> GetSheriffs(int? locationId)
         {
-            return await _db.Sheriff.Where(s => s.HomeLocationId == locationId && s.IsEnabled)
+            return await _db.Sheriff.Where(s => !locationId.HasValue || s.HomeLocationId == locationId)
                 .Include(s => s.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .ToListAsync();

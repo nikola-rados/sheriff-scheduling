@@ -75,7 +75,8 @@ namespace SS.Api.services
             await AssignPermissionsToRole(role.Id, permissionIds);
             await UnassignPermissionsFromRole(role.Id, permissionIdsToRemove);
             await _db.SaveChangesAsync();
-            return role;
+
+            return savedRole;
         }
 
         private async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)

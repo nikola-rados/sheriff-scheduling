@@ -60,20 +60,49 @@ namespace tests.controllers
         }
         
         [Fact]
-        public async Task UpdateRole()
+        public async Task UpdateRoleAndAssignPermission()
         {
             var role = await CreateRole();
             role.Name = "hello";
             role.Description = "sugar";
 
+            var permission = await CreatePermission();
+
             Detach();
 
-            var controllerResult = await _controller.UpdateRole(role.Adapt<RoleDto>());
+            var updateRoleDto = new UpdateRoleDto 
+            {
+                    Role = role.Adapt<RoleDto>(),
+                    PermissionIds = new List<int> { permission.Id }
+            };
+
+            var controllerResult = await _controller.UpdateRole(updateRoleDto.Adapt<UpdateRoleDto>());
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
             Assert.Equal(role.Name, response.Name);
             Assert.Equal(role.Description, response.Description);
             Assert.Equal(role.Id, response.Id);
+
+            var dbRole = await _dbContext.Role.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Id == role.Id);
+            Assert.NotEmpty(dbRole.RolePermissions);
+
+            Detach();
+
+            updateRoleDto = new UpdateRoleDto
+            {
+                Role = role.Adapt<RoleDto>(),
+                PermissionIds = new List<int> { }
+            };
+
+            controllerResult = await _controller.UpdateRole(updateRoleDto.Adapt<UpdateRoleDto>());
+            response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
+
+            Assert.Equal(role.Name, response.Name);
+            Assert.Equal(role.Description, response.Description);
+            Assert.Equal(role.Id, response.Id);
+
+            dbRole = await _dbContext.Role.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Id == role.Id);
+            Assert.Empty(dbRole.RolePermissions);
         }
 
         [Fact]
@@ -84,26 +113,7 @@ namespace tests.controllers
             var controllerResult = await _controller.RemoveRole(role.Id);
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
-            Assert.Null(await _dbContext.Role.FindAsync(role.Id));
-        }
-
-        [Fact]
-        public async Task AssignAndUnassignPermissions()
-        {
-            var role = await CreateRole();
-            var permission = await CreatePermission();
-
-            HttpResponseTest.CheckForNoContentResponse(await _controller.AssignPermissions(role.Id, new List<int> { permission.Id }));
-            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.GetRole(role.Id));
-
-            var dbRole = _dbContext.Role.Include(r => r.RolePermissions).FirstOrDefault(r => r.Id == role.Id);
-            Assert.NotEmpty(dbRole?.RolePermissions);
-
-            HttpResponseTest.CheckForNoContentResponse(await _controller.UnassignPermissions(role.Id, new List<int> { permission.Id }));
-
-            var savedRole2 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.GetRole(role.Id));
-            dbRole = _dbContext.Role.Include(r => r.RolePermissions).FirstOrDefault(r => r.Id == role.Id);
-            Assert.Empty(dbRole?.RolePermissions);
+            Assert.NotNull((await _dbContext.Role.FindAsync(role.Id)).ExpiryDate);
         }
 
         private async Task<Permission> CreatePermission()
