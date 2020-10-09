@@ -39,12 +39,12 @@
                  <h2 v-if="editMode" class="mb-0 text-light"> Updating User Profile </h2>
                  <h2 v-else-if="createMode" class="mb-0 text-light"> Creating User Profile </h2>                
             </template>
-            <b-card v-if="isUserDataMounted">
+            <b-card v-if="isUserDataMounted" no-body>
                 <b-row>
-                    <b-col cols="4">
+                    <b-col cols="3">
                         <user-summary-template :userBadgeNumber="user.badgeNumber" :userName="user.firstName + ' ' + user.lastName" :userRole="user.rank" :userImage="user.image" :editMode="editMode"/>
                     </b-col>
-                    <b-col>
+                    <b-col cols="9">
                         <b-card no-body>
                             <b-tabs card v-model="tabIndex">
                                 <b-tab title="Identification" >
@@ -89,14 +89,51 @@
                                 </b-tab>
                                 <b-tab title="Training"> 
                                 </b-tab>
-                                <b-tab title="Roles"> 
-                                    <b-card bg-variant="info" style="height:300px;overflow: auto;">
+                                <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
+                                    
+                                    <b-card  style="height:400px;overflow: auto;" >                                        
+                                        <h2 class="mx-1 mt-0"><b-badge v-if="roleAssignError" variant="danger"> Role Assignment Unsuccessful <b-icon class="ml-3" icon = x-square-fill @click="roleAssignError = false" /></b-badge></h2>
+                                               
                                         <b-form-group >
-                                            <b-form-checkbox-group
-                                                stacked    
-                                                v-model="selected"
-                                                :options="SortRoles(roles)">
-                                            </b-form-checkbox-group> 
+                                            <b-form-checkbox-group v-model="selectedRoles">
+                                                <b-row class="mb-2 text-primary" style="font-weight:bold">
+                                                    <b-col cols="5"> Role </b-col>
+                                                    <b-col class="mx-2" > Effective Date </b-col>
+                                                    <b-col class="mx-2" > Expiry Date </b-col>
+                                                </b-row>
+                                                <b-row v-for="(rol,rolInx) in roles" :key="rolInx" class="mb-1">
+                                                    <b-col cols="5">   
+                                                        <b-form-checkbox 
+                                                            class="mt-1"
+                                                            v-b-tooltip.hover.left
+                                                            :title="rol.desc"
+                                                            @change="roleChanged(rolInx)" 
+                                                            :value="rol.value">
+                                                                {{rol.text}}
+                                                        </b-form-checkbox>
+                                                    </b-col>
+                                                    <b-col >
+                                                        <b-form-datepicker
+                                                        class="p-0 m-0"
+                                                        v-model="roles[rolInx].effDate"
+                                                        placeholder="Eff. Date"
+                                                        locale="en-US" 
+                                                        :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+                                                        :state = "rol.effState?null:false"
+                                                        ></b-form-datepicker>
+                                                    </b-col>
+                                                    <b-col >
+                                                        <b-form-datepicker
+                                                        v-model="roles[rolInx].expDate"
+                                                        placeholder="Exp. Date"
+                                                        locale="en-US"
+                                                        :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+                                                        :state = "rol.expState?null:false"
+                                                        ></b-form-datepicker>
+                                                    </b-col>
+                                                </b-row> 
+                                          
+                                            </b-form-checkbox-group>
                                         </b-form-group>                                       
                                     </b-card>
                                 </b-tab>
@@ -109,12 +146,13 @@
             </b-card>
             <template v-slot:modal-footer>
                 <b-button
-                  variant="secondary" 
-                  @click="closeProfileWindow()"                  
-                ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
-                <b-button                 
-                  variant="success" 
-                  @click="saveMemberProfile('testing updates')"
+                    variant="secondary" 
+                    @click="closeProfileWindow()"                  
+                ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>{{getCancelLabel}}</b-button>
+                <b-button     
+                    v-if="tabIndex<1"
+                    variant="success" 
+                    @click="saveMemberProfile()"
                 ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
@@ -155,7 +193,7 @@
     import UserSummaryTemplate from "./UserSummaryTemplate.vue";
     import "@store/modules/CommonInformation";  
     import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
-    import {teamMemberInfoType} from '../../types/MyTeam';
+    import {teamMemberInfoType, roleOptionInfoType} from '../../types/MyTeam';
     import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
     const commonState = namespace("CommonInformation");
     import store from '../../store'
@@ -216,8 +254,9 @@
         editMode = false;
         createMode = false;
         sectionHeader = '';
-        selected = []
-        roles = []
+        selectedRoles: string[] = []
+        roles: roleOptionInfoType[] = []
+        roleAssignError = false;
 
 
         isMyTeamDataMounted = false;
@@ -335,12 +374,7 @@
             this.showMemberDetails=true;
         }
 
-         public SortRoles(roles) {
-        return _.sortBy(roles,'selected')        
-        }
-
-        public GetRoles(userId)
-        {
+        public GetRoles(userId){
             const url = '/api/role'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.get(url, options)
@@ -352,11 +386,52 @@
                 })
         }
 
-        public extractRoles(data)
-        {
+        public roleChanged(rolInx){
+            Vue.nextTick().then(()=>{
+                const selectedIndex = this.selectedRoles.indexOf(this.roles[rolInx].value);
+                console.log(rolInx)
+                console.log(this.roles[rolInx].value)
+                this.roles[rolInx].effState = true;
+                this.roles[rolInx].expState = true; 
+                this.roleAssignError = false; 
+
+                if(selectedIndex >=0 && this.roles[rolInx].effDate=="")
+                {
+                   this.roles[rolInx].effState = false; 
+                   this.selectedRoles.splice(selectedIndex, 1);
+                }
+                else 
+                {
+                    const body = 
+                    [{
+                        "userId": this.user.id,
+                        "roleId": this.roles[rolInx].value,
+                        "effectiveDate": this.roles[rolInx].effDate,
+                        "expiryDate": this.roles[rolInx].expDate
+                    }]
+                    const url = (selectedIndex >= 0)? 'api/sheriff/assignroles' :'api/sheriff/unassignroles' 
+                    const options = {headers:{'Authorization' :'Bearer '+this.token}}
+                    this.$http.put(url, body, options)
+                        .then(response => {
+                            console.log(response)
+                            console.log('assign success')  
+                            if(selectedIndex < 0)
+                            {
+                                this.roles[rolInx].effDate =""
+                                this.roles[rolInx].expDate="" 
+                            }                                              
+                        }, err=>{this.roleAssignError = true;});
+                }
+            });
+        }
+
+        public extractRoles(data){
             this.roles=[];
-            for(const role of data)
-                this.roles.push({text:role.name + '('+role.description+')', value:role.id, selected:false})
+            this.selectedRoles = [];
+            this.roleAssignError = false; 
+            
+            for(const role of data)            
+                this.roles.push({text:role.name, desc: role.description, value:role.id, effDate:'', expDate:'', effState:true, expState: true})           
         }
 
         public loadUserDetails(userId): void {
@@ -369,7 +444,8 @@
                         this.userJson = response.data;
                         this.extractUserInfo();
                         this.isUserDataMounted = true;
-                        this.showMemberDetails=true;                        
+                        this.showMemberDetails=true; 
+                        console.log(response.data)                       
                     }                    
                 });
         }
@@ -384,10 +460,20 @@
             this.user.badgeNumber = this.originalUser.badgeNumber = this.userJson.badgeNumber;
             this.user.id = this.originalUser.id = this.userJson.id;
             this.user.image = this.originalUser.image = this.userJson['image']? this.userJson['image'] :null ; 
-            for(const userRole of this.originalUser.userRoles) 
-            {
-                this.roles.findIndex(role =>{if(role.id == userRole.role.id) return true;else return false})
+            for(const activeRole of this.userJson.activeRoles) 
+            {             
+                const index = this.roles.findIndex(role =>{if(role.value == activeRole.role.id) return true;else return false});
+                if(index >=0)
+                { 
+                    this.roles[index].effDate = activeRole.effectiveDate
+                    this.roles[index].expDate = activeRole.expiryDate
+                    this.selectedRoles.push(this.roles[index].value);
+                }
             }
+        }
+
+        get getCancelLabel(){
+            if(this.tabIndex<1) return 'Cancel'; else return 'Close'
         }
 
         public saveMemberProfile() {       
