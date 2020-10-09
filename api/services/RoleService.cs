@@ -44,20 +44,22 @@ namespace SS.Api.services
             await _db.Role.AddAsync(role);
             await _db.SaveChangesAsync();
             await AssignPermissionsToRole(role.Id, permissionIds);
-
+            await _db.SaveChangesAsync();
+            scope.Complete();
             return role;
         }
 
         public async Task RemoveRole(int roleId)
         {
             var role = await _db.Role.FindAsync(roleId);
-            _db.Role.Remove(role);
+            role.ExpiryDate = DateTime.UtcNow;
             await _db.SaveChangesAsync();
         }
 
-        public async Task<Role> UpdateRole(Role role)
+        public async Task<Role> UpdateRole(Role role, List<int> permissionIds)
         {
-            var savedRole = await _db.Role.FindAsync(role.Id);
+            var savedRole = await _db.Role.Include(r => r.RolePermissions)
+                                          .FirstOrDefaultAsync(r => r.Id == role.Id);
             if (savedRole.Name != role.Name)
             {
                 var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name == role.Name);
@@ -65,12 +67,19 @@ namespace SS.Api.services
                     throw new BusinessLayerException($"Role with name {role.Name} already exists.");
             }
 
+            var permissionIdsToRemove =
+                savedRole.RolePermissions.Select(rp => rp.PermissionId).Except(permissionIds).ToList();
+
             _db.Entry(savedRole).CurrentValues.SetValues(role);
+
+            await AssignPermissionsToRole(role.Id, permissionIds);
+            await UnassignPermissionsFromRole(role.Id, permissionIdsToRemove);
             await _db.SaveChangesAsync();
-            return role;
+
+            return savedRole;
         }
 
-        public async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)
+        private async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)
         {
             var role = await _db.Role.Include(r => r.RolePermissions)
                                      .FirstOrDefaultAsync( r=> r.Id == roleId);
@@ -88,19 +97,15 @@ namespace SS.Api.services
                     Permission = permission
                 });
             }
-
-            await _db.SaveChangesAsync();
         }
 
-        public async Task UnassignPermissionsFromRole(int roleId, List<int> permissionIds)
+        private async Task UnassignPermissionsFromRole(int roleId, List<int> permissionIds)
         {
             var role = await _db.Role.Include(r => r.RolePermissions)
                                      .FirstOrDefaultAsync(r => r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
             
             _db.RemoveRange(role.RolePermissions.Where(rp => permissionIds.Contains(rp.PermissionId) && rp.Role.Id == roleId));
-            
-            await _db.SaveChangesAsync();
         }
     }
 }
