@@ -89,6 +89,19 @@
                                 </b-tab>
                                 <b-tab title="Training"> 
                                 </b-tab>
+                                <b-tab title="Roles"> 
+                                    <b-card bg-variant="info" style="height:300px;overflow: auto;">
+                                        <b-form-group >
+                                            <b-form-checkbox-group
+                                                stacked    
+                                                v-model="selected"
+                                                :options="SortRoles(roles)">
+                                            </b-form-checkbox-group> 
+                                        </b-form-group>                                       
+                                    </b-card>
+                                </b-tab>
+                                
+
                             </b-tabs>
                         </b-card>
                     </b-col>
@@ -203,6 +216,9 @@
         editMode = false;
         createMode = false;
         sectionHeader = '';
+        selected = []
+        roles = []
+
 
         isMyTeamDataMounted = false;
         myTeamData: teamMemberInfoType[] =[];
@@ -260,7 +276,8 @@
             this.editMode = true;
             this.badgeNumberState = true;
             this.duplicateBadge = false;
-            this.loadUserDetails(userId);
+            this.GetRoles(userId);      
+            
         }
 
         public closeProfileWindow() 
@@ -318,6 +335,30 @@
             this.showMemberDetails=true;
         }
 
+         public SortRoles(roles) {
+        return _.sortBy(roles,'selected')        
+        }
+
+        public GetRoles(userId)
+        {
+            const url = '/api/role'
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        this.extractRoles(response.data);                        
+                    }
+                    this.loadUserDetails(userId);                    
+                })
+        }
+
+        public extractRoles(data)
+        {
+            this.roles=[];
+            for(const role of data)
+                this.roles.push({text:role.name + '('+role.description+')', value:role.id, selected:false})
+        }
+
         public loadUserDetails(userId): void {
             this.editMode = true;            
             const url = 'api/sheriff/' + userId
@@ -342,7 +383,11 @@
             this.user.email = this.originalUser.email = this.userJson.email;
             this.user.badgeNumber = this.originalUser.badgeNumber = this.userJson.badgeNumber;
             this.user.id = this.originalUser.id = this.userJson.id;
-            this.user.image = this.originalUser.image = this.userJson['image']? this.userJson['image'] :null ;  
+            this.user.image = this.originalUser.image = this.userJson['image']? this.userJson['image'] :null ; 
+            for(const userRole of this.originalUser.userRoles) 
+            {
+                this.roles.findIndex(role =>{if(role.id == userRole.role.id) return true;else return false})
+            }
         }
 
         public saveMemberProfile() {       

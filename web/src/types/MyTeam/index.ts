@@ -13,6 +13,7 @@ export interface teamMemberInfoType {
     gender: string;
     fullName?: string;
     image?: string | null;
+    userRoles?: [];
 }
 
 export interface permissionInfoType {
