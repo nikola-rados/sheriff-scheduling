@@ -201,7 +201,7 @@ namespace SS.Api
 
             services.AddSwaggerGen(options =>
             {
-                options.EnableAnnotations(true);
+                options.EnableAnnotations();
                 options.CustomSchemaIds(o => o.FullName);
 
                 options.AddSecurityDefinition("Bearer", //Name the security scheme

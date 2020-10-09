@@ -52,7 +52,7 @@ namespace SS.Api.services
         public async Task RemoveRole(int roleId)
         {
             var role = await _db.Role.FindAsync(roleId);
-            role.ExpiryDate = DateTime.UtcNow;
+            _db.Role.Remove(role);
             await _db.SaveChangesAsync();
         }
 
