@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -33,16 +34,19 @@ namespace SS.Db.models.auth
         public int? HomeLocationId { get; set; }
         public virtual Location HomeLocation { get; set; }
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+        [NotMapped]
+        public virtual ICollection<Role> ActiveRoles =>
+            UserRoles.Where(x => x.EffectiveDate <= DateTimeOffset.Now &&
+                                 (x.ExpiryDate == null || x.ExpiryDate > DateTimeOffset.Now)
+            ).Select(x => x.Role).ToList();
+
         [AdaptIgnore]
         [NotMapped]
-        public virtual ICollection<Permission> Permissions
-        {
-            get
-            {
-                return UserRoles.
-                    SelectMany(x => x.Role.RolePermissions).Select(x => x.Permission).Distinct().ToList();
-            }
-        }
+        public virtual ICollection<Permission> Permissions =>
+            ActiveRoles.
+                SelectMany(x => x.RolePermissions).Select(x => x.Permission).Distinct().ToList();
+
         [AdaptIgnore]
         public DateTime? LastLogin { get; set; }
     }
