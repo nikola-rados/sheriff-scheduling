@@ -113,7 +113,7 @@ namespace tests.controllers
             var controllerResult = await _controller.RemoveRole(role.Id);
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
-            Assert.NotNull((await _dbContext.Role.FindAsync(role.Id)).ExpiryDate);
+            Assert.Null((await _dbContext.Role.FindAsync(role.Id)));
         }
 
         private async Task<Permission> CreatePermission()
