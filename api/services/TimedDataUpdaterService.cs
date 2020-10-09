@@ -39,19 +39,26 @@ namespace SS.Api.services
 
         private async void DoWork(object state)
         {
-            _logger.LogInformation("Timed Background Service is working.");
+            try
+            {
+                _logger.LogInformation("Timed Background Service is working.");
 
-            using var scope = Services.CreateScope();
-            var justinDataUpdaterService =
-                scope.ServiceProvider
-                    .GetRequiredService<JCDataUpdaterService>();
+                using var scope = Services.CreateScope();
+                var justinDataUpdaterService =
+                    scope.ServiceProvider
+                        .GetRequiredService<JCDataUpdaterService>();
 
-            _logger.LogInformation("Syncing Regions.");
-            await justinDataUpdaterService.SyncRegions();
-            _logger.LogInformation("Syncing Locations.");
-            await justinDataUpdaterService.SyncLocations();
-            _logger.LogInformation("Syncing CourtRooms.");
-            await justinDataUpdaterService.SyncCourtRooms();
+                _logger.LogInformation("Syncing Regions.");
+                await justinDataUpdaterService.SyncRegions();
+                _logger.LogInformation("Syncing Locations.");
+                await justinDataUpdaterService.SyncLocations();
+                _logger.LogInformation("Syncing CourtRooms.");
+                await justinDataUpdaterService.SyncCourtRooms();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "An error happened while syncing regions/locations/courtrooms.");
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

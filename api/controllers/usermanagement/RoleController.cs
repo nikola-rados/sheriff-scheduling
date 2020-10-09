@@ -54,10 +54,13 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPut]
-        public async Task<ActionResult<RoleDto>> UpdateRole(RoleDto role)
+        public async Task<ActionResult<RoleDto>> UpdateRole(UpdateRoleDto updateRole)
         {
-            var entity = role.Adapt<Role>();
-            var updatedRole = await _service.UpdateRole(entity);
+            updateRole.ThrowBusinessExceptionIfNull("AddRole was null");
+            updateRole.Role.ThrowBusinessExceptionIfNull("Role was null");
+
+            var entity = updateRole.Role.Adapt<Role>();
+            var updatedRole = await _service.UpdateRole(entity, updateRole.PermissionIds);
             return Ok(updatedRole.Adapt<RoleDto>());
         }
 
@@ -67,22 +70,5 @@ namespace SS.Api.controllers.usermanagement
             await _service.RemoveRole(id);
             return NoContent();
         }
-
-        [HttpPut]
-        [Route("{roleId}/assignPermissions")]
-        public async Task<ActionResult> AssignPermissions(int roleId, List<int> permissionIds)
-        {
-            await _service.AssignPermissionsToRole(roleId, permissionIds);
-            return NoContent();
-        }
-
-        [HttpPut]
-        [Route("{roleId}/unassignPermissions")]
-        public async Task<ActionResult> UnassignPermissions(int roleId, List<int> permissionIds)
-        {
-            await _service.UnassignPermissionsFromRole(roleId, permissionIds);
-            return NoContent();
-        }
-
     }
 }

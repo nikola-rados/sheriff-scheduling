@@ -65,7 +65,7 @@ namespace SS.Api.services
 
         public async Task UnassignRoleFromUser(Guid userId, List<int> roleIds)
         {
-            var user = await _db.User.FindAsync(userId);
+            var user = await _db.User.Include(r => r.UserRoles).FirstOrDefaultAsync(u => u.Id == userId);
             user.ThrowBusinessExceptionIfNull($"User with id {userId} does not exist.");
 
             _db.RemoveRange(user.UserRoles.Where(r => r.UserId == userId && roleIds.Contains(r.RoleId)));
