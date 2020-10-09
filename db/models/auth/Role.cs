@@ -19,6 +19,5 @@ namespace SS.Db.models.auth
         public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
         [AdaptIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
-        public DateTime? ExpiryDate { get; set; }
     }
 }
