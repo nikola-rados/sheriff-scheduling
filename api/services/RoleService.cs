@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.exceptions;
@@ -21,7 +22,8 @@ namespace SS.Api.services
 
         public async Task<List<Role>> Roles()
         {
-            return await _db.Role.ToListAsync();
+            return await _db.Role.Include(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission).ToListAsync();
         }
 
         public async Task<Role> Role(int id)
@@ -30,16 +32,19 @@ namespace SS.Api.services
                 .ThenInclude(rp => rp.Permission).SingleOrDefaultAsync(r => r.Id == id);
         }
 
-        public async Task<Role> AddRole(Role role)
+        public async Task<Role> AddRole(Role role, List<int> permissionIds)
         {
             var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name == role.Name);
             if (roleAlreadyExistsWithName)
                 throw new BusinessLayerException($"Role with name {role.Name} already exists.");
 
+            using TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
             role.RolePermissions = null;
             role.UserRoles = null;
             await _db.Role.AddAsync(role);
             await _db.SaveChangesAsync();
+            await AssignPermissionsToRole(role.Id, permissionIds);
+
             return role;
         }
 

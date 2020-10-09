@@ -26,7 +26,8 @@ export interface roleInfoType {
     id?: string;    
     name?: string;
     description?: string;
-    expiryDate?: string
+    expiryDate?: string;
+    permissions?: permissionInfoType[];
 }
 
 

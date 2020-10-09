@@ -890,6 +890,15 @@ export interface roleJsonType {
     "id": string,
     "name": string,
     "description": string,
+    "rolePermissions": rolePermissionsJsonType[],      
     "expiryDate": string,
     "concurrencyToken": number  
+}
+
+export interface rolePermissionsJsonType {
+  "id": string,
+  "roleId": string,
+  "permission": permissionJsonType,
+  "permissionId": 0,
+  "concurrencyToken": 0
 }
