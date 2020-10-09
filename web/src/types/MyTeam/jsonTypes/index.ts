@@ -899,6 +899,6 @@ export interface rolePermissionsJsonType {
   "id": string,
   "roleId": string,
   "permission": permissionJsonType,
-  "permissionId": 0,
-  "concurrencyToken": 0
+  "permissionId": string,
+  "concurrencyToken": number
 }
