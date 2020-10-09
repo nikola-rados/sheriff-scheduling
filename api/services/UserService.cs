@@ -88,7 +88,6 @@ namespace SS.Api.services
                 var userRole = user.UserRoles.FirstOrDefault(r => r.UserId == unassignRole.UserId && r.RoleId == unassignRole.RoleId);
                 if (userRole != null) userRole.ExpiryDate = DateTime.UtcNow;
             }
-
             await _db.SaveChangesAsync();
         }
     }

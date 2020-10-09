@@ -7,6 +7,7 @@ using System.Linq;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
+using SS.Db.models.auth.notmapped;
 
 namespace SS.Db.models.auth
 {
@@ -33,19 +34,21 @@ namespace SS.Db.models.auth
         public string Email { get; set; }
         public int? HomeLocationId { get; set; }
         public virtual Location HomeLocation { get; set; }
+        [AdaptIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
         [NotMapped]
-        public virtual ICollection<Role> ActiveRoles =>
+        public virtual ICollection<RoleWithExpiry> ActiveRoles =>
             UserRoles.Where(x => x.EffectiveDate <= DateTimeOffset.Now &&
                                  (x.ExpiryDate == null || x.ExpiryDate > DateTimeOffset.Now)
-            ).Select(x => x.Role).ToList();
+            ).Select(ur => new RoleWithExpiry { Role = ur.Role, EffectiveDate = ur.EffectiveDate, ExpiryDate = ur.ExpiryDate } )
+                .ToList();
 
         [AdaptIgnore]
         [NotMapped]
         public virtual ICollection<Permission> Permissions =>
             ActiveRoles.
-                SelectMany(x => x.RolePermissions).Select(x => x.Permission).Distinct().ToList();
+                SelectMany(x => x.Role.RolePermissions).Select(x => x.Permission).Distinct().ToList();
 
         [AdaptIgnore]
         public DateTime? LastLogin { get; set; }
