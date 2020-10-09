@@ -39,7 +39,7 @@ namespace SS.Api.controllers.usermanagement
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult<SheriffDto>> GetSheriffs(int locationId)
+        public async Task<ActionResult<SheriffDto>> GetSheriffs(int? locationId)
         {
             var sheriffs = await _service.GetSheriffs(locationId);
             return Ok(sheriffs.Adapt<List<SheriffDto>>());

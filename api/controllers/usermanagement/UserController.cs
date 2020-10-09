@@ -44,8 +44,6 @@ namespace SS.Api.controllers.usermanagement
             return NoContent();
         }
 
-
-
         [HttpPut]
         [Route("{id}/enable")]
         [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]

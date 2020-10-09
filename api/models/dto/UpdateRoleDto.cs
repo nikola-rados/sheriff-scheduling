@@ -6,7 +6,7 @@ using SS.Api.Models.Dto;
 
 namespace SS.Api.models.dto
 {
-    public class AddRoleDto
+    public class UpdateRoleDto
     {
         public RoleDto Role { get; set; }
         public List<int> PermissionIds { get; set; } = new List<int>();
