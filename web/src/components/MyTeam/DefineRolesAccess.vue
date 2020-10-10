@@ -39,7 +39,7 @@
                         <b-button size="sm" variant="transparent" @click="removeRole(row.item, row.index)">
                             <b-icon-trash-fill font-scale="1.75" variant="danger"></b-icon-trash-fill>                    
                         </b-button>
-                        <b-button size="sm" variant="transparent" @click="editRole(row.item.id)">
+                        <b-button size="sm" variant="transparent" @click="openRoleDetails(row.item.id)">
                             <b-icon-pencil-square font-scale="1.75" variant="primary"></b-icon-pencil-square>                    
                         </b-button>
                         </template>
@@ -196,6 +196,7 @@
         errorText = '';
         userIsAdmin = false;
         selectedPermissions: string[] = [];
+        originalSelectedPermissions: string[] = [];
         permissions: permissionOptionInfoType[] = []
 
         roleFields = [
@@ -207,6 +208,7 @@
         confirmDelete= false;        
         roleToDelete: roleInfoType = {id:'',name:'', description:'', expiryDate: '', permissions: []};
         indexToDelete = -1;
+        roleToEditId = 0;
         
         roleData: roleInfoType[] = [];
 
@@ -242,18 +244,13 @@
                 role.expiryDate = roleInfo.expiryDate;
                 const permissions: string[] = []               
                 for(const permissionInfo of roleInfo.rolePermissions)
-                {
-                    // const permission: permissionInfoType = {id:'',name:'', description:''};
-                    // const permission: string[] = []
-                    // permission.id = permissionInfo.permissionId;
-                    // permission.name = permissionInfo.permission.name;
-                    // permission.description = permissionInfo.permission.description;
+                {                   
                     permissions.push(permissionInfo.permissionId)
                 }
                 role.permissions = permissions;
                 this.roleData.push(role);
             }
-            console.log(this.roleData)
+            // console.log(this.roleData)
             this.isRolesDataMounted = true;
         }
 
@@ -263,7 +260,8 @@
             this.editMode = true;
             this.nameState = true;
             this.duplicateRole = false;
-            this.loadRoleDetails(roleId);
+            this.roleToEditId = roleId;
+            this.getPermissions()
         }
 
         public sortPermissions(permissions) {
@@ -277,9 +275,7 @@
             this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
-                        this.extractPermissions(response.data);
-                        this.isRoleDetailsMounted = true;
-                        this.showRoleDetails=true;                        
+                        this.extractPermissions(response.data);                                               
                     }                    
                 });
         }
@@ -292,20 +288,39 @@
 
         public loadRoleDetails(roleId): void {
             console.log("loading")
-            // this.editMode = true;            
-            // const url = 'api/role/' + roleId
-            // const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            // this.$http.get(url, options)
-            //     .then(response => {
-            //         if(response.data){
-            //             this.userJson = response.data;
-            //             this.extractUserInfo();
-            //             this.isRoleDetailsMounted = true;
-            //             this.showRoleDetails=true;                        
-            //         }                    
-            //     });
+            this.editMode = true;            
+            const url = 'api/role/' + roleId
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){                        
+                        this.extractRoleInfo(response.data);
+                        // this.isRoleDetailsMounted = true;
+                        // this.showRoleDetails=true;                        
+                    }                    
+                });
         }
 
+        public extractRoleInfo(roleData){
+            this.role = {};
+            this.selectedPermissions = [];
+            console.log(roleData)
+            this.role.id = this.originalRole.id = roleData.id;
+            this.role.name = this.originalRole.name = roleData.name;
+            this.role.description = this.originalRole.description = roleData.description;            
+            for(const rolePermission of roleData.rolePermissions) {
+                const index = this.permissions.findIndex(permission => {if (permission.value == rolePermission.permission.id) return true; else return false;})
+                if (index >= 0) {
+                    this.selectedPermissions.push(this.permissions[index].value);
+                    this.originalSelectedPermissions.push(this.permissions[index].value)
+                    this.permissions[index].selected = true;                    
+                }
+            }
+            
+            console.log(this.role)
+            this.isRoleDetailsMounted = true;
+            this.showRoleDetails=true;   
+        }
         
         
         public permissionChanged(){
@@ -320,8 +335,19 @@
         public extractPermissions(permissionsData){
             this.permissions=[];
             this.selectedPermissions = [];
-            for(const permission of permissionsData)            
-                this.permissions.push({text:permission.name, desc:permission.description , value:permission.id, selected:false})           
+            if (this.createMode) {
+                for(const permission of permissionsData) {
+                    this.permissions.push({text:permission.name, desc:permission.description , value:permission.id, selected:false})
+                }
+                this.isRoleDetailsMounted = true;
+                this.showRoleDetails=true; 
+            }
+            if (this.editMode) {
+                for(const permission of permissionsData) {
+                    this.permissions.push({text:permission.name, desc:permission.description , value:permission.id, selected:false})
+                }
+                this.loadRoleDetails(this.roleToEditId);
+            }        
         }
 
         public closeRoleWindow() 
@@ -341,7 +367,8 @@
         }
 
         public changesMade(): boolean {
-            return !_.isEqual(this.originalRole, this.role)
+            return (!_.isEqual(this.originalRole, this.role) || 
+            !_.isEqual(this.originalSelectedPermissions, this.selectedPermissions))
         }
 
         public isEmpty(obj){
@@ -349,19 +376,17 @@
                 if(obj[prop] != null)
                     return false;
             return true;
-        }
-
-        public editRole(roleId) {
-            console.log("editing")
-        }
+        }        
 
         public resetRoleWindowState() {
             this.createMode = false;
             this.editMode = false;
             this.nameState = true;
-            this.descriptionState = true;            
+            this.descriptionState = true;
+            this.permissionState = true;            
             this.duplicateRole = false;
             this.role = {} as roleInfoType;
+            this.selectedPermissions = [];
         }
 
         public AddRole()
@@ -400,40 +425,33 @@
         }
 
         public updateRole(): void {
-            console.log("updating PUT")
-            // const body = {
-            //     homeLocationId: this.location.id,               
-            //     gender: this.user.gender,
-            //     badgeNumber: this.user.badgeNumber,
-            //     rank: this.user.rank,
-            //     idirName: this.user.idirUserName,
-            //     firstName:this.user.firstName,
-            //     lastName: this.user.lastName,
-            //     email: this.user.email,
-            //     id: this.user.id
-            // }
+            const body = {
+                role: { 
+                    id: this.role.id,
+                    name: this.role.name,               
+                    description: this.role.description
+                },
+                permissionIds: this.selectedPermissions                
+            }
+            // console.log(body)
 
-            // const url = 'api/sheriff';
-            // const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-            // this.$http.put(url, body, options)
-            //     .then(response => {
-            //         if(response.data){
-            //             this.resetProfileWindowState();
-            //             this.showMemberDetails = false;
-            //             this.getSheriffs();                     
-            //         }                    
-            //     }, err => {
-            //         //console.log(err.response)
-            //         this.errorText = err.response.data.error
-                     
-            //         //if(this.errorText.includes('already has badge number'))
-            //         if(err.response.status == 500)
-            //         {
-            //             this.badgeNumberState = false;
-            //             this.duplicateBadge = true;
-            //         }
-
-            //     });
+            const url = 'api/role';
+            const options = {headers:{'Authorization' :'Bearer '+this.token}} 
+            this.$http.put(url, body, options)
+                .then(response => {
+                    if(response.data){
+                        this.resetRoleWindowState();
+                        this.showRoleDetails = false;
+                        this.getRoles();                     
+                    }                    
+                }, err => {
+                    this.errorText = err.response.data.error                    
+                    if(this.errorText.includes('already exists'))
+                    {
+                        this.nameState = false;
+                        this.duplicateRole = true;
+                    }
+                });
         }
 
         public createRole() {
@@ -442,10 +460,9 @@
                     name: this.role.name,               
                     description: this.role.description
                 },
-                permissionIds: this.selectedPermissions
-                
+                permissionIds: this.selectedPermissions                
             }
-            console.log(body)
+            // console.log(body)
             const url = 'api/role';
             const options = {headers:{'Authorization' :'Bearer '+this.token}}         
             
@@ -463,7 +480,6 @@
                         this.nameState = false;
                         this.duplicateRole = true;
                     }
-
                 })   
         }        
 
@@ -477,13 +493,12 @@
         public confirmRemoveRole() {
             this.$http.delete('/api/role?id='+ this.roleToDelete.id)
             .then(response => {
-                    if(response.data){
-                        console.log(response.data)                                           
-                    }
-                    
+                    if(response.status == 204){
+                        this.confirmDelete=false;
+                        this.getRoles();                                            
+                    }                    
                 })
-            this.confirmDelete=false;
-            this.roleData.splice(this.indexToDelete, 1);      
+                 
         }
 
     }
