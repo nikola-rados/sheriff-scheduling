@@ -25,9 +25,12 @@
         <div v-else class="container mb-5" id="app">
             <div class="row">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
-                    <div @click="openMemberDetails(teamMember.id)" class="card h-100">
-                        <div class="card-body">
+                    <div  class="card h-100">
+                        <div @click="openMemberDetails(teamMember.id)" class="card-body">
                             <user-summary-template :userBadgeNumber="teamMember.badgeNumber" :userName="teamMember.fullName" :userRole="teamMember.rank" :userImage="teamMember.image" :editMode="false" />
+                        </div>
+                        <div class="card-footer bg-light border-light" >                                                
+                            <expire-sheriff-profile :userID="teamMember.id" :userIsEnable="teamMember.isEnabled"/>                        
                         </div>
                     </div>
                 </div>
@@ -197,13 +200,15 @@
     import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
     const commonState = namespace("CommonInformation");
     import store from '../../store'
+    import ExpireSheriffProfile from './utils/ExpireSheriffProfile.vue'
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
     @Component({
         components: {
             PageHeader,
-            UserSummaryTemplate
+            UserSummaryTemplate,
+            ExpireSheriffProfile
         }        
     })    
     export default class MyTeamMembers extends Vue {
@@ -300,6 +305,7 @@
                 myteam.rank = myteaminfo.rank;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
+                myteam.isEnabled = myteaminfo.isEnabled;
                 this.myTeamData.push(myteam);
             }
         }

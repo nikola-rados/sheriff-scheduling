@@ -14,6 +14,7 @@ export interface teamMemberInfoType {
     fullName?: string;
     image?: string | null;
     userRoles?: userRoleInfoType[];
+    isEnabled?: boolean;
 }
 
 export interface userRoleInfoType{
