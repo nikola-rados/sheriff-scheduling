@@ -250,7 +250,6 @@
                 role.permissions = permissions;
                 this.roleData.push(role);
             }
-            // console.log(this.roleData)
             this.isRolesDataMounted = true;
         }
 
@@ -287,16 +286,13 @@
         }
 
         public loadRoleDetails(roleId): void {
-            console.log("loading")
             this.editMode = true;            
             const url = 'api/role/' + roleId
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.get(url, options)
                 .then(response => {
                     if(response.data){                        
-                        this.extractRoleInfo(response.data);
-                        // this.isRoleDetailsMounted = true;
-                        // this.showRoleDetails=true;                        
+                        this.extractRoleInfo(response.data);                 
                     }                    
                 });
         }
@@ -304,7 +300,8 @@
         public extractRoleInfo(roleData){
             this.role = {};
             this.selectedPermissions = [];
-            console.log(roleData)
+            this.originalRole = {};
+            this.originalSelectedPermissions = [];
             this.role.id = this.originalRole.id = roleData.id;
             this.role.name = this.originalRole.name = roleData.name;
             this.role.description = this.originalRole.description = roleData.description;            
@@ -316,8 +313,6 @@
                     this.permissions[index].selected = true;                    
                 }
             }
-            
-            console.log(this.role)
             this.isRoleDetailsMounted = true;
             this.showRoleDetails=true;   
         }
@@ -351,12 +346,12 @@
         }
 
         public closeRoleWindow() 
-        {        
+        {                    
             if(this.createMode && this.isEmpty(this.role) && this.selectedPermissions.length < 1)
             {
                 this.showRoleDetails = false;
                 this.resetRoleWindowState();
-            } 
+            }             
             else if(this.editMode && !this.changesMade())
             {
                 this.showRoleDetails = false;
@@ -366,7 +361,7 @@
                 this.showCancelWarning = true;
         }
 
-        public changesMade(): boolean {
+        public changesMade(): boolean {            
             return (!_.isEqual(this.originalRole, this.role) || 
             !_.isEqual(this.originalSelectedPermissions, this.selectedPermissions))
         }
@@ -386,7 +381,9 @@
             this.permissionState = true;            
             this.duplicateRole = false;
             this.role = {} as roleInfoType;
+            this.originalRole = {} as roleInfoType;
             this.selectedPermissions = [];
+            this.originalSelectedPermissions = [];
         }
 
         public AddRole()
