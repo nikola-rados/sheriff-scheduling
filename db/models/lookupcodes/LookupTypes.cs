@@ -1,4 +1,4 @@
-﻿namespace SS.Api.models.db
+﻿namespace SS.Db.models.lookupcodes
 {
     public enum LookupTypes
     {
@@ -8,6 +8,7 @@
         EscortRun,
         OtherAssignment,
         LeaveType,
-        TrainingType
+        TrainingType,
+        SheriffRank
     }
 }

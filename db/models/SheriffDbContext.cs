@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
+using System.Threading.Tasks;
 using db.models;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Models.DB;
@@ -10,6 +12,8 @@ using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
+using SS.Api.infrastructure.authorization;
+using SS.Db.models.lookupcodes;
 
 namespace SS.Db.models
 {
@@ -30,6 +34,7 @@ namespace SS.Db.models
 
         public virtual DbSet<Location> Location { get; set; }
         public virtual DbSet<LookupCode> LookupCode { get; set; }
+        public virtual DbSet<LookupSortOrder> LookupSortOrder { get; set; }
         public virtual DbSet<Region> Region { get; set; }
         public virtual DbSet<Sheriff> Sheriff { get; set; }
         public virtual DbSet<SheriffLeave> SheriffLeave { get; set; }
@@ -41,17 +46,22 @@ namespace SS.Db.models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyAllConfigurations(typeof(LocationConfiguration), this);
+            modelBuilder.ApplyAllConfigurations();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("Name=ConnectionStrings.DB");
+                optionsBuilder.UseNpgsql("Name=DatabaseConnectionString");
             }
         }
 
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            HandleSaveChanges();
+            return await base.SaveChangesAsync(cancellationToken);
+        }
         //Credit to PIMS for this. 
         /// <summary>
         /// Save the entities with who created them or updated them.
@@ -59,11 +69,17 @@ namespace SS.Db.models
         /// <returns></returns>
         public override int SaveChanges()
         {
-            // get entries that are being Added or Updated
+            HandleSaveChanges();
+            return base.SaveChanges();
+        }
+
+        private void HandleSaveChanges()
+        {
             var modifiedEntries = ChangeTracker.Entries()
                 .Where(x => (x.State == EntityState.Added || x.State == EntityState.Modified));
 
-            var userId = GetUserId(_httpContextAccessor?.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            var userId = GetUserId(_httpContextAccessor?.HttpContext?.User.FindFirst(CustomClaimTypes.UserId)?.Value);
+            userId ??= auth.User.SystemUser;
             foreach (var entry in modifiedEntries)
             {
                 if (entry.Entity is BaseEntity entity)
@@ -80,8 +96,6 @@ namespace SS.Db.models
                     }
                 }
             }
-
-            return base.SaveChanges();
         }
 
         private Guid? GetUserId(string claimValue)

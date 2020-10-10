@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using SS.Api.infrastructure.exceptions;
 
 namespace SS.Api.Helpers.Extensions
 {
@@ -28,5 +32,35 @@ namespace SS.Api.Helpers.Extensions
         {
             return value ?? throw new ArgumentNullException(paramName);
         }
+
+        /// <summary>
+        /// Throw an ArgumentNullException if the value is null.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="message">message to include in the exception.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <exception type="BusinessLayerException">message</exception>
+        public static T ThrowBusinessExceptionIfNull<T>(this T value, string message) where T : class
+        {
+            return value ?? throw new BusinessLayerException(message);
+        }
+
+        /// <summary>
+        /// Throw an ArgumentNullException if the value is null.
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="message">message to include in the exception.</param>
+        /// <typeparam name="T"></typeparam>
+        /// <exception type="BusinessLayerException">message</exception>
+        public static T ThrowBusinessExceptionIfNotNull<T>(this T value, string message) where T : class
+        {
+            return value ?? throw new BusinessLayerException(message);
+        }
+
+        public static T ThrowBusinessExceptionIfEmpty<T>(this T value, string message) where T : class
+        {
+            return value is List<T> val && !val.Any() ? throw new BusinessLayerException(message) : value;
+        }
+
     }
 }

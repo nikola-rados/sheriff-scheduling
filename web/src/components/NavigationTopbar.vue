@@ -21,8 +21,7 @@
           <b-nav-item-dropdown text="Duty Roster" dropdown >
             <b-dropdown-item to="/duty-roster">Duty Roster</b-dropdown-item>
             <b-dropdown-item to="/duty-roster-setup">Set-Up</b-dropdown-item>
-          </b-nav-item-dropdown>        
-          <b-nav-item to="/assignment" style="width: 100%;">Add Assignment</b-nav-item>
+          </b-nav-item-dropdown>
           <b-nav-item-dropdown text="Shift Schedule" dropdown >
             <b-dropdown-item to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
             <b-dropdown-item to="/distribute-shift-schedule">Distribute Schedule</b-dropdown-item>
@@ -38,7 +37,7 @@
           </b-nav-item-dropdown>
       </b-navbar-nav>
       <b-navbar-nav class="ml-5 mt-1 mr-5">
-          <b-input-group class="mr-2 mt-1" style="height: 40px">
+          <b-input-group v-if="locationDataReady" class="mr-2 mt-1" style="height: 40px">
             <b-input-group-prepend is-text>
               <b-icon icon="globe"></b-icon>
             </b-input-group-prepend>
@@ -46,7 +45,7 @@
               style="height: 100%;"
               v-model="selectedLocation"                
               :disabled="disableLocationChange"
-              @change="UpdateLocation"                
+              @change="UpdateLocation(selectedLocation)"                
               >
               <b-form-select-option
               v-for="location in locationList"
@@ -76,7 +75,7 @@
   import { Component, Vue } from 'vue-property-decorator';
   import { namespace } from "vuex-class";
   import "@store/modules/CommonInformation";  
-  import {locationInfoType} from '../types/common';  
+  import {commonInfoType, locationInfoType, userInfoType} from '../types/common';  
   const commonState = namespace("CommonInformation");
 
 
@@ -84,31 +83,53 @@
   export default class NavigationTopbar extends Vue {
 
     @commonState.State
-    public location!: locationInfoType;
+    public userDetails!: userInfoType;
     
+    @commonState.State
+    public commonInfo!: commonInfoType;
+
+    @commonState.Action
+    public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
+
+    @commonState.State
+    public locationList!: locationInfoType[];      
+    
+    @commonState.State
+    public location!: locationInfoType;
+
     @commonState.Action
     public UpdateLocation!: (newLocation: locationInfoType) => void
     
-    locationList: locationInfoType[] = [];
-    
-    selectedLocation: locationInfoType = {name: "", id:""};
     disableLocationChange = false;
-
+    userIsAdmin = false;
+    selectedLocation: locationInfoType = {name: '', id: 0};
+    locationDataReady = false;
+     
     mounted() {
-      //TODO: determine based on user's location
-      this.UpdateLocation({name: "abbotsford", id:"1"});
-      this.selectedLocation = this.location;
-      //TODO: determine based on user role
-      // this.disableLocationChange = true;
-      this.getLocations();
+      this.getCurrentLocation();
+      this.userIsAdmin = (this.userDetails.roles.indexOf("Administrator") > -1) || (this.userDetails.roles.indexOf("System Administrator") > -1);
+      this.disableLocationChange = !this.userIsAdmin;
     }
 
-    public getLocations(): void {
-      //TODO: make call to GET all locations
-      this.locationList = [{name: "abbotsford", id:"1"}, {name: "kelowna", id: "2"}]
-    }
-    
-    
+    public getCurrentLocation()
+    {
+      let currentLocation;
+      if (this.userDetails.homeLocationId) {
+        const matchingLocation =this.locationList.filter(locationInfo => {
+            if (locationInfo.id == this.userDetails.homeLocationId) {
+                return true
+            }
+        });
+        currentLocation = matchingLocation[0]
+
+      } else {
+        currentLocation = this.locationList[0]
+      }      
+      
+      this.UpdateLocation(currentLocation);
+      this.selectedLocation = this.location;
+      if (this.selectedLocation.name.length > 0) this.locationDataReady = true;
+    }   
 
   }
 </script>

@@ -1,8 +1,8 @@
 import { RouteConfig } from 'vue-router'
+import VueResource from 'vue-resource'
 import Home from '@components/Home.vue'
 import DutyRoster from '@components/DutyRoster/DutyRoster.vue'
 import SetUp from '@components/DutyRoster/SetUp.vue'
-import AddAssignment from '@components/Assignment/AddAssignment.vue'
 import ManageSchedule from '@components/ShiftSchedule/ManageSchedule.vue'
 import DistributeSchedule from '@components/ShiftSchedule/DistributeSchedule.vue'
 import MyTeamMembers from '@components/MyTeam/MyTeamMembers.vue'
@@ -26,11 +26,6 @@ const routes: Array<RouteConfig> = [
     path: '/duty-roster-setup',
     name: 'SetUp',
     component: SetUp
-  },
-  {
-    path: '/assignment',
-    name: 'AddAssignment',
-    component: AddAssignment
   },
   {    
       path: '/manage-shift-schedule',

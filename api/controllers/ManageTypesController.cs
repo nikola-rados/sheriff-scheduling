@@ -2,21 +2,21 @@
 using System.Net;
 using System.Threading.Tasks;
 using Mapster;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.Helpers.Exceptions;
-using SS.Api.models.db;
+using SS.Api.infrastructure.authorization;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using ss.db.models;
 using SS.Db.models.auth;
+using SS.Db.models.lookupcodes;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace SS.Api.controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = Permission.IsAdmin)]
+    [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]
     public class ManageTypesController : ControllerBase
     {
         #region Variables
@@ -57,6 +57,20 @@ namespace SS.Api.controllers
 
             var entity = lookupCodeDto.Adapt<LookupCode>();
             var lookupCode = await _service.Add(entity);
+            return Ok(lookupCode.Adapt<LookupCodeDto>());
+        }
+
+        [HttpPost("{id}/expire")]
+        public async Task<ActionResult<LookupCodeDto>> Expire(int id)
+        {
+            var lookupCode = await _service.Expire(id);
+            return Ok(lookupCode.Adapt<LookupCodeDto>());
+        }
+
+        [HttpPost("{id}/unexpire")]
+        public async Task<ActionResult<LookupCodeDto>> UnExpire(int id)
+        {
+            var lookupCode = await _service.Unexpire(id);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
