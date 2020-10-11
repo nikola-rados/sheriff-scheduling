@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
+using SS.Db.models.auth.notmapped;
 
 namespace SS.Db.models.auth
 {
@@ -34,16 +36,20 @@ namespace SS.Db.models.auth
         public virtual Location HomeLocation { get; set; }
         [AdaptIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+
+        [NotMapped]
+        public virtual ICollection<RoleWithExpiry> ActiveRoles =>
+            UserRoles.Where(x => x.EffectiveDate <= DateTimeOffset.Now &&
+                                 (x.ExpiryDate == null || x.ExpiryDate > DateTimeOffset.Now)
+            ).Select(ur => new RoleWithExpiry { Role = ur.Role, EffectiveDate = ur.EffectiveDate, ExpiryDate = ur.ExpiryDate } )
+                .ToList();
+
         [AdaptIgnore]
         [NotMapped]
-        public virtual ICollection<Permission> Permissions
-        {
-            get
-            {
-                return UserRoles.
-                    SelectMany(x => x.Role.RolePermissions).Select(x => x.Permission).Distinct().ToList();
-            }
-        }
+        public virtual ICollection<Permission> Permissions =>
+            ActiveRoles.
+                SelectMany(x => x.Role.RolePermissions).Select(x => x.Permission).Distinct().ToList();
+
         [AdaptIgnore]
         public DateTime? LastLogin { get; set; }
     }

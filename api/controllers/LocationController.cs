@@ -19,7 +19,7 @@ namespace SS.Api.controllers
     [ApiController]
     public class LocationController : ControllerBase
     {
-        private SheriffDbContext _db;
+        private readonly SheriffDbContext _db;
 
         public LocationController(SheriffDbContext dbContext)
         {
