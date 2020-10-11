@@ -2,7 +2,8 @@ import axios from "axios";
 import Vue from 'vue';
 import store from "@/store";
 
-import {createAuthRefreshInterceptor, AxiosAuthRefreshOptions} from 'axios-auth-refresh';
+import createAuthRefreshInterceptor from 'axios-auth-refresh';
+import {AxiosAuthRefreshOptions} from 'axios-auth-refresh';
 
 const refreshAuthLogic = failedRequest => axios.get('api/auth/token').then(tokenRefreshResponse => {
     if (tokenRefreshResponse.data.access_token == null) {

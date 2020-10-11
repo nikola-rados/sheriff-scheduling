@@ -460,7 +460,8 @@
                 });
         }
 
-        public extractUserInfo(): void {            
+        public extractUserInfo(): void {
+            this.user = {} as teamMemberInfoType;            
             this.user.idirUserName = this.originalUser.idirUserName = this.userJson.idirName;
             this.user.firstName = this.originalUser.firstName = this.userJson.firstName;
             this.user.lastName = this.originalUser.lastName = this.userJson.lastName;
@@ -542,7 +543,6 @@
                 this.tabIndex= requiredErrorTab[0];
             }             
         }
-
 
         public updateProfile(): void {
             const body = {
@@ -626,6 +626,7 @@
 
                 })   
         }
+
     }
 </script>
 
