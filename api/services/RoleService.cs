@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Helpers.Extensions;
+using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
 using SS.Db.models.auth;
 
@@ -20,7 +22,8 @@ namespace SS.Api.services
 
         public async Task<List<Role>> Roles()
         {
-            return await _db.Role.ToListAsync();
+            return await _db.Role.Include(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission).ToListAsync();
         }
 
         public async Task<Role> Role(int id)
@@ -29,12 +32,20 @@ namespace SS.Api.services
                 .ThenInclude(rp => rp.Permission).SingleOrDefaultAsync(r => r.Id == id);
         }
 
-        public async Task<Role> AddRole(Role role)
+        public async Task<Role> AddRole(Role role, List<int> permissionIds)
         {
+            var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name == role.Name);
+            if (roleAlreadyExistsWithName)
+                throw new BusinessLayerException($"Role with name {role.Name} already exists.");
+
+            using TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
             role.RolePermissions = null;
             role.UserRoles = null;
             await _db.Role.AddAsync(role);
             await _db.SaveChangesAsync();
+            await AssignPermissionsToRole(role.Id, permissionIds);
+            await _db.SaveChangesAsync();
+            scope.Complete();
             return role;
         }
 
@@ -45,15 +56,30 @@ namespace SS.Api.services
             await _db.SaveChangesAsync();
         }
 
-        public async Task<Role> UpdateRole(Role role)
+        public async Task<Role> UpdateRole(Role role, List<int> permissionIds)
         {
-            var savedRole = await _db.Role.FindAsync(role.Id);
+            var savedRole = await _db.Role.Include(r => r.RolePermissions)
+                                          .FirstOrDefaultAsync(r => r.Id == role.Id);
+            if (savedRole.Name != role.Name)
+            {
+                var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name == role.Name);
+                if (roleAlreadyExistsWithName)
+                    throw new BusinessLayerException($"Role with name {role.Name} already exists.");
+            }
+
+            var permissionIdsToRemove =
+                savedRole.RolePermissions.Select(rp => rp.PermissionId).Except(permissionIds).ToList();
+
             _db.Entry(savedRole).CurrentValues.SetValues(role);
+
+            await AssignPermissionsToRole(role.Id, permissionIds);
+            await UnassignPermissionsFromRole(role.Id, permissionIdsToRemove);
             await _db.SaveChangesAsync();
-            return role;
+
+            return savedRole;
         }
 
-        public async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)
+        private async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)
         {
             var role = await _db.Role.Include(r => r.RolePermissions)
                                      .FirstOrDefaultAsync( r=> r.Id == roleId);
@@ -71,19 +97,15 @@ namespace SS.Api.services
                     Permission = permission
                 });
             }
-
-            await _db.SaveChangesAsync();
         }
 
-        public async Task UnassignPermissionsFromRole(int roleId, List<int> permissionIds)
+        private async Task UnassignPermissionsFromRole(int roleId, List<int> permissionIds)
         {
             var role = await _db.Role.Include(r => r.RolePermissions)
                                      .FirstOrDefaultAsync(r => r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
             
             _db.RemoveRange(role.RolePermissions.Where(rp => permissionIds.Contains(rp.PermissionId) && rp.Role.Id == roleId));
-            
-            await _db.SaveChangesAsync();
         }
     }
 }

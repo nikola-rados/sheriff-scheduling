@@ -2,7 +2,10 @@
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
+using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
+using SS.Api.infrastructure.exceptions;
+using SS.Api.models.dto;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
@@ -39,18 +42,25 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPost]
-        public async Task<ActionResult<RoleDto>> AddRole(RoleDto role)
+        public async Task<ActionResult<RoleDto>> AddRole(AddRoleDto addRole)
         {
-            var entity = role.Adapt<Role>();
-            var createdRole = await _service.AddRole(entity);
+            addRole.ThrowBusinessExceptionIfNull("AddRole was null");
+            addRole.Role.ThrowBusinessExceptionIfNull("Role was null");
+            addRole.PermissionIds.ThrowBusinessExceptionIfEmpty("Permission Ids was empty");
+            
+            var entity = addRole.Role.Adapt<Role>();
+            var createdRole = await _service.AddRole(entity, addRole.PermissionIds);
             return Ok(createdRole.Adapt<RoleDto>());
         }
 
         [HttpPut]
-        public async Task<ActionResult<RoleDto>> UpdateRole(RoleDto role)
+        public async Task<ActionResult<RoleDto>> UpdateRole(UpdateRoleDto updateRole)
         {
-            var entity = role.Adapt<Role>();
-            var updatedRole = await _service.UpdateRole(entity);
+            updateRole.ThrowBusinessExceptionIfNull("AddRole was null");
+            updateRole.Role.ThrowBusinessExceptionIfNull("Role was null");
+
+            var entity = updateRole.Role.Adapt<Role>();
+            var updatedRole = await _service.UpdateRole(entity, updateRole.PermissionIds);
             return Ok(updatedRole.Adapt<RoleDto>());
         }
 
@@ -60,22 +70,5 @@ namespace SS.Api.controllers.usermanagement
             await _service.RemoveRole(id);
             return NoContent();
         }
-
-        [HttpPut]
-        [Route("{roleId}/assignPermissions")]
-        public async Task<ActionResult> AssignPermissions(int roleId, List<int> permissionIds)
-        {
-            await _service.AssignPermissionsToRole(roleId, permissionIds);
-            return NoContent();
-        }
-
-        [HttpPut]
-        [Route("{roleId}/unassignPermissions")]
-        public async Task<ActionResult> UnassignPermissions(int roleId, List<int> permissionIds)
-        {
-            await _service.UnassignPermissionsFromRole(roleId, permissionIds);
-            return NoContent();
-        }
-
     }
 }

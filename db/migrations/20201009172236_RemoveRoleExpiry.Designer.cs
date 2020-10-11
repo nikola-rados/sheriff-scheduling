@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -9,9 +10,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201009172236_RemoveRoleExpiry")]
+    partial class RemoveRoleExpiry
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -123,7 +125,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 452, DateTimeKind.Utc).AddTicks(1707),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 474, DateTimeKind.Utc).AddTicks(4235),
                             Description = "Permission to login to the application",
                             Name = "Login"
                         });
@@ -174,7 +176,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 454, DateTimeKind.Utc).AddTicks(4010),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 476, DateTimeKind.Utc).AddTicks(6378),
                             Description = "System Administrator",
                             Name = "System Administrator"
                         },
@@ -182,7 +184,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 2,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 454, DateTimeKind.Utc).AddTicks(4886),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 476, DateTimeKind.Utc).AddTicks(7294),
                             Description = "Administrator",
                             Name = "Administrator"
                         },
@@ -190,7 +192,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 3,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 454, DateTimeKind.Utc).AddTicks(4908),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 476, DateTimeKind.Utc).AddTicks(7315),
                             Description = "Sheriff",
                             Name = "Sheriff"
                         });
@@ -314,7 +316,7 @@ namespace SS.Db.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 11, 55, 56, 462, DateTimeKind.Local).AddTicks(7401),
+                            CreatedOn = new DateTime(2020, 10, 9, 10, 22, 35, 484, DateTimeKind.Local).AddTicks(8490),
                             FirstName = "SYSTEM",
                             IsEnabled = false,
                             LastName = "SYSTEM"
@@ -363,12 +365,11 @@ namespace SS.Db.Migrations
 
                     b.HasIndex("CreatedById");
 
+                    b.HasIndex("RoleId");
+
                     b.HasIndex("UpdatedById");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("RoleId", "UserId")
-                        .IsUnique();
 
                     b.ToTable("UserRole");
                 });
@@ -710,7 +711,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 449, DateTimeKind.Utc).AddTicks(2728),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 471, DateTimeKind.Utc).AddTicks(3543),
                             Description = "Chief Sheriff",
                             Type = 7
                         },
@@ -718,7 +719,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 2,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 449, DateTimeKind.Utc).AddTicks(3895),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 471, DateTimeKind.Utc).AddTicks(4786),
                             Description = "Superintendent",
                             Type = 7
                         },
@@ -726,7 +727,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 3,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 449, DateTimeKind.Utc).AddTicks(3932),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 471, DateTimeKind.Utc).AddTicks(4821),
                             Description = "Staff Inspector",
                             Type = 7
                         },
@@ -734,7 +735,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 4,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 449, DateTimeKind.Utc).AddTicks(3933),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 471, DateTimeKind.Utc).AddTicks(4823),
                             Description = "Inspector",
                             Type = 7
                         },
@@ -742,7 +743,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 5,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 449, DateTimeKind.Utc).AddTicks(3935),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 471, DateTimeKind.Utc).AddTicks(4824),
                             Description = "Staff Sergeant",
                             Type = 7
                         },
@@ -750,7 +751,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 6,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 449, DateTimeKind.Utc).AddTicks(3936),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 471, DateTimeKind.Utc).AddTicks(4826),
                             Description = "Sergeant",
                             Type = 7
                         },
@@ -758,7 +759,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 7,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTime(2020, 10, 9, 18, 55, 56, 449, DateTimeKind.Utc).AddTicks(3937),
+                            CreatedOn = new DateTime(2020, 10, 9, 17, 22, 35, 471, DateTimeKind.Utc).AddTicks(4827),
                             Description = "Deputy Sheriff",
                             Type = 7
                         });

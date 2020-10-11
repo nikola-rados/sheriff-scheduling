@@ -876,3 +876,29 @@ export interface teamMemberJsonType {
         "rowVersion": string
       
 }
+
+export interface permissionJsonType {
+  
+    "id": string,
+    "name": string,
+    "description": string,
+    "concurrencyToken": number
+  
+}
+
+export interface roleJsonType {  
+    "id": string,
+    "name": string,
+    "description": string,
+    "rolePermissions": rolePermissionsJsonType[],      
+    "expiryDate": string,
+    "concurrencyToken": number  
+}
+
+export interface rolePermissionsJsonType {
+  "id": string,
+  "roleId": string,
+  "permission": permissionJsonType,
+  "permissionId": string,
+  "concurrencyToken": number
+}

@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SS.Api.controllers.usermanagement;
 using SS.Api.Models.DB;
+using SS.Api.models.dto;
+using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models;
 using SS.Db.models.auth;
@@ -38,17 +41,18 @@ namespace tests.controllers
             var user = await CreateUser();
             var role = await CreateRole();
 
-            var controllerResult = await _controller.AssignRoles(user.Id, new List<int> { role.Id });
+            var controllerResult = await _controller.AssignRoles(new List<AssignRoleDto> {new AssignRoleDto { UserId = user.Id, RoleId = role.Id, EffectiveDate = DateTimeOffset.UtcNow }});
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
             var entity = await _dbContext.User.FindAsync(user.Id);
             Assert.True(entity.UserRoles.Count > 0);
 
-            controllerResult = await _controller.UnassignRoles(user.Id, new List<int> { role.Id });
+            controllerResult = await _controller.UnassignRoles(new List<UnassignRoleDto> { new UnassignRoleDto { UserId = user.Id, RoleId = role.Id } });
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
             entity = await _dbContext.User.FindAsync(user.Id);
-            Assert.True(entity.UserRoles.Count == 0);
+            Assert.True(entity.UserRoles.Count > 0);
+            Assert.NotNull(entity.UserRoles.FirstOrDefault().ExpiryDate);
         }
 
 

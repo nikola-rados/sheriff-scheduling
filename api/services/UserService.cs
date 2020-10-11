@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.exceptions;
+using SS.Api.models.dto;
+using SS.Api.Models.Dto;
 using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
@@ -40,36 +42,52 @@ namespace SS.Api.services
             return user;
         }
 
-        public async Task AssignRolesToUser(Guid userId, List<int> roleIds)
+        public async Task AssignRolesToUser(List<UserRole> assignRoles)
         {
-            var user = await _db.User.FindAsync(userId);
-            user.ThrowBusinessExceptionIfNull($"User with id {userId} does not exist.");
-
-            foreach (var roleId in roleIds)
+            foreach (var assignRole in assignRoles)
             {
-                var role = await _db.Role.Include(r => r.UserRoles).FirstOrDefaultAsync(r => r.Id == roleId);
-                role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
+                var user = await _db.User.FindAsync(assignRole.UserId);
+                user.ThrowBusinessExceptionIfNull($"User with id {assignRole.UserId} does not exist.");
 
-                if (user.UserRoles.Any(r => r.UserId == userId && r.RoleId == roleId))
-                    return;
+                var role = await _db.Role.Include(r => r.UserRoles).FirstOrDefaultAsync(r => r.Id == assignRole.RoleId);
+                role.ThrowBusinessExceptionIfNull($"Role with id {assignRole.RoleId} does not exist.");
 
-                user.UserRoles.Add(new UserRole
+                var savedUserRole = user.UserRoles.FirstOrDefault(ur =>
+                    ur.UserId == assignRole.UserId &&
+                    ur.RoleId == assignRole.RoleId);
+
+                //Update if exists.
+                if (savedUserRole != null)
                 {
-                    Role = role,
-                    User = user
-                });
+                    savedUserRole.Role = role;
+                    savedUserRole.User = user;
+                    savedUserRole.ExpiryDate = assignRole.ExpiryDate;
+                    savedUserRole.EffectiveDate = assignRole.EffectiveDate;
+                }
+                else
+                {
+                    user.UserRoles.Add(new UserRole
+                    {
+                        Role = role,
+                        User = user,
+                        ExpiryDate = assignRole.ExpiryDate,
+                        EffectiveDate = assignRole.EffectiveDate
+                    });
+                }
             }
-
             await _db.SaveChangesAsync();
         }
 
-        public async Task UnassignRoleFromUser(Guid userId, List<int> roleIds)
+        public async Task UnassignRoleFromUser(List<UserRole> unassignRoles)
         {
-            var user = await _db.User.FindAsync(userId);
-            user.ThrowBusinessExceptionIfNull($"User with id {userId} does not exist.");
+            foreach (var unassignRole in unassignRoles)
+            {
+                var user = await _db.User.Include(r => r.UserRoles).FirstOrDefaultAsync(u => u.Id == unassignRole.UserId);
+                user.ThrowBusinessExceptionIfNull($"User with id {unassignRole.UserId} does not exist.");
 
-            _db.RemoveRange(user.UserRoles.Where(r => r.UserId == userId && roleIds.Contains(r.RoleId)));
-
+                var userRole = user.UserRoles.FirstOrDefault(r => r.UserId == unassignRole.UserId && r.RoleId == unassignRole.RoleId);
+                if (userRole != null) userRole.ExpiryDate = DateTime.UtcNow;
+            }
             await _db.SaveChangesAsync();
         }
     }
