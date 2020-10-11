@@ -55,6 +55,7 @@
                                     <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
                                         <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
                                     </b-form-group>
+                                    <h2 class="mx-1 mt-0"><b-badge v-if="duplicateIdir" variant="danger"> Duplicate IDIR</b-badge></h2>
 
                                     <b-row class="mx-1"> 
                                         <b-form-group class="mr-1" style="width: 20rem"><label>First Name<span class="text-danger">*</span></label>
@@ -240,8 +241,7 @@
         originalUser = {} as teamMemberInfoType;
         userJson;
         genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
-        genderValues = [0, 1, 2]        
-        idirUsernameState = true;
+        genderValues = [0, 1, 2]
         firstNameState = true;
         lastNameState = true;
         emailState = true;
@@ -250,6 +250,7 @@
         selectedRankState = true;
         idirUserNameState = true;
         duplicateBadge = false;
+        duplicateIdir = false;
         userIsAdmin = false;
 
         tabIndex = 0;
@@ -320,7 +321,9 @@
             this.createMode = false;
             this.editMode = true;
             this.badgeNumberState = true;
+            this.idirUserNameState = true;
             this.duplicateBadge = false;
+            this.duplicateIdir = false;
             this.GetRoles(userId);      
             
         }
@@ -369,6 +372,7 @@
             this.selectedRankState = true;
             this.idirUserNameState = true;
             this.duplicateBadge = false;
+            this.duplicateIdir = false;
             this.user = {} as teamMemberInfoType;
         }
 
@@ -456,7 +460,8 @@
                 });
         }
 
-        public extractUserInfo(): void {            
+        public extractUserInfo(): void {
+            this.user = {} as teamMemberInfoType;            
             this.user.idirUserName = this.originalUser.idirUserName = this.userJson.idirName;
             this.user.firstName = this.originalUser.firstName = this.userJson.firstName;
             this.user.lastName = this.originalUser.lastName = this.userJson.lastName;
@@ -490,6 +495,7 @@
                 requiredErrorTab.push(0);
             } else {
                 this.idirUserNameState = true;
+                this.duplicateIdir = false;
             }
             if (!this.user.firstName) {
                 this.firstNameState = false;
@@ -538,7 +544,6 @@
             }             
         }
 
-
         public updateProfile(): void {
             const body = {
                 homeLocationId: this.location.id,               
@@ -562,14 +567,21 @@
                         this.getSheriffs();                     
                     }                    
                 }, err => {
-                    //console.log(err.response)
+                    console.log(err)
                     this.errorText = err.response.data.error
+                    this.errorCode = err.response.status
                      
                     //if(this.errorText.includes('already has badge number'))
-                    if(err.response.status == 500)
+                    // has IDIR name
+                    if(err.response.status == 400)
                     {
-                        this.badgeNumberState = false;
-                        this.duplicateBadge = true;
+                        if (this.errorText.includes('already has badge number')){
+                            this.badgeNumberState = false;
+                            this.duplicateBadge = true;
+                        } else if (this.errorText.includes('has IDIR name')) {
+                            this.idirUserNameState = false;
+                            this.duplicateIdir = true;
+                        }                        
                     }
 
                 });
@@ -599,16 +611,22 @@
                     }
                 }, err => {
                     this.errorText = err.response.data.error
+                    this.errorCode = err.response.status                     
                     
-                    if(err.response.status == 500)
-                    //if(this.errorText.includes('already has badge number'))
+                    if(err.response.status == 400)
                     {
-                        this.badgeNumberState = false;
-                        this.duplicateBadge = true;
+                        if (this.errorText.includes('already has badge number')){
+                            this.badgeNumberState = false;
+                            this.duplicateBadge = true;
+                        } else if (this.errorText.includes('has IDIR name')) {
+                            this.idirUserNameState = false;
+                            this.duplicateIdir = true;
+                        }                        
                     }
 
                 })   
         }
+
     }
 </script>
 
