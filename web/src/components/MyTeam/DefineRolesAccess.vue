@@ -5,7 +5,7 @@
                 <page-header :pageHeaderText="sectionHeader"></page-header>
             </b-col>
             <b-col style="padding: 0;">
-                <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="warning" @click="AddRole()"><b-icon-plus/>Add a Role</b-button>
+                <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="AddRole()"><b-icon-plus/>Add Role</b-button>
             </b-col>
         </b-row>
 
