@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,7 +38,9 @@ namespace SS.Api
 {
     public class Startup
     {
-        private IWebHostEnvironment CurrentEnvironment { get; set; }
+        private IWebHostEnvironment CurrentEnvironment { get; }
+
+        private static readonly HttpClient Client = new HttpClient();
 
         public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
@@ -80,9 +83,7 @@ namespace SS.Api
                             return;
 
                         var refreshToken = cookieCtx.Properties.GetTokenValue("refresh_token");
-                        var httpClientFactory = cookieCtx.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>();
-                        var httpClient = httpClientFactory.CreateClient(nameof(CookieAuthenticationEvents));
-                        var response = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
+                        var response = await Client.RequestRefreshTokenAsync(new RefreshTokenRequest
                         {
                             Address = Configuration.GetNonEmptyValue("Keycloak:Authority") + "/protocol/openid-connect/token",
                             ClientId = Configuration.GetNonEmptyValue("Keycloak:Client"),
@@ -250,6 +251,10 @@ namespace SS.Api
             app.UseSwagger(options =>
             {
                 options.RouteTemplate = "api/swagger/{documentname}/swagger.json";
+                options.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
+                {
+                    swaggerDoc.Servers = new List<OpenApiServer>();
+                });
             });
 
             app.UseSwaggerUI(options =>
