@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
@@ -79,9 +81,15 @@ namespace SS.Api.controllers.usermanagement
         [HttpPost]
         [Route("uploadPhoto")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult> UploadPhoto(Guid? id, string badgeNumber, byte[] photoData)
+        public async Task<ActionResult> UploadPhoto(Guid? id, string badgeNumber, IFormFile file)
         {
-            var sheriff = await _service.UpdateSheriffPhoto(id, badgeNumber, photoData);
+            if (file.Length == 0)
+                return BadRequest("File length = 0");
+
+            await using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            var fileBytes = ms.ToArray();
+            var sheriff = await _service.UpdateSheriffPhoto(id, badgeNumber, fileBytes);
             return Ok(sheriff);
         }
 

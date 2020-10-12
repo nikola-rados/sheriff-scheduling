@@ -110,6 +110,7 @@ namespace SS.Api.services
         public async Task<Sheriff> UpdateSheriffPhoto(Guid? id, string badgeNumber, byte[] photoData)
         {
             var savedSheriff = await _db.Sheriff.FirstOrDefaultAsync(s => (id.HasValue && s.Id == id) || (!id.HasValue && s.BadgeNumber == badgeNumber));
+            savedSheriff.ThrowBusinessExceptionIfNull($"No sheriff with Badge: {badgeNumber} or Id: {id}");
             savedSheriff.Photo = photoData;
             await _db.SaveChangesAsync();
             return savedSheriff;
