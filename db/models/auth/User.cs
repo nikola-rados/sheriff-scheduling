@@ -38,6 +38,7 @@ namespace SS.Db.models.auth
         public int? HomeLocationId { get; set; }
         public virtual Location HomeLocation { get; set; }
         [AdaptIgnore]
+        [JsonIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
         [NotMapped]
@@ -45,6 +46,11 @@ namespace SS.Db.models.auth
             UserRoles.Where(x => x.EffectiveDate <= DateTimeOffset.Now &&
                                  (x.ExpiryDate == null || x.ExpiryDate > DateTimeOffset.Now)
             ).Select(ur => new RoleWithExpiry { Role = ur.Role, EffectiveDate = ur.EffectiveDate, ExpiryDate = ur.ExpiryDate } )
+                .ToList();
+
+        [NotMapped]
+        public virtual ICollection<RoleWithExpiry> Roles =>
+            UserRoles.Select(ur => new RoleWithExpiry { Role = ur.Role, EffectiveDate = ur.EffectiveDate, ExpiryDate = ur.ExpiryDate })
                 .ToList();
 
         [AdaptIgnore]
