@@ -40,8 +40,6 @@ namespace SS.Api
     {
         private IWebHostEnvironment CurrentEnvironment { get; }
 
-        private static readonly HttpClient Client = new HttpClient();
-
         public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
             Configuration = configuration;
@@ -83,7 +81,9 @@ namespace SS.Api
                             return;
 
                         var refreshToken = cookieCtx.Properties.GetTokenValue("refresh_token");
-                        var response = await Client.RequestRefreshTokenAsync(new RefreshTokenRequest
+                        var httpClientFactory = cookieCtx.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>();
+                        var httpClient = httpClientFactory.CreateClient(nameof(CookieAuthenticationEvents));
+                        var response = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
                         {
                             Address = Configuration.GetNonEmptyValue("Keycloak:Authority") + "/protocol/openid-connect/token",
                             ClientId = Configuration.GetNonEmptyValue("Keycloak:Client"),
