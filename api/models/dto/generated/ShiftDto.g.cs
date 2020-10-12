@@ -9,8 +9,8 @@ namespace SS.Api.Models.Dto
     {
         public int Id { get; set; }
         public ShiftType Type { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public DateTimeOffset StartDate { get; set; }
+        public DateTimeOffset EndDate { get; set; }
         public ICollection<SheriffDto> AssignedSheriff { get; set; }
         public int? LocationId { get; set; }
         public LocationDto Location { get; set; }

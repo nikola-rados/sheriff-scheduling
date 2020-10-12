@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using SS.Api.helpers.extensions;
 using SS.Api.Helpers.Extensions;
+using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Db.models;
+using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 
 namespace SS.Api.services
@@ -16,10 +21,12 @@ namespace SS.Api.services
     /// </summary>
     public class SheriffService
     {
+        private ClaimsPrincipal User { get; }
         private readonly SheriffDbContext _db;
-        public SheriffService(SheriffDbContext db)
+        public SheriffService(SheriffDbContext db, IHttpContextAccessor httpContextAccessor = null)
         {
             _db = db;
+            User = httpContextAccessor?.HttpContext.User;
         }
 
         #region Sheriff
@@ -45,7 +52,15 @@ namespace SS.Api.services
 
         public async Task<List<Sheriff>> GetSheriffs(int? locationId)
         {
+            var operation = DetermineOperationFromClaims();
+            var currentUserId = User.CurrentUserId();
+            var currentUserHomeLocationId = User.HomeLocationId();
+
             return await _db.Sheriff.Where(s => !locationId.HasValue || s.HomeLocationId == locationId)
+               .Where(s => (operation == ViewProfileOperation.ViewProvince ||
+                              (operation == ViewProfileOperation.ViewLocation && s.HomeLocationId == currentUserHomeLocationId) ||  //todo Loaned Location
+                              operation == ViewProfileOperation.ViewOwn && s.Id == currentUserId) &&
+                              operation != ViewProfileOperation.None)
                 .Include(s => s.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .ToListAsync();
@@ -53,7 +68,16 @@ namespace SS.Api.services
 
         public async Task<Sheriff> GetSheriff(Guid id)
         {
-            return await _db.Sheriff.Include(s=> s.HomeLocation)
+            var operation = DetermineOperationFromClaims();
+            var currentUserId = User.CurrentUserId();
+            var currentUserHomeLocationId = User.HomeLocationId();
+
+            return await _db.Sheriff
+                .Where(s => (operation == ViewProfileOperation.ViewProvince ||
+                             (operation == ViewProfileOperation.ViewLocation && s.HomeLocationId == currentUserHomeLocationId) || //todo Loaned Location
+                             operation == ViewProfileOperation.ViewOwn && s.Id == currentUserId) &&
+                            operation != ViewProfileOperation.None)
+                .Include(s=> s.HomeLocation)
                 .Include(s => s.AwayLocation)
                 .Include(s => s.Leave)
                 .Include(s => s.Training)
@@ -198,7 +222,7 @@ namespace SS.Api.services
             if (string.IsNullOrEmpty(idirName))
                 return;
 
-            var existingSheriffWithIdir = await _db.Sheriff.FirstOrDefaultAsync(s => s.IdirName == idirName);
+            var existingSheriffWithIdir = await _db.Sheriff.FirstOrDefaultAsync(s => s.IdirName.ToLower() == idirName.ToLower());
             if (existingSheriffWithIdir != null)
                 throw new BusinessLayerException(
                     $"Sheriff {existingSheriffWithIdir.LastName}, {existingSheriffWithIdir.FirstName} has IDIR name: {existingSheriffWithIdir.IdirName}");
@@ -214,6 +238,28 @@ namespace SS.Api.services
                 throw new BusinessLayerException(
                     $"Sheriff {existingSheriffWithBadge.LastName}, {existingSheriffWithBadge.FirstName} already has badge number: {badgeNumber}");
         }
+
+        private ViewProfileOperation DetermineOperationFromClaims()
+        {
+            if (User.HasPermission(Permission.ViewProfilesInAllLocation))
+                return ViewProfileOperation.ViewProvince;
+            if (User.HasPermission(Permission.ViewProfilesInOwnLocation))
+                return ViewProfileOperation.ViewLocation;
+            if (User.HasPermission(Permission.ViewOwnProfile))
+                return ViewProfileOperation.ViewOwn;
+            return ViewProfileOperation.None;
+        }
+
         #endregion
     }
+
+    public enum ViewProfileOperation
+    {
+        ViewOwn,
+        ViewLocation,
+        ViewProvince,
+        None
+    };
+
+
 }

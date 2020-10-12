@@ -9,7 +9,7 @@ namespace SS.Api.Models.Dto
         public string Name { get; set; }
         public string JustinCode { get; set; }
         public int? ParentLocationId { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
         public int? RegionId { get; set; }
         public uint ConcurrencyToken { get; set; }
     }

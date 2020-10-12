@@ -17,7 +17,7 @@ namespace SS.Api.Models.DB
         public int? ParentLocationId { get; set; }
         [AdaptIgnore]
         public virtual Region Region { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
         public int? RegionId { get; set; }
     }
 }

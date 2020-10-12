@@ -8,7 +8,7 @@ namespace SS.Api.Models.Dto
         public int JustinId { get; set; }
         public string Code { get; set; }
         public string Name { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

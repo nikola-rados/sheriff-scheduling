@@ -16,7 +16,6 @@ namespace SS.Api.controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]
     public class ManageTypesController : ControllerBase
     {
         #region Variables
@@ -34,6 +33,7 @@ namespace SS.Api.controllers
         [SwaggerResponse((int)HttpStatusCode.OK)]
         [SwaggerResponse((int)HttpStatusCode.NotFound)]
         [Route("{id}")]
+        [PermissionClaimAuthorize(perm: Permission.ViewManageTypes)]
         public async Task<ActionResult<LookupCodeDto>> Find(int id)
         {
             var entity = await _service.Find(id);
@@ -43,6 +43,7 @@ namespace SS.Api.controllers
         }
 
         [HttpGet]
+        [PermissionClaimAuthorize(perm: Permission.ViewManageTypes)]
         public async Task<ActionResult<List<LookupCodeDto>>> GetAll(LookupTypes? codeType, int? locationId)
         {
             var lookupCodesDtos = (await _service.GetAll(codeType, locationId)).Adapt<List<LookupCodeDto>>();
@@ -50,6 +51,7 @@ namespace SS.Api.controllers
         }
 
         [HttpPost]
+        [PermissionClaimAuthorize(perm: Permission.EditTypes)]
         public async Task<ActionResult<LookupCodeDto>> Add(LookupCodeDto lookupCodeDto)
         {
             if (lookupCodeDto == null)
@@ -61,6 +63,7 @@ namespace SS.Api.controllers
         }
 
         [HttpPost("{id}/expire")]
+        [PermissionClaimAuthorize(perm: Permission.ExpireTypes)]
         public async Task<ActionResult<LookupCodeDto>> Expire(int id)
         {
             var lookupCode = await _service.Expire(id);
@@ -68,6 +71,7 @@ namespace SS.Api.controllers
         }
 
         [HttpPost("{id}/unexpire")]
+        [PermissionClaimAuthorize(perm: Permission.ExpireTypes)]
         public async Task<ActionResult<LookupCodeDto>> UnExpire(int id)
         {
             var lookupCode = await _service.Unexpire(id);
@@ -75,6 +79,7 @@ namespace SS.Api.controllers
         }
 
         [HttpPut]
+        [PermissionClaimAuthorize(perm: Permission.EditTypes)]
         public async Task<ActionResult<LookupCodeDto>> Update(LookupCodeDto lookupCodeDto)
         {
             if (lookupCodeDto == null)
@@ -86,6 +91,7 @@ namespace SS.Api.controllers
         }
 
         [HttpDelete]
+        [PermissionClaimAuthorize(perm: Permission.EditTypes)]
         public async Task<ActionResult<string>> Remove(int id)
         {
             await _service.Remove(id);

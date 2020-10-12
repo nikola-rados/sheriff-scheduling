@@ -13,9 +13,9 @@ namespace SS.Db.models.sheriff
         public int Id { get; set; }
         public virtual LookupCode TrainingType { get; set; }
         public int? TrainingTypeId { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        public DateTimeOffset? StartDate { get; set; }
+        public DateTimeOffset? EndDate { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
         public bool IsFullDay { get; set; }
         [AdaptIgnore]
         public virtual Sheriff Sheriff { get; set; }

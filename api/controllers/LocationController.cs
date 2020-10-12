@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Helpers.Extensions;
+using SS.Api.infrastructure.authorization;
 using SS.Api.Models.Dto;
 using SS.Db.models;
+using SS.Db.models.auth;
 
 namespace SS.Api.controllers
 {
@@ -27,6 +29,7 @@ namespace SS.Api.controllers
         }
 
         [HttpGet]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         public async Task<ActionResult<List<LocationDto>>> Locations()
         {
             var locations = await _db.Location.ToListAsync();
@@ -35,6 +38,7 @@ namespace SS.Api.controllers
 
         [HttpPut]
         [Route("{id}/enable")]
+        [PermissionClaimAuthorize(perm: Permission.ExpireLocation)]
         public async Task<ActionResult> EnableLocation(int id)
         {
             var location = await _db.Location.FindAsync(id);
@@ -46,6 +50,7 @@ namespace SS.Api.controllers
 
         [HttpPut]
         [Route("{id}/disable")]
+        [PermissionClaimAuthorize(perm: Permission.ExpireLocation)]
         public async Task<ActionResult> DisableLocation(int id)
         {
             var location = await _db.Location.FindAsync(id);

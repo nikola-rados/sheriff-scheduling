@@ -9,10 +9,35 @@ namespace SS.Db.configuration
     {
         public override void Configure(EntityTypeBuilder<Permission> builder)
         {
-            builder.Property(b => b.Id).HasIdentityOptions(startValue: 50);
+            builder.Property(b => b.Id).HasIdentityOptions(startValue: 200);
 
             builder.HasData(
-                new Permission { Id = 1, Name = Permission.Login, Description = "Permission to login to the application"}
+                new Permission { Id = 1, Name = Permission.Login, Description = "Allows the user to login."},
+                new Permission { Id = 2, Name = Permission.ViewOwnProfile, Description = "View their own profile" },
+                new Permission { Id = 3, Name = Permission.ViewProfilesInOwnLocation, Description = "View profiles in their own location" },
+                new Permission { Id = 4, Name = Permission.ViewProfilesInAllLocation, Description = "View profiles in all locations" },
+                new Permission { Id = 5, Name = Permission.CreateUsers, Description = "Create Profile (User)" },
+                new Permission { Id = 6, Name = Permission.ExpireUsers, Description = "Expire Profile (User)" },
+                new Permission { Id = 7, Name = Permission.EditUsers, Description = "Edit Profile (User)" },
+                new Permission { Id = 8, Name = Permission.ViewRoles, Description = "View all Roles" },
+                new Permission { Id = 9, Name = Permission.CreateAndAssignRoles, Description = "Create and Assign Roles" },
+                new Permission { Id = 10, Name = Permission.ExpireRoles, Description = "Expire Roles" },
+                new Permission { Id = 11, Name = Permission.EditRoles, Description = "Edit Roles" },
+                new Permission { Id = 12, Name = Permission.ViewManageTypes, Description = "View Manage Types" },
+                new Permission { Id = 13, Name = Permission.CreateTypes, Description = "Create Types" },
+                new Permission { Id = 14, Name = Permission.EditTypes, Description = "Edit Types" },
+                new Permission { Id = 15, Name = Permission.ExpireTypes, Description = "Expire Types" },
+                new Permission { Id = 16, Name = Permission.ViewMyShifts, Description = "View their own shifts" },
+                new Permission { Id = 17, Name = Permission.ViewAllShiftsAtMyLocation, Description = "View Shifts at their location" },
+                new Permission { Id = 18, Name = Permission.ViewAllShifts, Description = "View all Shifts" },
+                new Permission { Id = 19, Name = Permission.CreateAndAssignShifts, Description = "Create and Assign Shifts" },
+                new Permission { Id = 20, Name = Permission.ExpireShifts, Description = "Expire Shifts" },
+                new Permission { Id = 21, Name = Permission.EditShifts, Description = "Edit Shifts" },
+                new Permission { Id = 22, Name = Permission.ViewDistributeSchedule, Description = "View Distribute Schedule" },
+                new Permission { Id = 23, Name = Permission.ViewHomeLocationAndAssignedLocation, Description = "View Home Location and Assigned Location" },
+                new Permission { Id = 24, Name = Permission.ViewRegion, Description = "View Region (all locations within region)" },
+                new Permission { Id = 25, Name = Permission.ViewProvince, Description = "View Province (all regions, all locations)" },
+                new Permission { Id = 26, Name = Permission.ExpireLocation, Description = "Expire Location" }
             );
             base.Configure(builder);
         }
