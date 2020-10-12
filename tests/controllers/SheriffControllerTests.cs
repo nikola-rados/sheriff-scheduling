@@ -35,8 +35,9 @@ namespace tests.controllers
 
         public SheriffControllerTests() : base(false)
         {
+            var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
             var httpContextAccessor = new HttpContextAccessor {HttpContext = HttpResponseTest.SetupHttpContext()};
-            _controller = new SheriffController(new SheriffService(_dbContext, httpContextAccessor), new UserService(_dbContext))
+            _controller = new SheriffController(new SheriffService(_dbContext, httpContextAccessor), new UserService(_dbContext), environment.Configuration)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };

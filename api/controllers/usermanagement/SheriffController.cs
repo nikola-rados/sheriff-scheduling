@@ -92,14 +92,14 @@ namespace SS.Api.controllers.usermanagement
                 return BadRequest("File length = 0");
 
             if (file.Length >= _uploadPhotoSizeLimitKB * 1024)
-                return BadRequest($"FileLength: {file.Length/1024} KB, Maximum upload size: {_uploadPhotoSizeLimitKB} KB");
+                return BadRequest($"File length: {file.Length/1024} KB, Maximum upload size: {_uploadPhotoSizeLimitKB} KB");
 
             await using var ms = new MemoryStream();
             await file.CopyToAsync(ms);
             var fileBytes = ms.ToArray();
 
             if (!fileBytes.IsImage())
-                return BadRequest("The uploaded file was not a GIF/JPEG/PNG.");
+                return BadRequest("The uploaded file was not a valid GIF/JPEG/PNG.");
 
             var sheriff = await _service.UpdateSheriffPhoto(id, badgeNumber, fileBytes);
             return Ok(sheriff);
