@@ -11,8 +11,8 @@ namespace SS.Api.Models.Dto
         public string Code { get; set; }
         public string SubCode { get; set; }
         public string Description { get; set; }
-        public DateTime? EffectiveDate { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        public DateTimeOffset? EffectiveDate { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
         public int? SortOrder { get; set; }
         public LocationDto Location { get; set; }
         public int? LocationId { get; set; }

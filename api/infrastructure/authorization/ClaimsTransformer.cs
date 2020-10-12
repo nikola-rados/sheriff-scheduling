@@ -14,15 +14,13 @@ namespace SS.Api.infrastructure.authorization
 {
     public class ClaimsTransformer : IClaimsTransformation
     {
-        private readonly SheriffDbContext _db;
         private readonly IMemoryCache _cache;
         private bool _isTransformed;
         private readonly AuthService _authService;
         private readonly TimeSpan _claimCachePeriod;
 
-        public ClaimsTransformer(SheriffDbContext db, IMemoryCache cache,  AuthService authService, IConfiguration configuration)
+        public ClaimsTransformer(IMemoryCache cache,  AuthService authService, IConfiguration configuration)
         {
-            _db = db;
             _cache = cache;
             _authService = authService;
             _claimCachePeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("ClaimsCachePeriod"));

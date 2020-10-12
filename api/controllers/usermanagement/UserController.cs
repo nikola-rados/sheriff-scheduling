@@ -17,7 +17,6 @@ namespace SS.Api.controllers.usermanagement
     /// This was made abstract, so it can be reused. The idea is you could take the User object and reuse with minimal changes in another project. 
     /// </summary>
     /// 
-    [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]
     public abstract class UserController : ControllerBase
     {
         private readonly UserService _service;
@@ -29,7 +28,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("assignRoles")]
-        [AuthorizeRoles(Role.SystemAdministrator)]
+        [PermissionClaimAuthorize(perm: Permission.CreateAndAssignRoles)]
         public async Task<ActionResult> AssignRoles(List<AssignRoleDto> assignRole)
         {
             var entity = assignRole.Adapt<List<UserRole>>();
@@ -39,7 +38,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("unassignRoles")]
-        [AuthorizeRoles(Role.SystemAdministrator)]
+        [PermissionClaimAuthorize(perm: Permission.CreateAndAssignRoles)]
         public async Task<ActionResult> UnassignRoles(List<UnassignRoleDto> unassignRole)
         {
             var entity = unassignRole.Adapt<List<UserRole>>();
@@ -49,7 +48,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("{id}/enable")]
-        [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]
+        [PermissionClaimAuthorize(perm: Permission.ExpireUsers)]
         public async Task<ActionResult<SheriffDto>> EnableUser(Guid id)
         {
             var user = await _service.EnableUser(id);
@@ -58,7 +57,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("{id}/disable")]
-        [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]
+        [PermissionClaimAuthorize(perm: Permission.ExpireUsers)]
         public async Task<ActionResult<SheriffDto>> DisableUser(Guid id)
         {
             var user = await _service.DisableUser(id);

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -9,9 +10,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201009195155_MorePermissions")]
+    partial class MorePermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,11 +42,11 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("JustinCode")
                         .HasColumnType("text");
@@ -61,8 +63,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -95,8 +97,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -107,8 +109,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -123,7 +125,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(2210), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(1193),
                             Description = "Allows the user to login.",
                             Name = "Login"
                         },
@@ -131,7 +133,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 2,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3082), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2059),
                             Description = "View their own profile",
                             Name = "ViewOwnProfile"
                         },
@@ -139,7 +141,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 3,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3104), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2079),
                             Description = "View profiles in their own location",
                             Name = "ViewProfilesInOwnLocation"
                         },
@@ -147,7 +149,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 4,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3106), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2081),
                             Description = "View profiles in all locations",
                             Name = "ViewProfilesInAllLocation"
                         },
@@ -155,7 +157,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 5,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3108), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2082),
                             Description = "Create Profile (User)",
                             Name = "CreateUsers"
                         },
@@ -163,7 +165,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 6,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3109), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2083),
                             Description = "Expire Profile (User)",
                             Name = "ExpireUsers"
                         },
@@ -171,7 +173,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 7,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3111), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2084),
                             Description = "Edit Profile (User)",
                             Name = "EditUsers"
                         },
@@ -179,7 +181,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 8,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3112), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2086),
                             Description = "View all Roles",
                             Name = "ViewRoles"
                         },
@@ -187,7 +189,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 9,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3114), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2087),
                             Description = "Create and Assign Roles",
                             Name = "CreateAndAssignRoles"
                         },
@@ -195,7 +197,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 10,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3116), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2088),
                             Description = "Expire Roles",
                             Name = "ExpireRoles"
                         },
@@ -203,7 +205,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 11,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3117), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2089),
                             Description = "Edit Roles",
                             Name = "EditRoles"
                         },
@@ -211,7 +213,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 12,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3119), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2091),
                             Description = "View Manage Types",
                             Name = "ViewManageTypes"
                         },
@@ -219,7 +221,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 13,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3120), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2092),
                             Description = "Create Types",
                             Name = "CreateTypes"
                         },
@@ -227,7 +229,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 14,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3122), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2093),
                             Description = "Edit Types",
                             Name = "EditTypes"
                         },
@@ -235,7 +237,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 15,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3123), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2095),
                             Description = "Expire Types",
                             Name = "ExpireTypes"
                         },
@@ -243,7 +245,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 16,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3125), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2096),
                             Description = "View their own shifts",
                             Name = "ViewMyShifts"
                         },
@@ -251,7 +253,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 17,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3126), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2097),
                             Description = "View Shifts at their location",
                             Name = "ViewAllShiftsAtMyLocation"
                         },
@@ -259,7 +261,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 18,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3128), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2099),
                             Description = "View all Shifts",
                             Name = "ViewAllShifts"
                         },
@@ -267,7 +269,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 19,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3129), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2100),
                             Description = "Create and Assign Shifts",
                             Name = "CreateAndAssignShifts"
                         },
@@ -275,7 +277,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 20,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3131), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2101),
                             Description = "Expire Shifts",
                             Name = "ExpireShifts"
                         },
@@ -283,7 +285,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 21,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3132), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2102),
                             Description = "Edit Shifts",
                             Name = "EditShifts"
                         },
@@ -291,7 +293,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 22,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3133), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2104),
                             Description = "View Distribute Schedule",
                             Name = "ViewDistributeSchedule"
                         },
@@ -299,7 +301,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 23,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3135), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2105),
                             Description = "View Home Location and Assigned Location",
                             Name = "ViewHomeLocationAndAssignedLocation"
                         },
@@ -307,7 +309,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 24,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3136), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2106),
                             Description = "View Region (all locations within region)",
                             Name = "ViewRegion"
                         },
@@ -315,7 +317,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 25,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3181), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2108),
                             Description = "View Province (all regions, all locations)",
                             Name = "ViewProvince"
                         },
@@ -323,7 +325,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 26,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 116, DateTimeKind.Unspecified).AddTicks(3184), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 655, DateTimeKind.Utc).AddTicks(2109),
                             Description = "Expire Location",
                             Name = "ExpireLocation"
                         });
@@ -346,8 +348,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -358,8 +360,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -374,7 +376,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 118, DateTimeKind.Unspecified).AddTicks(3520), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 657, DateTimeKind.Utc).AddTicks(2903),
                             Description = "Administrator",
                             Name = "Administrator"
                         },
@@ -382,7 +384,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 2,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 118, DateTimeKind.Unspecified).AddTicks(4387), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 657, DateTimeKind.Utc).AddTicks(3798),
                             Description = "Manager",
                             Name = "Manager"
                         },
@@ -390,7 +392,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 3,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 118, DateTimeKind.Unspecified).AddTicks(4422), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 657, DateTimeKind.Utc).AddTicks(3830),
                             Description = "Sheriff",
                             Name = "Sheriff"
                         });
@@ -413,8 +415,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("PermissionId")
                         .HasColumnType("integer");
@@ -425,8 +427,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -457,8 +459,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Discriminator")
                         .IsRequired()
@@ -485,8 +487,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("KeyCloakId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("LastLogin")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("LastLogin")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("LastName")
                         .HasColumnType("text");
@@ -494,8 +496,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -514,7 +516,7 @@ namespace SS.Db.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 125, DateTimeKind.Unspecified).AddTicks(8232), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 12, 51, 54, 665, DateTimeKind.Local).AddTicks(1557),
                             FirstName = "SYSTEM",
                             IsEnabled = false,
                             LastName = "SYSTEM"
@@ -538,8 +540,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTimeOffset>("EffectiveDate")
                         .HasColumnType("timestamp with time zone");
@@ -553,8 +555,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -589,8 +591,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("LocationId")
                         .HasColumnType("integer");
@@ -607,8 +609,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -641,14 +643,14 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("EndDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsFullDay")
                         .HasColumnType("boolean");
@@ -659,14 +661,14 @@ namespace SS.Db.Migrations
                     b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("StartDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -697,14 +699,14 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("EndDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsFullDay")
                         .HasColumnType("boolean");
@@ -715,14 +717,14 @@ namespace SS.Db.Migrations
                     b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("StartDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -753,14 +755,14 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("EndDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool>("IsFullDay")
                         .HasColumnType("boolean");
@@ -768,8 +770,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("StartDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("TrainingTypeId")
                         .HasColumnType("integer");
@@ -777,8 +779,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -812,11 +814,11 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("JustinId")
                         .HasColumnType("integer");
@@ -827,8 +829,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -862,17 +864,17 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("CreatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("EffectiveDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("EffectiveDate")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTimeOffset?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("ExpiryDate")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("LocationId")
                         .HasColumnType("integer");
@@ -889,8 +891,8 @@ namespace SS.Db.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedOn")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
 
@@ -910,7 +912,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 113, DateTimeKind.Unspecified).AddTicks(303), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 651, DateTimeKind.Utc).AddTicks(8836),
                             Description = "Chief Sheriff",
                             Type = 7
                         },
@@ -918,7 +920,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 2,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 113, DateTimeKind.Unspecified).AddTicks(1645), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 652, DateTimeKind.Utc).AddTicks(72),
                             Description = "Superintendent",
                             Type = 7
                         },
@@ -926,7 +928,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 3,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 113, DateTimeKind.Unspecified).AddTicks(1688), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 652, DateTimeKind.Utc).AddTicks(106),
                             Description = "Staff Inspector",
                             Type = 7
                         },
@@ -934,7 +936,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 4,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 113, DateTimeKind.Unspecified).AddTicks(1690), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 652, DateTimeKind.Utc).AddTicks(108),
                             Description = "Inspector",
                             Type = 7
                         },
@@ -942,7 +944,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 5,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 113, DateTimeKind.Unspecified).AddTicks(1720), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 652, DateTimeKind.Utc).AddTicks(109),
                             Description = "Staff Sergeant",
                             Type = 7
                         },
@@ -950,7 +952,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 6,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 113, DateTimeKind.Unspecified).AddTicks(1722), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 652, DateTimeKind.Utc).AddTicks(110),
                             Description = "Sergeant",
                             Type = 7
                         },
@@ -958,7 +960,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 7,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 10, 9, 22, 4, 26, 113, DateTimeKind.Unspecified).AddTicks(1724), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTime(2020, 10, 9, 19, 51, 54, 652, DateTimeKind.Utc).AddTicks(112),
                             Description = "Deputy Sheriff",
                             Type = 7
                         });

@@ -15,9 +15,9 @@ namespace SS.Db.models.sheriff
         [ForeignKey("LocationId")]
         public virtual Location Location { get; set; }
         public int? LocationId { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
-        public DateTime? ExpiryDate { get; set; }
+        public DateTimeOffset? StartDate { get; set; }
+        public DateTimeOffset? EndDate { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
         public bool IsFullDay { get; set; }
         [AdaptIgnore]
         public virtual Sheriff Sheriff { get; set; }
