@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using SS.Api.controllers.usermanagement;
-using SS.Api.Models.DB;
 using SS.Api.models.dto;
-using SS.Api.Models.Dto;
 using SS.Api.services;
-using SS.Db.models;
 using SS.Db.models.auth;
-using SS.Db.models.sheriff;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;

@@ -32,7 +32,7 @@ namespace db.models
         /// </summary>
         /// <value></value>
         [AdaptIgnore]
-        public DateTime CreatedOn { get; set; }
+        public DateTimeOffset CreatedOn { get; set; }
 
         /// <summary>
         /// get/set - Who updated this entity last.
@@ -53,7 +53,7 @@ namespace db.models
         /// </summary>
         /// <value></value>
         [AdaptIgnore]
-        public DateTime? UpdatedOn { get; set; }
+        public DateTimeOffset? UpdatedOn { get; set; }
 
         /// <summary>
         /// get/set - The concurrency row version.

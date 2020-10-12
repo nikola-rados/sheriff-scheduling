@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.Models.Dto;
 using SS.Api.services;
@@ -15,7 +16,6 @@ namespace SS.Api.controllers.usermanagement
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AuthorizeRoles(Role.Administrator, Role.SystemAdministrator)]
     public class SheriffController : UserController
     {
         private readonly SheriffService _service;
@@ -26,9 +26,8 @@ namespace SS.Api.controllers.usermanagement
 
         #region Sheriff
 
-        //This uses Sheriff because it's an extended object of User. 
-        [AuthorizeRoles(Role.SystemAdministrator)]
         [HttpPost]
+        [PermissionClaimAuthorize(perm: Permission.CreateUsers)]
         public async Task<ActionResult<SheriffDto>> CreateSheriff(SheriffDto sheriffDto)
         {
             var sheriff = sheriffDto.Adapt<Sheriff>();
@@ -41,6 +40,10 @@ namespace SS.Api.controllers.usermanagement
         /// </summary>
         /// <returns></returns>
         [HttpGet]
+        [PermissionClaimAuthorize(AuthorizeOperation.Or,
+            Permission.ViewOwnProfile,
+            Permission.ViewProfilesInOwnLocation,
+            Permission.ViewProfilesInAllLocation)]
         public async Task<ActionResult<SheriffDto>> GetSheriffs(int? locationId)
         {
             var sheriffs = await _service.GetSheriffs(locationId);
@@ -53,6 +56,10 @@ namespace SS.Api.controllers.usermanagement
         /// <param name="id">Guid of the userid.</param>
         /// <returns>SheriffDto</returns>
         [HttpGet]
+        [PermissionClaimAuthorize(AuthorizeOperation.Or,
+            Permission.ViewOwnProfile,
+            Permission.ViewProfilesInOwnLocation,
+            Permission.ViewProfilesInAllLocation)]
         [Route("{id}")]
         public async Task<ActionResult<SheriffDto>> FindSheriff(Guid id)
         {
@@ -63,6 +70,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPut]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffDto sheriffDto)
         {
             var sheriff = sheriffDto.Adapt<Sheriff>();
@@ -72,6 +80,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPost]
         [Route("uploadPhoto")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult> UploadPhoto(Guid? id, string badgeNumber, IFormFile file)
         {
             if (file.Length == 0)
@@ -89,6 +98,7 @@ namespace SS.Api.controllers.usermanagement
         #region SheriffAwayLocation
         [HttpPost]
         [Route("awayLocation")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffAwayLocationDto>> AddSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto)
         {
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
@@ -98,6 +108,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("awayLocation")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffAwayLocationDto>> UpdateSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto)
         {
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
@@ -107,6 +118,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpDelete]
         [Route("awayLocation")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult> RemoveSheriffAwayLocation(int id)
         {
             await _service.RemoveSheriffAwayLocation(id);
@@ -117,6 +129,7 @@ namespace SS.Api.controllers.usermanagement
         #region SheriffLeave
         [HttpPost]
         [Route("leave")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffLeaveDto>> AddSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
         {
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
@@ -126,6 +139,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("leave")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffLeaveDto>> UpdateSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
         {
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
@@ -135,6 +149,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpDelete]
         [Route("leave")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult> RemoveSheriffLeave(int id)
         {
             await _service.RemoveSheriffLeave(id);
@@ -145,6 +160,7 @@ namespace SS.Api.controllers.usermanagement
         #region SheriffTraining
         [HttpPost]
         [Route("training")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffTrainingDto>> AddSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
@@ -154,6 +170,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("training")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffTrainingDto>> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
@@ -163,11 +180,17 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpDelete]
         [Route("training")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult> RemoveSheriffTraining(int id)
         {
             await _service.RemoveSheriffTraining(id);
             return NoContent();
         }
         #endregion SheriffTraining
+
+        #region Helpers
+
+ 
+        #endregion Helpers
     }
 }

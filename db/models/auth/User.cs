@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using db.models;
 using Mapster;
+using Newtonsoft.Json;
 using SS.Api.Models.DB;
 using SS.Db.models.auth.notmapped;
 
@@ -15,19 +16,21 @@ namespace SS.Db.models.auth
     {
         public User()
         {
-            CreatedOn = DateTime.Now;
+            CreatedOn = DateTime.UtcNow;
         }
         [AdaptIgnore]
         [NotMapped]
+
         public static readonly Guid SystemUser = new Guid("00000000-0000-0000-0000-000000000001");
         [Key]
         public Guid Id { get; set; }
         public string IdirName { get; set; }
         [AdaptIgnore]
+        [JsonIgnore]
         public Guid? IdirId { get; set; }
         [AdaptIgnore]
+        [JsonIgnore]
         public Guid? KeyCloakId { get; set; }
-        [AdaptIgnore]
         public bool IsEnabled { get; set;}
         public string FirstName { get; set; }
         public string LastName { get; set; }
@@ -51,6 +54,7 @@ namespace SS.Db.models.auth
                 SelectMany(x => x.Role.RolePermissions).Select(x => x.Permission).Distinct().ToList();
 
         [AdaptIgnore]
-        public DateTime? LastLogin { get; set; }
+        [JsonIgnore]
+        public DateTimeOffset? LastLogin { get; set; }
     }
 }

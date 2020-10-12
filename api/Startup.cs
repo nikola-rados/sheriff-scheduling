@@ -170,7 +170,8 @@ namespace SS.Api
 
             services.AddDbContext<SheriffDbContext>(options =>
                 {
-                    options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"));
+                    options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"), npg => 
+                        npg.MigrationsAssembly("db"));
                     if (CurrentEnvironment.IsDevelopment())
                         options.EnableSensitiveDataLogging();
                 }

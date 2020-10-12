@@ -6,8 +6,10 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SS.Api.infrastructure.authorization;
 using SS.Api.Models.Dto;
 using SS.Db.models;
+using SS.Db.models.auth;
 
 namespace SS.Api.controllers
 {

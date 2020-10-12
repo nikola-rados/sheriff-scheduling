@@ -34,7 +34,7 @@ namespace SS.Api.services
 
         public async Task<Role> AddRole(Role role, List<int> permissionIds)
         {
-            var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name == role.Name);
+            var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name.ToLower() ==  role.Name.ToLower());
             if (roleAlreadyExistsWithName)
                 throw new BusinessLayerException($"Role with name {role.Name} already exists.");
 
@@ -62,7 +62,7 @@ namespace SS.Api.services
                                           .FirstOrDefaultAsync(r => r.Id == role.Id);
             if (savedRole.Name != role.Name)
             {
-                var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name == role.Name);
+                var roleAlreadyExistsWithName = await _db.Role.AnyAsync(r => r.Name.ToLower() == role.Name.ToLower());
                 if (roleAlreadyExistsWithName)
                     throw new BusinessLayerException($"Role with name {role.Name} already exists.");
             }

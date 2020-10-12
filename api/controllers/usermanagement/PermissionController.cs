@@ -15,7 +15,7 @@ namespace SS.Api.controllers.usermanagement
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [AuthorizeRoles(Role.SystemAdministrator)]
+    [PermissionClaimAuthorize(perm: Permission.CreateAndAssignRoles)]
     public class PermissionController : ControllerBase
     {
         private readonly SheriffDbContext _db;
