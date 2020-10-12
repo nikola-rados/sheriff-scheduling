@@ -24,6 +24,7 @@ namespace SS.Api.Models.Dto
         public int? HomeLocationId { get; set; }
         public LocationDto HomeLocation { get; set; }
         public ICollection<RoleWithExpiry> ActiveRoles { get; set; }
+        public ICollection<RoleWithExpiry> Roles { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
