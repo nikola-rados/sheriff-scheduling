@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using SS.Api.controllers.usermanagement;
 using SS.Api.models.dto;
 using SS.Api.services;
@@ -24,7 +25,9 @@ namespace tests.controllers
 
         public UserControllerTests() : base (false)
         {
-            _controller = new SheriffController(new SheriffService(_dbContext), new UserService(_dbContext))
+            var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
+            var httpContextAccessor = new HttpContextAccessor { HttpContext = HttpResponseTest.SetupHttpContext() };
+            _controller = new SheriffController(new SheriffService(_dbContext, httpContextAccessor), new UserService(_dbContext), environment.Configuration)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
