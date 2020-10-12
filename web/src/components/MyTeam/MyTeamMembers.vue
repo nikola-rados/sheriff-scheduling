@@ -5,7 +5,12 @@
                 <page-header :pageHeaderText="sectionHeader"></page-header>
             </b-col>
             <b-col style="padding: 0;">
-                <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="warning" @click="AddMember()"><b-icon-plus/>Add a User</b-button>
+                <div :class="expiredViewChecked?'my-4 bg-warning':'my-4'" :style="expiredViewChecked?'max-width: 160px;':''">
+                    <b-form-checkbox v-model="expiredViewChecked" :style="expiredViewChecked?'max-width: 160px; margin-left:10px;':''" @change="getSheriffs()" size="lg"  switch>
+                        {{viewStatus}}
+                    </b-form-checkbox>
+                </div>                
+                <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="AddMember()" class="my-2"><b-icon-plus/>Add User</b-button>  
             </b-col>
         </b-row>
         
@@ -19,8 +24,7 @@
                 </div>                
                 </template> 
             </b-overlay> 
-        </b-card>
-      
+        </b-card>      
 
         <div v-else class="container mb-5" id="app">
             <div class="row" :key="photokey">
@@ -171,6 +175,7 @@
         @commonState.State
         public userDetails!: userInfoType;
         
+        expiredViewChecked = false;
         showMemberDetails = false;
         showCancelWarning = false;
         user = {} as teamMemberInfoType;
@@ -181,12 +186,13 @@
         editMode = false;
         createMode = false;
         sectionHeader = '';
-
         photokey=0;
-        userActiveRoles: any[] = []
+        userActiveRoles: any[] = [];
 
         isMyTeamDataMounted = false;
         myTeamData: teamMemberInfoType[] =[];
+        myActiveTeamData: teamMemberInfoType[] =[];
+        allMyTeamData: teamMemberInfoType[] =[];
         
         @Watch('location.id', { immediate: true })
         locationChange()
@@ -200,8 +206,18 @@
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
         }
+        
+        get viewStatus() {
+            if(this.expiredViewChecked) return 'All Profiles';else return 'Active Profiles'
+        }
 
-        public getSheriffs(){
+        public setView() {
+            if (this.expiredViewChecked) this.myTeamData = this.allMyTeamData;
+            else this.myTeamData = this.myActiveTeamData;
+        }
+
+        public getSheriffs()
+        {
             this.isMyTeamDataMounted = false;
             const url = 'api/sheriff?locationId=' + this.location.id
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
@@ -216,7 +232,8 @@
         }
 
         public extractMyTeamFromSheriffs(data: any){
-            this.myTeamData = [];            
+            this.myTeamData = [];
+            this.allMyTeamData = [];            
             for(const myteaminfo of data)
             {
                 const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:'', gender:'' }
@@ -226,8 +243,14 @@
                 myteam.id = myteaminfo.id;
                 myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
-                this.myTeamData.push(myteam);
+                this.allMyTeamData.push(myteam);
             }
+            this.myActiveTeamData =this.allMyTeamData.filter(member => {
+                if (member.isEnabled) {
+                    return true
+                }
+            });
+            this.setView()
         }
 
         
@@ -245,6 +268,7 @@
             this.createMode = false;
             this.editMode = true;            
             this.loadUserDetails(userId);            
+            this.editMode = true;
         }
 
         identificationTabMethods = new Vue();
@@ -252,7 +276,6 @@
         public closeProfileWindow(){
             this.identificationTabMethods.$emit('closeProfileWindow'); 
         }
-
 
         public closeWarningWindow() {             
             this.resetProfileWindowState();         
@@ -265,7 +288,6 @@
             this.editMode = false;
             this.user = {} as teamMemberInfoType;
         }
-
 
         public AddMember(){ 
             this.createMode = true;
