@@ -1,6 +1,13 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using SS.Api.Helpers.Extensions;
+using SS.Api.infrastructure.authorization;
+using SS.Db.models.auth;
 using Xunit;
 
 namespace tests.api.Helpers
@@ -41,7 +48,7 @@ namespace tests.api.Helpers
             Assert.NotNull(notFound);
         }
 
-        public static ControllerContext SetupMockControllerContext()
+        public static HttpContext SetupHttpContext()
         {
             var headerDictionary = new HeaderDictionary();
             var response = new Mock<HttpResponse>();
@@ -50,9 +57,29 @@ namespace tests.api.Helpers
             var httpContext = new Mock<HttpContext>();
             httpContext.SetupGet(a => a.Response).Returns(response.Object);
 
-            return new ControllerContext()
+            var identity = new ClaimsIdentity("Develop");
+            var user = new ClaimsPrincipal(identity);
+
+            //Load in all permissions.
+            var claims = new List<Claim>();
+            var permissions = typeof(Permission).GetFields(BindingFlags.Public | BindingFlags.Static |
+                                                           BindingFlags.FlattenHierarchy)
+                .Where(fi => fi.IsLiteral && !fi.IsInitOnly).Select(p => p.Name);
+            claims.AddRange(permissions.SelectToList(p => new Claim(CustomClaimTypes.Permission, p)));
+            claims.Add(new Claim(CustomClaimTypes.UserId, User.SystemUser.ToString()));
+            ((ClaimsIdentity)user.Identity)
+                .AddClaims(claims);
+
+            httpContext.SetupGet(a => a.User).Returns(user);
+
+            return httpContext.Object;
+        }
+
+        public static ControllerContext SetupMockControllerContext()
+        {
+            return new ControllerContext
             {
-                HttpContext = httpContext.Object
+                HttpContext = SetupHttpContext()
             };
         }
     }
