@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using SS.Api.Helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
+using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
@@ -19,9 +22,11 @@ namespace SS.Api.controllers.usermanagement
     public class SheriffController : UserController
     {
         private readonly SheriffService _service;
-        public SheriffController(SheriffService service, UserService userService) : base (userService)
+        private readonly long _uploadPhotoSizeLimitKB;
+        public SheriffController(SheriffService service, UserService userService, IConfiguration configuration) : base (userService)
         {
             _service = service;
+            _uploadPhotoSizeLimitKB = Convert.ToInt32(configuration.GetNonEmptyValue("UploadPhotoSizeLimitKB"));
         }
 
         #region Sheriff
@@ -86,9 +91,16 @@ namespace SS.Api.controllers.usermanagement
             if (file.Length == 0)
                 return BadRequest("File length = 0");
 
+            if (file.Length >= _uploadPhotoSizeLimitKB * 1024)
+                return BadRequest($"File length: {file.Length/1024} KB, Maximum upload size: {_uploadPhotoSizeLimitKB} KB");
+
             await using var ms = new MemoryStream();
             await file.CopyToAsync(ms);
             var fileBytes = ms.ToArray();
+
+            if (!fileBytes.IsImage())
+                return BadRequest("The uploaded file was not a valid GIF/JPEG/PNG.");
+
             var sheriff = await _service.UpdateSheriffPhoto(id, badgeNumber, fileBytes);
             return Ok(sheriff);
         }
