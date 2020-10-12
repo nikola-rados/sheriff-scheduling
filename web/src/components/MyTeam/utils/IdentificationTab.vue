@@ -107,8 +107,6 @@ export default class IdentificationTab extends Vue {
 
     public closeProfileWindow(){
         
-        console.log('close')
-        
         if(this.createMode && this.isEmpty(this.user)){
             this.$emit('closeMemberDetails');
             this.resetProfileWindowState();

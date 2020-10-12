@@ -73,6 +73,7 @@
                 this.$http.put(url, options)
                     .then(response => {
                         console.log(response)
+                        this.$emit('change')
                                                                     
                     }, err=>{this.expireStatusError = true; this.expireChecked = !this.expireChecked;});
             });

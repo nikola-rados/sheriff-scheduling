@@ -1,7 +1,7 @@
 <template>
     <b-card bg-variant="white">
         <b-row>
-            <b-col cols="11">
+            <b-col cols="10">
                 <page-header :pageHeaderText="sectionHeader"></page-header>
             </b-col>
             <b-col style="padding: 0;">
@@ -26,7 +26,7 @@
             </b-overlay> 
         </b-card>      
 
-        <div v-else class="container mb-5" id="app">
+        <div v-else class="container mb-5 " style="float: left;" id="app">
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100">
@@ -34,7 +34,7 @@
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
                         <div class="card-footer bg-light border-light" >                                                
-                            <expire-sheriff-profile :userID="teamMember.id" :userIsEnable="teamMember.isEnabled"/>                        
+                            <expire-sheriff-profile :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
                         </div>
                     </div>
                 </div>
@@ -277,10 +277,10 @@
             this.identificationTabMethods.$emit('closeProfileWindow'); 
         }
 
-        public closeWarningWindow() {             
-            this.resetProfileWindowState();         
+        public closeWarningWindow() {
             this.showCancelWarning = false;
-            this.showMemberDetails = false;            
+            this.showMemberDetails = false;
+            this.resetProfileWindowState();            
         }
 
         public resetProfileWindowState() {
