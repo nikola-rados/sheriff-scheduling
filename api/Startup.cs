@@ -250,6 +250,10 @@ namespace SS.Api
             app.UseSwagger(options =>
             {
                 options.RouteTemplate = "api/swagger/{documentname}/swagger.json";
+                options.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
+                {
+                    swaggerDoc.Servers = new List<OpenApiServer>();
+                });
             });
 
             app.UseSwaggerUI(options =>
