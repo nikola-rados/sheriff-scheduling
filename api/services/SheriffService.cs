@@ -61,6 +61,7 @@ namespace SS.Api.services
                               (operation == ViewProfileOperation.ViewLocation && s.HomeLocationId == currentUserHomeLocationId) ||  //todo Loaned Location
                               operation == ViewProfileOperation.ViewOwn && s.Id == currentUserId) &&
                               operation != ViewProfileOperation.None)
+                .Include(s => s.HomeLocation)
                 .Include(s => s.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .ToListAsync();
