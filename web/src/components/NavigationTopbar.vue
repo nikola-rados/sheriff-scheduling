@@ -48,7 +48,7 @@
               @change="UpdateLocation(selectedLocation)"                
               >
               <b-form-select-option
-              v-for="location in sortedLocationList"
+              v-for="location in locationList"
               :key="location.id"                  
               :value="location">{{location.name}}
               </b-form-select-option>                  
@@ -77,8 +77,6 @@
   import "@store/modules/CommonInformation";  
   import {commonInfoType, locationInfoType, userInfoType} from '../types/common';  
   const commonState = namespace("CommonInformation");
-
-  import * as _ from 'underscore';
 
   @Component
   export default class NavigationTopbar extends Vue {
@@ -130,11 +128,6 @@
       this.UpdateLocation(currentLocation);
       this.selectedLocation = this.location;
       if (this.selectedLocation.name.length > 0) this.locationDataReady = true;
-    }
-    
-    get sortedLocationList()
-    {
-      return _.sortBy(this.locationList,'name')
     }
 
   }

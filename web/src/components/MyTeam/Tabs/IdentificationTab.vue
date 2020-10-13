@@ -92,7 +92,7 @@ export default class IdentificationTab extends Vue {
     user = {} as teamMemberInfoType;
 
     mounted(){
-        console.log('role')
+        //console.log('role')
         this.ClearFormState();
         if(this.createMode) 
             this.user = {} as teamMemberInfoType;
@@ -100,7 +100,7 @@ export default class IdentificationTab extends Vue {
             this.user = _.clone(this.originalUser);
 
         this.refreshPage++;
-        console.log(this.user)
+        //console.log(this.user)
         this.runMethod.$on('closeProfileWindow', this.closeProfileWindow)
         this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)                
     }

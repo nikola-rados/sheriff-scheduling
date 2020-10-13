@@ -1,7 +1,10 @@
 export interface locationInfoType {
     name: string;
     id: number;
-    regionId: number|null;
+    regionId: number| null;
+    agencyId?: string;
+    concurrencyToken?: number;
+    justinCode?: string
 }
 
 export interface userInfoType {

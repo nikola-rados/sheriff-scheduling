@@ -16,6 +16,7 @@
     import "@store/modules/CommonInformation";
     import store from "./store";  
     const commonState = namespace("CommonInformation");
+    import * as _ from 'underscore';
 
     @Component({
         components: {
@@ -134,7 +135,7 @@
                 const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId}
                 this.locationList.push(locationInfo)
             }                       
-            this.UpdateLocationList(this.locationList);
+            this.UpdateLocationList(_.sortBy(this.locationList,'name'));
         }
         
      }

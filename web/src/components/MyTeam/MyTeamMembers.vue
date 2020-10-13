@@ -252,7 +252,8 @@
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';
-                myteam.homeLocation = myteaminfo.homeLocation;
+                if(myteaminfo.homeLocation)
+                    myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
             }            
         }
@@ -374,8 +375,10 @@
             this.user.badgeNumber = userJson.badgeNumber;
             this.user.id = userJson.id;
             this.user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
-            this.user.homeLocation = userJson.homeLocation; 
-            console.log(this.user)
+            if(userJson.homeLocation)
+                this.user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
+          
+            //console.log(this.user)
             this.userAllRoles = userJson.roles
         }
 

@@ -8,6 +8,23 @@
                 <b-input-group >
                     <b-form-select
                         class="mr-1"                                                       
+                        v-model="selectedHomeLocation"
+                        @change="homeLocationChanged">
+                            <b-form-select-option
+                                v-for="homelocation in locationList" 
+                                :key="homelocation.id"
+                                :value="homelocation">
+                                        {{homelocation.name}}
+                            </b-form-select-option>    
+                    </b-form-select>
+                </b-input-group>
+            </b-card>
+            
+            
+            <!-- <b-card class="mb-3" border-variant="light">
+                <b-input-group >
+                    <b-form-select
+                        class="mr-1"                                                       
                         v-model="selectedRole"
                         :state = "roleState?null:false"         
                         placeholder="Select a role">
@@ -69,14 +86,15 @@
                         </template>
                         
                 </b-table> 
-            </b-card>                                      
+            </b-card>                                       -->
         </b-card>
     </div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {roleOptionInfoType} from '../../../types/MyTeam';
+    import {teamMemberInfoType} from '../../../types/MyTeam';
+    import {locationInfoType} from '../../../types/common';
     import { namespace } from 'vuex-class';
     const commonState = namespace("CommonInformation");
     import store from '../../../store'
@@ -87,163 +105,190 @@
         @commonState.State
         public token!: string;
 
-        @Prop({required: true})
-        userId!: string;
+        @commonState.State
+        public locationList!: locationInfoType[];
 
         @Prop({required: true})
-        userAllRoles!: any;
+        user!: teamMemberInfoType;
 
-        selectedRole = {} as roleOptionInfoType;
-        selectedEffectiveDate =''
-        selectedExpiryDate =''
-        roleState = true
-        effDateState = true
+       
 
-        refreshTable = 0;
+        selectedHomeLocation = {} as locationInfoType | undefined;
+        // selectedRole = {} as roleOptionInfoType;
+        // selectedEffectiveDate =''
+        // selectedExpiryDate =''
+        // roleState = true
+        // effDateState = true
 
-        roles: roleOptionInfoType[] = []
+        // refreshTable = 0;
+
+        // roles: roleOptionInfoType[] = []
         roleAssignError = false;
 
-        rolesJson;
+        // rolesJson;
 
-        assignedRoles: roleOptionInfoType[] = [];
+        // assignedRoles: roleOptionInfoType[] = [];
 
-        roleFields =  
-        [           
-            {key:'text',    label:'Role',sortable:false, tdClass: 'border-top',  }, 
-            {key:'effDate', label:'Effective Date',   sortable:false, tdClass: 'border-top', thClass:'',},
-            {key:'expDate', label:'Expiry Date',      sortable:false, tdClass: 'border-top', thClass:'',}, 
-            {key:'editRole',  sortable:false, tdClass: 'border-top', thClass:'text-white',},       
-        ];
+        // roleFields =  
+        // [           
+        //     {key:'text',    label:'Role',sortable:false, tdClass: 'border-top',  }, 
+        //     {key:'effDate', label:'Effective Date',   sortable:false, tdClass: 'border-top', thClass:'',},
+        //     {key:'expDate', label:'Expiry Date',      sortable:false, tdClass: 'border-top', thClass:'',}, 
+        //     {key:'editRole',  sortable:false, tdClass: 'border-top', thClass:'text-white',},       
+        // ];
 
         mounted()
         {
-            console.log('role') 
-            this.GetRoles();
+            console.log('locationTab') 
+            this.selectedHomeLocation = this.user.homeLocation;
+            //{id: this.user.homeLocation.id, name: this.user.homeLocation.name, regionId: this.user.homeLocation.regionId}
+            //this.user.homeLocation;
+            console.log(this.selectedHomeLocation)
+            //console.log(this.user)
         }
-   
-        public GetRoles(){
-            const url = '/api/role'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
-                .then(response => {
-                    if(response.data){
-                        this.rolesJson = response.data
-                        this.extractRoles(this.rolesJson, this.userAllRoles);                        
-                    }                                   
-                })
-        }
-      
-        public extractRoles(rolesJson, userAllRoles ){
-            this.roles=[];
-            this.assignedRoles =[];
-            this.selectedRole = {} as roleOptionInfoType;
-            this.roleAssignError = false; 
 
+        public homeLocationChanged()
+        {
+            console.log(this.selectedHomeLocation)
 
-            console.log(userAllRoles)
-            for(const allRole of userAllRoles) 
-            { 
-                this.assignedRoles.push({
-                    text:allRole.role.name, 
-                    desc: allRole.role.description, 
-                    value:allRole.role.id, 
-                    effDate:allRole.effectiveDate, 
-                    expDate:allRole.expiryDate
-                })
+            const body = {
+                homeLocationId: this.selectedHomeLocation? this.selectedHomeLocation.id: '',               
+                id: this.user.id
             }
-            this.refreshTable++;
-            
-            for(const role of rolesJson)
-            {
-                const index = this.assignedRoles.findIndex(assignrole =>{if(assignrole.value == role.id) return true;else return false});
-                if(index < 0)
-                {             
-                    this.roles.push({text:role.name, desc: role.description, value:role.id, effDate:'', expDate:''})           
-                }
-            }
-        }        
-
-        public saveRole(){
-                
-                this.roleState = true;
-                this.effDateState = true;
-                this.roleAssignError = false; 
-
-                if(!this.selectedRole)
-                {
-                    this.roleState = false;
-                }
-                else if(this.selectedEffectiveDate == "")
-                {
-                    this.roleState = true;
-                    this.effDateState =  false;
-                }
-                else 
-                {
-                    this.roleState = true;
-                    this.effDateState = true;
-
-                    const body = 
-                    [{
-                        "userId": this.userId,
-                        "roleId": this.selectedRole.value,
-                        "effectiveDate": this.selectedEffectiveDate,
-                        "expiryDate": this.selectedExpiryDate
-                    }]
-                    const url = 'api/sheriff/assignroles' //:'api/sheriff/unassignroles' 
-                    const options = {headers:{'Authorization' :'Bearer '+this.token}}
-                    this.$http.put(url, body, options)
-                        .then(response => {
-                            console.log(response)
-                            console.log('assign success')
-                            
-                            this.selectedRole = {} as roleOptionInfoType;
-                            this.selectedEffectiveDate ='';
-                            this.selectedExpiryDate ='';
-                            this.getUserRoles();
-
-                        }, err=>{this.roleAssignError = true;});
-                }
-           
-        }
-
-        public deleteRole(role){
-            this.roleAssignError = false; 
-            const body = 
-            [{
-                "userId": this.userId,
-                "roleId": role.value,                        
-            }]
-            const url = 'api/sheriff/unassignroles' 
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            const url = 'api/sheriff';
+            const options = {headers:{'Authorization' :'Bearer '+this.token}} 
             this.$http.put(url, body, options)
                 .then(response => {
-                    console.log(response)
-                    console.log('unassign success')
-                   
-                    this.getUserRoles();
-                                                     
-                }, err=>{this.roleAssignError = true;});
-        }
-
-        public getUserRoles()
-        {
-            const url = 'api/sheriff/' + this.userId
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
-                        this.extractRoles(this.rolesJson,response.data.roles);                                                                
-                    }                    
+                    console.log(response)                   
+                }, err => {
+                    console.log(err)
+                // this.errorText = err.response.data.error
+                // this.errorCode = err.response.status
                 });
         }
+   
+        // public GetRoles(){
+        //     const url = '/api/role'
+        //     const options = {headers:{'Authorization' :'Bearer '+this.token}}
+        //     this.$http.get(url, options)
+        //         .then(response => {
+        //             if(response.data){
+        //                 this.rolesJson = response.data
+        //                 this.extractRoles(this.rolesJson, this.userAllRoles);                        
+        //             }                                   
+        //         })
+        // }
+      
+        // public extractRoles(rolesJson, userAllRoles ){
+        //     this.roles=[];
+        //     this.assignedRoles =[];
+        //     this.selectedRole = {} as roleOptionInfoType;
+        //     this.roleAssignError = false; 
+
+
+        //     console.log(userAllRoles)
+        //     for(const allRole of userAllRoles) 
+        //     { 
+        //         this.assignedRoles.push({
+        //             text:allRole.role.name, 
+        //             desc: allRole.role.description, 
+        //             value:allRole.role.id, 
+        //             effDate:allRole.effectiveDate, 
+        //             expDate:allRole.expiryDate
+        //         })
+        //     }
+        //     this.refreshTable++;
+            
+        //     for(const role of rolesJson)
+        //     {
+        //         const index = this.assignedRoles.findIndex(assignrole =>{if(assignrole.value == role.id) return true;else return false});
+        //         if(index < 0)
+        //         {             
+        //             this.roles.push({text:role.name, desc: role.description, value:role.id, effDate:'', expDate:''})           
+        //         }
+        //     }
+        // }        
+
+        // public saveRole(){
+                
+        //         this.roleState = true;
+        //         this.effDateState = true;
+        //         this.roleAssignError = false; 
+
+        //         if(!this.selectedRole)
+        //         {
+        //             this.roleState = false;
+        //         }
+        //         else if(this.selectedEffectiveDate == "")
+        //         {
+        //             this.roleState = true;
+        //             this.effDateState =  false;
+        //         }
+        //         else 
+        //         {
+        //             this.roleState = true;
+        //             this.effDateState = true;
+
+        //             const body = 
+        //             [{
+        //                 "userId": this.userId,
+        //                 "roleId": this.selectedRole.value,
+        //                 "effectiveDate": this.selectedEffectiveDate,
+        //                 "expiryDate": this.selectedExpiryDate
+        //             }]
+        //             const url = 'api/sheriff/assignroles' //:'api/sheriff/unassignroles' 
+        //             const options = {headers:{'Authorization' :'Bearer '+this.token}}
+        //             this.$http.put(url, body, options)
+        //                 .then(response => {
+        //                     console.log(response)
+        //                     console.log('assign success')
+                            
+        //                     this.selectedRole = {} as roleOptionInfoType;
+        //                     this.selectedEffectiveDate ='';
+        //                     this.selectedExpiryDate ='';
+        //                     this.getUserRoles();
+
+        //                 }, err=>{this.roleAssignError = true;});
+        //         }
+           
+        // }
+
+        // public deleteRole(role){
+        //     this.roleAssignError = false; 
+        //     const body = 
+        //     [{
+        //         "userId": this.userId,
+        //         "roleId": role.value,                        
+        //     }]
+        //     const url = 'api/sheriff/unassignroles' 
+        //     const options = {headers:{'Authorization' :'Bearer '+this.token}}
+        //     this.$http.put(url, body, options)
+        //         .then(response => {
+        //             console.log(response)
+        //             console.log('unassign success')
+                   
+        //             this.getUserRoles();
+                                                     
+        //         }, err=>{this.roleAssignError = true;});
+        // }
+
+        // public getUserRoles()
+        // {
+        //     const url = 'api/sheriff/' + this.userId
+        //     const options = {headers:{'Authorization' :'Bearer '+this.token}}
+        //     this.$http.get(url, options)
+        //         .then(response => {
+        //             if(response.data){
+        //                 console.log(response.data)                        
+        //                 this.extractRoles(this.rolesJson,response.data.roles);                                                                
+        //             }                    
+        //         });
+        // }
            
         
-        public editRole(role){
-            console.log('edit role')
-        }
+        // public editRole(role){
+        //     console.log('edit role')
+        // }
 
        
 
