@@ -62,7 +62,7 @@ namespace SS.Api.services.ef
             var dbSqlPath = environment.IsDevelopment() ? Path.Combine("db", "sql") : Path.Combine("src", "db", "sql");
             var path = Path.Combine(Directory.GetParent(Environment.CurrentDirectory).FullName, seedPath);
             var dbPath = Path.Combine(Directory.GetParent(Environment.CurrentDirectory).FullName, dbSqlPath);
-            _logger.LogInformation($"Starting with no migrations, loading SQL from paths: {dbPath} and then {path}");
+            _logger.LogInformation($"Fresh database detected. Loading SQL from paths: {dbPath} and then {path}");
 
             var transaction = db.Database.BeginTransaction();
             var lastFile = "";
