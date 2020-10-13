@@ -102,7 +102,7 @@ namespace SS.Api.controllers.usermanagement
                 return BadRequest("The uploaded file was not a valid GIF/JPEG/PNG.");
 
             var sheriff = await _service.UpdateSheriffPhoto(id, badgeNumber, fileBytes);
-            return Ok(sheriff);
+            return Ok(sheriff.Adapt<SheriffDto>());
         }
 
         #endregion Sheriff
