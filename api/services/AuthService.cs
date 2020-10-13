@@ -55,24 +55,12 @@ namespace SS.Api.services
             user.KeyCloakId = Guid.Parse(currentClaims.GetValueByType(ClaimTypes.NameIdentifier));
             await _db.SaveChangesAsync();
 
-            claims.AddRange(user.UserRoles.SelectToList(ur => new Claim(ClaimTypes.Role, ur.Role.Name)));
+            claims.AddRange(user.ActiveRoles.SelectToList(r => new Claim(ClaimTypes.Role, r.Role.Name)));
             claims.AddRange(user.Permissions.SelectToList(p => new Claim(CustomClaimTypes.Permission, p.Name)));
             claims.Add(new Claim(CustomClaimTypes.UserId, user.Id.ToString()));
             if (user.HomeLocationId.HasValue)
                 claims.Add(new Claim(CustomClaimTypes.HomeLocationId, user.HomeLocationId.ToString()));
             return claims;
-        }
-
-        public async Task UpdateUserLogin(ClaimsIdentity claimsIdentity)
-        {
-            var claims = claimsIdentity.Claims.ToList();
-            var id = Guid.Parse(claims.GetValueByType(CustomClaimTypes.UserId));
-            var user = await _db.User.FindAsync(id);
-            if (user == null || !user.IsEnabled)
-                return;
-                
-            user.LastLogin = DateTime.Now;
-            await _db.SaveChangesAsync();
         }
     }
 }

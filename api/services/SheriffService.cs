@@ -43,9 +43,12 @@ namespace SS.Api.services
             return sheriff;
         }
 
-        public async Task<List<Sheriff>> GetSheriffs(int locationId)
+        public async Task<List<Sheriff>> GetSheriffs(int? locationId)
         {
-            return await _db.Sheriff.Where(s => s.HomeLocationId == locationId && s.IsEnabled).ToListAsync();
+            return await _db.Sheriff.Where(s => !locationId.HasValue || s.HomeLocationId == locationId)
+                .Include(s => s.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .ToListAsync();
         }
 
         public async Task<Sheriff> GetSheriff(Guid id)
@@ -54,6 +57,8 @@ namespace SS.Api.services
                 .Include(s => s.AwayLocation)
                 .Include(s => s.Leave)
                 .Include(s => s.Training)
+                .Include(s => s.UserRoles)
+                .ThenInclude(ur => ur.Role)
                 .SingleOrDefaultAsync(s => s.Id == id);
         }
 

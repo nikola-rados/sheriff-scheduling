@@ -30,10 +30,8 @@ namespace SS.Api.Controllers
         /// <returns></returns>
         [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
         [HttpGet("login")]
-        public async Task<IActionResult> Login(string redirectUri = "/api")
+        public IActionResult Login(string redirectUri = "/api")
         {
-            //update users from claims. 
-            //await _authService.UpdateUserLogin((ClaimsIdentity)User.Identity);
             return Redirect(redirectUri);
         }
 
@@ -50,7 +48,7 @@ namespace SS.Api.Controllers
 
         [HttpGet("requestAccess")]
         [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
-        public async Task<IActionResult> RequestAccess()
+        public IActionResult RequestAccess()
         {
             return Ok();
         }

@@ -12,6 +12,8 @@ namespace SS.Db.configuration
         {
             builder.Property(b => b.Id).HasIdentityOptions(startValue: 100);
 
+            builder.HasIndex(lc => new { lc.RoleId, lc.UserId }).IsUnique();
+
             builder.HasOne(m => m.User).WithMany(m => m.UserRoles).HasForeignKey(m => m.UserId).OnDelete(DeleteBehavior.ClientCascade);
             builder.HasOne(m => m.Role).WithMany(m => m.UserRoles).HasForeignKey(m => m.RoleId).OnDelete(DeleteBehavior.ClientCascade);
 

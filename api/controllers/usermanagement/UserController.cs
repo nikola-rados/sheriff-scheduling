@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.infrastructure.authorization;
+using SS.Api.models.dto;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
@@ -27,24 +28,24 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPut]
-        [Route("{id}/assignRoles")]
+        [Route("assignRoles")]
         [AuthorizeRoles(Role.SystemAdministrator)]
-        public async Task<ActionResult> AssignRoles(Guid id, List<int> roleIds)
+        public async Task<ActionResult> AssignRoles(List<AssignRoleDto> assignRole)
         {
-            await _service.AssignRolesToUser(id, roleIds);
+            var entity = assignRole.Adapt<List<UserRole>>();
+            await _service.AssignRolesToUser(entity);
             return NoContent();
         }
 
         [HttpPut]
-        [Route("{id}/unassignRoles")]
+        [Route("unassignRoles")]
         [AuthorizeRoles(Role.SystemAdministrator)]
-        public async Task<ActionResult> UnassignRoles(Guid id, List<int> roleIds)
+        public async Task<ActionResult> UnassignRoles(List<UnassignRoleDto> unassignRole)
         {
-            await _service.UnassignRoleFromUser(id, roleIds);
+            var entity = unassignRole.Adapt<List<UserRole>>();
+            await _service.UnassignRoleFromUser(entity);
             return NoContent();
         }
-
-
 
         [HttpPut]
         [Route("{id}/enable")]

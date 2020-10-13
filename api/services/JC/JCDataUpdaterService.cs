@@ -170,10 +170,5 @@ namespace SS.Api.services.JC
             _logger.LogDebug(JsonConvert.SerializeObject(locationWithoutRegion));
             return locationsDb;
         }
-
-        private async Task<bool> CheckIfMigratedAsync()
-        {
-            return (await _db.Database.GetPendingMigrationsAsync()).Any();
-        }
     }
 }
