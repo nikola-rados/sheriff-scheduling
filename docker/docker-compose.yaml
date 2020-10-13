@@ -27,6 +27,8 @@ services:
       - ASPNETCORE_URLS=${ASPNETCORE_URLS}
     ports:
       - 5000:5000
+    volumes:
+      - ./seed:/opt/app-root/data
     depends_on:
       - db
     command: >

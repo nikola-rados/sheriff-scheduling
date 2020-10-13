@@ -18,22 +18,19 @@ namespace SS.Api.services
         private readonly ILogger _logger;
         private Timer _timer;
         public IServiceProvider Services { get; }
-        private readonly TimeSpan _jcSynchronizationDelay;
         private readonly TimeSpan _jcSynchronizationPeriod;
 
         public TimedDataUpdaterService(IServiceProvider services, ILogger<TimedDataUpdaterService> logger, IConfiguration configuration)
         {
             Services = services;
             _logger = logger;
-            _jcSynchronizationDelay = TimeSpan.Parse(configuration.GetNonEmptyValue("JCSynchronizationDelay"));
-            _jcSynchronizationPeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("JCSynchronizationPeriod"));
+            _jcSynchronizationPeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("JCSynchronization:Period"));
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation($"Timed Background Service is starting with a period of {_jcSynchronizationPeriod}.");
-            _logger.LogInformation($"Delaying the timed background service by {_jcSynchronizationDelay} seconds (to allow Migrations to complete).");
-            _timer = new Timer(DoWork, null, _jcSynchronizationDelay, _jcSynchronizationPeriod);
+            _timer = new Timer(DoWork, null, new TimeSpan(), _jcSynchronizationPeriod);
             return Task.CompletedTask;
         }
 
