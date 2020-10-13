@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using SS.Api.Models.Dto;
-using SS.Db.models.auth.notmapped;
 using SS.Db.models.sheriff;
 
 namespace SS.Api.Models.Dto
@@ -23,8 +22,8 @@ namespace SS.Api.Models.Dto
         public string Email { get; set; }
         public int? HomeLocationId { get; set; }
         public LocationDto HomeLocation { get; set; }
-        public ICollection<RoleWithExpiry> ActiveRoles { get; set; }
-        public ICollection<RoleWithExpiry> Roles { get; set; }
+        public ICollection<ActiveRoleWithExpiryDto> ActiveRoles { get; set; }
+        public ICollection<RoleWithExpiryDto> Roles { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

@@ -56,11 +56,12 @@ namespace SS.Api.services
             var currentUserId = User.CurrentUserId();
             var currentUserHomeLocationId = User.HomeLocationId();
 
-            return await _db.Sheriff.Where(s => !locationId.HasValue || s.HomeLocationId == locationId)
+            return await _db.Sheriff.AsNoTracking().Where(s => !locationId.HasValue || s.HomeLocationId == locationId)
                .Where(s => (operation == ViewProfileOperation.ViewProvince ||
                               (operation == ViewProfileOperation.ViewLocation && s.HomeLocationId == currentUserHomeLocationId) ||  //todo Loaned Location
                               operation == ViewProfileOperation.ViewOwn && s.Id == currentUserId) &&
                               operation != ViewProfileOperation.None)
+                .Include(s => s.HomeLocation)
                 .Include(s => s.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .ToListAsync();
@@ -72,7 +73,7 @@ namespace SS.Api.services
             var currentUserId = User.CurrentUserId();
             var currentUserHomeLocationId = User.HomeLocationId();
 
-            return await _db.Sheriff
+            return await _db.Sheriff.AsNoTracking()
                 .Where(s => (operation == ViewProfileOperation.ViewProvince ||
                              (operation == ViewProfileOperation.ViewLocation && s.HomeLocationId == currentUserHomeLocationId) || //todo Loaned Location
                              operation == ViewProfileOperation.ViewOwn && s.Id == currentUserId) &&

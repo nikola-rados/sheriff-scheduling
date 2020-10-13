@@ -1,6 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using db.models;
+using System.Text;
 using Mapster;
 using Newtonsoft.Json;
 
@@ -10,7 +11,7 @@ namespace SS.Db.models.auth.notmapped
     /// Needed two separate classes, so DTO generation would work correctly. 
     /// </summary>
     [AdaptTo("[name]Dto")]
-    public class RoleWithExpiry
+    public class ActiveRoleWithExpiry
     {
         [NotMapped]
         public Role Role { get; set; }

@@ -10,7 +10,7 @@ namespace SS.Db.models.auth
     public class Role : BaseEntity
     {
         public const string Manager = nameof(Manager);
-        public const string Administrator = "Administrator";
+        public const string Administrator = nameof(Administrator);
         public const string Sheriff = nameof(Sheriff);
         [Key]
         public int Id { get; set; }
