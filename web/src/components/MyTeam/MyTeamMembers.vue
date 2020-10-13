@@ -36,7 +36,7 @@
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
-                        <div class="card-header text-white bg-dark border-dark" >                                                
+                        <div class="card-header bg-dark border-dark" >                                                
                             <user-location-summary :awayLocationJson="teamMember.awayLocation"/>                        
                         </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body">
