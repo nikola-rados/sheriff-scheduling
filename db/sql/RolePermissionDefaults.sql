@@ -1,4 +1,4 @@
-﻿do $$
+do $$
 declare
 	SystemUserId uuid; 
 	AdministratorId integer;
@@ -13,16 +13,14 @@ BEGIN
 	SELECT "Id" INTO SheriffId FROM "Role" WHERE "Name" = 'Sheriff';
 
 	-- Sheriff
-	INSERT INTO "RolePermission" ("CreatedById","CreatedOn","UpdatedById","UpdatedOn","RoleId","PermissionId") VALUES 
-	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'Login')),
+	INSERT INTO "RolePermission" ("CreatedById","CreatedOn","UpdatedById","UpdatedOn","RoleId","PermissionId") VALUES (SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'Login')),
 	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewOwnProfile')),
 	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewMyShifts')),
 	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewDistributeSchedule')),
 	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewHomeLocationAndAssignedLocation'));
 
 	-- Manager
-	INSERT INTO "RolePermission" ("CreatedById","CreatedOn","UpdatedById","UpdatedOn","RoleId","PermissionId") VALUES 
-	(SystemUserId,now(),NULL,NULL, ManagerId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'Login')),
+	INSERT INTO "RolePermission" ("CreatedById","CreatedOn","UpdatedById","UpdatedOn","RoleId","PermissionId") VALUES (SystemUserId,now(),NULL,NULL, ManagerId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'Login')),
 	(SystemUserId,now(),NULL,NULL, ManagerId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewOwnProfile')),
 	(SystemUserId,now(),NULL,NULL, ManagerId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewProfilesInOwnLocation')),
 	(SystemUserId,now(),NULL,NULL, ManagerId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'EditUsers')),
@@ -36,8 +34,7 @@ BEGIN
 	(SystemUserId,now(),NULL,NULL, ManagerId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewRegion'));
 
 	-- Administrator
-	INSERT INTO "RolePermission" ("CreatedById","CreatedOn","UpdatedById","UpdatedOn","RoleId","PermissionId") VALUES 
-	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'Login')),
+	INSERT INTO "RolePermission" ("CreatedById","CreatedOn","UpdatedById","UpdatedOn","RoleId","PermissionId") VALUES (SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'Login')),
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewOwnProfile')),
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewProfilesInOwnLocation')),
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewProfilesInAllLocation')),
