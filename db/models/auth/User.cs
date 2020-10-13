@@ -41,16 +41,10 @@ namespace SS.Db.models.auth
         [JsonIgnore]
         public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
-        [AdaptIgnore]
-        [NotMapped]
-        [JsonIgnore]
-        public virtual ICollection<UserRole> ActiveRolesWithPermissions =>
-            UserRoles.Where(x => x.EffectiveDate <= DateTimeOffset.Now &&
-                                 (x.ExpiryDate == null || x.ExpiryDate > DateTimeOffset.Now)).ToList();
-
         [NotMapped]
         public virtual ICollection<ActiveRoleWithExpiry> ActiveRoles =>
-            ActiveRolesWithPermissions
+            UserRoles.Where(x => x.EffectiveDate <= DateTimeOffset.Now &&
+                                 (x.ExpiryDate == null || x.ExpiryDate > DateTimeOffset.Now))
                 .Select(ur =>
                     new ActiveRoleWithExpiry
                     { Role = ur.Role, EffectiveDate = ur.EffectiveDate, ExpiryDate = ur.ExpiryDate})
@@ -65,7 +59,7 @@ namespace SS.Db.models.auth
         [AdaptIgnore]
         [NotMapped]
         public virtual ICollection<Permission> Permissions =>
-            ActiveRolesWithPermissions.
+            ActiveRoles.
                 SelectMany(x => x.Role.RolePermissions).Select(x => x.Permission).Distinct().ToList();
 
         [AdaptIgnore]
