@@ -103,7 +103,11 @@
 
                     if(acceptableImageTypes.includes(event.target.files[0].type))
                     {                    
-                        this.showPhotoReplacementWarning = true
+                        if(this.photo)
+                            this.showPhotoReplacementWarning = true
+                        else
+                            this.uploadPhoto();
+
                     }
                     else
                     {

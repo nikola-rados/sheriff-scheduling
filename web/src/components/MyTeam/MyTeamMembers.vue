@@ -5,8 +5,8 @@
                 <page-header :pageHeaderText="sectionHeader"></page-header>
                 <b-card  >  
                     <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
-                        <b-form-input v-model="searchPhrase" placeholder="Enter Name"></b-form-input>
-                        <b-form-text class="text-light font-italic"> Name/Rank/BadgeNumber/Location </b-form-text>
+                        <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
+                        <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
                     </b-form-group>
                 </b-card> 
             </b-col>
@@ -247,7 +247,7 @@
                 myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
-                myteam.homeLocationNm = myteaminfo.homeLocation.name;
+                myteam.homeLocationNm = myteaminfo.homeLocation?myteaminfo.homeLocation.name:'';
                 this.allMyTeamData.push(myteam);
             }            
         }
