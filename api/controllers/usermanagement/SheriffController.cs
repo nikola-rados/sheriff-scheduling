@@ -86,7 +86,7 @@ namespace SS.Api.controllers.usermanagement
         [HttpPost]
         [Route("uploadPhoto")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult> UploadPhoto(Guid? id, string badgeNumber, IFormFile file)
+        public async Task<ActionResult<SheriffDto>> UploadPhoto(Guid? id, string badgeNumber, IFormFile file)
         {
             if (file.Length == 0)
                 return BadRequest("File length = 0");
