@@ -30,9 +30,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
 using SS.Api.infrastructure;
 using SS.Api.infrastructure.authorization;
+using SS.Api.services.ef;
 using SS.Db.models;
 
 namespace SS.Api
@@ -51,6 +53,7 @@ namespace SS.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<MigrationService>();
             services.AddScoped<IClaimsTransformation, ClaimsTransformer>();
 
             services.AddDbContext<SheriffDbContext>(options =>
@@ -248,8 +251,8 @@ namespace SS.Api
                 context.Request.Scheme = "https";
                 return next();
             });
+
             app.UseForwardedHeaders();
-            app.UpdateDatabase<Startup>();
 
             app.UseCors();
 
