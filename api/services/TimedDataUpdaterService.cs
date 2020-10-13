@@ -24,7 +24,7 @@ namespace SS.Api.services
         {
             Services = services;
             _logger = logger;
-            _jcSynchronizationPeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("JCSynchronizationPeriod"));
+            _jcSynchronizationPeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("JCSynchronization:Period"));
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

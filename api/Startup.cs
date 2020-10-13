@@ -53,7 +53,7 @@ namespace SS.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<MigrationService>();
+            services.AddSingleton<MigrationAndSeedService>();
             services.AddScoped<IClaimsTransformation, ClaimsTransformer>();
 
             services.AddDbContext<SheriffDbContext>(options =>
