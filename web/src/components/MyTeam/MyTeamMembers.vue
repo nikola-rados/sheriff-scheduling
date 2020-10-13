@@ -36,6 +36,9 @@
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
+                        <div class="card-header text-white bg-dark border-dark" >                                                
+                            <user-location-summary :awayLocationJson="teamMember.awayLocation"/>                        
+                        </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
@@ -147,7 +150,8 @@
     import RoleAssignmentTab from './Tabs/RoleAssignmentTab.vue'
     import IdentificationTab from './Tabs/IdentificationTab.vue'
     import UserSummaryTemplate from "./Tabs/UserSummaryTemplate.vue";
-    import LocationTab from './Tabs/LocationTab.vue'
+    import LocationTab from './Tabs/LocationTab.vue';
+    import UserLocationSummary from './Tabs/UserLocationSummary.vue';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -155,6 +159,7 @@
         components: {
             PageHeader,
             UserSummaryTemplate,
+            UserLocationSummary,
             ExpireSheriffProfile,
             RoleAssignmentTab,
             IdentificationTab,
@@ -252,6 +257,7 @@
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';
+                myteam.awayLocation = myteaminfo.awayLocation;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);

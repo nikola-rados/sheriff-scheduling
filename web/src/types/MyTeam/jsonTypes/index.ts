@@ -5,123 +5,7 @@ export interface teamMemberJsonType {
         "gender": string,
         "badgeNumber": string,
         "rank": string,
-        "awayLocations": [
-          {
-            "id": number,
-            "location": {
-              "id": number,
-              "code": string,
-              "name": string,
-              "justinId": number,
-              "justinCode": string,
-              "parentLocationId": number,
-              "region": {
-                "id": number,
-                "code": string,
-                "name": string
-              },
-              "createdById": string,
-              "createdBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "createdOn": string,
-              "updatedById": string,
-              "updatedBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "locationId": number,
-            "startDate": string,
-            "endDate": string,
-            "isFullDay": boolean,
-            "sheriffId": string,
-            "createdById": string,
-            "createdBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "createdOn": string,
-            "updatedById": string,
-            "updatedBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "updatedOn": string,
-            "rowVersion": string
-          }
-        ],
+        "awayLocations": awayLocationsJsontype[],
         "leaves": [
           {
             "id": number,
@@ -901,4 +785,25 @@ export interface rolePermissionsJsonType {
   "permission": permissionJsonType,
   "permissionId": string,
   "concurrencyToken": number
+}
+
+export interface awayLocationsJsontype {  
+    "id": string,
+    "location": {
+      "id": string,
+      "agencyId": string,
+      "name": string,
+      "justinCode": string,
+      "parentLocationId": string,
+      "expiryDate": string,
+      "regionId": string,
+      "concurrencyToken": number
+    },
+    "locationId": string,
+    "startDate": string,
+    "endDate": string,
+    "expiryDate": string,
+    "isFullDay": boolean,
+    "sheriffId": string,
+    "concurrencyToken": number  
 }
