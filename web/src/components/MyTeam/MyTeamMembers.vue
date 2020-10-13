@@ -58,24 +58,24 @@
             <b-card v-if="isUserDataMounted" no-body>
                 <b-row>
                     <b-col cols="3">
-                        <user-summary-template v-on:photoChange="photoChanged" :user="user" :editMode="editMode"/>
+                        <user-summary-template v-on:photoChange="photoChanged" :user="userToEdit" :editMode="editMode"/>
                     </b-col>
                     <b-col cols="9">
-                        <b-card no-body>
-                            <b-tabs card v-model="tabIndex">
+                        <b-card no-body >
+                            <b-tabs  card v-model="tabIndex">
                                 <b-tab title="Identification" >
                                     <identification-tab 
                                         :runMethod="identificationTabMethods" 
                                         v-on:showWarning="$bvModal.show('bv-modal-team-cancel-warning')" 
                                         v-on:closeMemberDetails="closeWarningWindow()" 
                                         v-on:profileUpdated="getSheriffs()" 
-                                        :originalUser="user"
+                                        
                                         :createMode="createMode" 
                                         :editMode="editMode" />
                                 </b-tab>
 
                                 <b-tab title="Locations"> 
-                                    <location-tab :user="user"  />                                   
+                                    <location-tab v-on:change="getSheriffs()" />                                   
                                 </b-tab>
 
                                 <b-tab title="Leaves">                                    
@@ -85,7 +85,7 @@
                                 </b-tab>
 
                                 <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
-                                    <role-assignment-tab :userId="user.id" :userAllRoles="userAllRoles" />
+                                    <role-assignment-tab :userId="userToEdit.id" :userAllRoles="userAllRoles" />
                                 </b-tab>
 
                             </b-tabs>
@@ -140,11 +140,14 @@
     import * as _ from 'underscore';
     import PageHeader from "@components/common/PageHeader.vue";
     
-    import "@store/modules/CommonInformation";  
+    import "@store/modules/CommonInformation"; 
+    import "@store/modules/TeamMemberInformation"; 
+    
     import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
     import {teamMemberInfoType, roleOptionInfoType} from '../../types/MyTeam';
     import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
     const commonState = namespace("CommonInformation");
+    const TeamMemberState = namespace("TeamMemberInformation");
     import store from '../../store'
     import ExpireSheriffProfile from './Tabs/ExpireSheriffProfile.vue'
     import RoleAssignmentTab from './Tabs/RoleAssignmentTab.vue'
@@ -188,11 +191,17 @@
 
         @commonState.State
         public userDetails!: userInfoType;
+
+        @TeamMemberState.State
+        public userToEdit!: teamMemberInfoType;
+
+        @TeamMemberState.Action
+        public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
         
         expiredViewChecked = false;
         showMemberDetails = false;
         showCancelWarning = false;
-        user = {} as teamMemberInfoType;
+        
         userIsAdmin = false;
 
         tabIndex = 0;
@@ -326,12 +335,13 @@
             this.editMode = true;            
             this.loadUserDetails(userId);            
             this.editMode = true;
+            
         }
 
         identificationTabMethods = new Vue();
 
         public closeProfileWindow(){
-            this.identificationTabMethods.$emit('closeProfileWindow'); 
+            this.identificationTabMethods.$emit('closeProfileWindow');
         }
 
         public closeWarningWindow() {
@@ -343,7 +353,8 @@
         public resetProfileWindowState() {
             this.createMode = false;
             this.editMode = false;
-            this.user = {} as teamMemberInfoType;
+            const user = {} as teamMemberInfoType;
+            this.UpdateUserToEdit(user);  
         }
 
         public AddMember(){ 
@@ -370,22 +381,24 @@
 
         public extractUserInfo(userJson): void {
             console.log(userJson)
-            this.user = {} as teamMemberInfoType;            
-            this.user.idirUserName =  userJson.idirName;
-            this.user.firstName = userJson.firstName;
-            this.user.lastName = userJson.lastName;
-            this.user.fullName = Vue.filter('capitilize')(userJson.firstName) + ' ' + Vue.filter('capitilize')(userJson.lastName);
-            this.user.gender = gender[userJson.gender];
-            this.user.rank = userJson.rank;
-            this.user.email = userJson.email;
-            this.user.badgeNumber = userJson.badgeNumber;
-            this.user.id = userJson.id;
-            this.user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
+            const user = {} as teamMemberInfoType;            
+            user.idirUserName =  userJson.idirName;
+            user.firstName = userJson.firstName;
+            user.lastName = userJson.lastName;
+            user.fullName = Vue.filter('capitilize')(userJson.firstName) + ' ' + Vue.filter('capitilize')(userJson.lastName);
+            user.gender = gender[userJson.gender];
+            user.rank = userJson.rank;
+            user.email = userJson.email;
+            user.badgeNumber = userJson.badgeNumber;
+            user.id = userJson.id;
+            user.homeLocationId = userJson.homeLocationId;
+            user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
             if(userJson.homeLocation)
-                this.user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
+                user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
           
             //console.log(this.user)
             this.userAllRoles = userJson.roles
+            this.UpdateUserToEdit(user);  
         }
 
         get getCancelLabel(){

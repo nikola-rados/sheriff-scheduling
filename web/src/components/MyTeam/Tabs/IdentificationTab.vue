@@ -45,7 +45,9 @@ import * as _ from 'underscore';
 
 import { namespace } from 'vuex-class';
 const commonState = namespace("CommonInformation");
-import store from '../../../store'
+
+import "@store/modules/TeamMemberInformation"; 
+const TeamMemberState = namespace("TeamMemberInformation");
 
 enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -62,9 +64,6 @@ export default class IdentificationTab extends Vue {
     public location!: locationInfoType;
 
     @Prop({required: true})
-    originalUser!: teamMemberInfoType;
-
-    @Prop({required: true})
     createMode!: boolean;
 
     @Prop({required: true})
@@ -72,6 +71,12 @@ export default class IdentificationTab extends Vue {
 
     @Prop({required: true})
     runMethod!: any;
+
+    @TeamMemberState.State
+    public userToEdit!: teamMemberInfoType;
+
+    @TeamMemberState.Action
+    public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
 
     genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
     genderValues = [0, 1, 2]
@@ -92,12 +97,12 @@ export default class IdentificationTab extends Vue {
     user = {} as teamMemberInfoType;
 
     mounted(){
-        //console.log('role')
+        console.log('identification')
         this.ClearFormState();
         if(this.createMode) 
             this.user = {} as teamMemberInfoType;
         else
-            this.user = _.clone(this.originalUser);
+            this.user = _.clone(this.userToEdit);
 
         this.refreshPage++;
         //console.log(this.user)
@@ -120,7 +125,7 @@ export default class IdentificationTab extends Vue {
     }
 
     public changesMade(): boolean {
-        return !_.isEqual(this.originalUser, this.user)
+        return !_.isEqual(this.userToEdit, this.user)
     }
 
     public isEmpty(obj){
@@ -131,7 +136,8 @@ export default class IdentificationTab extends Vue {
     }
          
     public saveMemberProfile() { 
-        console.log('save')      
+        console.log('save') 
+        console.log(this.user)     
         const requiredErrorTab: number[] = [];
 
         if (this.createMode && !this.user.idirUserName) {
@@ -189,8 +195,9 @@ export default class IdentificationTab extends Vue {
     }
 
     public updateProfile(): void {
+        console.log('update profile')
         const body = {
-            homeLocationId: this.location.id,               
+            homeLocationId: this.user.homeLocationId,               
             gender: this.user.gender,
             badgeNumber: this.user.badgeNumber,
             rank: this.user.rank,
@@ -232,6 +239,8 @@ export default class IdentificationTab extends Vue {
     }
 
     public createProfile() {
+
+        console.log('create profile')
         const body = {
             homeLocationId: this.location.id,               
             gender: this.user.gender,

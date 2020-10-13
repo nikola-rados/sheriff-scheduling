@@ -2,7 +2,7 @@
 <template>
     <div>
         <b-card  style="height:400px;overflow: auto;" >                                        
-            <h2 class="mx-1 mt-0"><b-badge v-if="roleAssignError" variant="danger"> Role Assignment Unsuccessful <b-icon class="ml-3" icon = x-square-fill @click="roleAssignError = false" /></b-badge></h2>
+            <h2 class="mx-1 mt-0"><b-badge v-if="locationError" variant="danger"> Location changes unsuccessful <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
 
             <b-card class="mb-3" border-variant="light">
                 <b-input-group >
@@ -14,7 +14,7 @@
                                 v-for="homelocation in locationList" 
                                 :key="homelocation.id"
                                 :value="homelocation">
-                                        {{homelocation.name}}
+                                    {{homelocation.name}}
                             </b-form-select-option>    
                     </b-form-select>
                 </b-input-group>
@@ -97,7 +97,8 @@
     import {locationInfoType} from '../../../types/common';
     import { namespace } from 'vuex-class';
     const commonState = namespace("CommonInformation");
-    import store from '../../../store'
+    import "@store/modules/TeamMemberInformation"; 
+    const TeamMemberState = namespace("TeamMemberInformation");
 
     @Component
     export default class LocationTab extends Vue {
@@ -108,8 +109,11 @@
         @commonState.State
         public locationList!: locationInfoType[];
 
-        @Prop({required: true})
-        user!: teamMemberInfoType;
+        @TeamMemberState.State
+        public userToEdit!: teamMemberInfoType;
+
+        @TeamMemberState.Action
+        public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
 
        
 
@@ -123,7 +127,7 @@
         // refreshTable = 0;
 
         // roles: roleOptionInfoType[] = []
-        roleAssignError = false;
+        locationError = false;
 
         // rolesJson;
 
@@ -140,7 +144,7 @@
         mounted()
         {
             console.log('locationTab') 
-            this.selectedHomeLocation = this.user.homeLocation;
+            this.selectedHomeLocation = this.userToEdit.homeLocation;
             //{id: this.user.homeLocation.id, name: this.user.homeLocation.name, regionId: this.user.homeLocation.regionId}
             //this.user.homeLocation;
             console.log(this.selectedHomeLocation)
@@ -149,22 +153,32 @@
 
         public homeLocationChanged()
         {
-            console.log(this.selectedHomeLocation)
+            Vue.nextTick().then(()=>{
+                console.log(this.selectedHomeLocation)
 
-            const body = {
-                homeLocationId: this.selectedHomeLocation? this.selectedHomeLocation.id: '',               
-                id: this.user.id
-            }
-            const url = 'api/sheriff';
-            const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-            this.$http.put(url, body, options)
-                .then(response => {
-                    console.log(response)                   
-                }, err => {
-                    console.log(err)
-                // this.errorText = err.response.data.error
-                // this.errorCode = err.response.status
-                });
+                const body = {
+                    homeLocationId: this.selectedHomeLocation? this.selectedHomeLocation.id: '',
+                    gender: this.userToEdit.gender,
+                    badgeNumber: this.userToEdit.badgeNumber,
+                    rank: this.userToEdit.rank,
+                    idirName: this.userToEdit.idirUserName,
+                    firstName:this.userToEdit.firstName,
+                    lastName: this.userToEdit.lastName,
+                    email: this.userToEdit.email,
+                    id: this.userToEdit.id 
+                }
+
+                const url = 'api/sheriff';
+                const options = {headers:{'Authorization' :'Bearer '+this.token}} 
+                this.$http.put(url, body, options)
+                    .then(response => {
+                        console.log(response)                        
+                        this.$emit('change')                   
+                    }, err => {
+                        console.log(err)
+                        this.locationError = true;
+                    });
+            });
         }
    
         // public GetRoles(){

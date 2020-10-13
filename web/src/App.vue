@@ -127,7 +127,6 @@
         
         public extractLocationInfo(locationListJson)
         {
-            console.log(locationListJson)
             let locationJson: locationJsonType;
 
             for(locationJson of locationListJson)
