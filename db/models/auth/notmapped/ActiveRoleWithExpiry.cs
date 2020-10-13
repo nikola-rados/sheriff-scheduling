@@ -14,18 +14,7 @@ namespace SS.Db.models.auth.notmapped
     public class ActiveRoleWithExpiry
     {
         [NotMapped]
-        public Role Role
-        {
-            get
-            {
-                _role.RolePermissions = null;
-                return _role;
-            }
-            set => _role = value;
-        }
-
-        private Role _role;
-
+        public Role Role { get; set; }
         [NotMapped]
         public DateTimeOffset EffectiveDate { get; set; }
         [NotMapped]
