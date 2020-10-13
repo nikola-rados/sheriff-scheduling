@@ -5,8 +5,8 @@
                 <page-header :pageHeaderText="sectionHeader"></page-header>
                 <b-card  >  
                     <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
-                        <b-form-input v-model="searchPhrase" placeholder="Enter Name"></b-form-input>
-                        <b-form-text class="text-light font-italic"> Name/Rank/BadgeNumber/Location </b-form-text>
+                        <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
+                        <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
                     </b-form-group>
                 </b-card> 
             </b-col>
@@ -71,7 +71,8 @@
                                         :editMode="editMode" />
                                 </b-tab>
 
-                                <b-tab title="Locations">                                    
+                                <b-tab title="Locations"> 
+                                    <location-tab :user="user"  />                                   
                                 </b-tab>
 
                                 <b-tab title="Leaves">                                    
@@ -135,16 +136,18 @@
     import { namespace } from 'vuex-class';
     import * as _ from 'underscore';
     import PageHeader from "@components/common/PageHeader.vue";
-    import UserSummaryTemplate from "./utils/UserSummaryTemplate.vue";
+    
     import "@store/modules/CommonInformation";  
     import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
     import {teamMemberInfoType, roleOptionInfoType} from '../../types/MyTeam';
     import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
     const commonState = namespace("CommonInformation");
     import store from '../../store'
-    import ExpireSheriffProfile from './utils/ExpireSheriffProfile.vue'
-    import RoleAssignmentTab from './utils/RoleAssignmentTab.vue'
-    import IdentificationTab from './utils/IdentificationTab.vue'
+    import ExpireSheriffProfile from './Tabs/ExpireSheriffProfile.vue'
+    import RoleAssignmentTab from './Tabs/RoleAssignmentTab.vue'
+    import IdentificationTab from './Tabs/IdentificationTab.vue'
+    import UserSummaryTemplate from "./Tabs/UserSummaryTemplate.vue";
+    import LocationTab from './Tabs/LocationTab.vue'
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -154,7 +157,8 @@
             UserSummaryTemplate,
             ExpireSheriffProfile,
             RoleAssignmentTab,
-            IdentificationTab
+            IdentificationTab,
+            LocationTab
         }        
     })    
     export default class MyTeamMembers extends Vue {
@@ -247,7 +251,8 @@
                 myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
-                myteam.homeLocationNm = myteaminfo.homeLocation.name;
+                myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';
+                myteam.homeLocation = myteaminfo.homeLocation;
                 this.allMyTeamData.push(myteam);
             }            
         }
@@ -368,7 +373,8 @@
             this.user.email = userJson.email;
             this.user.badgeNumber = userJson.badgeNumber;
             this.user.id = userJson.id;
-            this.user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:''; 
+            this.user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
+            this.user.homeLocation = userJson.homeLocation; 
             console.log(this.user)
             this.userAllRoles = userJson.roles
         }

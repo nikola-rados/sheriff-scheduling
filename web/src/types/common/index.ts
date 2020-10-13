@@ -1,6 +1,7 @@
 export interface locationInfoType {
-    "name": string,
-    "id": number
+    name: string;
+    id: number;
+    regionId: number|null;
 }
 
 export interface userInfoType {

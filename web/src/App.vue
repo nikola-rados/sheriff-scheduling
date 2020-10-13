@@ -126,11 +126,12 @@
         
         public extractLocationInfo(locationListJson)
         {
+            console.log(locationListJson)
             let locationJson: locationJsonType;
 
             for(locationJson of locationListJson)
             {
-                const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name}
+                const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId}
                 this.locationList.push(locationInfo)
             }                       
             this.UpdateLocationList(this.locationList);

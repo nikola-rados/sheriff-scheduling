@@ -9,7 +9,7 @@ class CommonInformation extends VuexModule {
 
   public commonInfo: commonInfoType = {sheriffRankList: []};
 
-  public location: locationInfoType = {name: '', id: 0};
+  public location: locationInfoType = {name: '', id: 0, regionId:0};
 
   public locationList: locationInfoType[] = [];
 

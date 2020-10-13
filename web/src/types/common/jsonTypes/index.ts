@@ -5,8 +5,9 @@ export interface sheriffRankJsonType {
 }
 
 export interface locationJsonType {
-    "id": number,
-    "agencyId": string,
-    "name": string,
-    "concurrencyToken": number
+    id: number;
+    agencyId: string;
+    name: string;
+    regionId: number|null;
+    concurrencyToken: number;
 }

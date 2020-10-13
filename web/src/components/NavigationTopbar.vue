@@ -103,7 +103,7 @@
     
     disableLocationChange = false;
     userIsAdmin = false;
-    selectedLocation: locationInfoType = {name: '', id: 0};
+    selectedLocation ={} as locationInfoType;
     locationDataReady = false;
      
     mounted() {

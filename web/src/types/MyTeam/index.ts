@@ -17,6 +17,16 @@ export interface teamMemberInfoType {
     isEnabled?: boolean;
     homeLocationId?: number | null;
     homeLocationNm?: string | null;
+    homeLocation?: homeLocationInfoType;
+}
+
+export interface homeLocationInfoType{
+    agencyId: string;
+    concurrencyToken?: number;
+    id: number|null;
+    justinCode: string;
+    name: string;
+    regionId: number|null;
 }
 
 export interface userRoleInfoType{
