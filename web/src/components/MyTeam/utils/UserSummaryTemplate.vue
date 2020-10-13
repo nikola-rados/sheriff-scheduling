@@ -132,9 +132,13 @@
                     this.$emit('photoChange', this.user.id,this.photo)
                 
                 }, err => {
-                    console.log(err);
-                    this.photoError = true;
-                    this.photoErrorMsg = 'Photo size is large!';
+                    console.log(err.response);
+                    this.photoError = true; 
+                    if(err.response.data.includes('Maximum upload size'))                   
+                        this.photoErrorMsg = 'Photo size is too large!';
+                    else
+                        this.photoErrorMsg = 'Photo upload unsuccessful!';
+
                 }) 
         }
 

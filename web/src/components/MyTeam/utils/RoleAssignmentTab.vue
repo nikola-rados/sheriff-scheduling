@@ -3,48 +3,73 @@
     <div>
         <b-card  style="height:400px;overflow: auto;" >                                        
             <h2 class="mx-1 mt-0"><b-badge v-if="roleAssignError" variant="danger"> Role Assignment Unsuccessful <b-icon class="ml-3" icon = x-square-fill @click="roleAssignError = false" /></b-badge></h2>
-                    
-            <b-form-group >
-                <b-form-checkbox-group v-model="selectedRoles">
-                    <b-row class="mb-2 text-primary" style="font-weight:bold">
-                        <b-col cols="5"> Role </b-col>
-                        <b-col class="mx-2" > Effective Date </b-col>
-                        <b-col class="mx-2" > Expiry Date </b-col>
-                    </b-row>
-                    <b-row v-for="(rol,rolInx) in roles" :key="rolInx" class="mb-1">
-                        <b-col cols="5">   
-                            <b-form-checkbox 
-                                class="mt-1"
-                                v-b-tooltip.hover.left
-                                :title="rol.desc"
-                                @change="roleChanged(rolInx)" 
-                                :value="rol.value">
-                                    {{rol.text}}
-                            </b-form-checkbox>
-                        </b-col>
-                        <b-col >
-                            <b-form-datepicker
-                            class="p-0 m-0"
-                            v-model="roles[rolInx].effDate"
-                            placeholder="Eff. Date"
-                            locale="en-US" 
-                            :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                            :state = "rol.effState?null:false"
-                            ></b-form-datepicker>
-                        </b-col>
-                        <b-col >
-                            <b-form-datepicker
-                            v-model="roles[rolInx].expDate"
-                            placeholder="Exp. Date"
-                            locale="en-US"
-                            :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                            :state = "rol.expState?null:false"
-                            ></b-form-datepicker>
-                        </b-col>
-                    </b-row> 
-                
-                </b-form-checkbox-group>
-            </b-form-group>                                       
+
+            <b-card class="mb-3" border-variant="light">
+                <b-input-group >
+                    <b-form-select
+                        class="mr-1"                                                       
+                        v-model="selectedRole"
+                        :state = "roleState?null:false"         
+                        placeholder="Select a role">
+                            <b-form-select-option
+                                v-for="role in roles" 
+                                :key="role.value"
+                                :value="role">
+                                        {{role.text}}
+                            </b-form-select-option>    
+                    </b-form-select>
+                    <b-form-datepicker
+                        class="mr-1"
+                        v-model="selectedEffectiveDate"
+                        placeholder="Eff. Date"
+                        locale="en-US" 
+                        :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+                        :state = "effDateState?null:false">
+                    </b-form-datepicker>
+                    <b-form-datepicker
+                        class="mr-1"
+                        v-model="selectedExpiryDate"
+                        placeholder="Exp. Date"
+                        locale="en-US"
+                        :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+                        >
+                    </b-form-datepicker> 
+                    <b-button
+                        variant="success"
+                        :disabled="roles.length==0"
+                        @click="saveRole()">
+                        <b-icon icon="plus" /> Save 
+                    </b-button>                           
+                </b-input-group> 
+            </b-card>
+
+            <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedRoles.length">
+                    <span class="text-muted ml-4 mb-5">No roles have been assigned.</span>
+            </b-card>
+
+            <b-card v-else no-body border-variant="light" bg-variant="white">
+                <b-table
+                    :items="assignedRoles"
+                    :fields="roleFields"
+                    :key="refreshTable"
+                    striped
+                    borderless
+                    small
+                    responsive="sm"
+                    >  
+                        <template v-slot:cell(effDate)="data" >
+                            <span>{{data.value | beautify-date}}</span> 
+                        </template>
+                        <template v-slot:cell(expDate)="data" >
+                            <span>{{data.value | beautify-date}}</span> 
+                        </template>
+                        <template v-slot:cell(editRole)="data" >                                       
+                            <span><b-button variant="transparent" @click="deleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.75" variant="danger"/></b-button></span>
+                            <span><b-button variant="transparent" @click="editRole(data.item)"><b-icon icon="pencil-square" font-scale="1.75" variant="primary"/></b-button></span> 
+                        </template>
+                        
+                </b-table> 
+            </b-card>                                      
         </b-card>
     </div>
 </template>
@@ -66,18 +91,36 @@
         userId!: string;
 
         @Prop({required: true})
-        userActiveRoles!: any;
+        userAllRoles!: any;
 
-        selectedRoles: string[] = []
+        selectedRole = {} as roleOptionInfoType;
+        selectedEffectiveDate =''
+        selectedExpiryDate =''
+        roleState = true
+        effDateState = true
+
+        refreshTable = 0;
+
         roles: roleOptionInfoType[] = []
         roleAssignError = false;
+
+        rolesJson;
+
+        assignedRoles: roleOptionInfoType[] = [];
+
+        roleFields =  
+        [           
+            {key:'text',    label:'Role',sortable:false, tdClass: 'border-top',  }, 
+            {key:'effDate', label:'Effective Date',   sortable:false, tdClass: 'border-top', thClass:'',},
+            {key:'expDate', label:'Expiry Date',      sortable:false, tdClass: 'border-top', thClass:'',}, 
+            {key:'editRole',  sortable:false, tdClass: 'border-top', thClass:'text-white',},       
+        ];
 
         mounted()
         {
             console.log('role') 
             this.GetRoles();
         }
-
    
         public GetRoles(){
             const url = '/api/role'
@@ -85,68 +128,121 @@
             this.$http.get(url, options)
                 .then(response => {
                     if(response.data){
-                        this.extractRoles(response.data);                        
+                        this.rolesJson = response.data
+                        this.extractRoles(this.rolesJson, this.userAllRoles);                        
                     }                                   
                 })
         }
       
-        public extractRoles(data){
+        public extractRoles(rolesJson, userAllRoles ){
             this.roles=[];
-            this.selectedRoles = [];
+            this.assignedRoles =[];
+            this.selectedRole = {} as roleOptionInfoType;
             this.roleAssignError = false; 
+
+
+            console.log(userAllRoles)
+            for(const allRole of userAllRoles) 
+            { 
+                this.assignedRoles.push({
+                    text:allRole.role.name, 
+                    desc: allRole.role.description, 
+                    value:allRole.role.id, 
+                    effDate:allRole.effectiveDate, 
+                    expDate:allRole.expiryDate
+                })
+            }
+            this.refreshTable++;
             
-            for(const role of data)            
-                this.roles.push({text:role.name, desc: role.description, value:role.id, effDate:'', expDate:'', effState:true, expState: true})           
-        
-            for(const activeRole of this.userActiveRoles) 
-            {             
-                const index = this.roles.findIndex(role =>{if(role.value == activeRole.role.id) return true;else return false});
-                if(index >=0)
-                { 
-                    this.roles[index].effDate = activeRole.effectiveDate
-                    this.roles[index].expDate = activeRole.expiryDate
-                    this.selectedRoles.push(this.roles[index].value);
+            for(const role of rolesJson)
+            {
+                const index = this.assignedRoles.findIndex(assignrole =>{if(assignrole.value == role.id) return true;else return false});
+                if(index < 0)
+                {             
+                    this.roles.push({text:role.name, desc: role.description, value:role.id, effDate:'', expDate:''})           
                 }
             }
         }        
 
-        public roleChanged(rolInx){
-            Vue.nextTick().then(()=>{
-                const selectedIndex = this.selectedRoles.indexOf(this.roles[rolInx].value);
-                console.log(rolInx)
-                console.log(this.roles[rolInx].value)
-                this.roles[rolInx].effState = true;
-                this.roles[rolInx].expState = true; 
+        public saveRole(){
+                
+                this.roleState = true;
+                this.effDateState = true;
                 this.roleAssignError = false; 
 
-                if(selectedIndex >=0 && this.roles[rolInx].effDate=="")
+                if(!this.selectedRole)
                 {
-                   this.roles[rolInx].effState = false; 
-                   this.selectedRoles.splice(selectedIndex, 1);
+                    this.roleState = false;
+                }
+                else if(this.selectedEffectiveDate == "")
+                {
+                    this.roleState = true;
+                    this.effDateState =  false;
                 }
                 else 
                 {
+                    this.roleState = true;
+                    this.effDateState = true;
+
                     const body = 
                     [{
                         "userId": this.userId,
-                        "roleId": this.roles[rolInx].value,
-                        "effectiveDate": this.roles[rolInx].effDate,
-                        "expiryDate": this.roles[rolInx].expDate
+                        "roleId": this.selectedRole.value,
+                        "effectiveDate": this.selectedEffectiveDate,
+                        "expiryDate": this.selectedExpiryDate
                     }]
-                    const url = (selectedIndex >= 0)? 'api/sheriff/assignroles' :'api/sheriff/unassignroles' 
+                    const url = 'api/sheriff/assignroles' //:'api/sheriff/unassignroles' 
                     const options = {headers:{'Authorization' :'Bearer '+this.token}}
                     this.$http.put(url, body, options)
                         .then(response => {
                             console.log(response)
-                            console.log('assign success')  
-                            if(selectedIndex < 0)
-                            {
-                                this.roles[rolInx].effDate =""
-                                this.roles[rolInx].expDate="" 
-                            }                                              
+                            console.log('assign success')
+                            
+                            this.selectedRole = {} as roleOptionInfoType;
+                            this.selectedEffectiveDate ='';
+                            this.selectedExpiryDate ='';
+                            this.getUserRoles();
+
                         }, err=>{this.roleAssignError = true;});
                 }
-            });
+           
+        }
+
+        public deleteRole(role){
+            this.roleAssignError = false; 
+            const body = 
+            [{
+                "userId": this.userId,
+                "roleId": role.value,                        
+            }]
+            const url = 'api/sheriff/unassignroles' 
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.put(url, body, options)
+                .then(response => {
+                    console.log(response)
+                    console.log('unassign success')
+                   
+                    this.getUserRoles();
+                                                     
+                }, err=>{this.roleAssignError = true;});
+        }
+
+        public getUserRoles()
+        {
+            const url = 'api/sheriff/' + this.userId
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)                        
+                        this.extractRoles(this.rolesJson,response.data.roles);                                                                
+                    }                    
+                });
+        }
+           
+        
+        public editRole(role){
+            console.log('edit role')
         }
 
        

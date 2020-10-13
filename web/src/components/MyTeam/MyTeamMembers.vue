@@ -1,8 +1,14 @@
 <template>
     <b-card bg-variant="white">
-        <b-row>
+        <b-row class="bg-white">
             <b-col cols="10">
                 <page-header :pageHeaderText="sectionHeader"></page-header>
+                <b-card  >  
+                    <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
+                        <b-form-input v-model="searchPhrase" placeholder="Enter Name"></b-form-input>
+                        <b-form-text class="text-light font-italic"> Name/Rank/BadgeNumber/Location </b-form-text>
+                    </b-form-group>
+                </b-card> 
             </b-col>
             <b-col style="padding: 0;">
                 <div :class="expiredViewChecked?'my-4 bg-warning':'my-4'" :style="expiredViewChecked?'max-width: 160px;':''">
@@ -13,7 +19,7 @@
                 <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="AddMember()" class="my-2"><b-icon-plus/>Add User</b-button>  
             </b-col>
         </b-row>
-        
+
         <b-card bg-variant="light" v-if= "!isMyTeamDataMounted" >
             <b-overlay :show= "true"> 
                 <b-card  style="min-height: 100px;"/>                   
@@ -24,16 +30,16 @@
                 </div>                
                 </template> 
             </b-overlay> 
-        </b-card>      
+        </b-card>
 
-        <div v-else class="container mb-5 " style="float: left;" id="app">
+        <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
-                    <div  class="card h-100">
+                    <div  class="card h-100 bg-dark">
                         <div @click="openMemberDetails(teamMember.id)" class="card-body">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
-                        <div class="card-footer bg-light border-light" >                                                
+                        <div class="card-footer text-white bg-dark border-dark" >                                                
                             <expire-sheriff-profile :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
                         </div>
                     </div>
@@ -75,9 +81,8 @@
                                 </b-tab>
 
                                 <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
-                                    <role-assignment-tab :userId="user.id" :userActiveRoles="userActiveRoles" />
+                                    <role-assignment-tab :userId="user.id" :userAllRoles="userAllRoles" />
                                 </b-tab>
-                                
 
                             </b-tabs>
                         </b-card>
@@ -187,11 +192,12 @@
         createMode = false;
         sectionHeader = '';
         photokey=0;
-        userActiveRoles: any[] = [];
+        userAllRoles: any[] = [];
+
+        searchPhrase = '';
 
         isMyTeamDataMounted = false;
-        myTeamData: teamMemberInfoType[] =[];
-        myActiveTeamData: teamMemberInfoType[] =[];
+    
         allMyTeamData: teamMemberInfoType[] =[];
         
         @Watch('location.id', { immediate: true })
@@ -211,15 +217,10 @@
             if(this.expiredViewChecked) return 'All Profiles';else return 'Active Profiles'
         }
 
-        public setView() {
-            if (this.expiredViewChecked) this.myTeamData = this.allMyTeamData;
-            else this.myTeamData = this.myActiveTeamData;
-        }
-
         public getSheriffs()
         {
             this.isMyTeamDataMounted = false;
-            const url = 'api/sheriff?locationId=' + this.location.id
+            const url = 'api/sheriff'//?locationId=' + this.location.id
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.get(url, options)
                 .then(response => {
@@ -232,34 +233,78 @@
         }
 
         public extractMyTeamFromSheriffs(data: any){
-            this.myTeamData = [];
+    
             this.allMyTeamData = [];            
             for(const myteaminfo of data)
             {
                 const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:'', gender:'' }
                 myteam.fullName = Vue.filter('capitilize')(myteaminfo.firstName) + ' ' + Vue.filter('capitilize')(myteaminfo.lastName);
+                myteam.firstName = myteaminfo.firstName;
+                myteam.lastName = myteaminfo.lastName;
                 myteam.rank = myteaminfo.rank;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
                 myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
+                myteam.homeLocationId = myteaminfo.homeLocationId;
+                myteam.homeLocationNm = myteaminfo.homeLocation.name;
                 this.allMyTeamData.push(myteam);
-            }
-            this.myActiveTeamData =this.allMyTeamData.filter(member => {
-                if (member.isEnabled) {
-                    return true
+            }            
+        }
+
+        get myTeamData() {
+            return this.allMyTeamData.filter(member => {
+                if (this.expiredViewChecked)
+                {
+                    if(this.searchPhrase=='')
+                    {
+                        if(member.homeLocationId == this.location.id)
+                            return true
+                    }
+                    else
+                    { 
+                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                    }
+                }
+                else if(member.isEnabled){
+                    if(this.searchPhrase=='')
+                    {
+                        if(member.homeLocationId == this.location.id)
+                            return true
+                    }
+                    else
+                    { 
+                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
+                            return true
+                    }
                 }
             });
-            this.setView()
         }
 
         
 
         public photoChanged(id: string, image: string){
            
-            const index = this.myTeamData.findIndex(myteam => {if(myteam.id == id) return true;else return false})
+            const index = this.allMyTeamData.findIndex(myteam => {if(myteam.id == id) return true;else return false})
             if( index >=0 ){
-                this.myTeamData[index].image = image;
+                this.allMyTeamData[index].image = image;
                 this.photokey++;
             }
         }      
@@ -325,7 +370,7 @@
             this.user.id = userJson.id;
             this.user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:''; 
             console.log(this.user)
-            this.userActiveRoles = userJson.activeRoles
+            this.userAllRoles = userJson.roles
         }
 
         get getCancelLabel(){
