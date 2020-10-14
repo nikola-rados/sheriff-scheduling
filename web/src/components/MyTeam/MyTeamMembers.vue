@@ -34,10 +34,10 @@
 
         <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
-                <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
+                <div v-for="(teamMember,index) in myTeamData" :key="index" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >                                                
-                            <user-location-summary :awayLocationJson="teamMember.awayLocation"/>                        
+                            <user-location-summary :awayLocationJson="teamMember.awayLocation" :index="index"/>                        
                         </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
