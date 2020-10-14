@@ -8,21 +8,24 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using SS.Api.Helpers;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.services;
 
 namespace SS.Api.Controllers
 {
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly AuthService _authService;
-        public AuthController(AuthService authService)
+        private readonly bool _isImpersonated;
+        public AuthController(IWebHostEnvironment env, IConfiguration configuration)
         {
-            _authService = authService;
+            _isImpersonated = env.IsDevelopment() &&
+                              configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
         }
-
         /// <summary>
         /// This cannot be called from AJAX or SWAGGER. It must be loaded in the browser location, because it brings the user to the SSO page. 
         /// </summary>
@@ -43,7 +46,7 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok(new { host = HttpContext.Request.Host} );
+            return Ok();
         }
 
         [HttpGet("requestAccess")]
@@ -75,12 +78,11 @@ namespace SS.Api.Controllers
         [Route("info")]
         public ActionResult UserInfo()
         {
-            var isImpersonated = !User.Identity.IsAuthenticated;
             var roles = HttpContext.User.FindAll(ClaimTypes.Role).SelectToList(r => r.Value);
             var permissions = HttpContext.User.FindAll(CustomClaimTypes.Permission).SelectToList(r => r.Value);
             var userId = HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value;
             var homeLocationId = HttpContext.User.FindFirst(CustomClaimTypes.HomeLocationId)?.Value;
-            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, isImpersonated });
+            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, IsImpersonated = _isImpersonated, DateTime.UtcNow });
         }
     }
 }

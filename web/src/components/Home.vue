@@ -5,7 +5,7 @@
             
             <b-card >
                 <b-card-title class="h2"> Temporary landing page for Sheriff Scheduling </b-card-title>
-            </b-card>   
+            </b-card>
 
         </b-card>
     </b-card>
@@ -13,7 +13,6 @@
 
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class'
 
     @Component
     export default class Home extends Vue {
@@ -21,10 +20,8 @@
     }
 </script>
 
-<style scoped>   
-
+<style scoped>
     .card {
         border: white;
     }
-
 </style>

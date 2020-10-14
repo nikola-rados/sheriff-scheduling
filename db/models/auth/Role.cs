@@ -9,8 +9,8 @@ namespace SS.Db.models.auth
     [AdaptTo("[name]Dto")]
     public class Role : BaseEntity
     {
+        public const string Manager = nameof(Manager);
         public const string Administrator = nameof(Administrator);
-        public const string SystemAdministrator = "System Administrator";
         public const string Sheriff = nameof(Sheriff);
         [Key]
         public int Id { get; set; }
