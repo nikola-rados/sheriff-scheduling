@@ -87,8 +87,8 @@ namespace tests.controllers
             result = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.Find(id));
 
             Assert.Equal("test", result.Description);
-            Assert.Equal(DateTime.Now, result.EffectiveDate.Value, TimeSpan.FromSeconds(10));
-            Assert.Equal(DateTime.Now, result.ExpiryDate.Value, TimeSpan.FromSeconds(10));
+            Assert.Equal(DateTimeOffset.Now.DateTime, result.EffectiveDate.Value.DateTime, TimeSpan.FromSeconds(10));
+            Assert.Equal(DateTimeOffset.Now.DateTime, result.ExpiryDate.Value.DateTime, TimeSpan.FromSeconds(10));
             Assert.Equal(5, result.SortOrder);
             Assert.Equal(LookupTypes.JailRole, result.Type);
             Assert.Equal("gg", result.Code);

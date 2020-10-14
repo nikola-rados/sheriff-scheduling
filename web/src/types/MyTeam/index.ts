@@ -14,6 +14,9 @@ export interface teamMemberInfoType {
     fullName?: string;
     image?: string | null;
     userRoles?: userRoleInfoType[];
+    isEnabled?: boolean;
+    homeLocationId?: number | null;
+    homeLocationNm?: string | null;
 }
 
 export interface userRoleInfoType{
@@ -32,8 +35,6 @@ export interface roleOptionInfoType{
     value: string;
     effDate: string;
     expDate: string;
-    effState: boolean;
-    expState: boolean;
 }
 
 export interface permissionInfoType {

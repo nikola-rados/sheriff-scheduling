@@ -2,21 +2,27 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Mapster;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using SS.Api.controllers.usermanagement;
+using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using ss.db.models;
 using SS.Db.models;
+using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
+using SS.Api.Helpers.Extensions;
 
 namespace tests.controllers
 {
@@ -29,7 +35,9 @@ namespace tests.controllers
 
         public SheriffControllerTests() : base(false)
         {
-            _controller = new SheriffController(new SheriffService(_dbContext), new UserService(_dbContext))
+            var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
+            var httpContextAccessor = new HttpContextAccessor {HttpContext = HttpResponseTest.SetupHttpContext()};
+            _controller = new SheriffController(new SheriffService(_dbContext, httpContextAccessor), new UserService(_dbContext), environment.Configuration)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -184,6 +192,7 @@ namespace tests.controllers
         [Fact]
         public async void AddUpdateRemoveSheriffAwayLocation()
         {
+            //Test permissions?
             var sheriffObject = await CreateSheriffUsingDbContext();
 
             var newLocation = new Location { Name = "New PLace", AgencyId = "545325345353"};

@@ -62,17 +62,16 @@ namespace SS.Db.models
             HandleSaveChanges();
             return await base.SaveChangesAsync(cancellationToken);
         }
-        //Credit to PIMS for this. 
-        /// <summary>
-        /// Save the entities with who created them or updated them.
-        /// </summary>
-        /// <returns></returns>
+
         public override int SaveChanges()
         {
             HandleSaveChanges();
             return base.SaveChanges();
         }
 
+        /// <summary>
+        /// Save the entities with who created them or updated them.
+        /// </summary>
         private void HandleSaveChanges()
         {
             var modifiedEntries = ChangeTracker.Entries()
