@@ -17,7 +17,6 @@ namespace SS.Api.controllers.usermanagement
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
-    [AuthorizeRoles(Role.SystemAdministrator)]
     public class RoleController : ControllerBase
     {
         private readonly RoleService _service;
@@ -27,6 +26,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpGet]
+        [PermissionClaimAuthorize(perm: Permission.ViewRoles)]
         public async Task<ActionResult<List<RoleDto>>> Roles()
         {
             var roles = await _service.Roles();
@@ -35,6 +35,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpGet]
         [Route("{id}")]
+        [PermissionClaimAuthorize(perm: Permission.ViewRoles)]
         public async Task<ActionResult<RoleDto>> GetRole(int id)
         {
             var roles = await _service.Role(id);
@@ -42,7 +43,8 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPost]
-        public async Task<ActionResult<RoleDto>> AddRole(AddRoleDto addRole)
+        [PermissionClaimAuthorize(perm: Permission.CreateAndAssignRoles)]
+        public async Task<ActionResult<RoleDto>> AddRole(AddRoleDto addRole)        
         {
             addRole.ThrowBusinessExceptionIfNull("AddRole was null");
             addRole.Role.ThrowBusinessExceptionIfNull("Role was null");
@@ -54,7 +56,8 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpPut]
-        public async Task<ActionResult<RoleDto>> UpdateRole(UpdateRoleDto updateRole)
+        [PermissionClaimAuthorize(perm: Permission.EditRoles)]
+        public async Task<ActionResult<RoleDto>> UpdateRole(UpdateRoleDto updateRole)        
         {
             updateRole.ThrowBusinessExceptionIfNull("AddRole was null");
             updateRole.Role.ThrowBusinessExceptionIfNull("Role was null");
@@ -65,6 +68,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpDelete]
+        [PermissionClaimAuthorize(perm: Permission.EditRoles)]
         public async Task<ActionResult> RemoveRole(int id)
         {
             await _service.RemoveRole(id);

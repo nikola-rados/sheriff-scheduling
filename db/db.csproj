@@ -46,6 +46,8 @@
     <Compile Remove="migrations\20201004171704_LocationToRegion.Designer.cs" />
     <Compile Remove="migrations\20201009192719_go.cs" />
     <Compile Remove="migrations\20201009192719_go.Designer.cs" />
+    <Compile Remove="migrations\20201009195010_MorePermissions.cs" />
+    <Compile Remove="migrations\20201009195010_MorePermissions.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
