@@ -25,13 +25,15 @@ namespace SS.Api.services.JC
         private readonly SheriffDbContext _db;
         private IConfiguration Configuration { get; }
         private bool Expire { get; }
+        private bool AssociateUsersWithNoLocationToVictoria { get; }
 
         public JCDataUpdaterService(SheriffDbContext dbContext, LocationServicesClient locationClient, IConfiguration configuration, ILogger<JCDataUpdaterService> logger)
         {
             _locationClient = locationClient;
             _db = dbContext;
             Configuration = configuration;
-            Expire = Configuration.GetNonEmptyValue("JCSynchronizationExpire").Equals("true");
+            Expire = Configuration.GetNonEmptyValue("JCSynchronization:Expire").Equals("true");
+            AssociateUsersWithNoLocationToVictoria = Configuration.GetNonEmptyValue("JCSynchronization:AssociateUsersWithNoLocationToVictoria").Equals("true");
             _logger = logger;
         }
 
@@ -87,6 +89,20 @@ namespace SS.Api.services.JC
                     disableLocation.ExpiryDate = DateTime.UtcNow;
                     disableLocation.UpdatedOn = DateTime.UtcNow;
                     disableLocation.UpdatedById = User.SystemUser;
+                }
+                await _db.SaveChangesAsync();
+            }
+
+            if (AssociateUsersWithNoLocationToVictoria)
+            {
+                var sheriffsWithNoHomeLocation = _db.Sheriff.Where(s => !s.HomeLocationId.HasValue);
+                var victoriaLocation = _db.Location.AsNoTracking().FirstOrDefault(l => l.Name == "Victoria Law Courts");
+                if (victoriaLocation == null)
+                    return;
+                foreach (var sheriff in sheriffsWithNoHomeLocation)
+                {
+                    _logger.LogDebug($"Setting ${sheriff.LastName}, ${sheriff.FirstName} - HomeLocation to ${victoriaLocation.Id}");
+                    sheriff.HomeLocationId = victoriaLocation.Id;
                 }
                 await _db.SaveChangesAsync();
             }

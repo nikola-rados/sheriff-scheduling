@@ -27,11 +27,18 @@ using System.Threading.Tasks;
 using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
 using SS.Api.infrastructure;
 using SS.Api.infrastructure.authorization;
+using SS.Api.infrastructure.encryption;
+using SS.Api.services.ef;
 using SS.Db.models;
 
 namespace SS.Api
@@ -50,7 +57,25 @@ namespace SS.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<MigrationAndSeedService>();
             services.AddScoped<IClaimsTransformation, ClaimsTransformer>();
+
+            services.AddDbContext<SheriffDbContext>(options =>
+                {
+                    options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"), npg =>
+                        npg.MigrationsAssembly("db"));
+                    if (CurrentEnvironment.IsDevelopment())
+                        options.EnableSensitiveDataLogging();
+                }
+            );
+
+            services.AddSingleton(new AesGcmEncryptionOptions { Key = Configuration.GetNonEmptyValue("DataProtectionKeyEncryptionKey") });
+
+            services.AddDataProtection()
+                .PersistKeysToDbContext<SheriffDbContext>()
+                .UseXmlEncryptor(s => new AesGcmXmlEncryptor(s))
+                .SetApplicationName("SS");
+
             services.AddAuthentication(options =>
             {
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -169,15 +194,6 @@ namespace SS.Api
                 });
             });
 
-            services.AddDbContext<SheriffDbContext>(options =>
-                {
-                    options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"), npg => 
-                        npg.MigrationsAssembly("db"));
-                    if (CurrentEnvironment.IsDevelopment())
-                        options.EnableSensitiveDataLogging();
-                }
-            );
-
             services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
             services.AddSSServices(Configuration);
@@ -220,7 +236,7 @@ namespace SS.Api
                                 Id = "Bearer", //The name of the previously defined security scheme.
                                 Type = ReferenceType.SecurityScheme
                             }
-                        },new List<string>()
+                        }, new List<string>()
                     }
                 });
 
@@ -243,8 +259,8 @@ namespace SS.Api
                 context.Request.Scheme = "https";
                 return next();
             });
+
             app.UseForwardedHeaders();
-            app.UpdateDatabase<Startup>();
 
             app.UseCors();
 
