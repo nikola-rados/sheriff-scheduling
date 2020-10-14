@@ -10,7 +10,7 @@
         <b-icon-person-circle v-else class="mb-3" variant="secondary" font-scale="7.5"></b-icon-person-circle>
         
         <b-card no-body class="mb-3 mt-2" v-if="editMode">
-                <h3><b-badge v-if="photoError" variant="danger"> {{photoErrorMsg}} <b-icon class="ml-1" icon = x-square-fill @click="photoError = false" /></b-badge></h3>
+                <h4 ><b-badge v-if="photoError" variant="danger"> {{photoErrorMsg}} <b-icon class="ml-1" icon = x-square-fill @click="photoError = false" /></b-badge></h4>
                                 
             <label class="btn btn-default btnfile">
                 Browse for File <input type="file" style="display: none;" accept="image/x-png,image/gif,image/jpeg" onclick="this.value=null;" @change="onFileSelected">
@@ -136,10 +136,11 @@
                     this.$emit('photoChange', this.user.id,this.photo)
                 
                 }, err => {
-                    console.log(err.response);
+                    console.log(err.response.data);
                     this.photoError = true; 
-                    if(err.response.data.includes('Maximum upload size'))                   
-                        this.photoErrorMsg = 'Photo size is too large!';
+                    const errInx= err.response.data.indexOf('Maximum upload size')
+                    if(errInx >=0)                   
+                        this.photoErrorMsg = err.response.data.substring(errInx);
                     else
                         this.photoErrorMsg = 'Photo upload unsuccessful!';
 
