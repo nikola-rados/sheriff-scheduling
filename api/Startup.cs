@@ -28,12 +28,16 @@ using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
 using SS.Api.infrastructure;
 using SS.Api.infrastructure.authorization;
+using SS.Api.infrastructure.encryption;
 using SS.Api.services.ef;
 using SS.Db.models;
 
@@ -65,8 +69,12 @@ namespace SS.Api
                 }
             );
 
+            services.AddSingleton(new AesGcmEncryptionOptions { Key = Configuration.GetNonEmptyValue("DataProtectionKeyEncryptionKey") });
+
             services.AddDataProtection()
-                .PersistKeysToDbContext<SheriffDbContext>();
+                .PersistKeysToDbContext<SheriffDbContext>()
+                .UseXmlEncryptor(s => new AesGcmXmlEncryptor(s))
+                .SetApplicationName("SS");
 
             services.AddAuthentication(options =>
             {
