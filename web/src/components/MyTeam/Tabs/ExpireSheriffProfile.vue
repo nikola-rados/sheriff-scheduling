@@ -2,7 +2,7 @@
     <div>
         <h2 v-if="expireStatusError" class="mx-1 mt-0"><b-badge  variant="danger"> Unsuccessful  <b-icon class="ml-3" icon = x-square-fill @click="expireStatusError = false" /></b-badge></h2>
                                        
-        <b-form-checkbox v-model="expireChecked" @change="showExpireWarning=true" switch>
+        <b-form-checkbox v-model="expireChecked" @change="showExpireWarning=true" :disabled="disabled" switch>
            {{expiryStatus}}
         </b-form-checkbox>
 
@@ -44,6 +44,9 @@
 
         @Prop({required: true})
         userIsEnable!: boolean;
+
+        @Prop({required: true})
+        disabled!: boolean;
 
         showExpireWarning=false;
         expireChecked = false;

@@ -1,4 +1,3 @@
-
 <template>
     <div :key="refreshPage">
         <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
@@ -34,6 +33,23 @@
         </b-row>
         <h2 class="mx-1 mt-0"><b-badge v-if="duplicateBadge" variant="danger"> Duplicate Badge</b-badge></h2>
 
+        <b-modal v-model="showCancelWarning" id="bv-modal-team-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>                
+                 <h2 v-if="editMode" class="mb-0 text-light"> Unsaved Profile Changes </h2>
+                 <h2 v-else-if="createMode" class="mb-0 text-light"> Unsaved New Profile </h2>                
+            </template>
+            <p>Are you sure you want to cancel without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-team-cancel-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="closeWarningWindow()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>
     </div>
 </template>
 
@@ -90,6 +106,8 @@ export default class IdentificationTab extends Vue {
     duplicateBadge = false;
     duplicateIdir = false;
 
+    showCancelWarning = false;
+
     errorCode = 0;
     errorText = '';
     refreshPage =0;
@@ -98,6 +116,17 @@ export default class IdentificationTab extends Vue {
 
     mounted(){
         console.log('identification')
+        this.refreshTabInformation();
+        //console.log(this.user)
+        this.runMethod.$on('closeProfileWindow', this.closeProfileWindow)
+        this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)
+        this.runMethod.$on('reloadInfo',this.refreshTabInformation)                
+    }
+
+    public refreshTabInformation()
+    {
+        console.log('refresh identification tab')
+        this.user = {} as teamMemberInfoType;
         this.ClearFormState();
         if(this.createMode) 
             this.user = {} as teamMemberInfoType;
@@ -105,9 +134,6 @@ export default class IdentificationTab extends Vue {
             this.user = _.clone(this.userToEdit);
 
         this.refreshPage++;
-        //console.log(this.user)
-        this.runMethod.$on('closeProfileWindow', this.closeProfileWindow)
-        this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)                
     }
 
     public closeProfileWindow(){
@@ -121,7 +147,13 @@ export default class IdentificationTab extends Vue {
             this.resetProfileWindowState();
         }    
         else
-            this.$emit('showWarning');
+            this.showCancelWarning = true;
+    }
+
+    public closeWarningWindow() {
+        this.showCancelWarning = false;
+        this.$emit('closeMemberDetails');
+        this.resetProfileWindowState();            
     }
 
     public changesMade(): boolean {
@@ -279,9 +311,9 @@ export default class IdentificationTab extends Vue {
             })   
     }
 
-    public resetProfileWindowState() {       
-        this.ClearFormState();
+    public resetProfileWindowState() {
         this.user = {} as teamMemberInfoType;
+        this.ClearFormState();
     }
 
     public ClearFormState(){        

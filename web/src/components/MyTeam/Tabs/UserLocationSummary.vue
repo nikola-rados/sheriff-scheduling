@@ -1,7 +1,7 @@
 <template> 
-    <b-card no-body>       
+    <b-card no-body class="bg-dark text-white">       
     
-        <b-icon-box-arrow-left v-if="displayLoaned" variant="secondary" v-b-tooltip.hover.v-warning v-b-tooltip.hover.right.html="awayLocationInfoHtml" font-scale="1"></b-icon-box-arrow-left>        
+        <b-icon-box-arrow-left v-if="displayLoaned" v-b-tooltip.hover.v-warning v-b-tooltip.hover.right.html="awayLocationInfoHtml" font-scale="1.5"></b-icon-box-arrow-left>        
        
            
     </b-card>   

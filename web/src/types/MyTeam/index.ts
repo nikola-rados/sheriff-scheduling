@@ -62,7 +62,7 @@ export interface permissionOptionInfoType{
 }
 
 export interface awayLocationInfoType{    
-    locationId: string|null;
+    locationId: number|null;
     name: string;
     isFullDay: boolean;
     startDate: string;

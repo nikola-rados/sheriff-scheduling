@@ -788,18 +788,18 @@ export interface rolePermissionsJsonType {
 }
 
 export interface awayLocationsJsontype {  
-    "id": string,
+    "id": number,
     "location": {
-      "id": string,
+      "id": number,
       "agencyId": string,
       "name": string,
       "justinCode": string,
-      "parentLocationId": string,
+      "parentLocationId": number,
       "expiryDate": string,
-      "regionId": string,
+      "regionId": number,
       "concurrencyToken": number
     },
-    "locationId": string,
+    "locationId": number,
     "startDate": string,
     "endDate": string,
     "expiryDate": string,

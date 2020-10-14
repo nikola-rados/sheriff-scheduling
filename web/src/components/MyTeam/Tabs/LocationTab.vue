@@ -1,15 +1,13 @@
-
 <template>
     <div>
-        <b-card  style="height:400px;overflow: auto;" >                                        
-            <h2 class="mx-1 mt-0"><b-badge v-if="locationError" variant="danger"> Location changes unsuccessful <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
+        <b-card  style="height:400px;overflow: auto;" no-body>                                        
+            <h2 v-if="locationError" class="mx-1 mt-0"><b-badge  variant="danger"> Location changes unsuccessful <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
 
-            <b-card class="mb-3" border-variant="light">
-                <b-input-group >
-                    <b-form-select
-                        class="mr-1"                                                       
+            <b-card no-body class="mx-2 my-0 p-0" border-variant="light"><label class="ml-1 p-0">Home Location:</label>
+                <b-form-group style="width: 20rem"> 
+                    <b-form-select                                                                               
                         v-model="selectedHomeLocation"
-                        @change="homeLocationChanged">
+                        @change="homeLocationChanged">                            
                             <b-form-select-option
                                 v-for="homelocation in locationList" 
                                 :key="homelocation.id"
@@ -17,49 +15,84 @@
                                     {{homelocation.name}}
                             </b-form-select-option>    
                     </b-form-select>
-                </b-input-group>
+                </b-form-group>
             </b-card>
             
             
-            <!-- <b-card class="mb-3" border-variant="light">
-                <b-input-group >
-                    <b-form-select
-                        class="mr-1"                                                       
-                        v-model="selectedRole"
-                        :state = "roleState?null:false"         
-                        placeholder="Select a role">
-                            <b-form-select-option
-                                v-for="role in roles" 
-                                :key="role.value"
-                                :value="role">
-                                        {{role.text}}
-                            </b-form-select-option>    
-                    </b-form-select>
-                    <b-form-datepicker
-                        class="mr-1"
-                        v-model="selectedEffectiveDate"
-                        placeholder="Eff. Date"
-                        locale="en-US" 
-                        :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                        :state = "effDateState?null:false">
-                    </b-form-datepicker>
-                    <b-form-datepicker
-                        class="mr-1"
-                        v-model="selectedExpiryDate"
-                        placeholder="Exp. Date"
-                        locale="en-US"
-                        :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                        >
-                    </b-form-datepicker> 
-                    <b-button
-                        variant="success"
-                        :disabled="roles.length==0"
-                        @click="saveRole()">
-                        <b-icon icon="plus" /> Save 
-                    </b-button>                           
-                </b-input-group> 
+            <b-card class="mb-3" border-variant="light" no-body>
+                <b-table-simple small borderless >
+                    <b-tbody style="background-color:#BBB">
+                        <b-tr>
+
+                            <b-td rowspan="2">
+                                <b-form-select
+                                    class="mr-1"
+                                    style="width: 20rem"                                                       
+                                    v-model="selectedLocation"
+                                    :state = "locationState?null:false">
+                                        <b-form-select-option :value="{}">
+                                            Select a location
+                                        </b-form-select-option>
+                                        <b-form-select-option
+                                            v-for="location in locationList" 
+                                            :key="location.id"
+                                            :value="location">
+                                                {{location.name}}
+                                        </b-form-select-option>     
+                                </b-form-select>
+                            </b-td>
+                            <b-td>
+                                <b-form-datepicker
+                                    class="mr-1"
+                                    v-model="selectedStartDate"
+                                    placeholder="Start Date"
+                                    locale="en-US" 
+                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+                                    :state = "startDateState?null:false">
+                                </b-form-datepicker>
+                            </b-td>
+                            <b-td>                                
+                                <b-form-datepicker
+                                    class="mr-1"
+                                    v-model="selectedEndDate"
+                                    placeholder="End Date"
+                                    locale="en-US"
+                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+                                    :state = "endDateState?null:false">
+                                </b-form-datepicker> 
+                            </b-td>                            
+                            <b-td rowspan="2" >
+                                <b-button
+                                    variant="success"                        
+                                    @click="saveAwayLocation()">
+                                    Save
+                                </b-button>   
+                            </b-td>
+                        </b-tr>    
+                        <b-tr>                            
+                            <b-td>
+                                <b-form-timepicker 
+                                    v-model="startTime"
+                                    placeholder="Start time" 
+                                    locale="en">
+                                </b-form-timepicker>
+                            </b-td>                            
+                            <b-td>
+                                <b-form-timepicker 
+                                    v-model="endTime"
+                                    placeholder="End time" 
+                                    locale="en">
+                                </b-form-timepicker>
+                            </b-td>
+                        </b-tr>
+                        
+                    </b-tbody>
+                </b-table-simple>
+                                      
+               
             </b-card>
 
+<!-- 
             <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedRoles.length">
                     <span class="text-muted ml-4 mb-5">No roles have been assigned.</span>
             </b-card>
@@ -119,11 +152,20 @@
 
         selectedHomeLocation = {} as locationInfoType | undefined;
         // selectedRole = {} as roleOptionInfoType;
-        // selectedEffectiveDate =''
-        // selectedExpiryDate =''
-        // roleState = true
-        // effDateState = true
+        
+        selectedLocation = {} as locationInfoType | undefined;
+        locationState = true;
 
+        selectedEndDate = ''
+        endDateState = true
+
+        selectedStartDate = ''
+        startDateState = true
+
+        startTime = ''
+        endTime = ''
+
+        
         // refreshTable = 0;
 
         // roles: roleOptionInfoType[] = []
@@ -172,13 +214,24 @@
                 const options = {headers:{'Authorization' :'Bearer '+this.token}} 
                 this.$http.put(url, body, options)
                     .then(response => {
-                        console.log(response)                        
-                        this.$emit('change')                   
+                        console.log(response) 
+                        this.updateUser();
+                                          
                     }, err => {
                         console.log(err)
                         this.locationError = true;
                     });
             });
+        }
+
+        updateUser()
+        {
+            const user = this.userToEdit
+            user.homeLocation = this.selectedHomeLocation;
+            user.homeLocationNm = this.selectedHomeLocation? this.selectedHomeLocation.name: '';
+            user.homeLocationId = this.selectedHomeLocation? this.selectedHomeLocation.id: 0;
+            this.UpdateUserToEdit(user);
+            this.$emit('change') 
         }
    
         // public GetRoles(){
@@ -223,7 +276,8 @@
         //     }
         // }        
 
-        // public saveRole(){
+        public saveAwayLocation(){
+            console.log('save away location')
                 
         //         this.roleState = true;
         //         this.effDateState = true;
@@ -265,7 +319,7 @@
         //                 }, err=>{this.roleAssignError = true;});
         //         }
            
-        // }
+        }
 
         // public deleteRole(role){
         //     this.roleAssignError = false; 
@@ -311,3 +365,9 @@
        
     }
 </script>
+
+<style scoped>
+    .b-td {
+        background-color: lightsalmon;
+    }
+</style>

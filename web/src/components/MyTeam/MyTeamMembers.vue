@@ -36,14 +36,14 @@
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
-                        <div class="card-header bg-dark border-dark" >                                                
+                        <div class="card-header bg-dark border-dark mb-0 pb-0 " >                                                
                             <user-location-summary :awayLocationJson="teamMember.awayLocation"/>                        
                         </div>
-                        <div @click="openMemberDetails(teamMember.id)" class="card-body">
+                        <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
-                        <div class="card-footer text-white bg-dark border-dark" >                                                
-                            <expire-sheriff-profile :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
+                        <div class="card-footer text-white bg-dark border-dark mt-0 pt-0" >                                                
+                            <expire-sheriff-profile :disabled="!userIsAdmin" :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
                         </div>
                     </div>
                 </div>
@@ -63,18 +63,16 @@
                     <b-col cols="9">
                         <b-card no-body >
                             <b-tabs  card v-model="tabIndex">
-                                <b-tab title="Identification" >
+                                <b-tab title="Identification" @click="reloadIdentificationTab()">
                                     <identification-tab 
-                                        :runMethod="identificationTabMethods" 
-                                        v-on:showWarning="$bvModal.show('bv-modal-team-cancel-warning')" 
-                                        v-on:closeMemberDetails="closeWarningWindow()" 
-                                        v-on:profileUpdated="getSheriffs()" 
-                                        
+                                        :runMethod="identificationTabMethods"                                         
+                                        v-on:closeMemberDetails="closeMemberDetailWindow()" 
+                                        v-on:profileUpdated="getSheriffs()"                                        
                                         :createMode="createMode" 
                                         :editMode="editMode" />
                                 </b-tab>
 
-                                <b-tab title="Locations"> 
+                                <b-tab title="Locations" class="p-0"> 
                                     <location-tab v-on:change="getSheriffs()" />                                   
                                 </b-tab>
 
@@ -114,23 +112,7 @@
             </template>           
         </b-modal>
 
-        <b-modal v-model="showCancelWarning" id="bv-modal-team-cancel-warning" header-class="bg-warning text-light">            
-            <template v-slot:modal-title>                
-                 <h2 v-if="editMode" class="mb-0 text-light"> Unsaved Profile Changes </h2>
-                 <h2 v-else-if="createMode" class="mb-0 text-light"> Unsaved New Profile </h2>                
-            </template>
-            <p>Are you sure you want to cancel without saving your changes?</p>
-            <template v-slot:modal-footer>
-                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-team-cancel-warning')"                   
-                >No</b-button>
-                <b-button variant="success" @click="closeWarningWindow()"
-                >Yes</b-button>
-            </template>            
-            <template v-slot:modal-header-close>                 
-                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-cancel-warning')"
-                 >&times;</b-button>
-            </template>
-        </b-modal>
+        
     </b-card>
 </template>
 
@@ -200,7 +182,7 @@
         
         expiredViewChecked = false;
         showMemberDetails = false;
-        showCancelWarning = false;
+       
         
         userIsAdmin = false;
 
@@ -275,54 +257,23 @@
 
         get myTeamData() {
             return this.allMyTeamData.filter(member => {
-                if (this.expiredViewChecked)
+                if (this.expiredViewChecked || member.isEnabled)
                 {
-                    if(this.searchPhrase=='')
-                    {
-                        if(member.homeLocationId == this.location.id)
-                            return true
+                    if(this.searchPhrase==''){
+                        if(member.homeLocationId == this.location.id) return true
                     }
-                    else
-                    { 
-                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                    }
-                }
-                else if(member.isEnabled){
-                    if(this.searchPhrase=='')
-                    {
-                        if(member.homeLocationId == this.location.id)
-                            return true
-                    }
-                    else
-                    { 
-                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
+                    else{ 
+                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
+                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))   return true
+                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))           return true
+                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
+                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
                     }
                 }
             });
         }
 
-        
-
-        public photoChanged(id: string, image: string){
-           
+        public photoChanged(id: string, image: string){           
             const index = this.allMyTeamData.findIndex(myteam => {if(myteam.id == id) return true;else return false})
             if( index >=0 ){
                 this.allMyTeamData[index].image = image;
@@ -331,30 +282,42 @@
         }      
 
         public openMemberDetails(userId){
-            this.createMode = false;
-            this.editMode = true;            
-            this.loadUserDetails(userId);            
-            this.editMode = true;
-            
+            if(this.userIsAdmin)
+            {
+                this.createMode = false;
+                this.editMode = true;            
+                this.loadUserDetails(userId);
+            }                        
         }
 
         identificationTabMethods = new Vue();
 
+        public saveMemberProfile() { 
+            this.identificationTabMethods.$emit('saveMemberProfile');
+        }  
+
         public closeProfileWindow(){
-            this.identificationTabMethods.$emit('closeProfileWindow');
+            console.log(this.tabIndex)
+            if(this.tabIndex == 0)
+                this.identificationTabMethods.$emit('closeProfileWindow');
+            else 
+                this.closeMemberDetailWindow()
         }
 
-        public closeWarningWindow() {
-            this.showCancelWarning = false;
+        public closeMemberDetailWindow(){            
             this.showMemberDetails = false;
             this.resetProfileWindowState();            
         }
 
-        public resetProfileWindowState() {
+        public resetProfileWindowState(){
             this.createMode = false;
             this.editMode = false;
             const user = {} as teamMemberInfoType;
             this.UpdateUserToEdit(user);  
+        }
+
+        public reloadIdentificationTab(){
+            this.identificationTabMethods.$emit('reloadInfo');
         }
 
         public AddMember(){ 
@@ -405,9 +368,7 @@
             if(this.tabIndex<1) return 'Cancel'; else return 'Close'
         }
 
-        public saveMemberProfile() { 
-            this.identificationTabMethods.$emit('saveMemberProfile');
-        }      
+            
 
 
     }
