@@ -48,6 +48,12 @@
     <Compile Remove="migrations\20201009192719_go.Designer.cs" />
     <Compile Remove="migrations\20201009195010_MorePermissions.cs" />
     <Compile Remove="migrations\20201009195010_MorePermissions.Designer.cs" />
+    <Compile Remove="migrations\20201014174502_CascadeDeleteRole.cs" />
+    <Compile Remove="migrations\20201014174502_CascadeDeleteRole.Designer.cs" />
+    <Compile Remove="migrations\20201014174814_CascadeDeleteRole.cs" />
+    <Compile Remove="migrations\20201014174814_CascadeDeleteRole.Designer.cs" />
+    <Compile Remove="migrations\20201014174947_CascadeDeleteUserOrRole.cs" />
+    <Compile Remove="migrations\20201014174947_CascadeDeleteUserOrRole.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

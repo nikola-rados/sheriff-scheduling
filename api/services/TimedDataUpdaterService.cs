@@ -51,6 +51,7 @@ namespace SS.Api.services
                 await justinDataUpdaterService.SyncLocations();
                 _logger.LogInformation("Syncing CourtRooms.");
                 await justinDataUpdaterService.SyncCourtRooms();
+                _logger.LogInformation("Finished Syncing.");
             }
             catch (Exception e)
             {

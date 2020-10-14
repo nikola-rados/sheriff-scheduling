@@ -123,6 +123,8 @@ namespace SS.Api.services
 
         public async Task<SheriffAwayLocation> AddSheriffAwayLocation(SheriffAwayLocation sheriffAwayLocation)
         {
+            //TODO validation
+
             sheriffAwayLocation.Location = await _db.Location.FindAsync(sheriffAwayLocation.LocationId);
             sheriffAwayLocation.Sheriff = await _db.Sheriff.FindAsync(sheriffAwayLocation.SheriffId);
             await _db.SheriffAwayLocation.AddAsync(sheriffAwayLocation);
@@ -132,6 +134,8 @@ namespace SS.Api.services
 
         public async Task<SheriffAwayLocation> UpdateSheriffAwayLocation(SheriffAwayLocation sheriffAwayLocation)
         {
+            //TODO validation
+
             var savedAwayLocation = await _db.SheriffAwayLocation.FindAsync(sheriffAwayLocation.Id);
             savedAwayLocation.ThrowBusinessExceptionIfNull(
                 $"{nameof(sheriffAwayLocation)} with the id: {sheriffAwayLocation.Id} could not be found. ");
@@ -156,6 +160,8 @@ namespace SS.Api.services
 
         public async Task<SheriffLeave> AddSheriffLeave(SheriffLeave sheriffLeave)
         {
+            //TODO validation
+
             sheriffLeave.LeaveType = await _db.LookupCode.FindAsync(sheriffLeave.LeaveTypeId);
             sheriffLeave.Sheriff = await _db.Sheriff.FindAsync(sheriffLeave.SheriffId);
             await _db.SheriffLeave.AddAsync(sheriffLeave);
@@ -165,6 +171,8 @@ namespace SS.Api.services
 
         public async Task<SheriffLeave> UpdateSheriffLeave(SheriffLeave sheriffLeave)
         {
+            //TODO validation
+
             var savedLeave = await _db.SheriffLeave.FindAsync(sheriffLeave.Id);
             savedLeave.ThrowBusinessExceptionIfNull(
                 $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
@@ -188,6 +196,8 @@ namespace SS.Api.services
 
         public async Task<SheriffTraining> AddSheriffTraining(SheriffTraining sheriffTraining)
         {
+            //TODO validation
+
             sheriffTraining.Sheriff = await _db.Sheriff.FindAsync(sheriffTraining.SheriffId);
             sheriffTraining.TrainingType = await _db.LookupCode.FindAsync(sheriffTraining.TrainingTypeId);
             await _db.SheriffTraining.AddAsync(sheriffTraining);
@@ -197,6 +207,8 @@ namespace SS.Api.services
 
         public async Task<SheriffTraining> UpdateSheriffTraining(SheriffTraining sheriffTraining)
         {
+            //TODO validation
+
             var savedTraining = await _db.SheriffTraining.FindAsync(sheriffTraining.Id);
             savedTraining.ThrowBusinessExceptionIfNull(
                 $"{nameof(savedTraining)} with the id: {sheriffTraining.Id} could not be found. ");
