@@ -100,10 +100,10 @@ namespace SS.Api.services
             foreach (var sheriff in sheriffsByLocation)
             {
                 //If LocationId = null, only show LoanedOuts. 
-                sheriff.LoanedIn = sheriff.AwayLocation.Where(aw => locationId.HasValue && sheriff.HomeLocationId != locationId).SelectToList(
-                        aw => $"Loaned from {aw.Location?.Name} {aw.StartDate} to {aw.EndDate}");
-                sheriff.LoanedOut = sheriff.AwayLocation.Where(aw => !locationId.HasValue || sheriff.HomeLocationId == locationId).SelectToList(
-                    aw => $"Loaned to {aw.Location?.Name} {aw.StartDate} to {aw.EndDate}");
+                sheriff.LoanedIn =
+                    sheriff.AwayLocation.WhereToList(aw => locationId.HasValue && sheriff.HomeLocationId != locationId);
+                sheriff.LoanedOut =
+                    sheriff.AwayLocation.WhereToList(aw => !locationId.HasValue || sheriff.HomeLocationId == locationId);
             }
 
             return sheriffsByLocation;
