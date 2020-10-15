@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Mapster;
-using SS.Api.Models.DB;
 using SS.Db.models.auth;
 
 namespace SS.Db.models.sheriff

@@ -11,6 +11,7 @@ namespace SS.Api.Models.Dto
         public int? ParentLocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public int? RegionId { get; set; }
+        public string Timezone { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
