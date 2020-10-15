@@ -1,6 +1,6 @@
 import {locationInfoType} from '../common';
 import {} from '../DutyRoster/jsonTypes';
-import {awayLocationsJsontype} from './jsonTypes';
+import {awayLocationsJsontype, trainingJsontype} from './jsonTypes';
 
 export interface teamMemberInfoType {
 
@@ -20,6 +20,7 @@ export interface teamMemberInfoType {
     homeLocationNm?: string | null;
     homeLocation?: locationInfoType;
     awayLocation?: awayLocationsJsontype[];
+    training?: trainingJsontype[];
 }
 
 export interface userRoleInfoType{
@@ -63,6 +64,14 @@ export interface permissionOptionInfoType{
 
 export interface awayLocationInfoType{    
     locationId: number|null;
+    name: string;
+    isFullDay: boolean;
+    startDate: string;
+    endDate: string;    
+}
+
+export interface trainingInfoType{    
+    trainingTypeId: number|null;
     name: string;
     isFullDay: boolean;
     startDate: string;
