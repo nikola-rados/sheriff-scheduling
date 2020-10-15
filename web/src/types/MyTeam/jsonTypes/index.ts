@@ -6,181 +6,7 @@ export interface teamMemberJsonType {
         "badgeNumber": string,
         "rank": string,
         "awayLocations": awayLocationsJsontype[],
-        "leaves": [
-          {
-            "id": number,
-            "leaveTypeId": number,
-            "leaveType": {
-              "id": number,
-              "type": "CourtRoom",
-              "code": string,
-              "subCode": string,
-              "description": string,
-              "effectiveDate": string,
-              "expiryDate": string,
-              "sortOrder": number,
-              "locationId": number,
-              "location": {
-                "id": number,
-                "code": string,
-                "name": string,
-                "justinId": number,
-                "justinCode": string,
-                "parentLocationId": number,
-                "region": {
-                  "id": number,
-                  "code": string,
-                  "name": string
-                },
-                "createdById": string,
-                "createdBy": {
-                  "id": string,
-                  "preferredUsername": string,
-                  "idirId": string,
-                  "isDisabled": boolean,
-                  "firstName": string,
-                  "lastName": string,
-                  "email": string,
-                  "roles": [
-                    null
-                  ],
-                  "permissions": [
-                    null
-                  ],
-                  "lastLogin": string,
-                  "createdById": string,
-                  "createdOn": string,
-                  "updatedById": string,
-                  "updatedOn": string,
-                  "rowVersion": string
-                },
-                "createdOn": string,
-                "updatedById": string,
-                "updatedBy": {
-                  "id": string,
-                  "preferredUsername": string,
-                  "idirId": string,
-                  "isDisabled": boolean,
-                  "firstName": string,
-                  "lastName": string,
-                  "email": string,
-                  "roles": [
-                    null
-                  ],
-                  "permissions": [
-                    null
-                  ],
-                  "lastLogin": string,
-                  "createdById": string,
-                  "createdOn": string,
-                  "updatedById": string,
-                  "updatedOn": string,
-                  "rowVersion": string
-                },
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "createdById": string,
-              "createdBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "createdOn": string,
-              "updatedById": string,
-              "updatedBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "startDate": string,
-            "endDate": string,
-            "isFullDay": boolean,
-            "sheriffId": string,
-            "createdById": string,
-            "createdBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "createdOn": string,
-            "updatedById": string,
-            "updatedBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "updatedOn": string,
-            "rowVersion": string
-          }
-        ],
+        "leaves": leaveJsontype[],
         "training": trainingJsontype[],
         "photo": string,
         "id": string,
@@ -659,6 +485,40 @@ export interface trainingJsontype {
       "concurrencyToken": number
     },
     "trainingTypeId": number,
+    "startDate": string,
+    "endDate": string,
+    "expiryDate": string,
+    "isFullDay": boolean,
+    "sheriffId": string,
+    "concurrencyToken": number
+}
+
+
+export interface leaveJsontype {
+    "id": number,
+    "leaveType": {
+      "id": number,
+      "type": string,
+      "code": string,
+      "subCode": string,
+      "description": string,
+      "effectiveDate": string,
+      "expiryDate": string,
+      "sortOrder": number,
+      "location": {
+        "id": number,
+        "agencyId": string,
+        "name": string,
+        "justinCode": string,
+        "parentLocationId": number,
+        "expiryDate": string,
+        "regionId": number,
+        "concurrencyToken": number
+      },
+      "locationId": number,
+      "concurrencyToken": number
+    },
+    "leaveTypeId": number,
     "startDate": string,
     "endDate": string,
     "expiryDate": string,

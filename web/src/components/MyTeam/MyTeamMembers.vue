@@ -39,7 +39,8 @@
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >
                             <b-row>                                                
                                 <user-location-summary class="ml-4 mr-2" :awayLocationJson="teamMember.awayLocation" :index="index"/>
-                                <user-training-summary class="mx-2" :trainingJson="teamMember.training" :index="index"/>
+                                <user-training-summary class="mx-2" :trainingJson="teamMember.training" :index="index"/>                                
+                                <user-leave-summary class="mx-2" :trainingJson="teamMember.leave" :index="index"/>
                             </b-row>                                                    
                         </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
@@ -141,6 +142,7 @@
     import LocationTab from './Tabs/LocationTab.vue';
     import UserLocationSummary from './Tabs/UserLocationSummary.vue';
     import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
+    import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -150,6 +152,7 @@
             UserSummaryTemplate,
             UserLocationSummary,
             UserTrainingSummary,
+            UserLeaveSummary,
             ExpireSheriffProfile,
             RoleAssignmentTab,
             IdentificationTab,
@@ -255,6 +258,7 @@
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';
                 myteam.awayLocation = myteaminfo.awayLocation;
                 myteam.training = myteaminfo.training;
+                myteam.leave = myteaminfo.leave;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
