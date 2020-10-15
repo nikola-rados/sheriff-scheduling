@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
 using SS.Api.Helpers.Extensions;
-using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto;
 using SS.Db.models;
@@ -84,6 +83,7 @@ namespace SS.Api.services
                 .Include(s => s.AwayLocation.Where(al =>
                     !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
+                .ThenInclude(al => al.Location)
                 .Include(s => s.Training.Where(al =>
                     !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
@@ -99,9 +99,10 @@ namespace SS.Api.services
             var sheriffsByLocation = sheriffs.Adapt<List<SheriffByLocationDto>>();
             foreach (var sheriff in sheriffsByLocation)
             {
-                sheriff.LoanedIn = sheriff.AwayLocation.Where(aw => sheriff.HomeLocationId != locationId).SelectToList(
+                //If LocationId = null, only show LoanedOuts. 
+                sheriff.LoanedIn = sheriff.AwayLocation.Where(aw => locationId.HasValue && sheriff.HomeLocationId != locationId).SelectToList(
                         aw => $"Loaned from {aw.Location?.Name} {aw.StartDate} to {aw.EndDate}");
-                sheriff.LoanedOut = sheriff.AwayLocation.Where(aw => sheriff.HomeLocationId == locationId).SelectToList(
+                sheriff.LoanedOut = sheriff.AwayLocation.Where(aw => !locationId.HasValue || sheriff.HomeLocationId == locationId).SelectToList(
                     aw => $"Loaned to {aw.Location?.Name} {aw.StartDate} to {aw.EndDate}");
             }
 
@@ -129,6 +130,7 @@ namespace SS.Api.services
 
                 .Include(s=> s.HomeLocation)
                 .Include(s => s.AwayLocation.Where (al => al.EndDate >= today && al.ExpiryDate == null))
+                .ThenInclude(al => al.Location)
                 .Include(s => s.Leave.Where(l => l.EndDate >= today && l.ExpiryDate == null))
                 .Include(s => s.Training.Where(t => t.EndDate >= today && t.ExpiryDate == null))
                 .Include(s => s.UserRoles)
