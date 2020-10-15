@@ -37,9 +37,9 @@ namespace SS.Api.services
 
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
         {
-            return await _db.LookupCode.Where(lc =>
+            return await _db.LookupCode.AsNoTracking().Where(lc =>
                     (codeType == null || lc.Type == codeType) && 
-                    (locationId == null || lc.Location.Id == locationId))
+                    (locationId == null || lc.LocationId == locationId))
                 .ToListAsync();
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using JCCommon.Clients.LocationServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -201,7 +202,7 @@ namespace SS.Api.services.JC
                     throw new ConfigurationException("Couldn't not build dictionary based on LocationTimeZones");
 
                 var otherTimezone =
-                    configurationSections.FirstOrDefault(cs => cs.Value.Split(",")
+                    configurationSections.FirstOrDefault(cs => cs.Value.Split(",").Select(s => s.Trim())
                             .Any(partialName => location.Name.Contains(partialName)))
                         .Key;
 
