@@ -34,10 +34,10 @@
 
         <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
-                <div v-for="(teamMember,index) in myTeamData" :key="index" class="col-3  my-1">
+                <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >                                                
-                            <user-location-summary :awayLocationJson="teamMember.awayLocation" :index="index"/>                        
+                            <user-location-summary :awayLocationJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>                        
                         </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
@@ -359,6 +359,8 @@
             if(userJson.homeLocation)
                 user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
           
+            if(userJson.awayLocation && userJson.awayLocation.length>0)
+                user.awayLocation = userJson.awayLocation;
             //console.log(this.user)
             this.userAllRoles = userJson.roles
             this.UpdateUserToEdit(user);  

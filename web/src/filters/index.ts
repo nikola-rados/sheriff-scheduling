@@ -17,6 +17,14 @@ Vue.filter('beautify-date-time', function(date){
 		return ''
 })
 
+Vue.filter('beautify-time', function(date){
+	
+	if(date)
+		return date.substr(11,5);
+	else
+		return ''
+})
+
 Vue.filter('capitilize', function(str: string){
 	
 	if(str)

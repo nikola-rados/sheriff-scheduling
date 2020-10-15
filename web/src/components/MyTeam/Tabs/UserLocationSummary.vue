@@ -47,29 +47,9 @@
         ];
 
         mounted()
-        {
-            // console.log("mounted");
+        {            
+            console.log("mounted");
             // this.awayLocationJson = [
-            //     {
-            //     "id": 0,
-            //     "location": {
-            //         "id": 0,
-            //         "agencyId": "string",
-            //         "name": "Victoria Law Courts",
-            //         "justinCode": "string",
-            //         "parentLocationId": 0,
-            //         "expiryDate": "2020-10-13T22:26:36.212Z",
-            //         "regionId": 0,
-            //         "concurrencyToken": 0
-            //     },
-            //     "locationId": 297,
-            //     "startDate": "2020-10-15T22:26:36.212Z",
-            //     "endDate": "2020-10-16T22:26:36.212Z",
-            //     "expiryDate": "2020-10-19T22:26:36.212Z",
-            //     "isFullDay": true,
-            //     "sheriffId": "4e2ff3c0-2671-4328-b2c9-1f0ec5e70aba",
-            //     "concurrencyToken": 807
-            //     },
             //     {
             //     "id": 0,
             //     "location": {
