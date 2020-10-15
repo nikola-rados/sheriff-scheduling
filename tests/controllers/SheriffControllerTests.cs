@@ -190,7 +190,7 @@ namespace tests.controllers
 
 
         [Fact]
-        public async void AddUpdateRemoveSheriffAwayLocation()
+        public async Task AddUpdateRemoveSheriffAwayLocation()
         {
             //Test permissions?
             var sheriffObject = await CreateSheriffUsingDbContext();
@@ -257,7 +257,7 @@ namespace tests.controllers
         }
 
         [Fact]
-        public async void AddUpdateRemoveSheriffLeave()
+        public async Task AddUpdateRemoveSheriffLeave()
         {
             var sheriffObject = await CreateSheriffUsingDbContext();
             var newLocation = new Location { Name = "New PLace", AgencyId = "gfgdf43535345"};
@@ -341,7 +341,7 @@ namespace tests.controllers
         }
        
         [Fact]
-        public async void AddUpdateRemoveSheriffTraining()
+        public async Task AddUpdateRemoveSheriffTraining()
         {
             var sheriffObject = await CreateSheriffUsingDbContext();
 
