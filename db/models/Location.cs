@@ -19,5 +19,6 @@ namespace SS.Api.Models.DB
         public virtual Region Region { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public int? RegionId { get; set; }
+        public string Timezone { get; set; }
     }
 }

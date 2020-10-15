@@ -12,9 +12,9 @@ namespace SS.Db.configuration
             builder.Property(b => b.Id).HasIdentityOptions(startValue: 50);
 
             builder.HasData(
-                new Role { Id = 1, Name = Role.Administrator, Description = "Administrator" },
-                new Role { Id = 2, Name = Role.Manager, Description = "Manager" },
-                new Role { Id = 3, Name = Role.Sheriff, Description = "Sheriff" }
+                new Role { CreatedById = User.SystemUser, Id = 1, Name = Role.Administrator, Description = "Administrator" },
+                new Role { CreatedById = User.SystemUser, Id = 2, Name = Role.Manager, Description = "Manager" },
+                new Role { CreatedById = User.SystemUser, Id = 3, Name = Role.Sheriff, Description = "Sheriff" }
             );
 
             base.Configure(builder);
