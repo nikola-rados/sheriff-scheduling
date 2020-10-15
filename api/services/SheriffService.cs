@@ -141,6 +141,15 @@ namespace SS.Api.services
             return savedSheriff;
         }
 
+        public async Task UpdateSheriffHomeLocation(Guid id, int locationId)
+        {
+            var savedSheriff = await _db.Sheriff.FindAsync(id);
+            savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {id} could not be found. ");
+            savedSheriff.HomeLocation = await _db.Location.FindAsync(locationId);
+            savedSheriff.HomeLocation.ThrowBusinessExceptionIfNull($"Location with the id: {locationId} could not be found. ");
+            await _db.SaveChangesAsync();
+        }
+
         #endregion
 
         #region Sheriff Location
