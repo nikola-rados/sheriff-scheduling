@@ -8,7 +8,7 @@ namespace SS.Api.models.dto
 {
     public class SheriffByLocationDto : SheriffDto
     {
-        public List<string> LoanedIn { get; set; }
-        public List<string> LoanedOut { get; set; }
+        public List<SheriffAwayLocationDto> LoanedIn { get; set; }
+        public List<SheriffAwayLocationDto> LoanedOut { get; set; }
     }
 }
