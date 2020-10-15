@@ -4,12 +4,14 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
+using SS.Api.models.dto;
 using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
@@ -50,38 +52,85 @@ namespace SS.Api.services
             return sheriff;
         }
 
-        public async Task<List<Sheriff>> GetSheriffs(int? locationId)
+        public async Task<List<SheriffByLocationDto>> GetSheriffsForLocation(int? locationId)
         {
-            var operation = DetermineOperationFromClaims();
+            var operation = DetermineProfileFilteringFromClaims();
             var currentUserId = User.CurrentUserId();
             var currentUserHomeLocationId = User.HomeLocationId();
 
-            return await _db.Sheriff.AsNoTracking().Where(s => !locationId.HasValue || s.HomeLocationId == locationId)
-               .Where(s => (operation == ViewProfileOperation.ViewProvince ||
-                              (operation == ViewProfileOperation.ViewLocation && s.HomeLocationId == currentUserHomeLocationId) ||  //todo Loaned Location
-                              operation == ViewProfileOperation.ViewOwn && s.Id == currentUserId) &&
-                              operation != ViewProfileOperation.None)
+            var fiveDaysFromNow = DateTimeOffset.Now.AddDays(5).Date;
+            var now = DateTimeOffset.Now.Date;
+
+            var sheriffQuery = _db.Sheriff.AsNoTracking()
+                .AsSingleQuery()
+
+                //Get sheriffs that are on Loan and have the matching home location, or all sheriffs.
+                .Where(s => !locationId.HasValue ||
+                            s.HomeLocationId == locationId || 
+                            s.AwayLocation.Any(al => al.LocationId == locationId && !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                                                                                 && al.ExpiryDate == null))
+                //Filter out our permissions. These may need some refining. 
+                .Where(s => (operation == ViewProfileOperation.ViewProvince ||
+                             (operation == ViewProfileOperation.ViewLocation &&
+                              s.HomeLocationId == currentUserHomeLocationId ||
+                              s.AwayLocation.Any(al =>
+                                  al.LocationId == currentUserHomeLocationId &&
+                                  !(al.StartDate > fiveDaysFromNow || now > al.EndDate) &&
+                                  al.ExpiryDate == null)) || 
+                             operation == ViewProfileOperation.ViewOwn && s.Id == currentUserId) &&
+                            operation != ViewProfileOperation.None)
+
+                //Include AwayLocation/Training/Leave that is within 5 days. 
+                .Include(s => s.AwayLocation.Where(al =>
+                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    && al.ExpiryDate == null))
+                .Include(s => s.Training.Where(al =>
+                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    && al.ExpiryDate == null))
+                .Include(s => s.Leave.Where(al =>
+                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    && al.ExpiryDate == null))
                 .Include(s => s.HomeLocation)
                 .Include(s => s.UserRoles)
-                .ThenInclude(ur => ur.Role)
-                .ToListAsync();
+                .ThenInclude(ur => ur.Role);
+
+            var sheriffs = await sheriffQuery.ToListAsync();
+
+            var sheriffsByLocation = sheriffs.Adapt<List<SheriffByLocationDto>>();
+            foreach (var sheriff in sheriffsByLocation)
+            {
+                sheriff.LoanedIn = sheriff.AwayLocation.Where(aw => sheriff.HomeLocationId != locationId).SelectToList(
+                        aw => $"Loaned from {aw.Location?.Name} {aw.StartDate} to {aw.EndDate}");
+                sheriff.LoanedOut = sheriff.AwayLocation.Where(aw => sheriff.HomeLocationId == locationId).SelectToList(
+                    aw => $"Loaned to {aw.Location?.Name} {aw.StartDate} to {aw.EndDate}");
+            }
+
+            return sheriffsByLocation;
         }
 
         public async Task<Sheriff> GetSheriff(Guid id)
         {
-            var operation = DetermineOperationFromClaims();
+            var operation = DetermineProfileFilteringFromClaims();
             var currentUserId = User.CurrentUserId();
             var currentUserHomeLocationId = User.HomeLocationId();
 
-            return await _db.Sheriff.AsNoTracking()
+            var today = DateTimeOffset.Now.Date;
+            return await _db.Sheriff.AsNoTracking().AsSingleQuery()
+
+                //Filter out our permissions. These may need some refining. 
                 .Where(s => (operation == ViewProfileOperation.ViewProvince ||
-                             (operation == ViewProfileOperation.ViewLocation && s.HomeLocationId == currentUserHomeLocationId) || //todo Loaned Location
+                             (operation == ViewProfileOperation.ViewLocation &&
+                              s.HomeLocationId == currentUserHomeLocationId ||
+                              s.AwayLocation.Any(al =>
+                                  al.LocationId == currentUserHomeLocationId &&
+                                  al.EndDate >= today && al.ExpiryDate == null)) ||
                              operation == ViewProfileOperation.ViewOwn && s.Id == currentUserId) &&
                             operation != ViewProfileOperation.None)
+
                 .Include(s=> s.HomeLocation)
-                .Include(s => s.AwayLocation)
-                .Include(s => s.Leave)
-                .Include(s => s.Training)
+                .Include(s => s.AwayLocation.Where (al => al.EndDate >= today && al.ExpiryDate == null))
+                .Include(s => s.Leave.Where(l => l.EndDate >= today && l.ExpiryDate == null))
+                .Include(s => s.Training.Where(t => t.EndDate >= today && t.ExpiryDate == null))
                 .Include(s => s.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .SingleOrDefaultAsync(s => s.Id == id);
@@ -123,7 +172,9 @@ namespace SS.Api.services
 
         public async Task<SheriffAwayLocation> AddSheriffAwayLocation(SheriffAwayLocation sheriffAwayLocation)
         {
-            //TODO validation
+            ValidateStartAndEndDates(sheriffAwayLocation.StartDate, sheriffAwayLocation.EndDate);
+            ValidateSheriffExists(sheriffAwayLocation.SheriffId);
+            ValidateNoAwayLocationOverlap(sheriffAwayLocation.SheriffId, sheriffAwayLocation.StartDate, sheriffAwayLocation.EndDate);
 
             sheriffAwayLocation.Location = await _db.Location.FindAsync(sheriffAwayLocation.LocationId);
             sheriffAwayLocation.Sheriff = await _db.Sheriff.FindAsync(sheriffAwayLocation.SheriffId);
@@ -134,7 +185,8 @@ namespace SS.Api.services
 
         public async Task<SheriffAwayLocation> UpdateSheriffAwayLocation(SheriffAwayLocation sheriffAwayLocation)
         {
-            //TODO validation
+            ValidateStartAndEndDates(sheriffAwayLocation.StartDate, sheriffAwayLocation.EndDate);
+            ValidateSheriffExists(sheriffAwayLocation.SheriffId);
 
             var savedAwayLocation = await _db.SheriffAwayLocation.FindAsync(sheriffAwayLocation.Id);
             savedAwayLocation.ThrowBusinessExceptionIfNull(
@@ -160,7 +212,8 @@ namespace SS.Api.services
 
         public async Task<SheriffLeave> AddSheriffLeave(SheriffLeave sheriffLeave)
         {
-            //TODO validation
+            ValidateStartAndEndDates(sheriffLeave.StartDate, sheriffLeave.EndDate);
+            ValidateSheriffExists(sheriffLeave.SheriffId);
 
             sheriffLeave.LeaveType = await _db.LookupCode.FindAsync(sheriffLeave.LeaveTypeId);
             sheriffLeave.Sheriff = await _db.Sheriff.FindAsync(sheriffLeave.SheriffId);
@@ -171,7 +224,8 @@ namespace SS.Api.services
 
         public async Task<SheriffLeave> UpdateSheriffLeave(SheriffLeave sheriffLeave)
         {
-            //TODO validation
+            ValidateStartAndEndDates(sheriffLeave.StartDate, sheriffLeave.EndDate);
+            ValidateSheriffExists(sheriffLeave.SheriffId);
 
             var savedLeave = await _db.SheriffLeave.FindAsync(sheriffLeave.Id);
             savedLeave.ThrowBusinessExceptionIfNull(
@@ -196,7 +250,8 @@ namespace SS.Api.services
 
         public async Task<SheriffTraining> AddSheriffTraining(SheriffTraining sheriffTraining)
         {
-            //TODO validation
+            ValidateStartAndEndDates(sheriffTraining.StartDate, sheriffTraining.EndDate);
+            ValidateSheriffExists(sheriffTraining.SheriffId);
 
             sheriffTraining.Sheriff = await _db.Sheriff.FindAsync(sheriffTraining.SheriffId);
             sheriffTraining.TrainingType = await _db.LookupCode.FindAsync(sheriffTraining.TrainingTypeId);
@@ -207,7 +262,8 @@ namespace SS.Api.services
 
         public async Task<SheriffTraining> UpdateSheriffTraining(SheriffTraining sheriffTraining)
         {
-            //TODO validation
+            ValidateStartAndEndDates(sheriffTraining.StartDate, sheriffTraining.EndDate);
+            ValidateSheriffExists(sheriffTraining.SheriffId);
 
             var savedTraining = await _db.SheriffTraining.FindAsync(sheriffTraining.Id);
             savedTraining.ThrowBusinessExceptionIfNull(
@@ -253,7 +309,7 @@ namespace SS.Api.services
                     $"Sheriff {existingSheriffWithBadge.LastName}, {existingSheriffWithBadge.FirstName} already has badge number: {badgeNumber}");
         }
 
-        private ViewProfileOperation DetermineOperationFromClaims()
+        private ViewProfileOperation DetermineProfileFilteringFromClaims()
         {
             if (User.HasPermission(Permission.ViewProfilesInAllLocation))
                 return ViewProfileOperation.ViewProvince;
@@ -264,8 +320,26 @@ namespace SS.Api.services
             return ViewProfileOperation.None;
         }
 
+        private void ValidateStartAndEndDates(DateTimeOffset startDate, DateTimeOffset endDate)
+        {
+            if (startDate > endDate)
+                throw new BusinessLayerException("The start date cannot be after the end date. ");
+        }
+
+        private void ValidateSheriffExists(Guid sheriffId)
+        {
+            if (!_db.Sheriff.AsNoTracking().Any(s => s.Id == sheriffId))
+                throw new BusinessLayerException("Sheriff with id: {sheriffId} does not exist.");
+        }
+
+        private void ValidateNoAwayLocationOverlap(Guid sheriffId, DateTimeOffset startDate, DateTimeOffset endDate)
+        {
+
+        }
         #endregion
     }
+
+
 
     public enum ViewProfileOperation
     {

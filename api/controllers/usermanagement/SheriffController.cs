@@ -10,6 +10,7 @@ using SS.Api.Helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
+using SS.Api.models.dto;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
@@ -41,7 +42,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         /// <summary>
-        /// This gets a general list of Sheriffs, without all the details. 
+        /// This gets a general list of Sheriffs, based on location. Includes Training, AwayLocation, Leave data within 5 days.
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -49,10 +50,10 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewOwnProfile,
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
-        public async Task<ActionResult<SheriffDto>> GetSheriffs(int? locationId)
+        public async Task<ActionResult<SheriffByLocationDto>> GetSheriffsForLocation(int? locationId)
         {
-            var sheriffs = await _service.GetSheriffs(locationId);
-            return Ok(sheriffs.Adapt<List<SheriffDto>>());
+            var sheriffs = await _service.GetSheriffsForLocation(locationId);
+            return Ok(sheriffs.Adapt<List<SheriffByLocationDto>>());
         }
 
         /// <summary>
@@ -71,6 +72,24 @@ namespace SS.Api.controllers.usermanagement
             var sheriff = await _service.GetSheriff(id);
             if (sheriff == null)
                 return NotFound($"Couldn't find sheriff with id: {id}");
+            return Ok(sheriff.Adapt<SheriffDto>());
+        }
+
+        /// <summary>
+        /// Development route, do not use this in application.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet]
+        [PermissionClaimAuthorize(AuthorizeOperation.Or,
+            Permission.ViewOwnProfile,
+            Permission.ViewProfilesInOwnLocation,
+            Permission.ViewProfilesInAllLocation)]
+        [Route("self")]
+        public async Task<ActionResult<SheriffDto>> Sheriff()
+        {
+            var sheriff = await _service.GetSheriff(User.CurrentUserId());
+            if (sheriff == null)
+                return NotFound($"Couldn't find sheriff.");
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 

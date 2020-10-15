@@ -62,8 +62,7 @@ namespace SS.Api
 
             services.AddDbContext<SheriffDbContext>(options =>
                 {
-                    options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"), npg =>
-                        npg.MigrationsAssembly("db"));
+                    options.UseNpgsql(Configuration.GetNonEmptyValue("DatabaseConnectionString"), npg => npg.MigrationsAssembly("db"));
                     if (CurrentEnvironment.IsDevelopment())
                         options.EnableSensitiveDataLogging();
                 }
@@ -149,6 +148,14 @@ namespace SS.Api
                 options.UsePkce = true;
                 options.SaveTokens = true;
                 options.CallbackPath = "/api/auth/signin-oidc";
+                options.Events = new OpenIdConnectEvents
+                {
+                    OnRedirectToIdentityProvider = context =>
+                    {
+                        context.ProtocolMessage.SetParameter("kc_idp_hint", "idir");
+                        return Task.FromResult(0);
+                    }
+                };
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
                 var key = Encoding.ASCII.GetBytes(Configuration.GetNonEmptyValue("Keycloak:Secret"));
@@ -170,7 +177,7 @@ namespace SS.Api
                     {
                         context.NoResult();
                         context.Response.StatusCode = 401;
-                        throw context.Exception;
+                        return Task.CompletedTask;
                     },
                     OnForbidden = context =>
                     {
