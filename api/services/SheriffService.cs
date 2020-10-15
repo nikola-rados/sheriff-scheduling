@@ -121,6 +121,7 @@ namespace SS.Api.services
 
             _db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
 
+            _db.Entry(savedSheriff).Property(x => x.HomeLocationId).IsModified = false;
             _db.Entry(savedSheriff).Property(x => x.IsEnabled).IsModified = false;
             _db.Entry(savedSheriff).Property(x => x.Photo).IsModified = false;
             _db.Entry(savedSheriff).Property(x => x.KeyCloakId).IsModified = false;
