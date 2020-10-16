@@ -3,7 +3,7 @@
         <b-row class="bg-white">
             <b-col cols="10">
                 <page-header :pageHeaderText="sectionHeader"></page-header>
-                <b-card  >  
+                <b-card>  
                     <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
                         <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
                         <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
