@@ -104,7 +104,7 @@ namespace SS.Api.services
                 .ThenInclude(al => al.Location)
                 .Include(s => s.Leave.Where(l => l.EndDate >= today && l.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
-                .Include(s => s.Training.Where(t => t.EndDate >= today && t.ExpiryDate == null))
+                .Include(s => s.Training.Where(t => t.ExpiryDate == null))
                 .ThenInclude(t => t.TrainingType)
                 .Include(s => s.UserRoles)
                 .ThenInclude(ur => ur.Role)
