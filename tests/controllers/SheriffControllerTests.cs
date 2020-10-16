@@ -203,7 +203,6 @@ namespace tests.controllers
 
             var sheriffAwayLocation = new SheriffAwayLocationDto
             {
-                IsFullDay = true,
                 SheriffId =  sheriffObject.Id,
                 LocationId = newLocation.Id,
                 StartDate = DateTime.UtcNow,
@@ -215,7 +214,6 @@ namespace tests.controllers
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
             Assert.Equal(sheriffAwayLocation.LocationId, response.Location.Id);
-            Assert.Equal(sheriffAwayLocation.IsFullDay, response.IsFullDay);
             Assert.Equal(sheriffAwayLocation.SheriffId, response.SheriffId);
             Assert.Equal(sheriffAwayLocation.StartDate, response.StartDate);
             Assert.Equal(sheriffAwayLocation.EndDate, response.EndDate);
@@ -230,7 +228,6 @@ namespace tests.controllers
             var updateSheriffAwayLocation = sheriffAwayLocation.Adapt<SheriffAwayLocationDto>();
             updateSheriffAwayLocation.StartDate = DateTime.UtcNow.AddDays(5);
             updateSheriffAwayLocation.EndDate = DateTime.UtcNow.AddDays(5);
-            updateSheriffAwayLocation.IsFullDay = false;
             updateSheriffAwayLocation.LocationId = newLocation2.Id;
             updateSheriffAwayLocation.Id = response.Id;
 
@@ -242,7 +239,6 @@ namespace tests.controllers
 
             Assert.Equal(response3.StartDate, updateSheriffAwayLocation.StartDate);
             Assert.Equal(response3.EndDate, updateSheriffAwayLocation.EndDate);
-            Assert.Equal(response3.IsFullDay, updateSheriffAwayLocation.IsFullDay);
             Assert.Equal(response3.SheriffId, updateSheriffAwayLocation.SheriffId);
 
             Detach();
@@ -253,7 +249,7 @@ namespace tests.controllers
 
             var controllerResult6 = await _controller.FindSheriff(sheriffObject.Id);
             var response6 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult6);
-            Assert.NotNull(response6.AwayLocation.First().ExpiryDate);
+            Assert.Empty(response6.AwayLocation);
         }
 
         [Fact]
@@ -288,7 +284,6 @@ namespace tests.controllers
             var entity = new SheriffLeaveDto
             {
                 LeaveTypeId = lookupCode.Id,
-                IsFullDay = true,
                 SheriffId = sheriffObject.Id,
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddHours(3)
@@ -299,7 +294,6 @@ namespace tests.controllers
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
             Assert.Equal(entity.LeaveTypeId, response.LeaveType.Id);
-            Assert.Equal(entity.IsFullDay, response.IsFullDay);
             Assert.Equal(entity.SheriffId, response.SheriffId);
             Assert.Equal(entity.StartDate, response.StartDate);
             Assert.Equal(entity.EndDate, response.EndDate);
@@ -314,7 +308,6 @@ namespace tests.controllers
             var updateSheriffLeave = entity.Adapt<SheriffLeaveDto>();
             updateSheriffLeave.StartDate = DateTime.UtcNow.AddDays(5);
             updateSheriffLeave.EndDate = DateTime.UtcNow.AddDays(5);
-            updateSheriffLeave.IsFullDay = false;
             //updateSheriffLeave.LeaveTypeId = lookupCode2.Id;
            
             updateSheriffLeave.LeaveType = lookupCode2.Adapt<LookupCodeDto>();
@@ -327,7 +320,6 @@ namespace tests.controllers
 
             Assert.Equal(response3.StartDate, updateSheriffLeave.StartDate);
             Assert.Equal(response3.EndDate, updateSheriffLeave.EndDate);
-            Assert.Equal(response3.IsFullDay, updateSheriffLeave.IsFullDay);
             Assert.Equal(response3.SheriffId, updateSheriffLeave.SheriffId);
             Assert.Equal(response3.LeaveType.Id, updateSheriffLeave.LeaveTypeId);
 
@@ -337,7 +329,7 @@ namespace tests.controllers
 
             var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
             var response5 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult5);
-            Assert.NotNull(response5.Leave.First().ExpiryDate);
+            Assert.Empty(response5.Leave);
         }
        
         [Fact]
@@ -373,7 +365,6 @@ namespace tests.controllers
             var entity = new SheriffTrainingDto
             {
                 TrainingTypeId = lookupCode.Id,
-                IsFullDay = true,
                 SheriffId = sheriffObject.Id,
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddHours(3)
@@ -388,7 +379,6 @@ namespace tests.controllers
             var updateSheriffTraining = entity.Adapt<SheriffTrainingDto>();
             updateSheriffTraining.StartDate = DateTime.UtcNow.AddDays(5);
             updateSheriffTraining.EndDate = DateTime.UtcNow.AddDays(5);
-            updateSheriffTraining.IsFullDay = false;
             updateSheriffTraining.TrainingTypeId = lookupCode2.Id;
             updateSheriffTraining.TrainingType = lookupCode2.Adapt<LookupCodeDto>();
             updateSheriffTraining.Id = response.Id;
@@ -399,7 +389,6 @@ namespace tests.controllers
 
             Assert.Equal(response3.StartDate, updateSheriffTraining.StartDate);
             Assert.Equal(response3.EndDate, updateSheriffTraining.EndDate);
-            Assert.Equal(response3.IsFullDay, updateSheriffTraining.IsFullDay);
             Assert.Equal(response3.SheriffId, updateSheriffTraining.SheriffId);
             Assert.Equal(response3.TrainingType.Id, updateSheriffTraining.TrainingTypeId);
 
@@ -409,7 +398,7 @@ namespace tests.controllers
 
             var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
             var response5 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult5);
-            Assert.NotNull(response5.Training.First().ExpiryDate);
+            Assert.Empty(response5.Training);
         }
 
         #region Helpers
@@ -451,7 +440,6 @@ namespace tests.controllers
             var sheriffAwayLocation = new SheriffAwayLocation
             {
                 LocationId = newLocation.Id,
-                IsFullDay = true,
                 SheriffId = sheriffObject.Id,
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddHours(3)
