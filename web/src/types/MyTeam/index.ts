@@ -20,7 +20,6 @@ export interface teamMemberInfoType {
     homeLocationNm?: string | null;
     homeLocation?: locationInfoType;
     awayLocation?: awayLocationInfoType[];
-    loanedIn?: awayLocationsJsontype[];
     loanedOut?: awayLocationsJsontype[];
 }
 
@@ -70,8 +69,7 @@ export interface loanedLocationInfoType{
     isFullDay: boolean;
     startDate: string;
     endDate: string;
-    sheriffId: string,
-    concurrencyToken?: number      
+    sheriffId: string      
 }
 
 export interface awayLocationInfoType{

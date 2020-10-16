@@ -36,6 +36,7 @@
     import { namespace } from 'vuex-class';
     import {loanedLocationInfoType} from '../../../types/MyTeam';
     import {awayLocationsJsontype} from '../../../types/MyTeam/jsonTypes';
+    import {locationInfoType} from '../../../types/common';
     import "@store/modules/CommonInformation";  
     const commonState = namespace("CommonInformation");
 
@@ -46,13 +47,16 @@
         index!: number;
 
         @Prop({required: true})
-        loanedInJson!: awayLocationsJsontype[];
-        
+        homeLocation!: string;
+
         @Prop({required: true})
-        loanedOutJson!: awayLocationsJsontype[]; 
+        loanedJson!: awayLocationsJsontype[]; 
 
         @commonState.State
-        public token!: string;        
+        public token!: string;  
+        
+        @commonState.State
+        public location!: locationInfoType;
         
         userLoanedInInfo: loanedLocationInfoType[] = [];
         userLoanedOutInfo: loanedLocationInfoType[] = [];
@@ -71,52 +75,41 @@
 
         public extractLoanedInfo()
         {
-            if (this.loanedInJson.length > 0 ) {
-                
-                this.userLoanedInInfo = [];          
-                for(const loanedInInfoJson of this.loanedInJson)
-                {
-                    const loanedInInfo = {} as loanedLocationInfoType;
-                    loanedInInfo.locationId = loanedInInfoJson.locationId;
-                    loanedInInfo.locationName = loanedInInfoJson.location.name; 
-                    loanedInInfo.isFullDay = loanedInInfoJson.isFullDay;
-                    if (loanedInInfoJson.isFullDay) {
-                        loanedInInfo.startDate = Vue.filter('beautify-date')(loanedInInfoJson.startDate);
-                        loanedInInfo.endDate = Vue.filter('beautify-date')(loanedInInfoJson.endDate);
-                    } else {
-                        loanedInInfo.startDate = Vue.filter('beautify-date-time')(loanedInInfoJson.startDate);
-                        loanedInInfo.endDate = Vue.filter('beautify-date-time')(loanedInInfoJson.endDate);
-                    }
-                    this.userLoanedInInfo.push(loanedInInfo);
-                }
-                this.displayLoanedIn = true;
-                 
-            } else {
-                this.displayLoanedIn = false;
-            }
 
-            if (this.loanedOutJson.length > 0 ) {
+            if (this.loanedJson.length > 0 ) {
                 
-                this.userLoanedOutInfo = [];          
-                for(const loanedOutInfoJson of this.loanedOutJson)
+                this.userLoanedOutInfo = [];
+                this.userLoanedInInfo = [];          
+                for(const loanedInfoJson of this.loanedJson)
                 {
-                    const loanedOutInfo = {} as loanedLocationInfoType;
-                    loanedOutInfo.locationId = loanedOutInfoJson.locationId;
-                    loanedOutInfo.locationName = loanedOutInfoJson.location.name; 
-                    loanedOutInfo.isFullDay = loanedOutInfoJson.isFullDay;
-                    if (loanedOutInfoJson.isFullDay) {
-                        loanedOutInfo.startDate = Vue.filter('beautify-date')(loanedOutInfoJson.startDate);
-                        loanedOutInfo.endDate = Vue.filter('beautify-date')(loanedOutInfoJson.endDate);
+                    const loanedInfo = {} as loanedLocationInfoType;
+                    loanedInfo.locationId = loanedInfoJson.locationId;                     
+                    loanedInfo.isFullDay = loanedInfoJson.isFullDay;
+                    if (loanedInfoJson.isFullDay) {
+                        loanedInfo.startDate = Vue.filter('beautify-date')(loanedInfoJson.startDate);
+                        loanedInfo.endDate = Vue.filter('beautify-date')(loanedInfoJson.endDate);
                     } else {
-                        loanedOutInfo.startDate = Vue.filter('beautify-date-time')(loanedOutInfoJson.startDate);
-                        loanedOutInfo.endDate = Vue.filter('beautify-date-time')(loanedOutInfoJson.endDate);
+                        loanedInfo.startDate = Vue.filter('beautify-date-time')(loanedInfoJson.startDate);
+                        loanedInfo.endDate = Vue.filter('beautify-date-time')(loanedInfoJson.endDate);
                     }
-                    this.userLoanedOutInfo.push(loanedOutInfo);
+                    if(loanedInfo.locationId == this.location.id)
+                    {
+                        loanedInfo.locationName = this.homeLocation;
+                        this.userLoanedInInfo.push(loanedInfo);
+                    }                        
+                    else
+                    {
+                        loanedInfo.locationName = loanedInfoJson.location.name;
+                        this.userLoanedOutInfo.push(loanedInfo);
+                    }
+                        
                 }
-                this.displayLoanedOut = true;
+                if(this.userLoanedOutInfo.length) this.displayLoanedOut = true;
+                if(this.userLoanedInInfo.length) this.displayLoanedIn = true;
                  
             } else {
                 this.displayLoanedOut = false;
+                this.displayLoanedIn = false;
             }
         }
 

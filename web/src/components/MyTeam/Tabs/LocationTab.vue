@@ -20,8 +20,8 @@
                     </b-form-group>
                 </b-row>
                 <b-button v-if="!addNewLocation" style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNewLocation = true"> <b-icon icon="plus" /> Add </b-button>
-            </b-card>            
-            
+            </b-card> 
+
             <b-card v-if="addNewLocation" class="my-3" border-variant="light" no-body>
                 <b-table-simple small borderless >
                     <b-tbody>
@@ -104,52 +104,85 @@
                 </b-table-simple>              
             </b-card>
 
-            <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedAwayLocations.length">
-                    <span class="text-muted ml-4 mb-5">No roles have been assigned.</span>
-            </b-card>
+            <div>
+                <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedAwayLocations">
+                        <span class="text-muted ml-4 mb-5">No locations have been assigned.</span>
+                </b-card>
 
-            <b-card v-else no-body border-variant="light" bg-variant="white">
-                <b-table
-                    :items="assignedAwayLocations"
-                    :fields="fields"
-                    striped
-                    borderless
-                    small
-                    sort-by="startDate"
-                    responsive="sm"
-                    >  
-                        <template v-slot:cell(isFullDay)="data" >
-                            <span v-if="data.value">Full</span> 
-                            <span v-else>Partial</span> 
-                        </template>
-                        <template v-slot:cell(locationId)="data" >
-                            <span 
-                                class="text-primary"
-                                v-b-tooltip.hover.right                                
-                                :title="data.item.locationNm.nameFull"> 
-                                    {{data.item.locationNm.name}}
-                            </span>
-                        </template>
-                        <template v-slot:cell(startDate)="data" >
-                            <span>{{data.value | beautify-date}}</span> 
-                        </template>
-                        <template v-slot:cell(endDate)="data" >
-                            <span>{{data.value | beautify-date}}</span> 
-                        </template>
-                        <template v-slot:cell(startTime)="data" >
-                            <span v-if="!data.item.isFullDay">{{data.item.startDate | beautify-time}}</span> 
-                        </template>
-                        <template v-slot:cell(endTime)="data" >
-                            <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
-                        </template>
-                        <template v-slot:cell(editRole)="data" >                                       
-                            <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                            <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editRole(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
-                        </template>
-                        
-                </b-table> 
-            </b-card>                                      
+                <b-card v-else no-body border-variant="light" bg-variant="white">
+                    <b-table
+                        :items="assignedAwayLocations"
+                        :fields="fields"
+                        striped
+                        borderless
+                        small
+                        sort-by="startDate"
+                        responsive="sm"
+                        >  
+                            <template v-slot:cell(isFullDay)="data" >
+                                <span v-if="data.value">Full</span> 
+                                <span v-else>Partial</span> 
+                            </template>
+                            <template v-slot:cell(locationId)="data" >
+                                <span 
+                                    class="text-primary"
+                                    v-b-tooltip.hover.right                                
+                                    :title="data.item.locationNm.nameFull"> 
+                                        {{data.item.locationNm.name}}
+                                </span>
+                            </template>
+                            <template v-slot:cell(startDate)="data" >
+                                <span>{{data.value | beautify-date}}</span> 
+                            </template>
+                            <template v-slot:cell(endDate)="data" >
+                                <span>{{data.value | beautify-date}}</span> 
+                            </template>
+                            <template v-slot:cell(startTime)="data" >
+                                <span v-if="!data.item.isFullDay">{{data.item.startDate | beautify-time}}</span> 
+                            </template>
+                            <template v-slot:cell(endTime)="data" >
+                                <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
+                            </template>
+                            <template v-slot:cell(editRole)="data" >                                       
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editRole(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            </template>
+                            
+                    </b-table> 
+                </b-card> 
+            </div>                                     
         </b-card>
+        <!-- <b-row class="m-1 mb-3" border-variant="white">
+             <b-button
+                    style="margin:0 0.5rem 0 auto; width:105px"
+                    variant="secondary" 
+                    @click="closeProfileWindow()"                  
+            ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>                
+            <b-button
+                style="margin:0 0 0 0; width:105px"
+                variant="success" 
+                @click="saveMemberProfile()"
+            ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
+        </b-row>
+
+
+        <b-modal v-model="showCancelWarning" id="bv-modal-team-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>                
+                 <h2 v-if="editMode" class="mb-0 text-light"> Unsaved Profile Changes </h2>
+                 <h2 v-else-if="createMode" class="mb-0 text-light"> Unsaved New Profile </h2>                
+            </template>
+            <p>Are you sure you want to cancel without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-team-cancel-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="closeWarningWindow()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal> -->
     </div>
 </template>
 
@@ -178,7 +211,7 @@
         public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
 
         selectedHomeLocation = {} as locationInfoType | undefined;
-        
+
         selectedLocation = {} as locationInfoType | undefined;
         locationState = true;
 
@@ -213,12 +246,12 @@
         {             
             this.selectedHomeLocation = this.userToEdit.homeLocation;
 
-            console.log('locationTab')
-            console.log(this.selectedHomeLocation)
-            console.log(this.userToEdit)           
-            console.log(this.assignedAwayLocations)
+            // console.log('locationTab')
+            // console.log(this.selectedHomeLocation)
+            // console.log(this.userToEdit)           
+            // console.log(this.assignedAwayLocations)
             
-            this.extractAwayLocations();            
+            this.extractAwayLocations();          
         }
 
         public extractAwayLocations ()
@@ -239,26 +272,14 @@
         {
             Vue.nextTick().then(()=>{
                 console.log(this.selectedHomeLocation)
-
-                const body = {
-                    homeLocationId: this.selectedHomeLocation? this.selectedHomeLocation.id: '',
-                    gender: this.userToEdit.gender,
-                    badgeNumber: this.userToEdit.badgeNumber,
-                    rank: this.userToEdit.rank,
-                    idirName: this.userToEdit.idirUserName,
-                    firstName:this.userToEdit.firstName,
-                    lastName: this.userToEdit.lastName,
-                    email: this.userToEdit.email,
-                    id: this.userToEdit.id 
-                }
-
-                const url = 'api/sheriff';
+               
+                const homeLocationId= this.selectedHomeLocation? this.selectedHomeLocation.id: '';
+                const url = 'api/sheriff/updatelocation?id='+this.userToEdit.id+'&locationId='+homeLocationId;
                 const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-                this.$http.put(url, body, options)
+                this.$http.put(url, options)
                     .then(response => {
                         console.log(response) 
-                        this.updateUser();
-                                          
+                        this.updateUser();                                            
                     }, err => {
                         console.log(err)
                         this.locationError = true;
@@ -266,15 +287,15 @@
             });
         }
 
-        updateUser(){
+        public updateUser(){
             const user = this.userToEdit
             user.homeLocation = this.selectedHomeLocation;
             user.homeLocationNm = this.selectedHomeLocation? this.selectedHomeLocation.name: '';
             user.homeLocationId = this.selectedHomeLocation? this.selectedHomeLocation.id: 0;
             this.UpdateUserToEdit(user);
+            console.log(user)
             this.$emit('change') 
         }
-
 
         public saveAwayLocation(){
                 this.locationError  = false; 
@@ -312,8 +333,6 @@
                     this.startDateState = true;
                     this.startTimeState = true;
                     this.endTimeState   = true;
-                    // if(!this.selectedStartTime) this.selectedStartTime=
-                   // if(!this.selectedEndTime)   this.selectedEndTime='00:00:00'
 
                     const body = {
                         locationId: this.selectedLocation?this.selectedLocation.id:0,
@@ -386,49 +405,6 @@
             else
                 return false
         }
-
-        // public deleteRole(role){
-        //     this.roleAssignError = false; 
-        //     const body = 
-        //     [{
-        //         "userId": this.userId,
-        //         "roleId": role.value,                        
-        //     }]
-        //     const url = 'api/sheriff/unassignroles' 
-        //     const options = {headers:{'Authorization' :'Bearer '+this.token}}
-        //     this.$http.put(url, body, options)
-        //         .then(response => {
-        //             console.log(response)
-        //             console.log('unassign success')
-                   
-        //             this.getUserRoles();
-                                                     
-        //         }, err=>{this.roleAssignError = true;});
-        // }
-
-        // public getUserRoles()
-        // {
-        //     const url = 'api/sheriff/' + this.userId
-        //     const options = {headers:{'Authorization' :'Bearer '+this.token}}
-        //     this.$http.get(url, options)
-        //         .then(response => {
-        //             if(response.data){
-        //                 console.log(response.data)                        
-        //                 this.extractRoles(this.rolesJson,response.data.roles);                                                                
-        //             }                    
-        //         });
-        // }
-           
-        
-        // public editRole(role){
-        //     console.log('edit role')
-        // }
-
-       
-
-     
-
-       
     }
 </script>
 
