@@ -12,10 +12,10 @@ namespace SS.Api.helpers.extensions
             claims.FirstOrDefault(c => c.Type == type)?.Value;
 
         public static string GetIdirUserName(this IEnumerable<Claim> claims) => 
-            claims.GetValueByType("preferred_username").Replace("@idir", "");
+            claims.GetValueByType(CustomClaimTypes.IdirUserName).Replace("@idir", "");
 
         public static Guid GetIdirId(this IEnumerable<Claim> claims) =>
-            Guid.Parse(claims.GetValueByType("idir_userid"));
+            Guid.Parse(claims.GetValueByType(CustomClaimTypes.IdirId));
 
         public static Guid GetKeyCloakId(this IEnumerable<Claim> claims) =>
             Guid.Parse(claims.GetValueByType(ClaimTypes.NameIdentifier));
@@ -35,6 +35,15 @@ namespace SS.Api.helpers.extensions
             var parsed = int.TryParse(homeLocationIdString, out var homeLocationId);
             return parsed ? homeLocationId : -5000;
         }
+
+        public static string FullName(this ClaimsPrincipal user) =>
+            user.FindFirstValue(CustomClaimTypes.FullName);
+
+        public static string IdirId(this ClaimsPrincipal user) =>
+            user.FindFirstValue(CustomClaimTypes.IdirId);
+
+        public static string IdirUserName(this ClaimsPrincipal user) =>
+            user.FindFirstValue(CustomClaimTypes.IdirUserName).Replace("@idir","");
 
         public static Guid CurrentUserId(this ClaimsPrincipal user)
         {

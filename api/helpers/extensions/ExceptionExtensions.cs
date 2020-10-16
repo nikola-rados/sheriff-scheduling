@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using SS.Api.Helpers.Exceptions;
 using SS.Api.infrastructure.exceptions;
 
 namespace SS.Api.Helpers.Extensions
@@ -42,6 +43,11 @@ namespace SS.Api.Helpers.Extensions
         public static string ThrowIfNullOrEmpty(this string value, string paramName)
         {
             return string.IsNullOrEmpty(value) ? throw new ArgumentNullException(paramName) : value;
+        }
+
+        public static T ThrowConfigurationExceptionIfNull<T> (this T value, string configKey) where T : class
+        {
+            return value ?? throw new ConfigurationException($"Configuration '{configKey}' is invalid or missing.");
         }
 
         /// <summary>
