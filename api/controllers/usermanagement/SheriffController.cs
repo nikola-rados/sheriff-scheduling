@@ -102,6 +102,17 @@ namespace SS.Api.controllers.usermanagement
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
+
+        [HttpPut]
+        [Route("updateLocation")]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
+        public async Task<ActionResult<SheriffDto>> UpdateSheriffHomeLocation(Guid id, int locationId)
+        {
+            await _service.UpdateSheriffHomeLocation(id, locationId);
+            return NoContent();
+        }
+
+
         [HttpPost]
         [Route("uploadPhoto")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]

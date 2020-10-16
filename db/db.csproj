@@ -57,10 +57,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="migrations\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="3.1.0" />
     <PackageReference Include="Mapster" Version="6.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="3.1.9" />
