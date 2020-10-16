@@ -25,6 +25,13 @@ services:
       - Keycloak__Audience=${KeycloakAudience}
       - DatabaseConnectionString=${DatabaseConnectionString}
       - DataProtectionKeyEncryptionKey=${DataProtectionKeyEncryptionKey}
+      - RequestAccessEmailAddress=${RequestAccessEmailAddress}
+      - ChesEmailService__ClientId=${ChesEmailServiceClientId}
+      - ChesEmailService__Secret=${ChesEmailServiceSecret}
+      - ChesEmailService__AuthUrl=${ChesEmailServiceAuthUrl}
+      - ChesEmailService__EmailUrl=${ChesEmailServiceEmailUrl}
+      - ChesEmailService__SenderEmail=${ChesEmailServiceSenderEmail}
+      - ChesEmailService__SenderName=$ChesEmailServiceSenderName}
       - ASPNETCORE_URLS=${ASPNETCORE_URLS}
     ports:
       - 5000:5000
