@@ -37,7 +37,7 @@
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >                                                
-                            <user-location-summary :awayLocationJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>                        
+                            <user-location-summary :loanedInJson="teamMember.loanedIn" :loanedOutJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>                        
                         </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
@@ -220,7 +220,7 @@
         public getSheriffs()
         {
             this.isMyTeamDataMounted = false;
-            const url = 'api/sheriff'//?locationId=' + this.location.id
+            const url = 'api/sheriff'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.get(url, options)
                 .then(response => {
@@ -248,7 +248,8 @@
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';
-                myteam.awayLocation = myteaminfo.awayLocation;
+                myteam.loanedIn = myteaminfo.loanedIn;
+                myteam.loanedOut = myteaminfo.loanedOut;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);

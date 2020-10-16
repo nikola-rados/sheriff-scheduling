@@ -1,763 +1,155 @@
 import {} from '../../common';
 
 export interface teamMemberJsonType {
-    
-        "gender": string,
-        "badgeNumber": string,
-        "rank": string,
-        "awayLocations": awayLocationsJsontype[],
-        "leaves": [
-          {
-            "id": number,
-            "leaveTypeId": number,
-            "leaveType": {
-              "id": number,
-              "type": "CourtRoom",
-              "code": string,
-              "subCode": string,
-              "description": string,
-              "effectiveDate": string,
-              "expiryDate": string,
-              "sortOrder": number,
-              "locationId": number,
-              "location": {
-                "id": number,
-                "code": string,
-                "name": string,
-                "justinId": number,
-                "justinCode": string,
-                "parentLocationId": number,
-                "region": {
-                  "id": number,
-                  "code": string,
-                  "name": string
-                },
-                "createdById": string,
-                "createdBy": {
-                  "id": string,
-                  "preferredUsername": string,
-                  "idirId": string,
-                  "isDisabled": boolean,
-                  "firstName": string,
-                  "lastName": string,
-                  "email": string,
-                  "roles": [
-                    null
-                  ],
-                  "permissions": [
-                    null
-                  ],
-                  "lastLogin": string,
-                  "createdById": string,
-                  "createdOn": string,
-                  "updatedById": string,
-                  "updatedOn": string,
-                  "rowVersion": string
-                },
-                "createdOn": string,
-                "updatedById": string,
-                "updatedBy": {
-                  "id": string,
-                  "preferredUsername": string,
-                  "idirId": string,
-                  "isDisabled": boolean,
-                  "firstName": string,
-                  "lastName": string,
-                  "email": string,
-                  "roles": [
-                    null
-                  ],
-                  "permissions": [
-                    null
-                  ],
-                  "lastLogin": string,
-                  "createdById": string,
-                  "createdOn": string,
-                  "updatedById": string,
-                  "updatedOn": string,
-                  "rowVersion": string
-                },
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "createdById": string,
-              "createdBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "createdOn": string,
-              "updatedById": string,
-              "updatedBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "startDate": string,
-            "endDate": string,
-            "isFullDay": boolean,
-            "sheriffId": string,
-            "createdById": string,
-            "createdBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "createdOn": string,
-            "updatedById": string,
-            "updatedBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "updatedOn": string,
-            "rowVersion": string
-          }
-        ],
-        "training": [
-          {
-            "id": number,
-            "trainingTypeId": number,
-            "trainingType": {
-              "id": number,
-              "type": "CourtRoom",
-              "code": string,
-              "subCode": string,
-              "description": string,
-              "effectiveDate": string,
-              "expiryDate": string,
-              "sortOrder": number,
-              "locationId": number,
-              "location": {
-                "id": number,
-                "code": string,
-                "name": string,
-                "justinId": number,
-                "justinCode": string,
-                "parentLocationId": number,
-                "region": {
-                  "id": number,
-                  "code": string,
-                  "name": string
-                },
-                "createdById": string,
-                "createdBy": {
-                  "id": string,
-                  "preferredUsername": string,
-                  "idirId": string,
-                  "isDisabled": boolean,
-                  "firstName": string,
-                  "lastName": string,
-                  "email": string,
-                  "roles": [
-                    null
-                  ],
-                  "permissions": [
-                    null
-                  ],
-                  "lastLogin": string,
-                  "createdById": string,
-                  "createdOn": string,
-                  "updatedById": string,
-                  "updatedOn": string,
-                  "rowVersion": string
-                },
-                "createdOn": string,
-                "updatedById": string,
-                "updatedBy": {
-                  "id": string,
-                  "preferredUsername": string,
-                  "idirId": string,
-                  "isDisabled": boolean,
-                  "firstName": string,
-                  "lastName": string,
-                  "email": string,
-                  "roles": [
-                    null
-                  ],
-                  "permissions": [
-                    null
-                  ],
-                  "lastLogin": string,
-                  "createdById": string,
-                  "createdOn": string,
-                  "updatedById": string,
-                  "updatedOn": string,
-                  "rowVersion": string
-                },
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "createdById": string,
-              "createdBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "createdOn": string,
-              "updatedById": string,
-              "updatedBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "startDate": string,
-            "endDate": string,
-            "isFullDay": boolean,
-            "sheriffId": string,
-            "createdById": string,
-            "createdBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "createdOn": string,
-            "updatedById": string,
-            "updatedBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "updatedOn": string,
-            "rowVersion": string
-          }
-        ],
-        "photo": string,
-        "id": string,
-        "isDisabled": boolean,
-        "homeLocation": {
+    "loanedIn": awayLocationsJsontype[],
+    "loanedOut": awayLocationsJsontype[],
+    "gender": string,
+    "badgeNumber": string,
+    "rank": string,
+    "awayLocation": awayLocationsJsontype[],
+    "leave": [
+      {
+        "id": number,
+        "leaveType": {
           "id": number,
+          "type": string,
           "code": string,
-          "name": string,
-          "justinId": number,
-          "justinCode": string,
-          "parentLocationId": number,
-          "region": {
+          "subCode": string,
+          "description": string,
+          "effectiveDate": string,
+          "expiryDate": string,
+          "sortOrder": number,
+          "location": {
             "id": number,
-            "code": string,
-            "name": string
-          },
-          "createdById": string,
-          "createdBy": {
-            "id": string,
-            "preferredUsername": string,
-            "idirId": string,
-            "isDisabled": boolean,
-            "firstName": string,
-            "lastName": string,
-            "email": string,
-            "roles": [
-              null
-            ],
-            "permissions": [
-              null
-            ],
-            "lastLogin": string,
-            "createdById": string,
-            "createdOn": string,
-            "updatedById": string,
-            "updatedOn": string,
-            "rowVersion": string
-          },
-          "createdOn": string,
-          "updatedById": string,
-          "updatedBy": {
-            "id": string,
-            "preferredUsername": string,
-            "idirId": string,
-            "isDisabled": boolean,
-            "firstName": string,
-            "lastName": string,
-            "email": string,
-            "roles": [
-              null
-            ],
-            "permissions": [
-              null
-            ],
-            "lastLogin": string,
-            "createdById": string,
-            "createdOn": string,
-            "updatedById": string,
-            "updatedOn": string,
-            "rowVersion": string
-          },
-          "updatedOn": string,
-          "rowVersion": string
-        },
-        "firstName": string,
-        "lastName": string,
-        "email": string,
-        "roles": [
-          {
-            "id": number,
-            "userId": string,
-            "user": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "roleId": number,
-            "role": {
-              "id": number,
-              "name": string,
-              "description": string,
-              "rolePermissions": [
-                {
-                  "id": number,
-                  "permission": {
-                    "id": number,
-                    "name": string,
-                    "description": string,
-                    "createdById": string,
-                    "createdBy": {
-                      "id": string,
-                      "preferredUsername": string,
-                      "idirId": string,
-                      "isDisabled": boolean,
-                      "firstName": string,
-                      "lastName": string,
-                      "email": string,
-                      "roles": [
-                        null
-                      ],
-                      "permissions": [
-                        null
-                      ],
-                      "lastLogin": string,
-                      "createdById": string,
-                      "createdOn": string,
-                      "updatedById": string,
-                      "updatedOn": string,
-                      "rowVersion": string
-                    },
-                    "createdOn": string,
-                    "updatedById": string,
-                    "updatedBy": {
-                      "id": string,
-                      "preferredUsername": string,
-                      "idirId": string,
-                      "isDisabled": boolean,
-                      "firstName": string,
-                      "lastName": string,
-                      "email": string,
-                      "roles": [
-                        null
-                      ],
-                      "permissions": [
-                        null
-                      ],
-                      "lastLogin": string,
-                      "createdById": string,
-                      "createdOn": string,
-                      "updatedById": string,
-                      "updatedOn": string,
-                      "rowVersion": string
-                    },
-                    "updatedOn": string,
-                    "rowVersion": string
-                  },
-                  "createdById": string,
-                  "createdBy": {
-                    "id": string,
-                    "preferredUsername": string,
-                    "idirId": string,
-                    "isDisabled": boolean,
-                    "firstName": string,
-                    "lastName": string,
-                    "email": string,
-                    "roles": [
-                      null
-                    ],
-                    "permissions": [
-                      null
-                    ],
-                    "lastLogin": string,
-                    "createdById": string,
-                    "createdOn": string,
-                    "updatedById": string,
-                    "updatedOn": string,
-                    "rowVersion": string
-                  },
-                  "createdOn": string,
-                  "updatedById": string,
-                  "updatedBy": {
-                    "id": string,
-                    "preferredUsername": string,
-                    "idirId": string,
-                    "isDisabled": boolean,
-                    "firstName": string,
-                    "lastName": string,
-                    "email": string,
-                    "roles": [
-                      null
-                    ],
-                    "permissions": [
-                      null
-                    ],
-                    "lastLogin": string,
-                    "createdById": string,
-                    "createdOn": string,
-                    "updatedById": string,
-                    "updatedOn": string,
-                    "rowVersion": string
-                  },
-                  "updatedOn": string,
-                  "rowVersion": string
-                }
-              ],
-              "users": [
-                null
-              ],
-              "createdById": string,
-              "createdBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "createdOn": string,
-              "updatedById": string,
-              "updatedBy": {
-                "id": string,
-                "preferredUsername": string,
-                "idirId": string,
-                "isDisabled": boolean,
-                "firstName": string,
-                "lastName": string,
-                "email": string,
-                "roles": [
-                  null
-                ],
-                "permissions": [
-                  null
-                ],
-                "lastLogin": string,
-                "createdById": string,
-                "createdOn": string,
-                "updatedById": string,
-                "updatedOn": string,
-                "rowVersion": string
-              },
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "createdById": string,
-            "createdBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "createdOn": string,
-            "updatedById": string,
-            "updatedBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "updatedOn": string,
-            "rowVersion": string
-          }
-        ],
-        "permissions": [
-          {
-            "id": number,
+            "agencyId": string,
             "name": string,
-            "description": string,
-            "createdById": string,
-            "createdBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "createdOn": string,
-            "updatedById": string,
-            "updatedBy": {
-              "id": string,
-              "preferredUsername": string,
-              "idirId": string,
-              "isDisabled": boolean,
-              "firstName": string,
-              "lastName": string,
-              "email": string,
-              "roles": [
-                null
-              ],
-              "permissions": [
-                null
-              ],
-              "lastLogin": string,
-              "createdById": string,
-              "createdOn": string,
-              "updatedById": string,
-              "updatedOn": string,
-              "rowVersion": string
-            },
-            "updatedOn": string,
-            "rowVersion": string
-          }
-        ],
-        "lastLogin": string,
-        "createdById": string,
-        "createdBy": {
-          "id": string,
-          "preferredUsername": string,
-          "idirId": string,
-          "isDisabled": boolean,
-          "firstName": string,
-          "lastName": string,
-          "email": string,
-          "roles": [
-            null
-          ],
-          "permissions": [
-            null
-          ],
-          "lastLogin": string,
-          "createdById": string,
-          "createdOn": string,
-          "updatedById": string,
-          "updatedOn": string,
-          "rowVersion": string
+            "justinCode": string,
+            "parentLocationId": number,
+            "expiryDate": string,
+            "regionId": number,
+            "timezone": string,
+            "concurrencyToken": number
+          },
+          "locationId": number,
+          "concurrencyToken": number
         },
-        "createdOn": string,
-        "updatedById": string,
-        "updatedBy": {
-          "id": string,
-          "preferredUsername": string,
-          "idirId": string,
-          "isDisabled": boolean,
-          "firstName": string,
-          "lastName": string,
-          "email": string,
-          "roles": [
-            null
-          ],
-          "permissions": [
-            null
-          ],
-          "lastLogin": string,
-          "createdById": string,
-          "createdOn": string,
-          "updatedById": string,
-          "updatedOn": string,
-          "rowVersion": string
+        "leaveTypeId": number,
+        "startDate": string,
+        "endDate": string,
+        "expiryDate": string,
+        "isFullDay": boolean,
+        "sheriffId": string,
+        "concurrencyToken": number
+      }
+    ],
+    "training": [
+      {
+        "id": number,
+        "trainingType": {
+          "id": number,
+          "type": string,
+          "code": string,
+          "subCode": string,
+          "description": string,
+          "effectiveDate": string,
+          "expiryDate": string,
+          "sortOrder": number,
+          "location": {
+            "id": number,
+            "agencyId": string,
+            "name": string,
+            "justinCode": string,
+            "parentLocationId": number,
+            "expiryDate": string,
+            "regionId": number,
+            "timezone": string,
+            "concurrencyToken": number
+          },
+          "locationId": number,
+          "concurrencyToken": number
         },
-        "updatedOn": string,
-        "rowVersion": string
+        "trainingTypeId": number,
+        "startDate": string,
+        "endDate": string,
+        "expiryDate": string,
+        "isFullDay": boolean,
+        "sheriffId": string,
+        "concurrencyToken": number
+      }
+    ],
+    "photo": string,
+    "id": string,
+    "idirName": string,
+    "isEnabled": boolean,
+    "firstName": string,
+    "lastName": string,
+    "email": string,
+    "homeLocationId": number,
+    "homeLocation": {
+      "id": number,
+      "agencyId": string,
+      "name": string,
+      "justinCode": string,
+      "parentLocationId": number,
+      "expiryDate": string,
+      "regionId": number,
+      "timezone": string,
+      "concurrencyToken": number
+    },
+    "activeRoles": [
+      {
+        "role": {
+          "id": number,
+          "name": string,
+          "description": string,
+          "rolePermissions": [
+            {
+              "id": number,
+              "roleId": number,
+              "permission": {
+                "id": number,
+                "name": string,
+                "description": string,
+                "concurrencyToken": number
+              },
+              "permissionId": number,
+              "concurrencyToken": number
+            }
+          ],
+          "concurrencyToken": number
+        },
+        "effectiveDate": string,
+        "expiryDate": string
+      }
+    ],
+    "roles": [
+      {
+        "role": {
+          "id": number,
+          "name": string,
+          "description": string,
+          "rolePermissions": [
+            {
+              "id": number,
+              "roleId": number,
+              "permission": {
+                "id": number,
+                "name": string,
+                "description": string,
+                "concurrencyToken": number
+              },
+              "permissionId": number,
+              "concurrencyToken": number
+            }
+          ],
+          "concurrencyToken": number
+        },
+        "effectiveDate": string,
+        "expiryDate": string
+      }
+    ],
+    "concurrencyToken": number
+  
       
 }
 
@@ -797,6 +189,7 @@ export interface awayLocationsJsontype {
       "parentLocationId": number,
       "expiryDate": string,
       "regionId": number,
+      "timezone": string,
       "concurrencyToken": number
     },
     "locationId": number,
@@ -805,5 +198,5 @@ export interface awayLocationsJsontype {
     "expiryDate": string,
     "isFullDay": boolean,
     "sheriffId": string,
-    "concurrencyToken": number  
+    "concurrencyToken": number    
 }
