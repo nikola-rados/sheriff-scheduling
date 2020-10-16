@@ -11,6 +11,7 @@ using SS.Api.Helpers;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.Models;
+using SS.Api.models.ches;
 using SS.Api.services;
 using SS.Api.services.JC;
 using BasicAuthenticationHeaderValue = SS.Api.models.BasicAuthenticationHeaderValue;
@@ -34,6 +35,9 @@ namespace SS.Api.infrastructure
 
         public static IServiceCollection AddSSServices(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<ChesEmailOptions>(configuration.GetSection(
+                ChesEmailOptions.Position));
+
             services.AddHttpClient<LocationServicesClient>(client =>
             {
                 client.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(
@@ -43,14 +47,17 @@ namespace SS.Api.infrastructure
             });
 
             services.AddHttpClient(nameof(CookieAuthenticationEvents));
+            services.AddHttpClient<ChesEmailService>();
             services.AddHttpContextAccessor();
             services.AddTransient(s => s.GetService<IHttpContextAccessor>().HttpContext.User);
             services.AddScoped<ManageTypesService>();
+            services.AddScoped<ChesEmailService>();
             services.AddScoped<AuthService>();
             services.AddScoped<RoleService>();
             services.AddScoped<UserService>();
             services.AddScoped<SheriffService>();
             services.AddScoped<JCDataUpdaterService>();
+      
 
             services.AddHostedService<TimedDataUpdaterService>();
 
