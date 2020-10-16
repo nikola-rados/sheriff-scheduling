@@ -20,6 +20,8 @@ export interface teamMemberInfoType {
     homeLocationNm?: string | null;
     homeLocation?: locationInfoType;
     awayLocation?: awayLocationInfoType[];
+    loanedIn?: awayLocationsJsontype[];
+    loanedOut?: awayLocationsJsontype[];
 }
 
 export interface userRoleInfoType{
@@ -59,6 +61,17 @@ export interface permissionOptionInfoType{
     desc: string;
     value: string;
     selected: boolean;
+}
+
+export interface loanedLocationInfoType{
+    id: number|null;    
+    locationId: number|null;
+    locationName: string;
+    isFullDay: boolean;
+    startDate: string;
+    endDate: string;
+    sheriffId: string,
+    concurrencyToken?: number      
 }
 
 export interface awayLocationInfoType{
