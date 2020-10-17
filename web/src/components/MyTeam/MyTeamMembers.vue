@@ -3,7 +3,7 @@
         <b-row class="bg-white">
             <b-col cols="10">
                 <page-header :pageHeaderText="sectionHeader"></page-header>
-                <b-card  >  
+                <b-card>  
                     <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
                         <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
                         <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
@@ -34,15 +34,15 @@
 
         <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
-                <div v-for="(teamMember,index) in myTeamData" :key="index" class="col-3  my-1">
+                <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >
                             <b-row>                                                
-                                <user-location-summary class="ml-4 mr-2" :awayLocationJson="teamMember.awayLocation" :index="index"/>
-                                <user-training-summary class="mx-2" :trainingJson="teamMember.training" :index="index"/>                                
-                                <user-leave-summary class="mx-2" :trainingJson="teamMember.leave" :index="index"/>
+                                <user-location-summary class="ml-4 mr-2" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
+                                <user-training-summary v-if="teamMember.training.length>0" class="mx-2" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
+                                <user-leave-summary v-if="teamMember.leave.length>0" class="mx-2" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
                             </b-row>                                                    
-                        </div>
+                        </div>                                
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
@@ -66,24 +66,27 @@
                     </b-col>
                     <b-col cols="9">
                         <b-card no-body >
-                            <b-tabs  card v-model="tabIndex">
-                                <b-tab title="Identification" @click="reloadIdentificationTab()">
+                            <b-tabs  card v-model="tabIndex" @activate-tab="onTabChanged">
+                                <b-tab title="Identification">
                                     <identification-tab 
                                         :runMethod="identificationTabMethods"                                         
                                         v-on:closeMemberDetails="closeMemberDetailWindow()" 
-                                        v-on:profileUpdated="getSheriffs()"                                        
+                                        v-on:profileUpdated="getSheriffs()"   
+                                        v-on:changeTab="changeTab"                                     
                                         :createMode="createMode" 
                                         :editMode="editMode" />
                                 </b-tab>
 
-                                <b-tab title="Locations" class="p-0"> 
-                                    <location-tab v-on:change="getSheriffs()" />                                   
+                                <b-tab v-if="editMode" title="Locations" class="p-0"> 
+                                    <location-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                   
                                 </b-tab>
 
-                                <b-tab title="Leaves">                                    
+                                <b-tab v-if="editMode" title="Leaves">                                    
                                 </b-tab>
 
-                                <b-tab title="Training"> 
+                                <b-tab v-if="editMode" title="Training"> 
                                 </b-tab>
 
                                 <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
@@ -187,11 +190,11 @@
 
         @TeamMemberState.Action
         public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
+
+        identificationTabMethods = new Vue();
         
         expiredViewChecked = false;
         showMemberDetails = false;
-       
-        
         userIsAdmin = false;
 
         tabIndex = 0;
@@ -205,6 +208,8 @@
         searchPhrase = '';
 
         isMyTeamDataMounted = false;
+        newTabIndex = 0;
+        firstNavigation = true;
     
         allMyTeamData: teamMemberInfoType[] =[];
         
@@ -228,7 +233,7 @@
         public getSheriffs()
         {
             this.isMyTeamDataMounted = false;
-            const url = 'api/sheriff'//?locationId=' + this.location.id
+            const url = 'api/sheriff'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.get(url, options)
                 .then(response => {
@@ -239,13 +244,31 @@
                     this.isMyTeamDataMounted = true;
                 })
         }
+        
+        public onTabChanged(newTabIndex , prevTabIndex, bvEvt)
+        {
+            this.newTabIndex = newTabIndex;
+            console.log('tab changed')
+            console.log(newTabIndex)
+            console.log(prevTabIndex)
+            if(prevTabIndex == 0 && this.firstNavigation)
+            {
+                this.firstNavigation = false;
+                bvEvt.preventDefault();
+                this.identificationTabMethods.$emit('switchTab');   
+            }            
+        }
 
-        public extractMyTeamFromSheriffs(data: any){
-    
+        public changeTab(changingTab) {
+            if(changingTab) this.tabIndex = this.newTabIndex;
+            Vue.nextTick().then(()=>{this.firstNavigation = true;});
+        }
+
+        public extractMyTeamFromSheriffs(data: any) {    
             this.allMyTeamData = [];            
             for(const myteaminfo of data)
             {
-                const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:'', gender:'' }
+                const myteam = {} as teamMemberInfoType;
                 myteam.fullName = Vue.filter('capitilize')(myteaminfo.firstName) + ' ' + Vue.filter('capitilize')(myteaminfo.lastName);
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
@@ -255,10 +278,11 @@
                 myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
-                myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';
-                myteam.awayLocation = myteaminfo.awayLocation;
-                myteam.training = myteaminfo.training;
-                myteam.leave = myteaminfo.leave;
+                myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';               
+                
+                myteam.leave = myteaminfo.leave? myteaminfo.training: [];
+                myteam.training = myteaminfo.training? myteaminfo.training: [];
+                myteam.loanedOut = myteaminfo.loanedOut;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
@@ -271,6 +295,8 @@
                 {
                     if(this.searchPhrase==''){
                         if(member.homeLocationId == this.location.id) return true
+                        for(const loanInx in member.loanedOut)
+                            if(member.loanedOut[loanInx].locationId == this.location.id ) return true
                     }
                     else{ 
                         if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
@@ -300,16 +326,16 @@
             }                        
         }
 
-        identificationTabMethods = new Vue();
-
         public saveMemberProfile() { 
             this.identificationTabMethods.$emit('saveMemberProfile');
         }  
 
         public closeProfileWindow(){
             console.log(this.tabIndex)
-            if(this.tabIndex == 0)
+            if(this.tabIndex ==0 || this.createMode)
+            {  
                 this.identificationTabMethods.$emit('closeProfileWindow');
+            }
             else 
                 this.closeMemberDetailWindow()
         }
@@ -322,15 +348,13 @@
         public resetProfileWindowState(){
             this.createMode = false;
             this.editMode = false;
+            this.tabIndex = 0;
             const user = {} as teamMemberInfoType;
             this.UpdateUserToEdit(user);  
         }
 
-        public reloadIdentificationTab(){
-            this.identificationTabMethods.$emit('reloadInfo');
-        }
-
         public AddMember(){ 
+            this.tabIndex = 0;
             this.createMode = true;
             this.editMode = false;
             this.isUserDataMounted = true;
@@ -369,6 +393,8 @@
             if(userJson.homeLocation)
                 user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
           
+            if(userJson.awayLocation && userJson.awayLocation.length>0)
+                user.awayLocation = userJson.awayLocation;
             //console.log(this.user)
             this.userAllRoles = userJson.roles
             this.UpdateUserToEdit(user);  
@@ -377,10 +403,6 @@
         get getCancelLabel(){
             if(this.tabIndex<1) return 'Cancel'; else return 'Close'
         }
-
-            
-
-
     }
 </script>
 

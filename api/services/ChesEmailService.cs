@@ -5,34 +5,27 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using SS.Api.Helpers;
+using Newtonsoft.Json.Linq;
 using SS.Api.Helpers.Extensions;
+using SS.Api.models.ches;
 
 namespace SS.Api.services
 {
     public class ChesEmailService
     {
-        private readonly string _clientId;
-        private readonly string _clientSecret;
-        private readonly string _authUrl;
-        private readonly string _emailUrl;
-        private readonly string _senderEmail;
-        private readonly string _senderName;
+        private readonly ChesEmailOptions _chesEmailOptions;
         private readonly ILogger<ChesEmailService> _logger;
         private HttpClient HttpClient { get; }
 
-        public ChesEmailService(IConfiguration configuration, HttpClient httpClient, ILogger<ChesEmailService> logger)
+        public ChesEmailService(IOptionsSnapshot<ChesEmailOptions> chesEmailOptions, IHttpClientFactory httpClientFactory, ILogger<ChesEmailService> logger)
         {
-            _clientId = configuration.GetNonEmptyValue("ChesEmailService:ClientId");
-            _clientSecret = configuration.GetNonEmptyValue("ChesEmailService:Secret");
-            _authUrl = configuration.GetNonEmptyValue("ChesEmailService:AuthUrl");
-            _emailUrl = configuration.GetNonEmptyValue("ChesEmailService:EmailUrl");
-            _senderEmail = configuration.GetNonEmptyValue("ChesEmailService:SenderEmail");
-            _senderName = configuration.GetNonEmptyValue("ChesEmailService:SenderName");
-            HttpClient = httpClient;
+            HttpClient = httpClientFactory.CreateClient(nameof(ChesEmailService));
+            _chesEmailOptions = chesEmailOptions?.Value;
+            _chesEmailOptions.ThrowConfigurationExceptionIfNull($"{ChesEmailOptions.Position}");
+            _chesEmailOptions.ValidateOptions();
             _logger = logger;
         }
 
@@ -40,18 +33,20 @@ namespace SS.Api.services
         {
             try
             {
-                var requestMessage = new HttpRequestMessage(HttpMethod.Post, _authUrl);
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, _chesEmailOptions.AuthUrl);
                 requestMessage.Headers.Authorization = new BasicAuthenticationHeaderValue(
-                    _clientId,
-                    _clientSecret);
+                    _chesEmailOptions.ClientId,
+                    _chesEmailOptions.Secret);
                 requestMessage.Content = new FormUrlEncodedContent(new Dictionary<string, string> { { "grant_type", "client_credentials" } });
 
                 var response = await HttpClient.SendAsync(requestMessage);
                 if (!response.IsSuccessStatusCode)
-                    throw new Exception("HttpWasn'tSuccess");
+                    throw new Exception($"While getting access_token for email - Received status code: {response.StatusCode}");
 
                 var contents = await response.Content.ReadAsStringAsync();
-                return contents;
+                var accessToken = JObject.Parse(contents)["access_token"]?.ToString();
+                _logger.LogDebug("Received access token successfully.");
+                return accessToken;
             }
             catch (Exception e)
             {
@@ -66,34 +61,45 @@ namespace SS.Api.services
             subject.ThrowIfNullOrEmpty(nameof(subject));
             recipientEmail.ThrowIfNullOrEmpty(nameof(recipientEmail));
 
+            var to = recipientEmail.Split(",").ToList();
             var emailServiceToken = await GetEmailServiceToken();
             emailServiceToken.ThrowIfNullOrEmpty(nameof(emailServiceToken));
 
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, _emailUrl);
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue(emailServiceToken);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, _chesEmailOptions.EmailUrl);
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", emailServiceToken);
 
-            //https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca/api/v1/docs#operation/postEmail
-            var email = new
+            _logger.LogDebug($"Attempting to Send email to {recipientEmail}.");
+            try
             {
-                Bcc = new List<string>(),
-                BodyType = "text",
-                Body = body,
-                Cc = new List<string>(),
-                DelayTs = 0,
-                Encoding = "utf-8",
-                From = $"\"{_senderName}\" {_senderEmail}",
-                Priority = "normal",
-                Subject = subject,
-                To = recipientEmail.Split(",").ToList(),
-                Tag = new Guid()
-            };
+                //https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca/api/v1/docs#operation/postEmail
+                var email = new
+                {
+                    bcc = new List<string>(),
+                    bodyType = "text",
+                    body,
+                    cc = new List<string>(),
+                    delayTS = 0,
+                    encoding = "utf-8",
+                    from = $@"{_chesEmailOptions.SenderName} <{_chesEmailOptions.SenderEmail}>", //This isn't clear in their documentation. 
+                    priority = "normal",
+                    subject,
+                    to,
+                    tag = new Guid()
+                };
 
-            requestMessage.Content = new StringContent(JsonConvert.SerializeObject(email), Encoding.UTF8, "application/json");
+                requestMessage.Content =
+                    new StringContent(JsonConvert.SerializeObject(email), Encoding.UTF8, "application/json");
 
-            var response = await HttpClient.SendAsync(requestMessage);
-            if (response.IsSuccessStatusCode)
+                var response = await HttpClient.SendAsync(requestMessage);
+                var contents = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception($"While sending email - Received status code: {response.StatusCode} : {contents}");
+
+                _logger.LogInformation($"Email sent to {recipientEmail} successfully.");
+            }
+            catch (Exception e)
             {
-                _logger.LogDebug("Email sent successfully.");
+                _logger.LogError(e, "Error happened while trying to send email.");
             }
         }
     }

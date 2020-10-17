@@ -1,27 +1,44 @@
 <template> 
-    <b-card no-body class="bg-dark text-white"> 
-        <b-icon-box-arrow-left :id="'awayLocationIcon'+index" font-scale="1.5"></b-icon-box-arrow-left>
-            <b-tooltip :target="'awayLocationIcon'+index" variant="warning" show.sync ="true" triggers="hover">
-                <h2 class="text-danger">On loan to:</h2>                
-                <b-table  
-                    :items="userAwayLocationInfo"
-                    :fields="userAwayLocationFields"                
-                    borderless
-                    striped
-                    small 
-                    responsive="sm"
-                    class="my-0 py-0"
-                    >
-                </b-table>                                        
-            </b-tooltip>
+    <b-card v-if="displayLoanedIn || displayLoanedOut" no-body class="bg-dark text-white">
+        <b-row class="ml-4"> 
+            <b-icon-box-arrow-left class="mr-2" v-if="displayLoanedOut" :id="'loanedOutIcon'+index" font-scale="1.5"></b-icon-box-arrow-left>
+                <b-tooltip :target="'loanedOutIcon'+index" variant="warning" show.sync ="true" triggers="hover">
+                    <h2 class="text-danger">On loan to:</h2>                
+                    <b-table  
+                        :items="userLoanedOutInfo"
+                        :fields="userAwayLocationFields"                
+                        borderless
+                        striped
+                        small 
+                        responsive="sm"
+                        class="my-0 py-0"
+                        >
+                    </b-table>                                        
+                </b-tooltip>
+            <b-icon-box-arrow-right class="mx-2" v-if="displayLoanedIn" :id="'loanedInIcon'+index" font-scale="1.5"></b-icon-box-arrow-right>
+                <b-tooltip :target="'loanedInIcon'+index" variant="warning" show.sync ="true" triggers="hover">
+                    <h2 class="text-danger">Loaned in from:</h2>                
+                    <b-table  
+                        :items="userLoanedInInfo"
+                        :fields="userAwayLocationFields"                
+                        borderless
+                        striped
+                        small 
+                        responsive="sm"
+                        class="my-0 py-0"
+                        >
+                    </b-table>                                        
+                </b-tooltip>
+        </b-row>
     </b-card>   
 </template>
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import {awayLocationInfoType} from '../../../types/MyTeam';
+    import {loanedLocationInfoType} from '../../../types/MyTeam';
     import {awayLocationsJsontype} from '../../../types/MyTeam/jsonTypes';
+    import {locationInfoType} from '../../../types/common';
     import "@store/modules/CommonInformation";  
     const commonState = namespace("CommonInformation");
 
@@ -32,136 +49,73 @@
         index!: number;
 
         @Prop({required: true})
-        awayLocationJson!: awayLocationsJsontype[];        
+        homeLocation!: string;
+
+        @Prop({required: true})
+        loanedJson!: awayLocationsJsontype[]; 
 
         @commonState.State
-        public token!: string;        
+        public token!: string;  
         
-        userAwayLocationInfo: awayLocationInfoType[] = [];
-        awayLocationInfoHtml = '';
-        displayLoaned = false;
+        @commonState.State
+        public location!: locationInfoType;
+        
+        userLoanedInInfo: loanedLocationInfoType[] = [];
+        userLoanedOutInfo: loanedLocationInfoType[] = [];
+        displayLoanedIn = false;
+        displayLoanedOut = false;
         userAwayLocationFields = [
-          { key: 'name', label: 'Location', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
+          { key: 'locationName', label: 'Location', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
           { key: 'startDate', label: 'Start', thClass: 'text-primary h3'},
           { key: 'endDate', label: 'End', thClass: 'text-primary h3'}
         ];
 
         mounted()
-        {
-            // console.log("mounted");
-            // this.awayLocationJson = [
-            //     {
-            //     "id": 0,
-            //     "location": {
-            //         "id": 0,
-            //         "agencyId": "string",
-            //         "name": "Victoria Law Courts",
-            //         "justinCode": "string",
-            //         "parentLocationId": 0,
-            //         "expiryDate": "2020-10-13T22:26:36.212Z",
-            //         "regionId": 0,
-            //         "concurrencyToken": 0
-            //     },
-            //     "locationId": 297,
-            //     "startDate": "2020-10-15T22:26:36.212Z",
-            //     "endDate": "2020-10-16T22:26:36.212Z",
-            //     "expiryDate": "2020-10-19T22:26:36.212Z",
-            //     "isFullDay": true,
-            //     "sheriffId": "4e2ff3c0-2671-4328-b2c9-1f0ec5e70aba",
-            //     "concurrencyToken": 807
-            //     },
-            //     {
-            //     "id": 0,
-            //     "location": {
-            //         "id": 0,
-            //         "agencyId": "string",
-            //         "name": "Victoria Law Courts",
-            //         "justinCode": "string",
-            //         "parentLocationId": 0,
-            //         "expiryDate": "2020-10-13T22:26:36.212Z",
-            //         "regionId": 0,
-            //         "concurrencyToken": 0
-            //     },
-            //     "locationId": 297,
-            //     "startDate": "2020-10-15T22:26:36.212Z",
-            //     "endDate": "2020-10-16T22:26:36.212Z",
-            //     "expiryDate": "2020-10-19T22:26:36.212Z",
-            //     "isFullDay": true,
-            //     "sheriffId": "4e2ff3c0-2671-4328-b2c9-1f0ec5e70aba",
-            //     "concurrencyToken": 807
-            //     }
-            // ];
-            this.extractAwayLocationsInfo();
+        {  
+            this.extractLoanedInfo();
         }
 
-        public extractAwayLocationsInfo()
+        public extractLoanedInfo()
         {
-            if (this.awayLocationJson.length > 0 ) {
-                this.displayLoaned = true;
-                this.userAwayLocationInfo = [];
-                // console.log(this.awayLocationJson)            
-                for(const awayInfoJson of this.awayLocationJson)
+
+            if (this.loanedJson.length > 0 ) {
+                
+                this.userLoanedOutInfo = [];
+                this.userLoanedInInfo = [];          
+                for(const loanedInfoJson of this.loanedJson)
                 {
-                    const awayInfo = {} as awayLocationInfoType;
-                    awayInfo.locationId = awayInfoJson.locationId;
-                    awayInfo.name = awayInfoJson.location.name;
-                    awayInfo.isFullDay = awayInfoJson.isFullDay;
-                    awayInfo.startDate = Vue.filter('beautify-date-time')(awayInfoJson.startDate);
-                    awayInfo.endDate = Vue.filter('beautify-date-time')(awayInfoJson.endDate);
-                    this.userAwayLocationInfo.push(awayInfo);
+                    const loanedInfo = {} as loanedLocationInfoType;
+                    loanedInfo.locationId = loanedInfoJson.locationId;                    
+                    loanedInfo.startDate = Vue.filter('beautify-date-time')(loanedInfoJson.startDate);
+                    loanedInfo.endDate = Vue.filter('beautify-date-time')(loanedInfoJson.endDate);
+                    if(loanedInfo.locationId == this.location.id)
+                    {
+                        loanedInfo.locationName = this.homeLocation;
+                        this.userLoanedInInfo.push(loanedInfo);
+                    }                        
+                    else
+                    {
+                        loanedInfo.locationName = loanedInfoJson.location.name;
+                        this.userLoanedOutInfo.push(loanedInfo);
+                    }
+                        
                 }
-                console.log(this.userAwayLocationInfo)
-                this.createTooltipHtml();         
+                if(this.userLoanedOutInfo.length) this.displayLoanedOut = true;
+                if(this.userLoanedInInfo.length) this.displayLoanedIn = true;
+                 
             } else {
-                this.displayLoaned = false;
+                this.displayLoanedOut = false;
+                this.displayLoanedIn = false;
             }
         }
-
-        public createTooltipHtml() {
-            this.awayLocationInfoHtml = 'On loan to ';
-
-            for(const awayLocationInfo of this.userAwayLocationInfo)
-            {
-                this.awayLocationInfoHtml += awayLocationInfo.name + '<br>'
-                if(awayLocationInfo.isFullDay) {
-                    this.awayLocationInfoHtml += 'Date: ' + Vue.filter('beautify-date-time')(awayLocationInfo.startDate)
-                     + ' to ' + Vue.filter('beautify-date-time')(awayLocationInfo.endDate);
-                } else {
-                    this.awayLocationInfoHtml += 'From ' + Vue.filter('beautify-date-time')(awayLocationInfo.startDate)
-                     + ' to ' + Vue.filter('beautify-date-time')(awayLocationInfo.endDate);
-                }
-            }
-
-            this.displayLoaned = true;            
-        }
-
-
     }
 </script>
 
- <style scoped>   
-
-    /* .card {
-        border: white;
-    }
-
-    .btnfile {
-        position: relative;
-        overflow: hidden;
-        border: 1px solid;
-        background: lightgrey;
-    }
-    .btnfile:hover {
-        background-color: #103c6b;
-        color: white;
-    } */
+ <style scoped>
 
     .tooltip >>> .tooltip-inner{
         max-width: 500px !important;
         width: 400px !important;
     }
-    
-   
-
 
 </style>
