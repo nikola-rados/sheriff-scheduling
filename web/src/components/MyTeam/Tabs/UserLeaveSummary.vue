@@ -40,48 +40,13 @@
         userLeaveInfo: leaveInfoType[] = [];
         displayLeave = false;
         userLeaveFields = [
-          { key: 'name', label: 'Leave Type', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
+          { key: 'leaveName', label: 'Leave Type', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
           { key: 'startDate', label: 'Start', thClass: 'text-primary h3'},
           { key: 'endDate', label: 'End', thClass: 'text-primary h3'}
         ];
 
         mounted()
-        {
-            console.log("mounted");
-            this.leaveJson = [
-                 {
-      "id": 0,
-      "leaveType": {
-        "id": 0,
-        "type": "CourtRoom",
-        "code": "string",
-        "subCode": "string",
-        "description": "string",
-        "effectiveDate": "2020-10-15T16:49:09.090Z",
-        "expiryDate": "2020-10-15T16:49:09.090Z",
-        "sortOrder": 0,
-        "location": {
-          "id": 0,
-          "agencyId": "string",
-          "name": "string",
-          "justinCode": "string",
-          "parentLocationId": 0,
-          "expiryDate": "2020-10-15T16:49:09.090Z",
-          "regionId": 0,
-          "concurrencyToken": 0
-        },
-        "locationId": 0,
-        "concurrencyToken": 0
-      },
-      "leaveTypeId": 0,
-      "startDate": "2020-10-15T16:49:09.090Z",
-      "endDate": "2020-10-15T16:49:09.090Z",
-      "expiryDate": "2020-10-15T16:49:09.090Z",
-      "isFullDay": true,
-      "sheriffId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-      "concurrencyToken": 0
-    }
-            ];
+        {            
             this.extractLeaveInfo();
         }
 
@@ -94,14 +59,9 @@
                 {
                     const leaveInfo = {} as leaveInfoType;
                     leaveInfo.leaveTypeId = leaveInfoJson.leaveTypeId
-                    leaveInfo.name = leaveInfoJson.leaveType.type;                    
-                    if (leaveInfoJson.isFullDay) {
-                        leaveInfo.startDate = Vue.filter('beautify-date')(leaveInfoJson.startDate);
-                        leaveInfo.endDate = Vue.filter('beautify-date')(leaveInfoJson.endDate);
-                    } else {
-                        leaveInfo.startDate = Vue.filter('beautify-date-time')(leaveInfoJson.startDate);
-                        leaveInfo.endDate = Vue.filter('beautify-date-time')(leaveInfoJson.endDate);                    
-                    }                   
+                    leaveInfo.leaveName = leaveInfoJson.leaveType.description; 
+                    leaveInfo.startDate = Vue.filter('beautify-date-time')(leaveInfoJson.startDate);
+                    leaveInfo.endDate = Vue.filter('beautify-date-time')(leaveInfoJson.endDate);
                     this.userLeaveInfo.push(leaveInfo);
                 }
                 this.displayLeave = true;       

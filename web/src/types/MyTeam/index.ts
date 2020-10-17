@@ -93,7 +93,7 @@ export interface trainingInfoType{
 
 export interface leaveInfoType{    
     leaveTypeId: number|null;
-    name: string;
+    leaveName: string;
     isFullDay: boolean;
     startDate: string;
     endDate: string;    
