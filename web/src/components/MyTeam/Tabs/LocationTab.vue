@@ -1,7 +1,7 @@
 <template>
     <div>
         <b-card  style="height:400px;overflow: auto;" no-body>                                        
-            <h2 v-if="locationError" class="mx-1 mt-0"><b-badge  variant="danger"> Location changes unsuccessful <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
+            <h2 v-if="locationError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
 
             <b-card body-class="m-0 p-0">
                 <b-row class="mt-3 bg-info" style="width: 31rem;margin-left: auto;margin-right: auto;border-radius: 0.75rem;" >
@@ -105,11 +105,11 @@
             </b-card>
 
             <div>
-                <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedAwayLocations">
-                        <span class="text-muted ml-4 mb-5">No locations have been assigned.</span>
+                <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedAwayLocations.length">
+                        <span class="text-muted ml-4 my-5">No locations have been assigned.</span>
                 </b-card>
 
-                <b-card v-else no-body border-variant="light" bg-variant="white">
+                <b-card v-else  no-body border-variant="light" bg-variant="white">
                     <b-table
                         :items="assignedAwayLocations"
                         :fields="fields"
@@ -188,6 +188,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
+    import moment from 'moment-timezone';
     import {teamMemberInfoType, awayLocationInfoType} from '../../../types/MyTeam';
     import {locationInfoType} from '../../../types/common';
     import { namespace } from 'vuex-class';
@@ -229,7 +230,11 @@
 
         addNewLocation = false;
         locationError = false;
-        assignedAwayLocations: awayLocationInfoType[] | undefined = [];
+        locationErrorMsg = '';
+        locationErrorMsgDesc = '';
+        updateTable=0;
+        
+        assignedAwayLocations: awayLocationInfoType[] = [];
 
         fields =  
         [     
@@ -245,27 +250,41 @@
         mounted()
         {             
             this.selectedHomeLocation = this.userToEdit.homeLocation;
-
+    
             // console.log('locationTab')
             // console.log(this.selectedHomeLocation)
             // console.log(this.userToEdit)           
             // console.log(this.assignedAwayLocations)
+            
             
             this.extractAwayLocations();          
         }
 
         public extractAwayLocations ()
         {
-            this.assignedAwayLocations = this.userToEdit.awayLocation
+            this.assignedAwayLocations = this.userToEdit.awayLocation? this.userToEdit.awayLocation: [];
             for(const inx in this.assignedAwayLocations)
             {
-                this.assignedAwayLocations[inx]['locationNm']= this.getLocationName(this.assignedAwayLocations[inx].locationId);
+                this.assignedAwayLocations[inx]['locationNm'] = this.getLocationName(this.assignedAwayLocations[inx].locationId);
 
-                if(this.assignedAwayLocations[inx].isFullDay==true)
-                    this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'danger'}
-                else
-                    this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'success'}
+                if(this.isDateFullday(this.assignedAwayLocations[inx].startDate,this.assignedAwayLocations[inx].endDate)){ 
+                    this.assignedAwayLocations[inx]['isFullDay'] = true;
+                    this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'danger'}                 
+                }else{
+                    this.assignedAwayLocations[inx]['isFullDay'] = false;
+                    this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'success'}                    
+                }
+                
+                this.assignedAwayLocations[inx].startDate = moment(this.assignedAwayLocations[inx].startDate).tz("UTC").format();
+                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz("UTC").format();               
             }
+        }
+
+        public isDateFullday(startDate, endDate){
+            const start = moment(startDate); 
+            const end = moment(endDate);
+            const duration = moment.duration(end.diff(start));
+            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
 
         public homeLocationChanged()
@@ -282,6 +301,8 @@
                         this.updateUser();                                            
                     }, err => {
                         console.log(err)
+                        this.locationErrorMsg = 'Home-location change was unsuccessful';
+                        this.locationErrorMsgDesc = "The change hasn't been applied";
                         this.locationError = true;
                     });
             });
@@ -334,10 +355,13 @@
                     this.startTimeState = true;
                     this.endTimeState   = true;
 
+                    const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
+                    const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
+
                     const body = {
                         locationId: this.selectedLocation?this.selectedLocation.id:0,
-                        startDate: this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z",
-                        endDate: this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z",                      
+                        startDate: startDate,
+                        endDate: endDate,                      
                         isFullDay: isFullDay,
                         sheriffId: this.userToEdit.id,
                     }
@@ -349,7 +373,13 @@
                             console.log('assign success')
                             this.addToAssignedLocationList(response.data);
                             this.clearLocationSelection();
-                        }, err=>{this.locationError = true;});
+                        }, err=>{   
+                            //console.log(err.response.data);
+                            const errMsg = err.response.data.error;
+                            this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                            this.locationErrorMsgDesc = errMsg;
+                            this.locationError = true;
+                        });
                 }
         }
 
@@ -360,15 +390,20 @@
                 id: addedLocationInfo.id,
                 sheriffId : addedLocationInfo.sheriffId,    
                 locationId: addedLocationInfo.locationId,
-                isFullDay: addedLocationInfo.isFullDay,
                 startDate: addedLocationInfo.startDate,
                 endDate: addedLocationInfo.endDate,               
             }
             assignedAwayLocation['locationNm'] = this.getLocationName(addedLocationInfo.locationId);
-            assignedAwayLocation['_cellVariants'] = addedLocationInfo.isFullDay?{isFullDay:'danger'}:{isFullDay:'success'}
-            //   console.log(assignedAwayLocation)
-            if(this.assignedAwayLocations) this.assignedAwayLocations.push(assignedAwayLocation); 
-         //   console.log(this.assignedAwayLocations)          
+            if(this.isDateFullday(assignedAwayLocation.startDate,assignedAwayLocation.endDate)){ 
+                assignedAwayLocation['isFullDay'] = true;
+                assignedAwayLocation['_cellVariants'] = {isFullDay:'danger'}                 
+            }else{
+                assignedAwayLocation['isFullDay'] = false;
+                assignedAwayLocation['_cellVariants'] = {isFullDay:'success'}                    
+            }
+
+            this.assignedAwayLocations.push(assignedAwayLocation); 
+            this.$emit('change');                     
         }
 
         public clearLocationSelection(){
@@ -380,7 +415,7 @@
             this.addNewLocation= false;
         }
 
-        public getLocationName(locationId: number){
+        public getLocationName(locationId: number|null){
             const index = this.locationList.findIndex(location=>{if(location.id == locationId)return true})
             if(index>=0){   
                 let truncName = this.locationList[index].name.slice(0,20);
@@ -399,9 +434,16 @@
             return this.locationList.filter(location =>{ if(this.selectedHomeLocation && this.selectedHomeLocation.id == location.id) return false;else return true})
         }
 
-        get isFullDay(){
+        get isFullDay(){    
+
             if(this.selectedStartTime == '' && this.selectedEndTime == '')
                 return true
+            else if(this.selectedStartDate && this.selectedEndDate)
+            {
+                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
+                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
+                return this.isDateFullday(startDate,endDate)
+            }
             else
                 return false
         }
