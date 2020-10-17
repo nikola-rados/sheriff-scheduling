@@ -15,7 +15,7 @@
                         >
                     </b-table>                                        
                 </b-tooltip>
-            <b-icon-box-arrow-right class="mx-2" v-if="displayLoanedIn" :id="'loanedInIcon'+index" font-scale="1.5"></b-icon-box-arrow-right>
+            <b-icon-box-arrow-in-right class="mx-2" v-if="displayLoanedIn" :id="'loanedInIcon'+index" font-scale="1.5"></b-icon-box-arrow-in-right>
                 <b-tooltip :target="'loanedInIcon'+index" variant="warning" show.sync ="true" triggers="hover">
                     <h2 class="text-danger">Loaned in from:</h2>                
                     <b-table  
