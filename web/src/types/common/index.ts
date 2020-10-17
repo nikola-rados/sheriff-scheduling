@@ -7,6 +7,12 @@ export interface locationInfoType {
     justinCode?: string
 }
 
+export interface leaveInfoType {
+    code: string;
+    id: number;
+    description?: string;
+}
+
 export interface userInfoType {
     "roles": string[],
     "homeLocationId": number
