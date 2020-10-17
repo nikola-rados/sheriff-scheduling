@@ -321,7 +321,7 @@ export default class IdentificationTab extends Vue {
 
         console.log('create profile')
         const body = {
-            homeLocationId: this.userToEdit.homeLocationId,               
+            homeLocationId: this.user.homeLocationId,               
             gender: this.user.gender,
             badgeNumber: this.user.badgeNumber,
             rank: this.user.rank,

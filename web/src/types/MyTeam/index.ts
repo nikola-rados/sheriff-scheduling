@@ -75,7 +75,6 @@ export interface loanedLocationInfoType{
 export interface awayLocationInfoType{
     id: number|null;    
     locationId: number|null;
-    isFullDay: boolean;
     startDate: string;
     endDate: string;
     sheriffId: string,
