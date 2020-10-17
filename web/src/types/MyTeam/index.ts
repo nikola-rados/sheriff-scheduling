@@ -85,7 +85,7 @@ export interface awayLocationInfoType{
 
 export interface trainingInfoType{    
     trainingTypeId: number|null;
-    name: string;
+    trainingName: string;
     isFullDay: boolean;
     startDate: string;
     endDate: string;    

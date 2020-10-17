@@ -39,8 +39,9 @@
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >
                             <b-row>                                                
                                 <user-location-summary class="ml-4 mr-2" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
-                                <user-training-summary class="mx-2" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
-                            </b-row> 
+                                <user-training-summary v-if="teamMember.training.length>0" class="mx-2" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
+                            </b-row>
+                        </div> 
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
@@ -275,7 +276,7 @@
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';
-                myteam.training = myteaminfo.training;
+                myteam.training = myteaminfo.training? myteaminfo.training: [];
                 myteam.loanedOut = myteaminfo.loanedOut;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
