@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using System;
+using Mapster;
 using ss.db.models;
 
 namespace SS.Db.models.sheriff
@@ -8,5 +9,7 @@ namespace SS.Db.models.sheriff
     {
         public virtual LookupCode TrainingType { get; set; }
         public int? TrainingTypeId { get; set; }
+
+        public DateTimeOffset? TrainingCertificationExpiry { get; set; }
     }
 }
