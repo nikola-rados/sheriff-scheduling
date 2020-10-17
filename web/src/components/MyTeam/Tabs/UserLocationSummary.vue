@@ -15,7 +15,7 @@
                         >
                     </b-table>                                        
                 </b-tooltip>
-            <b-icon-box-arrow-right class="mx-2" v-if="displayLoanedIn" :id="'loanedInIcon'+index" font-scale="1.5"></b-icon-box-arrow-right>
+            <b-icon-box-arrow-in-right class="mx-2" v-if="displayLoanedIn" :id="'loanedInIcon'+index" font-scale="1.5"></b-icon-box-arrow-in-right>
                 <b-tooltip :target="'loanedInIcon'+index" variant="warning" show.sync ="true" triggers="hover">
                     <h2 class="text-danger">Loaned in from:</h2>                
                     <b-table  
@@ -35,6 +35,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
+    import moment from 'moment-timezone';
     import { namespace } from 'vuex-class';
     import {loanedLocationInfoType} from '../../../types/MyTeam';
     import {awayLocationsJsontype} from '../../../types/MyTeam/jsonTypes';
@@ -85,9 +86,19 @@
                 for(const loanedInfoJson of this.loanedJson)
                 {
                     const loanedInfo = {} as loanedLocationInfoType;
-                    loanedInfo.locationId = loanedInfoJson.locationId;                    
-                    loanedInfo.startDate = Vue.filter('beautify-date-time')(loanedInfoJson.startDate);
-                    loanedInfo.endDate = Vue.filter('beautify-date-time')(loanedInfoJson.endDate);
+                    loanedInfo.locationId = loanedInfoJson.locationId;
+
+                    const startDate = moment(loanedInfoJson.startDate).tz("UTC").format();
+                    const endDate = moment(loanedInfoJson.endDate).tz("UTC").format();
+                    if(this.isDateFullday(startDate, endDate))                    {
+                        loanedInfo.startDate = Vue.filter('beautify-date')(startDate);
+                        loanedInfo.endDate = Vue.filter('beautify-date')(endDate);
+                    }
+                    else{
+                        loanedInfo.startDate = Vue.filter('beautify-date-time')(startDate);
+                        loanedInfo.endDate = Vue.filter('beautify-date-time')(endDate);
+                    }
+
                     if(loanedInfo.locationId == this.location.id)
                     {
                         loanedInfo.locationName = this.homeLocation;
@@ -107,6 +118,13 @@
                 this.displayLoanedOut = false;
                 this.displayLoanedIn = false;
             }
+        }
+
+        public isDateFullday(startDate, endDate){
+            const start = moment(startDate); 
+            const end = moment(endDate);
+            const duration = moment.duration(end.diff(start));
+            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
     }
 </script>

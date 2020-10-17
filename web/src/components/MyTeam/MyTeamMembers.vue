@@ -36,13 +36,13 @@
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
-                        <div class="card-header bg-dark border-dark mb-0 pb-0 " >
-                            <b-row>                                                
-                                <user-location-summary class="ml-4 mr-2" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
-                                <user-training-summary v-if="teamMember.training.length>0" class="mx-2" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
-                                <user-leave-summary v-if="teamMember.leave.length>0" class="mx-2" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
-                            </b-row>                                                    
-                        </div>                                
+                        <div class="card-header bg-dark border-dark mb-0 pb-0 " >                                                           
+                            <b-row class="ml-4">                                                
+                                <user-location-summary class="mr-2" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
+                                <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
+                                <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
+                            </b-row>
+                        </div> 
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
