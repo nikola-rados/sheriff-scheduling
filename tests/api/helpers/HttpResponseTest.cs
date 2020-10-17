@@ -39,6 +39,13 @@ namespace tests.api.Helpers
             Assert.NotNull(noContentResult);
         }
 
+        public static void CheckForForbid<T>(ActionResult<T> actionResult)
+        {
+            Assert.NotNull(actionResult);
+            Assert.NotNull(actionResult.Result);
+            var forbid = actionResult.Result as ForbidResult;
+            Assert.NotNull(forbid);
+        }
 
         public static void CheckForNotFound<T>(ActionResult<T> actionResult)
         {
