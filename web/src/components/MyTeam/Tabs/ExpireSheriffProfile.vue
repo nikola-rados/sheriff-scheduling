@@ -30,8 +30,9 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import store from '../../../store'
+    
 
     @Component
     export default class ExpireSheriffProfile extends Vue {

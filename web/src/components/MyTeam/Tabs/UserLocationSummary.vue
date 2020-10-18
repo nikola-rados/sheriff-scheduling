@@ -1,7 +1,7 @@
 <template> 
     <b-card v-if="displayLoanedIn || displayLoanedOut" no-body class="bg-dark text-white">
-        <b-row class="ml-4"> 
-            <b-icon-box-arrow-left class="mr-2" v-if="displayLoanedOut" :id="'loanedOutIcon'+index" font-scale="1.5"></b-icon-box-arrow-left>
+        <b-row> 
+            <b-icon-box-arrow-left class="mx-2" v-if="displayLoanedOut" :id="'loanedOutIcon'+index" font-scale="1.5"></b-icon-box-arrow-left>
                 <b-tooltip :target="'loanedOutIcon'+index" variant="warning" show.sync ="true" triggers="hover">
                     <h2 class="text-danger">On loan to:</h2>                
                     <b-table  
@@ -36,11 +36,11 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import { namespace } from 'vuex-class';
     import {loanedLocationInfoType} from '../../../types/MyTeam';
     import {awayLocationsJsontype} from '../../../types/MyTeam/jsonTypes';
     import {locationInfoType} from '../../../types/common';
-    import "@store/modules/CommonInformation";  
+    import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
     @Component
@@ -53,10 +53,7 @@
         homeLocation!: string;
 
         @Prop({required: true})
-        loanedJson!: awayLocationsJsontype[]; 
-
-        @commonState.State
-        public token!: string;  
+        loanedJson!: awayLocationsJsontype[];  
         
         @commonState.State
         public location!: locationInfoType;

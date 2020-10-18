@@ -44,10 +44,11 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class';
     import {teamMemberInfoType} from '../../../types/MyTeam';
-    import "@store/modules/CommonInformation";  
     import {locationInfoType} from '../../../types/common';  
+
+    import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
     @Component

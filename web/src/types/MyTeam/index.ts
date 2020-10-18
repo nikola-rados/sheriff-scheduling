@@ -103,11 +103,21 @@ export interface trainingTypeInfoType{
     type: string;    
 }
 
-export interface userLeaveInfoType{    
+export interface userLeaveInfoType{
+    id: number;    
     leaveTypeId: number|null;
-    leaveName: string;
+    leaveName?: string;
+    leaveType?: leaveTypeInfoType;
     comment: string,
     isFullDay: boolean;
     startDate: string;
     endDate: string;    
+}
+
+export interface leaveTypeInfoType{    
+    code: string;
+    concurrencyToken: number;
+    description: string;
+    id: number|null;
+    type: string;    
 }

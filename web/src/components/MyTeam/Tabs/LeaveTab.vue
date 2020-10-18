@@ -3,8 +3,8 @@
         <b-card v-if="leaveTabDataReady" style="height:400px;overflow: auto;" no-body>                                        
             <h2 v-if="leaveError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc"  variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
 
-            <b-card body-class="m-0 p-0">                
-                <b-button v-if="!addNewLeave" style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNewLeave = true"> <b-icon icon="plus" /> Add </b-button>
+            <b-card  v-if="!addNewLeave">                
+                <b-button style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNewLeave = true"> <b-icon icon="plus" /> Add </b-button>
             </b-card> 
 
             <b-card v-if="addNewLeave" class="my-3" border-variant="light" no-body>
@@ -13,18 +13,18 @@
                         <b-tr>
                             <b-td>   
                                 <b-tr class="mt-1">   
-                                    <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day: </b>                          
-                                    <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day: </b> 
-                                    <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day: </b>
+                                    <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Leave: </b>                          
+                                    <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Leave: </b> 
+                                    <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day Leave: </b>
                                 </b-tr>
                                 <b-tr >
-                                    <b-form-group style="margin: 0.25rem 0 0 0.75rem;width: 20rem"> 
+                                    <b-form-group style="margin: 0.25rem 0 0 0.75rem;width: 15rem"> 
                                         <b-form-select
                                             size = "sm"
                                             v-model="selectedLeave"
                                             :state = "leaveState?null:false">
                                                 <b-form-select-option :value="{}">
-                                                    Select a leave*
+                                                    Select a Leave Type*
                                                 </b-form-select-option>
                                                 <b-form-select-option
                                                     v-for="leave in leaveTypeInfoList" 
@@ -78,11 +78,17 @@
                             </b-td>
                             <b-td >
                                 <b-button                                    
-                                    style="margin: 1.75rem 0 0 0.75rem; "
+                                    style="margin: 2rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                                    variant="secondary"
+                                    @click="clearLeaveSelection()">
+                                    Cancel
+                                </b-button>   
+                                <b-button                                    
+                                    style="width:70px;margin: 2rem 0 0 0; padding:0 1rem 0 1rem; "
                                     variant="success"                        
                                     @click="saveLeave()">
                                     Save
-                                </b-button>   
+                                </b-button> 
                             </b-td>
                         </b-tr>   
                     </b-tbody>
@@ -98,6 +104,7 @@
                     <b-table
                         :items="assignedLeaves"
                         :fields="fields"
+                        head-row-variant="primary"
                         striped
                         borderless
                         small
@@ -109,7 +116,11 @@
                                 <span v-else>Partial</span> 
                             </template>
                             <template v-slot:cell(leaveName)="data" >
-                                <span class="text-primary">{{data.item.leaveName}}</span>
+                                <span
+                                    v-b-tooltip.hover.right                                
+                                    :title="data.item.comment?data.item.comment:data.item.leaveType.code"
+                                    class="text-primary">
+                                    {{data.item.leaveName}}</span>
                             </template>
                             <template v-slot:cell(startDate)="data" >
                                 <span>{{data.value | beautify-date}}</span> 
@@ -183,12 +194,12 @@
         fields =  
         [     
             {key:'isFullDay', label:'Type',sortable:false, tdClass: 'border-top' },       
-            {key:'leaveName',   label:'Leave',sortable:false, tdClass: 'border-top'  }, 
+            {key:'leaveName', label:'Leave',sortable:false, tdClass: 'border-top'  }, 
             {key:'startDate', label:'Start Date',  sortable:false, tdClass: 'border-top', thClass:'',},
-            {key:'startTime', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'',},
+            {key:'startTime', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
             {key:'endDate',   label:'End Date',  sortable:false, tdClass: 'border-top', thClass:'',},
-            {key:'endTime',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'',},  
-            {key:'editLeave',  sortable:false, tdClass: 'border-top', thClass:'text-white',},       
+            {key:'endTime',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},  
+            {key:'editLeave', label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
         ];
 
         mounted()
@@ -204,6 +215,8 @@
             {                
                 const leave = {} as userLeaveInfoType;
 
+                leave.id = leaveJson.id;
+                leave.leaveType = leaveJson.leaveType;
                 leave.leaveTypeId = leaveJson.leaveTypeId;
                 leave.leaveName = leaveJson.leaveType?leaveJson.leaveType.description: '';
                 leave.comment = leaveJson.comment?leaveJson.comment:'';               
@@ -217,7 +230,7 @@
                 }
                 
                 leave.startDate = moment(leaveJson.startDate).tz("UTC").format();
-                leave.endDate = moment(leaveJson.startDate).tz("UTC").format();
+                leave.endDate = moment(leaveJson.endDate).tz("UTC").format();
                 this.assignedLeaves.push(leave);               
             }
             this.loadLeaveTypes();
@@ -325,12 +338,13 @@
         public addToLeaveList(addedLeaveInfo)
         {
             const leave = {} as userLeaveInfoType;
+            leave.id = addedLeaveInfo.id;
+            leave.leaveType = addedLeaveInfo.trainingType;
             leave.leaveTypeId = addedLeaveInfo.leaveTypeId; 
             leave.leaveName = addedLeaveInfo.leaveType.description;
             leave.startDate = addedLeaveInfo.startDate;
             leave.endDate = addedLeaveInfo.endDate;
-            leave.comment = addedLeaveInfo.comment? addedLeaveInfo.comment:'';              
-            
+            leave.comment = addedLeaveInfo.comment? addedLeaveInfo.comment:'';
             
             if(this.isDateFullday(leave.startDate,leave.endDate)){ 
                 leave.isFullDay = true;
@@ -351,6 +365,12 @@
             this.selectedStartTime = '';
             this.selectedEndTime = '';
             this.addNewLeave= false;
+
+            this.leaveState     = true;
+            this.endDateState   = true;
+            this.startDateState = true;
+            this.startTimeState = true;
+            this.endTimeState   = true;
         }
 
         get isFullDay(){    

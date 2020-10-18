@@ -19,12 +19,9 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class';
     import moment from 'moment-timezone';
     import {userLeaveInfoType} from '../../../types/MyTeam';
     import {leaveJsontype} from '../../../types/MyTeam/jsonTypes';
-    import "@store/modules/CommonInformation";  
-    const commonState = namespace("CommonInformation");
 
     @Component
     export default class UserLeaveSummary extends Vue {       
@@ -33,10 +30,7 @@
         index!: number;
 
         @Prop({required: true})
-        leaveJson!: leaveJsontype[];        
-
-        @commonState.State
-        public token!: string;        
+        leaveJson!: leaveJsontype[];  
         
         userLeaveInfo: userLeaveInfoType[] = [];
         displayLeave = false;
@@ -59,10 +53,12 @@
                 for(const leaveInfoJson of this.leaveJson)
                 {
                     const leaveInfo = {} as userLeaveInfoType;
-                    leaveInfo.leaveTypeId = leaveInfoJson.leaveTypeId
-                    leaveInfo.leaveName = leaveInfoJson.leaveType.description; 
-                    const startDate = Vue.filter('beautify-date-time')(leaveInfoJson.startDate);
-                    const endDate = Vue.filter('beautify-date-time')(leaveInfoJson.endDate);
+                    leaveInfo.id = leaveInfoJson.id;
+                    leaveInfo.leaveTypeId = leaveInfoJson.leaveTypeId;
+                    leaveInfo.leaveName = leaveInfoJson.leaveType.description;
+
+                    const startDate = moment(leaveInfoJson.startDate).tz("UTC").format();
+                    const endDate = moment(leaveInfoJson.endDate).tz("UTC").format();
                     
                     if(this.isDateFullday(startDate, endDate)) {
                         leaveInfo.startDate = Vue.filter('beautify-date')(startDate);

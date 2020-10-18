@@ -20,11 +20,8 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import { namespace } from 'vuex-class';
     import {trainingInfoType} from '../../../types/MyTeam';
     import {trainingJsontype} from '../../../types/MyTeam/jsonTypes';
-    import "@store/modules/CommonInformation";  
-    const commonState = namespace("CommonInformation");
 
     @Component
     export default class UserTrainingSummary extends Vue {       
@@ -33,10 +30,7 @@
         index!: number;
 
         @Prop({required: true})
-        trainingJson!: trainingJsontype[];        
-
-        @commonState.State
-        public token!: string;        
+        trainingJson!: trainingJsontype[];               
         
         userTrainingInfo: trainingInfoType[] = [];
         displayTraining = false;
