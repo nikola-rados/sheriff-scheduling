@@ -20,7 +20,8 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import {leaveInfoType} from '../../../types/MyTeam';
+    import moment from 'moment-timezone';
+    import {userLeaveInfoType} from '../../../types/MyTeam';
     import {leaveJsontype} from '../../../types/MyTeam/jsonTypes';
     import "@store/modules/CommonInformation";  
     const commonState = namespace("CommonInformation");
@@ -37,7 +38,7 @@
         @commonState.State
         public token!: string;        
         
-        userLeaveInfo: leaveInfoType[] = [];
+        userLeaveInfo: userLeaveInfoType[] = [];
         displayLeave = false;
         userLeaveFields = [
           { key: 'leaveName', label: 'Leave Type', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
@@ -52,22 +53,39 @@
 
         public extractLeaveInfo()
         {
-            if (this.leaveJson.length > 0 ) {
-                this.displayLeave = true;
+            this.displayLeave = false;
+            if (this.leaveJson.length > 0 ) {                
                 this.userLeaveInfo = [];            
                 for(const leaveInfoJson of this.leaveJson)
                 {
-                    const leaveInfo = {} as leaveInfoType;
+                    const leaveInfo = {} as userLeaveInfoType;
                     leaveInfo.leaveTypeId = leaveInfoJson.leaveTypeId
                     leaveInfo.leaveName = leaveInfoJson.leaveType.description; 
-                    leaveInfo.startDate = Vue.filter('beautify-date-time')(leaveInfoJson.startDate);
-                    leaveInfo.endDate = Vue.filter('beautify-date-time')(leaveInfoJson.endDate);
+                    const startDate = Vue.filter('beautify-date-time')(leaveInfoJson.startDate);
+                    const endDate = Vue.filter('beautify-date-time')(leaveInfoJson.endDate);
+                    
+                    if(this.isDateFullday(startDate, endDate)) {
+                        leaveInfo.startDate = Vue.filter('beautify-date')(startDate);
+                        leaveInfo.endDate = Vue.filter('beautify-date')(endDate);
+                    }
+                    else {
+                        leaveInfo.startDate = Vue.filter('beautify-date-time')(startDate);
+                        leaveInfo.endDate = Vue.filter('beautify-date-time')(endDate);
+                    }
+                    
                     this.userLeaveInfo.push(leaveInfo);
                 }
-                this.displayLeave = true;       
+                if(this.userLeaveInfo.length) this.displayLeave = true;       
             } else {
                 this.displayLeave = false;
             }
+        }
+
+        public isDateFullday(startDate, endDate){
+            const start = moment(startDate); 
+            const end = moment(endDate);
+            const duration = moment.duration(end.diff(start));
+            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
     }
 </script>

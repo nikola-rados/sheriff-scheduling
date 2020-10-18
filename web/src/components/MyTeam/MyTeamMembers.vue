@@ -83,7 +83,10 @@
                                         v-on:closeMemberDetails="closeProfileWindow()"/>                                   
                                 </b-tab>
 
-                                <b-tab v-if="editMode" title="Leaves">                                    
+                                <b-tab v-if="editMode" title="Leaves">
+                                    <leave-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                    
                                 </b-tab>
 
                                 <b-tab v-if="editMode" title="Training"> 
@@ -126,23 +129,21 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation"); 
+    import "@store/modules/TeamMemberInformation";
+    const TeamMemberState = namespace("TeamMemberInformation");
     import * as _ from 'underscore';
-    import PageHeader from "@components/common/PageHeader.vue";
-    
-    import "@store/modules/CommonInformation"; 
-    import "@store/modules/TeamMemberInformation"; 
-    
+    import PageHeader from "@components/common/PageHeader.vue";    
     import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
     import {teamMemberInfoType, roleOptionInfoType} from '../../types/MyTeam';
-    import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
-    const commonState = namespace("CommonInformation");
-    const TeamMemberState = namespace("TeamMemberInformation");
-    import store from '../../store'
+    import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';
     import ExpireSheriffProfile from './Tabs/ExpireSheriffProfile.vue'
     import RoleAssignmentTab from './Tabs/RoleAssignmentTab.vue'
     import IdentificationTab from './Tabs/IdentificationTab.vue'
     import UserSummaryTemplate from "./Tabs/UserSummaryTemplate.vue";
     import LocationTab from './Tabs/LocationTab.vue';
+    import LeaveTab from './Tabs/LeaveTab.vue';
     import UserLocationSummary from './Tabs/UserLocationSummary.vue';
     import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
     import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
@@ -159,7 +160,8 @@
             ExpireSheriffProfile,
             RoleAssignmentTab,
             IdentificationTab,
-            LocationTab
+            LocationTab,
+            LeaveTab
         }        
     })    
     export default class MyTeamMembers extends Vue {
@@ -277,7 +279,7 @@
                 myteam.homeLocationId = myteaminfo.homeLocationId;
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';               
                 
-                myteam.leave = myteaminfo.leave? myteaminfo.training: [];
+                myteam.leave = myteaminfo.leave? myteaminfo.leave: [];
                 myteam.training = myteaminfo.training? myteaminfo.training: [];
                 myteam.loanedOut = myteaminfo.loanedOut;
                 if(myteaminfo.homeLocation)
@@ -393,7 +395,7 @@
           
             if(userJson.awayLocation && userJson.awayLocation.length>0)
                 user.awayLocation = userJson.awayLocation;
-            //console.log(this.user)
+            user.leave = userJson.leave;
             this.userAllRoles = userJson.roles
             this.UpdateUserToEdit(user);  
         }

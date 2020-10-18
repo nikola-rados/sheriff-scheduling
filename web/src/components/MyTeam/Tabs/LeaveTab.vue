@@ -1,28 +1,13 @@
 <template>
     <div>
-        <b-card  style="height:400px;overflow: auto;" no-body>                                        
-            <h2 v-if="locationError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
+        <b-card v-if="leaveTabDataReady" style="height:400px;overflow: auto;" no-body>                                        
+            <h2 v-if="leaveError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc"  variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
 
-            <b-card body-class="m-0 p-0">
-                <b-row class="mt-3 bg-info" style="width: 31rem;margin-left: auto;margin-right: auto;border-radius: 0.75rem;" >
-                    <b style="margin: 1.35rem 0.25rem 0 1.25rem">Home Location:</b>
-                    <b-form-group style="width: 20rem; margin-top: 1rem"> 
-                        <b-form-select                                                                                                           
-                            v-model="selectedHomeLocation"
-                            @change="homeLocationChanged">                            
-                                <b-form-select-option
-                                    v-for="homelocation in locationList" 
-                                    :key="homelocation.id"
-                                    :value="homelocation">
-                                        {{homelocation.name}}
-                                </b-form-select-option>    
-                        </b-form-select>
-                    </b-form-group>
-                </b-row>
-                <b-button v-if="!addNewLocation" style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNewLocation = true"> <b-icon icon="plus" /> Add </b-button>
+            <b-card body-class="m-0 p-0">                
+                <b-button v-if="!addNewLeave" style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNewLeave = true"> <b-icon icon="plus" /> Add </b-button>
             </b-card> 
 
-            <b-card v-if="addNewLocation" class="my-3" border-variant="light" no-body>
+            <b-card v-if="addNewLeave" class="my-3" border-variant="light" no-body>
                 <b-table-simple small borderless >
                     <b-tbody>
                         <b-tr>
@@ -36,16 +21,16 @@
                                     <b-form-group style="margin: 0.25rem 0 0 0.75rem;width: 20rem"> 
                                         <b-form-select
                                             size = "sm"
-                                            v-model="selectedLocation"
-                                            :state = "locationState?null:false">
+                                            v-model="selectedLeave"
+                                            :state = "leaveState?null:false">
                                                 <b-form-select-option :value="{}">
-                                                    Select a location*
+                                                    Select a leave*
                                                 </b-form-select-option>
                                                 <b-form-select-option
-                                                    v-for="location in noHomeLocationList" 
-                                                    :key="location.id"
-                                                    :value="location">
-                                                        {{location.name}}
+                                                    v-for="leave in leaveTypeInfoList" 
+                                                    :key="leave.id"
+                                                    :value="leave">
+                                                        {{leave.description}}
                                                 </b-form-select-option>     
                                         </b-form-select>
                                     </b-form-group>
@@ -95,7 +80,7 @@
                                 <b-button                                    
                                     style="margin: 1.75rem 0 0 0.75rem; "
                                     variant="success"                        
-                                    @click="saveAwayLocation()">
+                                    @click="saveLeave()">
                                     Save
                                 </b-button>   
                             </b-td>
@@ -105,13 +90,13 @@
             </b-card>
 
             <div>
-                <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedAwayLocations.length">
-                        <span class="text-muted ml-4 my-5">No locations have been assigned.</span>
+                <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedLeaves.length">
+                        <span class="text-muted ml-4 my-5">No leaves have been assigned.</span>
                 </b-card>
 
                 <b-card v-else  no-body border-variant="light" bg-variant="white">
                     <b-table
-                        :items="assignedAwayLocations"
+                        :items="assignedLeaves"
                         :fields="fields"
                         striped
                         borderless
@@ -123,13 +108,8 @@
                                 <span v-if="data.value">Full</span> 
                                 <span v-else>Partial</span> 
                             </template>
-                            <template v-slot:cell(locationId)="data" >
-                                <span 
-                                    class="text-primary"
-                                    v-b-tooltip.hover.right                                
-                                    :title="data.item.locationNm.nameFull"> 
-                                        {{data.item.locationNm.name}}
-                                </span>
+                            <template v-slot:cell(leaveName)="data" >
+                                <span class="text-primary">{{data.item.leaveName}}</span>
                             </template>
                             <template v-slot:cell(startDate)="data" >
                                 <span>{{data.value | beautify-date}}</span> 
@@ -143,11 +123,10 @@
                             <template v-slot:cell(endTime)="data" >
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
-                            <template v-slot:cell(editRole)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editRole(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            <template v-slot:cell(editLeave)="data" >                                       
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
-                            
                     </b-table> 
                 </b-card> 
             </div>                                     
@@ -156,32 +135,28 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Prop } from 'vue-property-decorator';
-    import moment from 'moment-timezone';
-    import {teamMemberInfoType, awayLocationInfoType, userLeaveInfoType} from '../../../types/MyTeam';
-    import {locationInfoType, leaveInfoType} from '../../../types/common';
+    import { Component, Vue } from 'vue-property-decorator';
+    import moment from 'moment-timezone';    
     import { namespace } from 'vuex-class';
-    const commonState = namespace("CommonInformation");
-    import "@store/modules/TeamMemberInformation"; 
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation"); 
+    import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
+    import {teamMemberInfoType, userLeaveInfoType} from '../../../types/MyTeam';
+    import {leaveInfoType} from '../../../types/common';
+    import { leaveTypeJson } from '../../../types/common/jsonTypes';
 
     @Component
-    export default class LocationTab extends Vue {
+    export default class LeaveTab extends Vue {
 
         @commonState.State
         public token!: string;
 
-        @commonState.State
-        public locationList!: locationInfoType[];
-
         @TeamMemberState.State
-        public userToEdit!: teamMemberInfoType;
+        public userToEdit!: teamMemberInfoType;                
 
-        @TeamMemberState.Action
-        public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
-
-        
-
+        leaveTypeInfoList: leaveInfoType[] = [];
+        leaveTabDataReady = false;
         selectedLeave = {} as leaveInfoType | undefined;
         leaveState = true;
 
@@ -203,50 +178,78 @@
         leaveErrorMsgDesc = '';
         updateTable=0;
         
-        assignedLeaves: awayLocationInfoType[] = [];
+        assignedLeaves: userLeaveInfoType[] = [];
 
         fields =  
         [     
-            {key:'isFullDay', label:'Type',sortable:false, tdClass: 'border-top', },       
-            {key:'locationId',label:'Location',sortable:false, tdClass: 'border-top',  }, 
+            {key:'isFullDay', label:'Type',sortable:false, tdClass: 'border-top' },       
+            {key:'leaveName',   label:'Leave',sortable:false, tdClass: 'border-top'  }, 
             {key:'startDate', label:'Start Date',  sortable:false, tdClass: 'border-top', thClass:'',},
             {key:'startTime', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'',},
             {key:'endDate',   label:'End Date',  sortable:false, tdClass: 'border-top', thClass:'',},
             {key:'endTime',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'',},  
-            {key:'editRole',  sortable:false, tdClass: 'border-top', thClass:'text-white',},       
+            {key:'editLeave',  sortable:false, tdClass: 'border-top', thClass:'text-white',},       
         ];
 
         mounted()
-        {             
-            
-    
-            // console.log('locationTab')
-            // console.log(this.selectedHomeLocation)
-            // console.log(this.userToEdit)           
-            // console.log(this.assignedAwayLocations)
-            
-            
+        {
+            this.leaveTabDataReady = false;
             this.extractLeaves();          
         }
 
         public extractLeaves ()
         {
-            this.assignedAwayLocations = this.userToEdit.awayLocation? this.userToEdit.awayLocation: [];
-            for(const inx in this.assignedAwayLocations)
-            {
-                this.assignedAwayLocations[inx]['locationNm'] = this.getLocationName(this.assignedAwayLocations[inx].locationId);
+            const assignedLeavesJson = this.userToEdit.leave? this.userToEdit.leave: [];
+            for(const leaveJson of assignedLeavesJson)
+            {                
+                const leave = {} as userLeaveInfoType;
 
-                if(this.isDateFullday(this.assignedAwayLocations[inx].startDate,this.assignedAwayLocations[inx].endDate)){ 
-                    this.assignedAwayLocations[inx]['isFullDay'] = true;
-                    this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'danger'}                 
-                }else{
-                    this.assignedAwayLocations[inx]['isFullDay'] = false;
-                    this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'success'}                    
+                leave.leaveTypeId = leaveJson.leaveTypeId;
+                leave.leaveName = leaveJson.leaveType?leaveJson.leaveType.description: '';
+                leave.comment = leaveJson.comment?leaveJson.comment:'';               
+
+                if(this.isDateFullday(leaveJson.startDate,leaveJson.endDate)){ 
+                    leave.isFullDay = true;
+                    leave['_cellVariants'] = {isFullDay:'danger'}                 
+                } else{
+                    leave.isFullDay = false;
+                    leave['_cellVariants'] = {isFullDay:'success'}                    
                 }
                 
-                this.assignedAwayLocations[inx].startDate = moment(this.assignedAwayLocations[inx].startDate).tz("UTC").format();
-                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz("UTC").format();               
+                leave.startDate = moment(leaveJson.startDate).tz("UTC").format();
+                leave.endDate = moment(leaveJson.startDate).tz("UTC").format();
+                this.assignedLeaves.push(leave);               
             }
+            this.loadLeaveTypes();
+        }
+
+        public loadLeaveTypes() {
+
+            const url = 'api/managetypes?codeType=LeaveType'
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.get(url, options)
+                .then(response => {
+                    if(response.data){
+                        this.extractLeaveTypeInfo(response.data);                        
+                    }                   
+                })
+        }
+
+        public extractLeaveTypeInfo(leaveTypeListJson)
+        {
+            let leaveType: leaveTypeJson;
+
+            for(leaveType of leaveTypeListJson)
+            {
+                const leaveTypeInfo = {} as leaveInfoType;
+                leaveTypeInfo.id = leaveType.id;
+                leaveTypeInfo.code = leaveType.code;
+                leaveTypeInfo.description = leaveType.description;
+                this.leaveTypeInfoList.push(leaveTypeInfo)
+            } 
+            
+            this.leaveTabDataReady = true;                      
+            
         }
 
         public isDateFullday(startDate, endDate){
@@ -256,69 +259,38 @@
             if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
 
-        public homeLocationChanged()
-        {
-            Vue.nextTick().then(()=>{
-                console.log(this.selectedHomeLocation)
-               
-                const homeLocationId= this.selectedHomeLocation? this.selectedHomeLocation.id: '';
-                const url = 'api/sheriff/updatelocation?id='+this.userToEdit.id+'&locationId='+homeLocationId;
-                const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-                this.$http.put(url, options)
-                    .then(response => {
-                        console.log(response) 
-                        this.updateUser();                                            
-                    }, err => {
-                        console.log(err)
-                        this.locationErrorMsg = 'Home-location change was unsuccessful';
-                        this.locationErrorMsgDesc = "The change hasn't been applied";
-                        this.locationError = true;
-                    });
-            });
-        }
-
-        public updateUser(){
-            const user = this.userToEdit
-            user.homeLocation = this.selectedHomeLocation;
-            user.homeLocationNm = this.selectedHomeLocation? this.selectedHomeLocation.name: '';
-            user.homeLocationId = this.selectedHomeLocation? this.selectedHomeLocation.id: 0;
-            this.UpdateUserToEdit(user);
-            console.log(user)
-            this.$emit('change') 
-        }
-
-        public saveAwayLocation(){
-                this.locationError  = false; 
-                this.locationState  = true;
+        public saveLeave() {
+                this.leaveError  = false; 
+                this.leaveState  = true;
                 this.endDateState   = true;
                 this.startDateState = true;
                 this.startTimeState = true;
                 this.endTimeState   = true;
                 const isFullDay = this.isFullDay
 
-                if(this.selectedLocation && !this.selectedLocation.id ){
-                    this.locationState  = false;
+                if(this.selectedLeave && !this.selectedLeave.id ){
+                    this.leaveState  = false;
                 }else if(this.selectedStartDate == ""){
-                    this.locationState  = true;
+                    this.leaveState  = true;
                     this.startDateState = false;
                 }else if(this.selectedEndDate == ""){
-                    this.locationState  = true;
+                    this.leaveState  = true;
                     this.startDateState = true;
                     this.endDateState   = false;
                 }else if(this.selectedEndTime == "" && this.selectedStartTime != ""){
-                    this.locationState  = true;
+                    this.leaveState  = true;
                     this.startDateState = true;
                     this.endDateState   = true;
                     this.startTimeState = true;
                     this.endTimeState   = false;
                 }else if(this.selectedStartTime == "" && this.selectedEndTime != ""){
-                    this.locationState  = true;
+                    this.leaveState     = true;
                     this.startDateState = true;
                     this.endDateState   = true;
                     this.endTimeState   = true;
                     this.startTimeState = false;
                 }else{
-                    this.locationState  = true;
+                    this.leaveState     = true;
                     this.endDateState   = true;
                     this.startDateState = true;
                     this.startTimeState = true;
@@ -326,81 +298,59 @@
 
                     const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
                     const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-
                     const body = {
-                        locationId: this.selectedLocation?this.selectedLocation.id:0,
+                        leaveTypeId: this.selectedLeave?this.selectedLeave.id:0,
                         startDate: startDate,
                         endDate: endDate,                      
                         isFullDay: isFullDay,
                         sheriffId: this.userToEdit.id,
                     }
-                    const url = 'api/sheriff/awaylocation'  
+                    const url = 'api/sheriff/leave'  
                     const options = {headers:{'Authorization' :'Bearer '+this.token}}
                     this.$http.post(url, body, options)
                         .then(response => {
                             console.log(response)
-                            console.log('assign success')
-                            this.addToAssignedLocationList(response.data);
-                            this.clearLocationSelection();
+                            this.addToLeaveList(response.data);
+                            this.clearLeaveSelection();
                         }, err=>{   
                             //console.log(err.response.data);
                             const errMsg = err.response.data.error;
-                            this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                            this.locationErrorMsgDesc = errMsg;
-                            this.locationError = true;
+                            this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                            this.leaveErrorMsgDesc = errMsg;
+                            this.leaveError = true;
                         });
                 }
         }
 
-        public addToAssignedLocationList(addedLocationInfo)
+        public addToLeaveList(addedLeaveInfo)
         {
-            const assignedAwayLocation: awayLocationInfoType =
-            {
-                id: addedLocationInfo.id,
-                sheriffId : addedLocationInfo.sheriffId,    
-                locationId: addedLocationInfo.locationId,
-                startDate: addedLocationInfo.startDate,
-                endDate: addedLocationInfo.endDate,               
-            }
-            assignedAwayLocation['locationNm'] = this.getLocationName(addedLocationInfo.locationId);
-            if(this.isDateFullday(assignedAwayLocation.startDate,assignedAwayLocation.endDate)){ 
-                assignedAwayLocation['isFullDay'] = true;
-                assignedAwayLocation['_cellVariants'] = {isFullDay:'danger'}                 
+            const leave = {} as userLeaveInfoType;
+            leave.leaveTypeId = addedLeaveInfo.leaveTypeId; 
+            leave.leaveName = addedLeaveInfo.leaveType.description;
+            leave.startDate = addedLeaveInfo.startDate;
+            leave.endDate = addedLeaveInfo.endDate;
+            leave.comment = addedLeaveInfo.comment? addedLeaveInfo.comment:'';              
+            
+            
+            if(this.isDateFullday(leave.startDate,leave.endDate)){ 
+                leave.isFullDay = true;
+                leave['_cellVariants'] = {isFullDay:'danger'}                 
             }else{
-                assignedAwayLocation['isFullDay'] = false;
-                assignedAwayLocation['_cellVariants'] = {isFullDay:'success'}                    
+                leave.isFullDay = false;
+                leave['_cellVariants'] = {isFullDay:'success'}                    
             }
 
-            this.assignedAwayLocations.push(assignedAwayLocation); 
+            this.assignedLeaves.push(leave); 
             this.$emit('change');                     
         }
 
-        public clearLocationSelection(){
-            this.selectedLocation = {} as locationInfoType | undefined;
+        public clearLeaveSelection() {
+            this.selectedLeave = {} as leaveInfoType | undefined;
             this.selectedEndDate = '';
             this.selectedStartDate = '';
             this.selectedStartTime = '';
             this.selectedEndTime = '';
-            this.addNewLocation= false;
-        }
-
-        public getLocationName(locationId: number|null){
-            const index = this.locationList.findIndex(location=>{if(location.id == locationId)return true})
-            if(index>=0){   
-                let truncName = this.locationList[index].name.slice(0,20);
-                if (this.locationList[index].name && this.locationList[index].name.length>23)
-                    truncName = truncName +'...';
-                else
-                    truncName = this.locationList[index].name.slice(0,23);
-
-                return {name:truncName, nameFull:this.locationList[index].name}
-            }
-            else
-                return {name:'', nameFull:''}
-        }
-
-        get noHomeLocationList(){
-            return this.locationList.filter(location =>{ if(this.selectedHomeLocation && this.selectedHomeLocation.id == location.id) return false;else return true})
+            this.addNewLeave= false;
         }
 
         get isFullDay(){    
@@ -415,6 +365,14 @@
             }
             else
                 return false
+        }
+
+        public editLeave() {
+            console.log("editing")
+        }
+
+        public deleteLeave() {
+            console.log("deleting")
         }
     }
 </script>
