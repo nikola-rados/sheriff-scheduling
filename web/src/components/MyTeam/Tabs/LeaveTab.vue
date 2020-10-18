@@ -339,7 +339,7 @@
         {
             const leave = {} as userLeaveInfoType;
             leave.id = addedLeaveInfo.id;
-            leave.leaveType = addedLeaveInfo.trainingType;
+            leave.leaveType = addedLeaveInfo.leaveType;
             leave.leaveTypeId = addedLeaveInfo.leaveTypeId; 
             leave.leaveName = addedLeaveInfo.leaveType.description;
             leave.startDate = addedLeaveInfo.startDate;
