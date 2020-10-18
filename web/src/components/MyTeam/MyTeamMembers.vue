@@ -89,8 +89,9 @@
                                         v-on:closeMemberDetails="closeProfileWindow()"/>                                    
                                 </b-tab>
 
-                                <b-tab v-if="editMode" v-on:change="getSheriffs()" title="Training"> 
-                                    <training-tab />
+                                <b-tab v-if="editMode"  title="Training"> 
+                                    <training-tab
+                                        v-on:change="getSheriffs()"/>
                                 </b-tab>
 
                                 <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
