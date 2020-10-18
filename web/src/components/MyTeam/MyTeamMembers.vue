@@ -38,10 +38,10 @@
                     <div  class="card h-100 bg-dark">
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >
                             <b-row class="ml-4">                                                
-                                <user-location-summary class="mr-2" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
+                                <user-location-summary v-if="teamMember.loanedOut.length>0" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
                                 <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
                             </b-row>
-                        </div> 
+                        </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
@@ -244,10 +244,7 @@
         
         public onTabChanged(newTabIndex , prevTabIndex, bvEvt)
         {
-            this.newTabIndex = newTabIndex;
-            console.log('tab changed')
-            console.log(newTabIndex)
-            console.log(prevTabIndex)
+            this.newTabIndex = newTabIndex;            
             if(prevTabIndex == 0 && this.firstNavigation)
             {
                 this.firstNavigation = false;
@@ -384,6 +381,7 @@
             user.badgeNumber = userJson.badgeNumber;
             user.id = userJson.id;
             user.homeLocationId = userJson.homeLocationId;
+            user.homeLocationNm = userJson.homeLocation? userJson.homeLocation.name: '';
             user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
             if(userJson.homeLocation)
                 user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};

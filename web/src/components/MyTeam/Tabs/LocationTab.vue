@@ -192,6 +192,7 @@
     import {teamMemberInfoType, awayLocationInfoType} from '../../../types/MyTeam';
     import {locationInfoType} from '../../../types/common';
     import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
