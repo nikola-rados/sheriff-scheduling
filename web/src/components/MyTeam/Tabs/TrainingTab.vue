@@ -396,7 +396,7 @@
                         .then(response => {
                             console.log(response)
                             console.log('assign success')
-                            this.addToAssignedLocationList(response.data);
+                            this.addToAssignedTrainingList(response.data);
                             this.clearTrainingSelection();
                         }, err=>{   
                             //console.log(err.response.data);
@@ -408,7 +408,7 @@
                 }
         }
 
-        public addToAssignedLocationList(addedTrainingInfo)
+        public addToAssignedTrainingList(addedTrainingInfo)
         {
             const assignedTraining: trainingInfoType =
             {
