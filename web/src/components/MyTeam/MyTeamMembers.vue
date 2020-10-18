@@ -36,9 +36,9 @@
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
-                        <div class="card-header bg-dark border-dark mb-0 pb-0 ">                                                           
-                            <b-row class="ml-4">                                                
-                                <user-location-summary class="mr-2" v-if="teamMember.loanedOut.length>0" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
+                        <div class="card-header bg-dark border-dark mb-0 pb-0 " >
+                            <b-row class="ml-3">                                                
+                                <user-location-summary v-if="teamMember.loanedOut.length>0" class="mx-2" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
                                 <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
                                 <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
                             </b-row>
@@ -89,7 +89,8 @@
                                         v-on:closeMemberDetails="closeProfileWindow()"/>                                    
                                 </b-tab>
 
-                                <b-tab v-if="editMode" title="Training"> 
+                                <b-tab v-if="editMode" v-on:change="getSheriffs()" title="Training"> 
+                                    <training-tab />
                                 </b-tab>
 
                                 <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
@@ -147,6 +148,7 @@
     import UserLocationSummary from './Tabs/UserLocationSummary.vue';
     import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
     import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
+    import TrainingTab from './Tabs/TrainingTab.vue'
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -161,7 +163,8 @@
             RoleAssignmentTab,
             IdentificationTab,
             LocationTab,
-            LeaveTab
+            LeaveTab,
+            TrainingTab
         }        
     })    
     export default class MyTeamMembers extends Vue {
@@ -395,7 +398,9 @@
           
             if(userJson.awayLocation && userJson.awayLocation.length>0)
                 user.awayLocation = userJson.awayLocation;
+
             user.leave = userJson.leave;
+            user.training = userJson.training;
             this.userAllRoles = userJson.roles
             this.UpdateUserToEdit(user);  
         }

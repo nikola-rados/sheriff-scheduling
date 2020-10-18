@@ -138,7 +138,7 @@ export default class IdentificationTab extends Vue {
     user = {} as teamMemberInfoType;
 
     mounted(){
-        console.log('identification')
+        //console.log('identification')
         this.refreshTabInformation();
         //console.log(this.user)
         this.runMethod.$on('switchTab', this.switchTab)
@@ -148,9 +148,9 @@ export default class IdentificationTab extends Vue {
 
     public refreshTabInformation()
     {
-        console.log('refresh identification tab')        
+        //console.log('refresh identification tab')        
         this.ClearFormState();
-        console.log(this.userToEdit)
+        //console.log(this.userToEdit)
         this.user = _.clone(this.userToEdit);
         this.refreshPage++;
     }
@@ -159,7 +159,7 @@ export default class IdentificationTab extends Vue {
         
         if(this.editMode && !this.changesMade()){
             this.$emit('changeTab', true);
-            console.log('allow change tab')
+            //console.log('allow change tab')
         }    
         else
         {            

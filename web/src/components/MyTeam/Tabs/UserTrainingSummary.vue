@@ -19,6 +19,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
+    import moment from 'moment-timezone';
     import { namespace } from 'vuex-class';
     import {trainingInfoType} from '../../../types/MyTeam';
     import {trainingJsontype} from '../../../types/MyTeam/jsonTypes';
@@ -51,23 +52,40 @@
         }
 
         public extractTrainingInfo()
-        {
-            if (this.trainingJson.length > 0 ) {
-                this.displayTraining = true;
+        {   
+            this.displayTraining = false;
+            if (this.trainingJson.length > 0 ) {                
                 this.userTrainingInfo = [];            
                 for(const trainingInfoJson of this.trainingJson)
                 {
                     const trainingInfo = {} as trainingInfoType;
                     trainingInfo.trainingTypeId = trainingInfoJson.trainingTypeId
                     trainingInfo.trainingName = trainingInfoJson.trainingType.description;
-                    trainingInfo.startDate = Vue.filter('beautify-date-time')(trainingInfoJson.startDate);
-                    trainingInfo.endDate = Vue.filter('beautify-date-time')(trainingInfoJson.endDate);
+
+                    const startDate = moment(trainingInfoJson.startDate).tz("UTC").format();
+                    const endDate = moment(trainingInfoJson.endDate).tz("UTC").format();
+                    if(this.isDateFullday(startDate, endDate))                    {
+                        trainingInfo.startDate = Vue.filter('beautify-date')(startDate);
+                        trainingInfo.endDate = Vue.filter('beautify-date')(endDate);
+                    }
+                    else{
+                        trainingInfo.startDate = Vue.filter('beautify-date-time')(startDate);
+                        trainingInfo.endDate = Vue.filter('beautify-date-time')(endDate);
+                    }
+
                     this.userTrainingInfo.push(trainingInfo);
                 }
-                this.displayTraining = true;       
+                if(this.userTrainingInfo.length) this.displayTraining = true;       
             } else {
                 this.displayTraining = false;
             }
+        }
+
+        public isDateFullday(startDate, endDate){
+            const start = moment(startDate); 
+            const end = moment(endDate);
+            const duration = moment.duration(end.diff(start));
+            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
     }
 </script>
