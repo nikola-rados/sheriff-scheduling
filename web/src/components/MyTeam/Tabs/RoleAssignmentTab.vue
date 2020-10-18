@@ -78,8 +78,8 @@
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import {roleOptionInfoType} from '../../../types/MyTeam';
     import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import store from '../../../store'
 
     @Component
     export default class RoleAssignmentTab extends Vue {

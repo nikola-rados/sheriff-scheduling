@@ -76,9 +76,9 @@ import {commonInfoType, locationInfoType} from '../../../types/common';
 import * as _ from 'underscore';
 
 import { namespace } from 'vuex-class';
-const commonState = namespace("CommonInformation");
-
-import "@store/modules/TeamMemberInformation"; 
+import "@store/modules/CommonInformation";
+const commonState = namespace("CommonInformation"); 
+import "@store/modules/TeamMemberInformation";
 const TeamMemberState = namespace("TeamMemberInformation");
 
 enum gender {'Male'=0, 'Female', 'Other'}
@@ -198,6 +198,11 @@ export default class IdentificationTab extends Vue {
     }
 
     public changesMade(): boolean {
+        if (this.editMode) {
+            this.user.homeLocationId = this.userToEdit.homeLocationId;
+            this.user.homeLocationNm = this.userToEdit.homeLocationNm;
+            this.user.homeLocation = this.userToEdit.homeLocation;
+        }
         return !_.isEqual(this.userToEdit, this.user)
     }
 
@@ -209,9 +214,9 @@ export default class IdentificationTab extends Vue {
     }
          
     public saveMemberProfile() { 
-        console.log('save') 
-        console.log(this.user) 
-        console.log(this.userToEdit)    
+        // console.log('save') 
+        // console.log(this.user) 
+        // console.log(this.userToEdit)    
         let requiredError = false;
 
         if (this.createMode && !this.user.idirUserName) {
@@ -301,9 +306,7 @@ export default class IdentificationTab extends Vue {
                 console.log(err)
                 this.errorText = err.response.data.error
                 this.errorCode = err.response.status
-                    
-                //if(this.errorText.includes('already has badge number'))
-                // has IDIR name
+                
                 if(err.response.status == 400)
                 {
                     if (this.errorText.includes('already has badge number')){
