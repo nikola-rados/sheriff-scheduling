@@ -173,30 +173,15 @@ export interface trainingJsontype {
       "id": number,
       "type": string,
       "code": string,
-      "subCode": string,
       "description": string,
-      "effectiveDate": string,
-      "expiryDate": string,
-      "sortOrder": number,
-      "location": {
-        "id": number,
-        "agencyId": string,
-        "name": string,
-        "justinCode": string,
-        "parentLocationId": number,
-        "expiryDate": string,
-        "regionId": number,
-        "timezone": string,
-        "concurrencyToken": number
-      },
-      "locationId": number,
       "concurrencyToken": number
     },
     "trainingTypeId": number,
     "startDate": string,
     "endDate": string,
-    "expiryDate": string,
-    "isFullDay": boolean,
+    "expiryDate": string,    
+    "trainingCertificationExpiry":string,
     "sheriffId": string,
-    "concurrencyToken": number  
+    "concurrencyToken": number,
+    "comment": string  
 }

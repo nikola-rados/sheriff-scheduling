@@ -78,6 +78,8 @@
 
         public extractLoanedInfo()
         {
+            this.displayLoanedOut = false;
+            this.displayLoanedIn = false;
 
             if (this.loanedJson.length > 0 ) {
                 

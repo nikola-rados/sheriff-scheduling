@@ -4,7 +4,7 @@
             <h2 v-if="locationError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
 
             <b-card body-class="m-0 p-0">
-                <b-row class="mt-3 bg-info" style="width: 31rem;margin-left: auto;margin-right: auto;border-radius: 0.75rem;" >
+                <b-row class="mt-3" style="background-color:#addcde;width: 31rem;margin-left: auto;margin-right: auto;border-radius: 0.75rem;" >
                     <b style="margin: 1.35rem 0.25rem 0 1.25rem">Home Location:</b>
                     <b-form-group style="width: 20rem; margin-top: 1rem"> 
                         <b-form-select                                                                                                           
@@ -113,6 +113,7 @@
                     <b-table
                         :items="assignedAwayLocations"
                         :fields="fields"
+                        head-row-variant="primary"
                         striped
                         borderless
                         small
@@ -143,9 +144,9 @@
                             <template v-slot:cell(endTime)="data" >
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
-                            <template v-slot:cell(editRole)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editRole(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            <template v-slot:cell(edit)="data" >                                       
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
                             
                     </b-table> 
@@ -242,10 +243,10 @@
             {key:'isFullDay', label:'Type',sortable:false, tdClass: 'border-top', },       
             {key:'locationId',label:'Location',sortable:false, tdClass: 'border-top',  }, 
             {key:'startDate', label:'Start Date',  sortable:false, tdClass: 'border-top', thClass:'',},
-            {key:'startTime', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'',},
+            {key:'startTime', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
             {key:'endDate',   label:'End Date',  sortable:false, tdClass: 'border-top', thClass:'',},
-            {key:'endTime',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'',},  
-            {key:'editRole',  sortable:false, tdClass: 'border-top', thClass:'text-white',},       
+            {key:'endTime',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},  
+            {key:'edit',      label:'',    sortable:false, tdClass: 'border-top', thClass:'',},       
         ];
 
         mounted()
@@ -317,6 +318,30 @@
             this.UpdateUserToEdit(user);
             console.log(user)
             this.$emit('change') 
+        }
+
+        public deleteLocation(location){
+            console.log('delete location')
+            // this.trainingError = false; 
+            // const body = 
+            // [{
+            //     "userId": this.userId,
+            //     "roleId": role.value,                        
+            // }]
+            // const url = 'api/sheriff/unassignroles' 
+            // const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            // this.$http.put(url, body, options)
+            //     .then(response => {
+            //         console.log(response)
+            //         console.log('unassign success')
+                   
+            //         this.getUserRoles();
+                                                     
+            //     }, err=>{this.roleAssignError = true;});
+        }
+
+        public editLocation(location){
+            console.log('edit location')
         }
 
         public saveAwayLocation(){

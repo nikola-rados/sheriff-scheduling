@@ -141,7 +141,7 @@
             this.roleAssignError = false; 
 
 
-            console.log(userAllRoles)
+            //console.log(userAllRoles)
             for(const allRole of userAllRoles) 
             { 
                 this.assignedRoles.push({

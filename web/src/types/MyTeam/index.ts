@@ -82,12 +82,25 @@ export interface awayLocationInfoType{
     concurrencyToken?: number      
 }
 
-export interface trainingInfoType{    
-    trainingTypeId: number|null;
-    trainingName: string;
-    isFullDay: boolean;
+export interface trainingInfoType{ 
+    id: number;   
+    trainingType: trainingTypeInfoType;
+    trainingTypeId?:number|null;
+    trainingName?: string;
+    sheriffId?: string;
+    expiryDate: string;
+    isFullDay?: boolean;
     startDate: string;
-    endDate: string;    
+    endDate: string;
+    comment?: string;    
+}
+
+export interface trainingTypeInfoType{    
+    code: string;
+    concurrencyToken: number;
+    description: string;
+    id: number|null;
+    type: string;    
 }
 
 
