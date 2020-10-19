@@ -18,8 +18,9 @@
         </b-card>
 
         <b-card-sub-title class="my-1">{{user.badgeNumber}}</b-card-sub-title>
-        <b-card-title>{{user.fullName}}</b-card-title>
-        <b-card-sub-title>{{user.rank|capitilize}}</b-card-sub-title>
+        <b-card-title>{{user.fullName}}</b-card-title>        
+        <b-card-sub-title class="my-1">{{user.rank|capitilize}}</b-card-sub-title>
+        <b-card-text class="my-1" style="color: #8a3078; font-size: 0.75rem;"><b-icon-house-door-fill class="mr-1" font-scale="1.25"/>{{user.homeLocationNm}}</b-card-text>
         
 
         <b-modal v-model="showPhotoReplacementWarning" id="bv-modal-photo-replacement-warning" header-class="bg-warning text-light">            
@@ -83,7 +84,7 @@
             this.imageData = null
             this.photoError = false
             this.photoErrorMsg = ''
-            console.log(event)
+            // console.log(event)
             if (event.target.files && event.target.files[0]) 
             {       
                         
@@ -94,9 +95,9 @@
                         this.imageData = e.target.result;
                 }
                 reader.readAsArrayBuffer(event.target.files[0]);
-                console.log(event.target.files[0])
+                // console.log(event.target.files[0])
 
-                console.log(event.target.files[0])
+                // console.log(event.target.files[0])
 
                 const acceptableImageTypes = ["image/png","image/gif","image/jpeg"]
 
@@ -132,7 +133,7 @@
             this.showPhotoReplacementWarning = false
             this.$http.post(url, formData, options )
                 .then(response => {
-                    console.log(response)
+                    // console.log(response)
                     this.photo = 'data:image/;base64,'+response.data.photo
                     this.$emit('photoChange', this.user.id,this.photo)
                 

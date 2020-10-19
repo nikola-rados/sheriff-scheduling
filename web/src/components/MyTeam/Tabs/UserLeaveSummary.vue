@@ -5,13 +5,22 @@
                 <h2 class="text-danger">On Leave:</h2>                
                 <b-table  
                     :items="userLeaveInfo"
-                    :fields="userLeaveFields"                
+                    :fields="userLeaveFields"
+                    sort-by="startDate"                
                     borderless
                     striped
                     small 
                     responsive="sm"
                     class="my-0 py-0"
                     >
+                    <template v-slot:cell(startDate)="data" >
+                        <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
+                        <span v-else>{{data.value | beautify-date-time}}</span> 
+                    </template>
+                    <template v-slot:cell(endDate)="data" >
+                        <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
+                        <span v-else>{{data.value | beautify-date-time}}</span> 
+                    </template>
                 </b-table>                                        
             </b-tooltip>
     </b-card>   
@@ -57,18 +66,9 @@
                     leaveInfo.leaveTypeId = leaveInfoJson.leaveTypeId;
                     leaveInfo.leaveName = leaveInfoJson.leaveType.description;
 
-                    const startDate = moment(leaveInfoJson.startDate).tz("UTC").format();
-                    const endDate = moment(leaveInfoJson.endDate).tz("UTC").format();
-                    
-                    if(this.isDateFullday(startDate, endDate)) {
-                        leaveInfo.startDate = Vue.filter('beautify-date')(startDate);
-                        leaveInfo.endDate = Vue.filter('beautify-date')(endDate);
-                    }
-                    else {
-                        leaveInfo.startDate = Vue.filter('beautify-date-time')(startDate);
-                        leaveInfo.endDate = Vue.filter('beautify-date-time')(endDate);
-                    }
-                    
+                    leaveInfo.startDate = moment(leaveInfoJson.startDate).tz("UTC").format();
+                    leaveInfo.endDate = moment(leaveInfoJson.endDate).tz("UTC").format();
+                    leaveInfo.isFullDay = this.isDateFullday(leaveInfo.startDate, leaveInfo.endDate);
                     this.userLeaveInfo.push(leaveInfo);
                 }
                 if(this.userLeaveInfo.length) this.displayLeave = true;       

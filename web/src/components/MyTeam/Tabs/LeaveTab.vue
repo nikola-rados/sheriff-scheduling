@@ -118,7 +118,7 @@
                             <template v-slot:cell(leaveName)="data" >
                                 <span
                                     v-b-tooltip.hover.right                                
-                                    :title="data.item.comment?data.item.comment:data.item.leaveType.code"
+                                    :title="data.item.comment?data.item.comment:(data.item.leaveType?data.item.leaveType.code:'')"
                                     class="text-primary">
                                     {{data.item.leaveName}}</span>
                             </template>
