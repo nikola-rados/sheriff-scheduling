@@ -211,10 +211,8 @@
         public extractLeaves ()
         {
             const assignedLeavesJson = this.userToEdit.leave? this.userToEdit.leave: [];
-            for(const leaveJson of assignedLeavesJson)
-            {                
+            for(const leaveJson of assignedLeavesJson){                
                 const leave = {} as userLeaveInfoType;
-
                 leave.id = leaveJson.id;
                 leave.leaveType = leaveJson.leaveType;
                 leave.leaveTypeId = leaveJson.leaveTypeId;
@@ -237,7 +235,6 @@
         }
 
         public loadLeaveTypes() {
-
             const url = 'api/managetypes?codeType=LeaveType'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.get(url, options)
@@ -248,12 +245,9 @@
                 })
         }
 
-        public extractLeaveTypeInfo(leaveTypeListJson)
-        {
+        public extractLeaveTypeInfo(leaveTypeListJson){
             let leaveType: leaveTypeJson;
-
-            for(leaveType of leaveTypeListJson)
-            {
+            for(leaveType of leaveTypeListJson){
                 const leaveTypeInfo = {} as leaveInfoType;
                 leaveTypeInfo.id = leaveType.id;
                 leaveTypeInfo.code = leaveType.code;
@@ -261,8 +255,7 @@
                 this.leaveTypeInfoList.push(leaveTypeInfo)
             } 
             
-            this.leaveTabDataReady = true;                      
-            
+            this.leaveTabDataReady = true; 
         }
 
         public isDateFullday(startDate, endDate){
@@ -391,8 +384,28 @@
             console.log("editing")
         }
 
-        public deleteLeave() {
-            console.log("deleting")
+        public deleteLeave(leave) {
+            console.log('delete leave')
+            console.log(leave)
+
+            this.leaveError = false; 
+            const url = 'api/sheriff/leave?id='+leave.id;
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.delete(url, options)
+                .then(response => {
+                    console.log(response)
+                    console.log('delete success')
+                    const index = this.assignedLeaves.findIndex(assignedleave=>{if(assignedleave.id == leave.id) return true;})
+                    if(index>=0) this.assignedLeaves.splice(index,1);
+                    this.$emit('change');
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.leaveErrorMsgDesc = errMsg;
+                    this.leaveError = true;
+                });
+        
+           
         }
     }
 </script>

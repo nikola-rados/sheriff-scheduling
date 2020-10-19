@@ -4,7 +4,7 @@
         <b-card  style="height:400px;overflow: auto;" >                                        
             <h2 class="mx-1 mt-0"><b-badge v-if="roleAssignError" variant="danger"> Role Assignment Unsuccessful <b-icon class="ml-3" icon = x-square-fill @click="roleAssignError = false" /></b-badge></h2>
 
-            <b-card class="mb-3" border-variant="light">
+            <b-card class="mb-3">
                 <b-input-group >
                     <b-form-select
                         class="mr-1"                                                       
@@ -30,6 +30,7 @@
                         class="mr-1"
                         v-model="selectedExpiryDate"
                         placeholder="Exp. Date"
+                        reset-button
                         locale="en-US"
                         :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                         >
@@ -43,15 +44,16 @@
                 </b-input-group> 
             </b-card>
 
-            <b-card no-body border-variant="white" bg-variant="white" v-if="!assignedRoles.length">
+            <b-card no-body v-if="!assignedRoles.length">
                     <span class="text-muted ml-4 mb-5">No roles have been assigned.</span>
             </b-card>
 
-            <b-card v-else no-body border-variant="light" bg-variant="white">
+            <b-card v-else no-body >
                 <b-table
                     :items="assignedRoles"
                     :fields="roleFields"
                     :key="refreshTable"
+                    head-row-variant="primary"
                     striped
                     borderless
                     small
@@ -64,8 +66,8 @@
                             <span>{{data.value | beautify-date}}</span> 
                         </template>
                         <template v-slot:cell(editRole)="data" >                                       
-                            <span><b-button variant="transparent" @click="deleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.75" variant="danger"/></b-button></span>
-                            <span><b-button variant="transparent" @click="editRole(data.item)"><b-icon icon="pencil-square" font-scale="1.75" variant="primary"/></b-button></span> 
+                            <span><b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.75" variant="danger"/></b-button></span>
+                            <span><b-button class="my-0 py-0" size="sm" variant="transparent" @click="editRole(data.item)"><b-icon icon="pencil-square" font-scale="1.75" variant="primary"/></b-button></span> 
                         </template>
                         
                 </b-table> 
@@ -113,7 +115,7 @@
             {key:'text',    label:'Role',sortable:false, tdClass: 'border-top',  }, 
             {key:'effDate', label:'Effective Date',   sortable:false, tdClass: 'border-top', thClass:'',},
             {key:'expDate', label:'Expiry Date',      sortable:false, tdClass: 'border-top', thClass:'',}, 
-            {key:'editRole',  sortable:false, tdClass: 'border-top', thClass:'text-white',},       
+            {key:'editRole', label:'', sortable:false, tdClass: 'border-top', thClass:'text-white',},       
         ];
 
         mounted()
@@ -245,10 +247,11 @@
             console.log('edit role')
         }
 
-       
-
-     
-
-       
     }
 </script>
+
+<style scoped>
+    .card {
+        border: white;
+    }
+</style>

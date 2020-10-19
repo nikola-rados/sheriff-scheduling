@@ -153,37 +153,6 @@
                 </b-card> 
             </div>                                     
         </b-card>
-        <!-- <b-row class="m-1 mb-3" border-variant="white">
-             <b-button
-                    style="margin:0 0.5rem 0 auto; width:105px"
-                    variant="secondary" 
-                    @click="closeProfileWindow()"                  
-            ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>                
-            <b-button
-                style="margin:0 0 0 0; width:105px"
-                variant="success" 
-                @click="saveMemberProfile()"
-            ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
-        </b-row>
-
-
-        <b-modal v-model="showCancelWarning" id="bv-modal-team-cancel-warning" header-class="bg-warning text-light">            
-            <template v-slot:modal-title>                
-                 <h2 v-if="editMode" class="mb-0 text-light"> Unsaved Profile Changes </h2>
-                 <h2 v-else-if="createMode" class="mb-0 text-light"> Unsaved New Profile </h2>                
-            </template>
-            <p>Are you sure you want to cancel without saving your changes?</p>
-            <template v-slot:modal-footer>
-                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-team-cancel-warning')"                   
-                >No</b-button>
-                <b-button variant="success" @click="closeWarningWindow()"
-                >Yes</b-button>
-            </template>            
-            <template v-slot:modal-header-close>                 
-                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-cancel-warning')"
-                 >&times;</b-button>
-            </template>
-        </b-modal> -->
     </div>
 </template>
 
@@ -322,22 +291,24 @@
 
         public deleteLocation(location){
             console.log('delete location')
-            // this.trainingError = false; 
-            // const body = 
-            // [{
-            //     "userId": this.userId,
-            //     "roleId": role.value,                        
-            // }]
-            // const url = 'api/sheriff/unassignroles' 
-            // const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            // this.$http.put(url, body, options)
-            //     .then(response => {
-            //         console.log(response)
-            //         console.log('unassign success')
-                   
-            //         this.getUserRoles();
-                                                     
-            //     }, err=>{this.roleAssignError = true;});
+            console.log(location)
+
+            this.locationError = false; 
+            const url = 'api/sheriff/awaylocation?id='+location.id;
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.delete(url, options)
+                .then(response => {
+                    console.log(response)
+                    console.log('delete success')
+                    const index = this.assignedAwayLocations.findIndex(assignedlocation=>{if(assignedlocation.id == location.id) return true;})
+                    if(index>=0) this.assignedAwayLocations.splice(index,1);
+                    this.$emit('change');
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.locationErrorMsgDesc = errMsg;
+                    this.locationError = true;
+                });
         }
 
         public editLocation(location){

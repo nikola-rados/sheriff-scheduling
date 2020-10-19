@@ -220,8 +220,6 @@
         updateTable=0;
         
         assignedTrainings: trainingInfoType[] = [];
-
-
         trainingTypes: trainingTypeInfoType[] =[];
 
         fields =  
@@ -264,6 +262,7 @@
                 {
                     const assignedTraining = {} as trainingInfoType;
 
+                    assignedTraining.id = training.id;
                     assignedTraining.trainingType = training.trainingType;
                     assignedTraining.trainingTypeId = training.trainingTypeId;
                     assignedTraining.startDate = moment(training.startDate).tz("UTC").format();
@@ -298,23 +297,25 @@
         }
 
         public deleteTraining(training){
-            console.log('delete training')
-            // this.trainingError = false; 
-            // const body = 
-            // [{
-            //     "userId": this.userId,
-            //     "roleId": role.value,                        
-            // }]
-            // const url = 'api/sheriff/unassignroles' 
-            // const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            // this.$http.put(url, body, options)
-            //     .then(response => {
-            //         console.log(response)
-            //         console.log('unassign success')
-                   
-            //         this.getUserRoles();
-                                                     
-            //     }, err=>{this.roleAssignError = true;});
+            console.log('delete training')            
+            console.log(training)
+
+            this.trainingError = false;
+            const url = 'api/sheriff/training?id='+training.id;
+            const options = {headers:{'Authorization' :'Bearer '+this.token}}
+            this.$http.delete(url, options)
+                .then(response => {
+                    console.log(response)
+                    console.log('delete success')
+                    const index = this.assignedTrainings.findIndex(assignedtraining=>{if(assignedtraining.id == training.id) return true;})
+                    if(index>=0) this.assignedTrainings.splice(index,1);
+                    this.$emit('change');
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.trainingErrorMsgDesc = errMsg;
+                    this.trainingError = true;
+                });
         }
 
         public editTraining(training){
