@@ -135,13 +135,27 @@
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
                             <template v-slot:cell(editLeave)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
                     </b-table> 
                 </b-card> 
             </div>                                     
-        </b-card>        
+        </b-card>
+        <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Confirm Delete Leave</h2>                    
+            </template>
+            <p>Are you sure you want to delete the "{{leaveToDelete.leaveType?leaveToDelete.leaveType.description:''}}" leave?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteLeave()">Delete</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                >&times;</b-button>
+            </template>
+        </b-modal>        
     </div>
 </template>
 
@@ -188,6 +202,9 @@
         leaveErrorMsg = '';
         leaveErrorMsgDesc = '';
         updateTable=0;
+
+        confirmDelete = false;
+        leaveToDelete = {} as userLeaveInfoType;
         
         assignedLeaves: userLeaveInfoType[] = [];
 
@@ -328,8 +345,7 @@
                 }
         }
 
-        public addToLeaveList(addedLeaveInfo)
-        {
+        public addToLeaveList(addedLeaveInfo){
             const leave = {} as userLeaveInfoType;
             leave.id = addedLeaveInfo.id;
             leave.leaveType = addedLeaveInfo.leaveType;
@@ -366,7 +382,7 @@
             this.endTimeState   = true;
         }
 
-        get isFullDay(){    
+        get isFullDay(){  
 
             if(this.selectedStartTime == '' && this.selectedEndTime == '')
                 return true
@@ -384,18 +400,23 @@
             console.log("editing")
         }
 
-        public deleteLeave(leave) {
+        public confirmDeleteLeave(leave) {
+            this.leaveToDelete = leave;           
+            this.confirmDelete=true; 
+        }
+
+        public deleteLeave() {
             console.log('delete leave')
-            console.log(leave)
+            this.confirmDelete = false;    
 
             this.leaveError = false; 
-            const url = 'api/sheriff/leave?id='+leave.id;
+            const url = 'api/sheriff/leave?id='+this.leaveToDelete.id;
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.delete(url, options)
                 .then(response => {
                     console.log(response)
                     console.log('delete success')
-                    const index = this.assignedLeaves.findIndex(assignedleave=>{if(assignedleave.id == leave.id) return true;})
+                    const index = this.assignedLeaves.findIndex(assignedleave=>{if(assignedleave.id == this.leaveToDelete.id) return true;})
                     if(index>=0) this.assignedLeaves.splice(index,1);
                     this.$emit('change');
                 }, err=>{

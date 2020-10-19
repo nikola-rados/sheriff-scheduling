@@ -145,7 +145,7 @@
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
                             <template v-slot:cell(edit)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
                             
@@ -153,6 +153,21 @@
                 </b-card> 
             </div>                                     
         </b-card>
+
+        <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Confirm Delete Location</h2>                    
+            </template>
+            <p>Are you sure you want to delete the "{{locationToDelete.locationNm?locationToDelete.locationNm.nameFull:''}}" location?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteLocation()">Delete</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>
     </div>
 </template>
 
@@ -204,6 +219,9 @@
         locationErrorMsg = '';
         locationErrorMsgDesc = '';
         updateTable=0;
+
+        confirmDelete = false;
+        locationToDelete = {} as awayLocationInfoType;
         
         assignedAwayLocations: awayLocationInfoType[] = [];
 
@@ -289,18 +307,24 @@
             this.$emit('change') 
         }
 
-        public deleteLocation(location){
-            console.log('delete location')
+        public confirmDeleteLocation(location) {
             console.log(location)
+            this.locationToDelete = location;           
+            this.confirmDelete=true; 
+        }
+
+        public deleteLocation(){
+            console.log('delete location')
+            this.confirmDelete = false;
 
             this.locationError = false; 
-            const url = 'api/sheriff/awaylocation?id='+location.id;
+            const url = 'api/sheriff/awaylocation?id='+this.locationToDelete.id;
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.delete(url, options)
                 .then(response => {
                     console.log(response)
                     console.log('delete success')
-                    const index = this.assignedAwayLocations.findIndex(assignedlocation=>{if(assignedlocation.id == location.id) return true;})
+                    const index = this.assignedAwayLocations.findIndex(assignedlocation=>{if(assignedlocation.id == this.locationToDelete.id) return true;})
                     if(index>=0) this.assignedAwayLocations.splice(index,1);
                     this.$emit('change');
                 }, err=>{

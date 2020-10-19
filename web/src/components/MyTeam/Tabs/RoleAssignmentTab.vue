@@ -66,13 +66,28 @@
                             <span>{{data.value | beautify-date}}</span> 
                         </template>
                         <template v-slot:cell(editRole)="data" >                                       
-                            <span><b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.75" variant="danger"/></b-button></span>
+                            <span><b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteRole(data.item)"><b-icon icon="trash-fill" font-scale="1.75" variant="danger"/></b-button></span>
                             <span><b-button class="my-0 py-0" size="sm" variant="transparent" @click="editRole(data.item)"><b-icon icon="pencil-square" font-scale="1.75" variant="primary"/></b-button></span> 
                         </template>
                         
                 </b-table> 
             </b-card>                                      
         </b-card>
+
+         <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Confirm Delete Role</h2>                    
+            </template>
+            <p>Are you sure you want to delete the "{{roleToDelete.desc}}" role?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteRole()">Delete</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                >&times;</b-button>
+            </template>
+        </b-modal>     
     </div>
 </template>
 
@@ -107,6 +122,9 @@
         roleAssignError = false;
 
         rolesJson;
+
+        confirmDelete = false;
+        roleToDelete = {} as roleOptionInfoType;
 
         assignedRoles: roleOptionInfoType[] = [];
 
@@ -210,12 +228,18 @@
            
         }
 
-        public deleteRole(role){
-            this.roleAssignError = false; 
+        public confirmDeleteRole(role) {
+            this.roleToDelete = role;           
+            this.confirmDelete = true; 
+        }
+
+        public deleteRole(){
+            this.roleAssignError = false;
+            this.confirmDelete = false; 
             const body = 
             [{
                 "userId": this.userId,
-                "roleId": role.value,                        
+                "roleId": this.roleToDelete.value,                        
             }]
             const url = 'api/sheriff/unassignroles' 
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
