@@ -1,8 +1,9 @@
 <template>
     <div>
-        <b-card  style="height:400px;overflow: auto;" no-body>                                        
-            <h2 v-if="locationError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
-
+        <b-card  style="height:400px;overflow: auto;" no-body> 
+            <b-card id="LocationError" no-body>                                       
+                <h2 v-if="locationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
+            </b-card>
             <b-card body-class="m-0 p-0">
                 <b-row class="mt-3" style="background-color:#addcde;width: 31rem;margin-left: auto;margin-right: auto;border-radius: 0.75rem;" >
                     <b style="margin: 1.35rem 0.25rem 0 1.25rem">Home Location:</b>
@@ -19,89 +20,11 @@
                         </b-form-select>
                     </b-form-group>
                 </b-row>
-                <b-button v-if="!addNewLocation" style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNewLocation = true"> <b-icon icon="plus" /> Add </b-button>
+                <b-button v-if="!addNewLocation" style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNew"> <b-icon icon="plus" /> Add </b-button>
             </b-card> 
 
-            <b-card v-if="addNewLocation" class="my-3" border-variant="light" no-body>
-                <b-table-simple small borderless >
-                    <b-tbody>
-                        <b-tr>
-                            <b-td>   
-                                <b-tr class="mt-1">   
-                                    <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day: </b>                          
-                                    <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day: </b> 
-                                    <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day: </b>
-                                </b-tr>
-                                <b-tr >
-                                    <b-form-group style="margin: 0.25rem 0 0 0.75rem;width: 20rem"> 
-                                        <b-form-select
-                                            size = "sm"
-                                            v-model="selectedLocation"
-                                            :state = "locationState?null:false">
-                                                <b-form-select-option :value="{}">
-                                                    Select a location*
-                                                </b-form-select-option>
-                                                <b-form-select-option
-                                                    v-for="location in noHomeLocationList" 
-                                                    :key="location.id"
-                                                    :value="location">
-                                                        {{location.name}}
-                                                </b-form-select-option>     
-                                        </b-form-select>
-                                    </b-form-group>
-                                </b-tr>                                
-                            </b-td>
-                            <b-td>
-                                <label class="h6 m-0 p-0"> From: </label>
-                                <b-form-datepicker
-                                    class="mb-1"
-                                    size="sm"
-                                    v-model="selectedStartDate"
-                                    placeholder="Start Date*"
-                                    :state = "startDateState?null:false"
-                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                                    locale="en-US">
-                                </b-form-datepicker>
-                                <b-form-timepicker
-                                    size="sm"
-                                    v-model="selectedStartTime"
-                                    placeholder="Start Time"
-                                    reset-button
-                                    :state = "startTimeState?null:false" 
-                                    locale="en">                                   
-                                </b-form-timepicker>
-                            </b-td>
-                            <b-td>
-                                <label class="h6 m-0 p-0"> To: </label>
-                                <b-form-datepicker
-                                    class="mb-1 mt-0 pt-0"
-                                    size="sm"
-                                    v-model="selectedEndDate"
-                                    placeholder="End Date*"
-                                    :state = "endDateState?null:false"                                    
-                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                                    locale="en-US">
-                                </b-form-datepicker> 
-                                <b-form-timepicker
-                                    size="sm" 
-                                    v-model="selectedEndTime"
-                                    placeholder="End Time" 
-                                    reset-button
-                                    :state = "endTimeState?null:false"
-                                    locale="en">
-                                </b-form-timepicker>
-                            </b-td>
-                            <b-td >
-                                <b-button                                    
-                                    style="margin: 1.75rem 0 0 0.75rem; "
-                                    variant="success"                        
-                                    @click="saveAwayLocation()">
-                                    Save
-                                </b-button>   
-                            </b-td>
-                        </b-tr>   
-                    </b-tbody>
-                </b-table-simple>              
+            <b-card v-if="addNewLocation" id="addLocationForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
+                <add-location-form :formData="{}" :isCreate="true" v-on:submit="saveAwayLocation" v-on:cancel="closeLocationForm" />              
             </b-card>
 
             <div>
@@ -144,9 +67,15 @@
                             <template v-slot:cell(endTime)="data" >
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
-                            <template v-slot:cell(edit)="data" >                                       
+                            <template v-slot:cell(edit)="data" >                                      
                                 <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            </template>
+
+                            <template v-slot:row-details="data">
+                                <b-card :id="'L-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
+                                    <add-location-form :formData="data.item" :isCreate="false" v-on:submit="saveAwayLocation" v-on:cancel="closeLocationForm" />
+                                </b-card>
                             </template>
                             
                     </b-table> 
@@ -176,13 +105,21 @@
     import moment from 'moment-timezone';
     import {teamMemberInfoType, awayLocationInfoType} from '../../../types/MyTeam';
     import {locationInfoType} from '../../../types/common';
+
     import { namespace } from 'vuex-class';
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
 
-    @Component
+    import AddLocationForm from './AddForms/AddLocationForm.vue'
+
+    @Component({
+        components: {
+            AddLocationForm
+        }        
+    })    
+
     export default class LocationTab extends Vue {
 
         @commonState.State
@@ -199,29 +136,17 @@
 
         selectedHomeLocation = {} as locationInfoType | undefined;
 
-        selectedLocation = {} as locationInfoType | undefined;
-        locationState = true;
-
-        selectedEndDate = ''
-        endDateState = true
-
-        selectedStartDate = ''
-        startDateState = true
-
-        selectedStartTime = ''
-        startTimeState = true
-
-        selectedEndTime = ''
-        endTimeState = true
-
         addNewLocation = false;
         locationError = false;
         locationErrorMsg = '';
         locationErrorMsgDesc = '';
-        updateTable=0;
 
         confirmDelete = false;
         locationToDelete = {} as awayLocationInfoType;
+
+        addFormColor = 'secondary';
+        latestEditData;
+        isEditOpen = false;
         
         assignedAwayLocations: awayLocationInfoType[] = [];
 
@@ -293,6 +218,7 @@
                         this.locationErrorMsg = 'Home-location change was unsuccessful';
                         this.locationErrorMsgDesc = "The change hasn't been applied";
                         this.locationError = true;
+                        location.href = '#LocationError'
                     });
             });
         }
@@ -332,80 +258,87 @@
                     this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                     this.locationErrorMsgDesc = errMsg;
                     this.locationError = true;
+                    location.href = '#LocationError'
                 });
         }
+        
+        public addNew(){
+            if(this.isEditOpen){
+                location.href = '#L-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                this.addFormColor = 'danger'
+            }else
+                this.addNewLocation = true
+        }
 
-        public editLocation(location){
+        public editLocation(data){
             console.log('edit location')
+            //console.log(data)
+            if(this.addNewLocation){
+                location.href = '#addLocationForm'
+                this.addFormColor = 'danger'
+            }else if(this.isEditOpen){
+                location.href = '#L-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                this.addFormColor = 'danger'               
+            }else if(!this.isEditOpen && !data.detailsShowing){
+                data.toggleDetails();
+                this.isEditOpen = true;
+                this.latestEditData = data
+                Vue.nextTick().then(()=>{
+                    location.href = '#L-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                });
+            }                        
         }
 
-        public saveAwayLocation(){
-                this.locationError  = false; 
-                this.locationState  = true;
-                this.endDateState   = true;
-                this.startDateState = true;
-                this.startTimeState = true;
-                this.endTimeState   = true;
-                const isFullDay = this.isFullDay
+        public saveAwayLocation(body, iscreate){
+            this.locationError  = false;                        
+            body['sheriffId']= this.userToEdit.id;
+            //console.log(body)
+            //console.log(iscreate)
+            const method = iscreate? 'post' :'put';
+            const url = 'api/sheriff/awaylocation'  
+            const options = { method: method, url:url, data:body, headers:{'Authorization' :'Bearer '+this.token}}
+            //console.log(options)
+            this.$http(options)
+                .then(response => {
+                    console.log(response)
+                    console.log('assign success')
+                    if(iscreate) 
+                        this.addToAssignedLocationList(response.data);
+                    else
+                        this.modifyAssignedLocationList(response.data);
+                    this.closeLocationForm();
+                }, err=>{   
+                    console.log(err.response.data);
+                    const errMsg = err.response.data.error;
+                    this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.locationErrorMsgDesc = errMsg;
+                    this.locationError = true;
+                    location.href = '#LocationError'
+                });                
+        }
 
-                if(this.selectedLocation && !this.selectedLocation.id ){
-                    this.locationState  = false;
-                }else if(this.selectedStartDate == ""){
-                    this.locationState  = true;
-                    this.startDateState = false;
-                }else if(this.selectedEndDate == ""){
-                    this.locationState  = true;
-                    this.startDateState = true;
-                    this.endDateState   = false;
-                }else if(this.selectedEndTime == "" && this.selectedStartTime != ""){
-                    this.locationState  = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.startTimeState = true;
-                    this.endTimeState   = false;
-                }else if(this.selectedStartTime == "" && this.selectedEndTime != ""){
-                    this.locationState  = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.endTimeState   = true;
-                    this.startTimeState = false;
+        public modifyAssignedLocationList(modifiedLocationInfo){
+
+            const index = this.assignedAwayLocations.findIndex(assignedlocation =>{ if(assignedlocation.id == modifiedLocationInfo.id) return true})
+            if(index>=0){            
+                this.assignedAwayLocations[index].locationId =  modifiedLocationInfo.locationId
+                this.assignedAwayLocations[index].startDate = modifiedLocationInfo.startDate
+                this.assignedAwayLocations[index].endDate = modifiedLocationInfo.endDate 
+                this.assignedAwayLocations[index]['locationNm'] = this.getLocationName(modifiedLocationInfo.locationId);
+                if(this.isDateFullday( this.assignedAwayLocations[index].startDate, this.assignedAwayLocations[index].endDate)){ 
+                    this.assignedAwayLocations[index]['isFullDay'] = true;
+                    this.assignedAwayLocations[index]['_cellVariants'] = {isFullDay:'danger'}                 
                 }else{
-                    this.locationState  = true;
-                    this.endDateState   = true;
-                    this.startDateState = true;
-                    this.startTimeState = true;
-                    this.endTimeState   = true;
-
-                    const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                    const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-
-                    const body = {
-                        locationId: this.selectedLocation?this.selectedLocation.id:0,
-                        startDate: startDate,
-                        endDate: endDate,                      
-                        isFullDay: isFullDay,
-                        sheriffId: this.userToEdit.id,
-                    }
-                    const url = 'api/sheriff/awaylocation'  
-                    const options = {headers:{'Authorization' :'Bearer '+this.token}}
-                    this.$http.post(url, body, options)
-                        .then(response => {
-                            console.log(response)
-                            console.log('assign success')
-                            this.addToAssignedLocationList(response.data);
-                            this.clearLocationSelection();
-                        }, err=>{   
-                            //console.log(err.response.data);
-                            const errMsg = err.response.data.error;
-                            this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                            this.locationErrorMsgDesc = errMsg;
-                            this.locationError = true;
-                        });
+                    this.assignedAwayLocations[index]['isFullDay'] = false;
+                    this.assignedAwayLocations[index]['_cellVariants'] = {isFullDay:'success'}                    
                 }
+
+                this.$emit('change');
+            } 
         }
 
-        public addToAssignedLocationList(addedLocationInfo)
-        {
+        public addToAssignedLocationList(addedLocationInfo){
+
             const assignedAwayLocation: awayLocationInfoType =
             {
                 id: addedLocationInfo.id,
@@ -427,13 +360,15 @@
             this.$emit('change');                     
         }
 
-        public clearLocationSelection(){
-            this.selectedLocation = {} as locationInfoType | undefined;
-            this.selectedEndDate = '';
-            this.selectedStartDate = '';
-            this.selectedStartTime = '';
-            this.selectedEndTime = '';
-            this.addNewLocation= false;
+        public closeLocationForm(){
+            console.log('close form')  
+            //console.log(this.latestEditData)          
+            this.addNewLocation= false; 
+            this.addFormColor = 'secondary'
+            if(this.isEditOpen){
+                this.latestEditData.toggleDetails();
+                this.isEditOpen = false;
+            } 
         }
 
         public getLocationName(locationId: number|null){
@@ -451,23 +386,6 @@
                 return {name:'', nameFull:''}
         }
 
-        get noHomeLocationList(){
-            return this.locationList.filter(location =>{ if(this.selectedHomeLocation && this.selectedHomeLocation.id == location.id) return false;else return true})
-        }
-
-        get isFullDay(){    
-
-            if(this.selectedStartTime == '' && this.selectedEndTime == '')
-                return true
-            else if(this.selectedStartDate && this.selectedEndDate)
-            {
-                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-                return this.isDateFullday(startDate,endDate)
-            }
-            else
-                return false
-        }
     }
 </script>
 

@@ -4,13 +4,13 @@
             <b-tbody>
                 <b-tr>
                     <b-td>   
-                        <b-tr class="mt-1">   
+                        <b-tr class="mt-1 bg-white">   
                             <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day: </b>                          
                             <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day: </b> 
                             <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day: </b>
                         </b-tr>
                         <b-tr >
-                            <b-form-group style="margin: 0.25rem 0 0 0.75rem;width: 20rem"> 
+                            <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 19rem"> 
                                 <b-form-select
                                     size = "sm"
                                     v-model="selectedLocation"
@@ -19,14 +19,17 @@
                                             Select a location*
                                         </b-form-select-option>
                                         <b-form-select-option
-                                            v-for="location in noHomeLocationList" 
+                                            v-for="location in locationList" 
                                             :key="location.id"
                                             :value="location">
                                                 {{location.name}}
                                         </b-form-select-option>     
                                 </b-form-select>
                             </b-form-group>
-                        </b-tr>                                
+                        </b-tr>
+                        <b-tr class="mt-1 bg-white">
+                            <b-badge v-if="selectedLocation !={} && selectedLocation.id == userToEdit.homeLocationId" class="ml-2" variant="danger"> This is the User's Home Location! </b-badge>
+                        </b-tr>
                     </b-td>
                     <b-td>
                         <label class="h6 m-0 p-0"> From: </label>
@@ -70,11 +73,17 @@
                     </b-td>
                     <b-td >
                         <b-button                                    
-                            style="margin: 1.75rem 0 0 0.75rem; "
-                            variant="success"                        
-                            @click="saveAwayLocation()">
-                            Save
+                            style="margin: 2rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                            variant="secondary"
+                            @click="closeForm()">
+                            Cancel
                         </b-button>   
+                        <b-button                                    
+                            style="margin: 2rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                            variant="success"                        
+                            @click="saveForm()">
+                            Save
+                        </b-button>  
                     </b-td>
                 </b-tr>   
             </b-tbody>
@@ -85,7 +94,7 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {teamMemberInfoType} from '../../../../types/MyTeam';
+    import {teamMemberInfoType ,awayLocationInfoType} from '../../../../types/MyTeam';
     import {locationInfoType} from '../../../../types/common';
     import { namespace } from 'vuex-class';
     import "@store/modules/CommonInformation";
@@ -94,7 +103,7 @@
     const TeamMemberState = namespace("TeamMemberInformation");
 
     @Component
-    export default class LocationTab extends Vue {
+    export default class AddLocationForm extends Vue {
 
         @commonState.State
         public locationList!: locationInfoType[];
@@ -102,37 +111,53 @@
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
 
-        selectedLocation = {} as locationInfoType | undefined;
-        locationState = true;
+        @Prop({required: true})
+        formData!: awayLocationInfoType;
 
-        selectedEndDate = ''
-        endDateState = true
+        @Prop({required: true})
+        isCreate!: boolean;
 
-        selectedStartDate = ''
-        startDateState = true
+        selectedLocation = {} as locationInfoType;
+        locationState = true;      
 
-        selectedStartTime = ''
-        startTimeState = true
+        selectedStartDate = '';
+        startDateState = true; 
 
-        selectedEndTime = ''
-        endTimeState = true
+        selectedEndDate = '';
+        endDateState = true;
+
+        selectedStartTime = '';
+        startTimeState = true;
+
+        selectedEndTime = '';
+        endTimeState = true; 
+
+        formDataId = 0;
         
-
         mounted()
         {             
-                   
+            console.log('locationForm')
+            console.log(this.formData) 
+            this.clearSelections();
+            if(this.formData.id) this.extractFormInfo();    
         }
 
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
+        public extractFormInfo(){
+            this.formDataId = this.formData.id? this.formData.id:0;
+            const index = this.locationList.findIndex(location=>{if(location.id == this.formData.locationId)return true})
+            this.selectedLocation = (index>=0)? this.locationList[index]: {} as locationInfoType;
+            this.selectedStartDate = this.formData.startDate.substring(0,10)            
+            this.selectedEndDate =  this.formData.endDate.substring(0,10)
+            
+            const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
+            const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
+            const displayTime = this.isDateFullday(startDate,endDate)
+           
+            this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,19)            
+            this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,19)
         }
 
-    
-
-        public saveAwayLocation(){
+        public saveForm(){
                 this.locationState  = true;
                 this.endDateState   = true;
                 this.startDateState = true;
@@ -175,14 +200,20 @@
                         locationId: this.selectedLocation?this.selectedLocation.id:0,
                         startDate: startDate,
                         endDate: endDate,                      
-                        isFullDay: isFullDay
-                    }
-                   
+                        isFullDay: isFullDay,
+                        id: this.formDataId
+                    } 
+                    this.$emit('submit', body, this.isCreate);                  
                 }
         }
 
-        public clearLocationSelection(){
-            this.selectedLocation = {} as locationInfoType | undefined;
+        public closeForm(){
+            this.clearSelections();
+            this.$emit('cancel');
+        }
+
+        public clearSelections(){
+            this.selectedLocation = {} as locationInfoType;
             this.selectedEndDate = '';
             this.selectedStartDate = '';
             this.selectedStartTime = '';
@@ -191,34 +222,34 @@
             this.endDateState   = true;
             this.startDateState = true;
             this.startTimeState = true;
-            this.endTimeState   = true;
+            this.endTimeState   = true;            
         }
 
-        get noHomeLocationList(){
-            return this.locationList.filter(location =>{ if(this.userToEdit.homeLocationId == location.id) return false;else return true})
+        public isDateFullday(startDate, endDate){
+            const start = moment(startDate); 
+            const end = moment(endDate);
+            const duration = moment.duration(end.diff(start));
+            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
 
         get isFullDay(){    
-
             if(this.selectedStartTime == '' && this.selectedEndTime == '')
                 return true
-            else if(this.selectedStartDate && this.selectedEndDate)
-            {
+            else if(this.selectedStartDate && this.selectedEndDate){
                 const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
                 const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
                 return this.isDateFullday(startDate,endDate)
-            }
-            else
-                return false
+            }else
+                return false           
         }
     }
 </script>
 
 <style scoped>
     td {
-        margin: 0rem 1rem 0.1rem 0rem;
-        padding: 0rem 1rem 0.1rem 0rem;
+        margin: 0rem 0.5rem 0.1rem 0rem;
+        padding: 0rem 0.5rem 0.1rem 0rem;
         
-        background-color: whitesmoke ;
+        background-color: white ;
     }
 </style>
