@@ -156,15 +156,28 @@
                                 <span>{{data.value | beautify-date}}</span> 
                             </template>
                             <template v-slot:cell(edit)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="deleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editTraining(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
                             
                     </b-table> 
                 </b-card> 
+                <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+                    <template v-slot:modal-title>
+                            <h2 class="mb-0 text-light">Confirm Delete Training</h2>                    
+                    </template>
+                    <p>Are you sure you want to delete the "{{trainingToDelete.trainingType?trainingToDelete.trainingType.description:''}}" training?</p>
+                    <template v-slot:modal-footer>
+                        <b-button variant="danger" @click="deleteTraining()">Delete</b-button>
+                        <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+                    </template>            
+                    <template v-slot:modal-header-close>                 
+                        <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                        >&times;</b-button>
+                    </template>
+                </b-modal>
             </div>                                     
         </b-card>
-        
     </div>
 </template>
 
@@ -217,7 +230,10 @@
         trainingError = false;
         trainingErrorMsg = '';
         trainingErrorMsgDesc = '';
-        updateTable=0;
+        updateTable = 0;
+
+        confirmDelete = false;
+        trainingToDelete = {} as trainingInfoType;
         
         assignedTrainings: trainingInfoType[] = [];
         trainingTypes: trainingTypeInfoType[] =[];
@@ -237,8 +253,7 @@
         mounted()
         {             
             console.log('TrainingTab')
-            this.GetTrainings();
-            
+            this.GetTrainings();            
         }
    
         public GetTrainings(){
@@ -296,18 +311,24 @@
             this.$emit('change') 
         }
 
-        public deleteTraining(training){
-            console.log('delete training')            
-            console.log(training)
+        public confirmDeleteTraining(training) {
+            console.log(location)
+            this.trainingToDelete = training;           
+            this.confirmDelete=true; 
+        }
+
+        public deleteTraining(){
+            console.log('delete training')
+            this.confirmDelete = false;            
 
             this.trainingError = false;
-            const url = 'api/sheriff/training?id='+training.id;
+            const url = 'api/sheriff/training?id='+this.trainingToDelete.id;
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.delete(url, options)
                 .then(response => {
                     console.log(response)
                     console.log('delete success')
-                    const index = this.assignedTrainings.findIndex(assignedtraining=>{if(assignedtraining.id == training.id) return true;})
+                    const index = this.assignedTrainings.findIndex(assignedtraining=>{if(assignedtraining.id == this.trainingToDelete.id) return true;})
                     if(index>=0) this.assignedTrainings.splice(index,1);
                     this.$emit('change');
                 }, err=>{
@@ -321,7 +342,6 @@
         public editTraining(training){
             console.log('edit training')
         }
-
 
         public saveTraining(){
                 this.trainingError   = false; 
@@ -452,7 +472,6 @@
             this.endTimeState   = true;
             this.expiryDateState = true;
         }
-
 
         get isFullDay(){    
 
