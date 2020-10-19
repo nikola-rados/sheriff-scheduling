@@ -12,8 +12,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using SS.Api.Helpers;
+using SS.Api.helpers.extensions;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
+using SS.Api.services;
 
 namespace SS.Api.Controllers
 {
@@ -21,8 +23,12 @@ namespace SS.Api.Controllers
     public class AuthController : ControllerBase
     {
         private readonly bool _isImpersonated;
-        public AuthController(IWebHostEnvironment env, IConfiguration configuration)
+        private readonly ChesEmailService _emailService;
+        private IConfiguration Configuration { get; }
+        public AuthController(IWebHostEnvironment env, IConfiguration configuration, ChesEmailService emailService)
         {
+            Configuration = configuration;
+            _emailService = emailService;
             _isImpersonated = env.IsDevelopment() &&
                               configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
         }
@@ -51,9 +57,16 @@ namespace SS.Api.Controllers
 
         [HttpGet("requestAccess")]
         [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
-        public IActionResult RequestAccess()
+        public async Task<IActionResult> RequestAccess(string currentEmailAddress)
         {
-            return Ok();
+            var emailString =
+                $"{User.FullName()} - {User.IdirUserName()} - {currentEmailAddress} - Has requested access to Sheriff Scheduling on {DateTime.Now}.";
+
+            var requestAccessEmailAddress = Configuration.GetNonEmptyValue("RequestAccessEmailAddress");
+
+            await _emailService.SendEmail(emailString,
+                "Access Request", requestAccessEmailAddress);
+            return NoContent();
         }
 
         /// <summary>

@@ -154,13 +154,14 @@
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
     import * as _ from 'underscore';    
-    import PageHeader from "@components/common/PageHeader.vue";
-    import "@store/modules/CommonInformation";  
+    import PageHeader from "@components/common/PageHeader.vue";  
     import {userInfoType} from '../../types/common';
     import {permissionInfoType, roleInfoType, permissionOptionInfoType} from '../../types/MyTeam';
     import {roleJsonType} from '../../types/MyTeam/jsonTypes';
-    const commonState = namespace("CommonInformation");
+
 
     @Component({
         components: {

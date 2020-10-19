@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using db.models;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Models.DB;
 using SS.Db.configuration;
@@ -17,7 +18,7 @@ using SS.Db.models.lookupcodes;
 
 namespace SS.Db.models
 {
-    public partial class SheriffDbContext : DbContext
+    public partial class SheriffDbContext : DbContext, IDataProtectionKeyContext
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -43,6 +44,9 @@ namespace SS.Db.models
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<Permission> Permission { get; set; }
         public virtual DbSet<Role> Role { get; set; }
+
+        // This maps to the table that stores keys.
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

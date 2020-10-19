@@ -4,7 +4,6 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto;
 using SS.Api.Models.Dto;
 using SS.Api.services;
