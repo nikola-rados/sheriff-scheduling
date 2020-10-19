@@ -6,13 +6,22 @@
                     <h2 class="text-danger">On loan to:</h2>                
                     <b-table  
                         :items="userLoanedOutInfo"
-                        :fields="userAwayLocationFields"                
+                        :fields="userAwayLocationFields"
+                        sort-by="startDate"                
                         borderless
                         striped
                         small 
                         responsive="sm"
                         class="my-0 py-0"
                         >
+                        <template v-slot:cell(startDate)="data" >
+                            <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
+                            <span v-else>{{data.value | beautify-date-time}}</span> 
+                        </template>
+                        <template v-slot:cell(endDate)="data" >
+                            <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
+                            <span v-else>{{data.value | beautify-date-time}}</span> 
+                        </template>
                     </b-table>                                        
                 </b-tooltip>
             <b-icon-box-arrow-in-right class="mx-2" v-if="displayLoanedIn" :id="'loanedInIcon'+index" font-scale="1.5"></b-icon-box-arrow-in-right>
@@ -20,13 +29,22 @@
                     <h2 class="text-danger">Loaned in from:</h2>                
                     <b-table  
                         :items="userLoanedInInfo"
-                        :fields="userAwayLocationFields"                
+                        :fields="userAwayLocationFields"  
+                        sort-by="startDate"              
                         borderless
                         striped
                         small 
                         responsive="sm"
                         class="my-0 py-0"
                         >
+                        <template v-slot:cell(startDate)="data" >
+                            <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
+                            <span v-else>{{data.value | beautify-date-time}}</span> 
+                        </template>
+                        <template v-slot:cell(endDate)="data" >
+                            <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
+                            <span v-else>{{data.value | beautify-date-time}}</span> 
+                        </template>
                     </b-table>                                        
                 </b-tooltip>
         </b-row>
@@ -87,16 +105,9 @@
                     const loanedInfo = {} as loanedLocationInfoType;
                     loanedInfo.locationId = loanedInfoJson.locationId;
 
-                    const startDate = moment(loanedInfoJson.startDate).tz("UTC").format();
-                    const endDate = moment(loanedInfoJson.endDate).tz("UTC").format();
-                    if(this.isDateFullday(startDate, endDate))                    {
-                        loanedInfo.startDate = Vue.filter('beautify-date')(startDate);
-                        loanedInfo.endDate = Vue.filter('beautify-date')(endDate);
-                    }
-                    else{
-                        loanedInfo.startDate = Vue.filter('beautify-date-time')(startDate);
-                        loanedInfo.endDate = Vue.filter('beautify-date-time')(endDate);
-                    }
+                    loanedInfo.startDate = moment(loanedInfoJson.startDate).tz("UTC").format();
+                    loanedInfo.endDate = moment(loanedInfoJson.endDate).tz("UTC").format();
+                    loanedInfo.isFullDay = this.isDateFullday(loanedInfo.startDate, loanedInfo.endDate);                    
 
                     if(loanedInfo.locationId == this.location.id)
                     {

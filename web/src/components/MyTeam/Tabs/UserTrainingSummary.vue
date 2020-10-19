@@ -5,13 +5,22 @@
                 <h2 class="text-danger">On Training:</h2>                
                 <b-table  
                     :items="userTrainingInfo"
-                    :fields="userTrainingFields"                
+                    :fields="userTrainingFields"
+                    sort-by="startDate"                
                     borderless
                     striped
                     small 
                     responsive="sm"
                     class="my-0 py-0"
                     >
+                    <template v-slot:cell(startDate)="data" >
+                        <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
+                        <span v-else>{{data.value | beautify-date-time}}</span> 
+                    </template>
+                    <template v-slot:cell(endDate)="data" >
+                        <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
+                        <span v-else>{{data.value | beautify-date-time}}</span> 
+                    </template>
                 </b-table>                                        
             </b-tooltip>
     </b-card>   
@@ -56,17 +65,9 @@
                     trainingInfo.trainingTypeId = trainingInfoJson.trainingTypeId
                     trainingInfo.trainingName = trainingInfoJson.trainingType.description;
 
-                    const startDate = moment(trainingInfoJson.startDate).tz("UTC").format();
-                    const endDate = moment(trainingInfoJson.endDate).tz("UTC").format();
-                    if(this.isDateFullday(startDate, endDate))                    {
-                        trainingInfo.startDate = Vue.filter('beautify-date')(startDate);
-                        trainingInfo.endDate = Vue.filter('beautify-date')(endDate);
-                    }
-                    else{
-                        trainingInfo.startDate = Vue.filter('beautify-date-time')(startDate);
-                        trainingInfo.endDate = Vue.filter('beautify-date-time')(endDate);
-                    }
-
+                    trainingInfo.startDate = moment(trainingInfoJson.startDate).tz("UTC").format();
+                    trainingInfo.endDate = moment(trainingInfoJson.endDate).tz("UTC").format();
+                    trainingInfo.isFullDay = this.isDateFullday(trainingInfo.startDate, trainingInfo.endDate);
                     this.userTrainingInfo.push(trainingInfo);
                 }
                 if(this.userTrainingInfo.length) this.displayTraining = true;       
