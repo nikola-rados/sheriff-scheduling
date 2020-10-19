@@ -48,25 +48,31 @@
     <Compile Remove="migrations\20201009192719_go.Designer.cs" />
     <Compile Remove="migrations\20201009195010_MorePermissions.cs" />
     <Compile Remove="migrations\20201009195010_MorePermissions.Designer.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="migrations\" />
+    <Compile Remove="migrations\20201014174502_CascadeDeleteRole.cs" />
+    <Compile Remove="migrations\20201014174502_CascadeDeleteRole.Designer.cs" />
+    <Compile Remove="migrations\20201014174814_CascadeDeleteRole.cs" />
+    <Compile Remove="migrations\20201014174814_CascadeDeleteRole.Designer.cs" />
+    <Compile Remove="migrations\20201014174947_CascadeDeleteUserOrRole.cs" />
+    <Compile Remove="migrations\20201014174947_CascadeDeleteUserOrRole.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="FlexLabs.EntityFrameworkCore.Upsert" Version="3.1.0" />
     <PackageReference Include="Mapster" Version="6.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="3.1.9" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="3.1.8">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0-rc.2.20475.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.0-rc.2.20475.6" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.0-rc.2.20475.6">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.4" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.0-rc1" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0-rc.2.20475.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

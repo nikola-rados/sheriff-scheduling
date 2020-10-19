@@ -1,5 +1,5 @@
-import {} from '../common';
-import {} from '../DutyRoster/jsonTypes';
+import {locationInfoType} from '../common';
+import {awayLocationsJsontype, leaveJsontype, trainingJsontype} from './jsonTypes';
 
 export interface teamMemberInfoType {
 
@@ -17,6 +17,11 @@ export interface teamMemberInfoType {
     isEnabled?: boolean;
     homeLocationId?: number | null;
     homeLocationNm?: string | null;
+    homeLocation?: locationInfoType;
+    awayLocation?: awayLocationsJsontype[];
+    training?: trainingJsontype[];
+    leave?: leaveJsontype[];
+    loanedOut?: awayLocationsJsontype[];
 }
 
 export interface userRoleInfoType{
@@ -58,4 +63,61 @@ export interface permissionOptionInfoType{
     selected: boolean;
 }
 
+export interface loanedLocationInfoType{
+    id: number|null;    
+    locationId: number|null;
+    locationName: string;
+    isFullDay: boolean;
+    startDate: string;
+    endDate: string;
+    sheriffId: string      
+}
 
+export interface awayLocationInfoType{
+    id: number|null;    
+    locationId: number|null;
+    startDate: string;
+    endDate: string;
+    sheriffId: string,
+    concurrencyToken?: number      
+}
+
+export interface trainingInfoType{ 
+    id: number;   
+    trainingType: trainingTypeInfoType;
+    trainingTypeId?:number|null;
+    trainingName?: string;
+    sheriffId?: string;
+    expiryDate: string;
+    isFullDay?: boolean;
+    startDate: string;
+    endDate: string;
+    comment?: string;    
+}
+
+export interface trainingTypeInfoType{    
+    code: string;
+    concurrencyToken: number;
+    description: string;
+    id: number|null;
+    type: string;    
+}
+
+export interface userLeaveInfoType{
+    id: number;    
+    leaveTypeId: number|null;
+    leaveName?: string;
+    leaveType?: leaveTypeInfoType;
+    comment: string,
+    isFullDay: boolean;
+    startDate: string;
+    endDate: string;    
+}
+
+export interface leaveTypeInfoType{    
+    code: string;
+    concurrencyToken: number;
+    description: string;
+    id: number|null;
+    type: string;    
+}
