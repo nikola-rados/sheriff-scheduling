@@ -10,6 +10,7 @@ using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto;
+using SS.Api.Models.Dto;
 using SS.Db.models;
 using SS.Db.models.sheriff;
 
@@ -47,19 +48,14 @@ namespace SS.Api.services
         }
 
 
-        public async Task<List<SheriffByLocationDto>> GetSheriffsForLocation(int? locationId)
+        public async Task<List<Sheriff>> GetSheriffs()
         {
             var fiveDaysFromNow = DateTimeOffset.Now.AddDays(5).Date;
             var now = DateTimeOffset.Now.Date;
 
             var sheriffQuery = _db.Sheriff.AsNoTracking()
-                .AsSingleQuery()
+                .AsSplitQuery()
 
-                //Get sheriffs that are on Loan and have the matching home location, or all sheriffs.
-                .Where(s => !locationId.HasValue ||
-                            s.HomeLocationId == locationId || 
-                            s.AwayLocation.Any(al => al.LocationId == locationId && !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
-                                                                                 && al.ExpiryDate == null))
                 //Apply permission filters.
                 .ApplyPermissionFilters(User)
                 //Include AwayLocation/Training/Leave that is within 5 days. 
@@ -81,17 +77,7 @@ namespace SS.Api.services
 
             var sheriffs = await sheriffQuery.ToListAsync();
 
-            var sheriffsByLocation = sheriffs.Adapt<List<SheriffByLocationDto>>();
-            foreach (var sheriff in sheriffsByLocation)
-            {
-                //If LocationId = null, only show LoanedOuts. 
-                sheriff.LoanedIn =
-                    sheriff.AwayLocation.WhereToList(aw => locationId.HasValue && sheriff.HomeLocationId != locationId);
-                sheriff.LoanedOut =
-                    sheriff.AwayLocation.WhereToList(aw => !locationId.HasValue || sheriff.HomeLocationId == locationId);
-            }
-
-            return sheriffsByLocation;
+            return sheriffs;
         }
 
         public async Task<Sheriff> GetSheriff(Guid id)
@@ -131,6 +117,13 @@ namespace SS.Api.services
 
             await _db.SaveChangesAsync();
             return sheriff;
+        }
+
+        public async Task<byte[]> GetPhoto(Guid id)
+        {
+            var savedSheriff = await _db.Sheriff.FindAsync(id);
+            savedSheriff.ThrowBusinessExceptionIfNull($"No sheriff with Id: {id}");
+            return savedSheriff.Photo;
         }
 
         public async Task<Sheriff> UpdateSheriffPhoto(Guid? id, string badgeNumber, byte[] photoData)

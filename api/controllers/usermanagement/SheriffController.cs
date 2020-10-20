@@ -42,7 +42,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         /// <summary>
-        /// This gets a general list of Sheriffs, based on location. Includes Training, AwayLocation, Leave data within 5 days.
+        /// This gets a general list of Sheriffs. Includes Training, AwayLocation, Leave data within 5 days.
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -50,10 +50,10 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewOwnProfile,
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
-        public async Task<ActionResult<SheriffByLocationDto>> GetSheriffsForLocation(int? locationId)
+        public async Task<ActionResult<SheriffDto>> GetSheriffs()
         {
-            var sheriffs = await _service.GetSheriffsForLocation(locationId);
-            return Ok(sheriffs.Adapt<List<SheriffByLocationDto>>());
+            var sheriffs = await _service.GetSheriffs();
+            return Ok(sheriffs.Adapt<List<SheriffDto>>());
         }
 
         /// <summary>
@@ -112,6 +112,16 @@ namespace SS.Api.controllers.usermanagement
             return NoContent();
         }
 
+        [HttpGet]
+        [Route("getPhoto/{id}")]
+        [PermissionClaimAuthorize(AuthorizeOperation.Or,
+            Permission.ViewOwnProfile,
+            Permission.ViewProfilesInOwnLocation,
+            Permission.ViewProfilesInAllLocation)]
+        public async Task<IActionResult> GetPhoto(Guid id)
+        {
+            return File(await _service.GetPhoto(id), "image/jpeg");
+        }
 
         [HttpPost]
         [Route("uploadPhoto")]
