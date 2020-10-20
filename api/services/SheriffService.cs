@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
-using SS.Api.models.dto;
-using SS.Api.Models.Dto;
 using SS.Db.models;
 using SS.Db.models.sheriff;
 
