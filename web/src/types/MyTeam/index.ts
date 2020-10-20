@@ -1,4 +1,4 @@
-import {locationInfoType} from '../common';
+import {leaveInfoType, locationInfoType} from '../common';
 import {awayLocationsJsontype, leaveJsontype, trainingJsontype} from './jsonTypes';
 
 export interface teamMemberInfoType {
@@ -107,17 +107,17 @@ export interface userLeaveInfoType{
     id: number;    
     leaveTypeId: number|null;
     leaveName?: string;
-    leaveType?: leaveTypeInfoType;
+    leaveType?: leaveInfoType;
     comment: string,
     isFullDay: boolean;
     startDate: string;
     endDate: string;    
 }
 
-export interface leaveTypeInfoType{    
-    code: string;
-    concurrencyToken: number;
-    description: string;
-    id: number|null;
-    type: string;    
-}
+// export interface leaveTypeInfoType{    
+//     code: string;
+//     concurrencyToken: number;
+//     description: string;
+//     id: number|null;
+//     type: string;    
+// }
