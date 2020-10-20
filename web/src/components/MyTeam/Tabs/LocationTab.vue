@@ -4,26 +4,12 @@
             <b-card id="LocationError" no-body>                                       
                 <h2 v-if="locationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
             </b-card>
-            <b-card body-class="m-0 p-0">
-                <b-row class="mt-3" style="background-color:#addcde;width: 31rem;margin-left: auto;margin-right: auto;border-radius: 0.75rem;" >
-                    <b style="margin: 1.35rem 0.25rem 0 1.25rem">Home Location:</b>
-                    <b-form-group style="width: 20rem; margin-top: 1rem"> 
-                        <b-form-select                                                                                                           
-                            v-model="selectedHomeLocation"
-                            @change="homeLocationChanged">                            
-                                <b-form-select-option
-                                    v-for="homelocation in locationList" 
-                                    :key="homelocation.id"
-                                    :value="homelocation">
-                                        {{homelocation.name}}
-                                </b-form-select-option>    
-                        </b-form-select>
-                    </b-form-group>
-                </b-row>
-                <b-button v-if="!addNewLocation" style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNew"> <b-icon icon="plus" /> Add </b-button>
+            
+            <b-card v-if="!addNewLocationForm">
+                <b-button size="sm" variant="success" @click="addNewLocation"> <b-icon icon="plus" /> Add </b-button>
             </b-card> 
 
-            <b-card v-if="addNewLocation" id="addLocationForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
+            <b-card v-if="addNewLocationForm" id="addLocationForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
                 <add-location-form :formData="{}" :isCreate="true" v-on:submit="saveAwayLocation" v-on:cancel="closeLocationForm" />              
             </b-card>
 
@@ -73,7 +59,7 @@
                             </template>
 
                             <template v-slot:row-details="data">
-                                <b-card :id="'L-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
+                                <b-card :id="'Lo-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
                                     <add-location-form :formData="data.item" :isCreate="false" v-on:submit="saveAwayLocation" v-on:cancel="closeLocationForm" />
                                 </b-card>
                             </template>
@@ -105,14 +91,12 @@
     import moment from 'moment-timezone';
     import {teamMemberInfoType, awayLocationInfoType} from '../../../types/MyTeam';
     import {locationInfoType} from '../../../types/common';
-
+    import AddLocationForm from './AddForms/AddLocationForm.vue'
     import { namespace } from 'vuex-class';
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
-
-    import AddLocationForm from './AddForms/AddLocationForm.vue'
 
     @Component({
         components: {
@@ -131,12 +115,7 @@
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
 
-        @TeamMemberState.Action
-        public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
-
-        selectedHomeLocation = {} as locationInfoType | undefined;
-
-        addNewLocation = false;
+        addNewLocationForm = false;
         locationError = false;
         locationErrorMsg = '';
         locationErrorMsgDesc = '';
@@ -162,15 +141,7 @@
         ];
 
         mounted()
-        {             
-            this.selectedHomeLocation = this.userToEdit.homeLocation;
-    
-            // console.log('locationTab')
-            // console.log(this.selectedHomeLocation)
-            // console.log(this.userToEdit)           
-            // console.log(this.assignedAwayLocations)
-            
-            
+        {                         
             this.extractAwayLocations();          
         }
 
@@ -201,40 +172,8 @@
             if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
 
-        public homeLocationChanged()
-        {
-            Vue.nextTick().then(()=>{
-                console.log(this.selectedHomeLocation)
-               
-                const homeLocationId= this.selectedHomeLocation? this.selectedHomeLocation.id: '';
-                const url = 'api/sheriff/updatelocation?id='+this.userToEdit.id+'&locationId='+homeLocationId;
-                const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-                this.$http.put(url, options)
-                    .then(response => {
-                        console.log(response) 
-                        this.updateUser();                                            
-                    }, err => {
-                        console.log(err)
-                        this.locationErrorMsg = 'Home-location change was unsuccessful';
-                        this.locationErrorMsgDesc = "The change hasn't been applied";
-                        this.locationError = true;
-                        location.href = '#LocationError'
-                    });
-            });
-        }
-
-        public updateUser(){
-            const user = this.userToEdit
-            user.homeLocation = this.selectedHomeLocation;
-            user.homeLocationNm = this.selectedHomeLocation? this.selectedHomeLocation.name: '';
-            user.homeLocationId = this.selectedHomeLocation? this.selectedHomeLocation.id: 0;
-            this.UpdateUserToEdit(user);
-            console.log(user)
-            this.$emit('change') 
-        }
-
         public confirmDeleteLocation(location) {
-            console.log(location)
+            //console.log(location)
             this.locationToDelete = location;           
             this.confirmDelete=true; 
         }
@@ -248,7 +187,7 @@
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.delete(url, options)
                 .then(response => {
-                    console.log(response)
+                    //console.log(response)
                     console.log('delete success')
                     const index = this.assignedAwayLocations.findIndex(assignedlocation=>{if(assignedlocation.id == this.locationToDelete.id) return true;})
                     if(index>=0) this.assignedAwayLocations.splice(index,1);
@@ -262,29 +201,29 @@
                 });
         }
         
-        public addNew(){
+        public addNewLocation(){
             if(this.isEditOpen){
-                location.href = '#L-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                location.href = '#Lo-Date-'+this.latestEditData.item.startDate.substring(0,10)
                 this.addFormColor = 'danger'
             }else
-                this.addNewLocation = true
+                this.addNewLocationForm = true
         }
 
         public editLocation(data){
             console.log('edit location')
             //console.log(data)
-            if(this.addNewLocation){
+            if(this.addNewLocationForm){
                 location.href = '#addLocationForm'
                 this.addFormColor = 'danger'
             }else if(this.isEditOpen){
-                location.href = '#L-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                location.href = '#Lo-Date-'+this.latestEditData.item.startDate.substring(0,10)
                 this.addFormColor = 'danger'               
             }else if(!this.isEditOpen && !data.detailsShowing){
                 data.toggleDetails();
                 this.isEditOpen = true;
                 this.latestEditData = data
                 Vue.nextTick().then(()=>{
-                    location.href = '#L-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                    location.href = '#Lo-Date-'+this.latestEditData.item.startDate.substring(0,10)
                 });
             }                        
         }
@@ -300,8 +239,8 @@
             //console.log(options)
             this.$http(options)
                 .then(response => {
-                    console.log(response)
-                    console.log('assign success')
+                    //console.log(response)
+                    console.log('save success')
                     if(iscreate) 
                         this.addToAssignedLocationList(response.data);
                     else
@@ -363,7 +302,7 @@
         public closeLocationForm(){
             console.log('close form')  
             //console.log(this.latestEditData)          
-            this.addNewLocation= false; 
+            this.addNewLocationForm= false; 
             this.addFormColor = 'secondary'
             if(this.isEditOpen){
                 this.latestEditData.toggleDetails();

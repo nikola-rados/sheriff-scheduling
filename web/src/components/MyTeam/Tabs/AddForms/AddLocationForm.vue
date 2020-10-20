@@ -28,7 +28,7 @@
                             </b-form-group>
                         </b-tr>
                         <b-tr class="mt-1 bg-white">
-                            <b-badge v-if="selectedLocation !={} && selectedLocation.id == userToEdit.homeLocationId" class="ml-2" variant="danger"> This is the User's Home Location! </b-badge>
+                            <b-badge v-if="selectedLocation !={} && selectedLocation.id == userToEdit.homeLocationId" class="ml-2" variant="warning"> This is the User's Home Location! </b-badge>
                         </b-tr>
                     </b-td>
                     <b-td>
