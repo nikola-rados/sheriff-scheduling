@@ -3,11 +3,28 @@
         <b-row class="bg-white">
             <b-col cols="10">
                 <page-header :pageHeaderText="sectionHeader"></page-header>
-                <b-card>  
-                    <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
-                        <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
-                        <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
-                    </b-form-group>
+                <b-card>
+                    <b-row>
+                        <b-col>  
+                            <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
+                                <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
+                                <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
+                            </b-form-group>
+                        </b-col>
+                        <b-col style="margin-top: 35px;">
+                            <b-pagination
+                                v-model="currentPage"
+                                :total-rows="totalRows"
+                                :per-page="rowsPerPage"
+                                :limit="limit"
+                                ellipsis-text="...."
+                                first-text="First"
+                                prev-text="Prev"
+                                next-text="Next"
+                                last-text="Last">
+                            </b-pagination>
+                        </b-col>
+                    </b-row>
                 </b-card> 
             </b-col>
             <b-col style="padding: 0;">
@@ -30,7 +47,7 @@
                 </div>                
                 </template> 
             </b-overlay> 
-        </b-card>
+        </b-card>        
 
         <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
@@ -203,6 +220,11 @@
         showMemberDetails = false;
         userIsAdmin = false;
 
+        itemsPerRow = 4;
+        rowsPerPage = 4;
+        currentPage = 1;
+        limit = 5;
+
         tabIndex = 0;
         isUserDataMounted = false;
         editMode = false;
@@ -218,6 +240,7 @@
         firstNavigation = true;
     
         allMyTeamData: teamMemberInfoType[] =[];
+        myTeam: teamMemberInfoType[] = [];
         
         @Watch('location.id', { immediate: true })
         locationChange()
@@ -292,8 +315,16 @@
             }            
         }
 
+        get itemsPerPage() {
+            return (this.itemsPerRow * this.rowsPerPage)
+        }
+
+        get totalRows() {
+            return Math.ceil(this.myTeam.length/this.itemsPerRow)
+        }
+
         get myTeamData() {
-            return this.allMyTeamData.filter(member => {
+            this.myTeam =this.allMyTeamData.filter(member => {
                 if (this.expiredViewChecked || member.isEnabled)
                 {
                     if(this.searchPhrase==''){
@@ -309,7 +340,9 @@
                         if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
                     }
                 }
-            });
+            })
+            
+            return this.myTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
         }
 
         public photoChanged(id: string, image: string){           
@@ -422,6 +455,12 @@
         font-size: 20px;
         padding: 0;
         margin: 0;
+    }
+
+    .pagination {
+        height: calc(1.6em + 0.75rem + 2px);
+        border-width: 1px;
+        border-radius: 0.25rem;
     }
 
     .form-group.required .label:after {
