@@ -124,7 +124,7 @@
         addFormColor = 'secondary';
         latestEditData;
         isEditOpen = false;
-        
+
         leaveError = false;
         leaveErrorMsg = '';
         leaveErrorMsgDesc = '';
@@ -225,14 +225,12 @@
             
             this.$http(options)
                 .then(response => {
-                    console.log('save success')
                     if(iscreate) 
                         this.addToLeaveList(response.data);
                     else
                         this.modifyAssignedLeaveList(response.data);
                     this.closeLeaveForm();
-                }, err=>{   
-                    //console.log(err.response.data);
+                }, err=>{
                     const errMsg = err.response.data.error;
                     this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                     this.leaveErrorMsgDesc = errMsg;
@@ -244,13 +242,14 @@
         public modifyAssignedLeaveList(modifiedLeaveInfo){
 
             const index = this.assignedLeaves.findIndex(assignedleave =>{ if(assignedleave.id == modifiedLeaveInfo.id) return true})
-            if(index>=0){            
+            if(index>=0){
                 this.assignedLeaves[index].id =  modifiedLeaveInfo.id;
                 this.assignedLeaves[index].startDate = modifiedLeaveInfo.startDate
-                this.assignedLeaves[index].endDate = modifiedLeaveInfo.endDate 
-                this.assignedLeaves[index].leaveTypeId = modifiedLeaveInfo.leaveTypeId;
-                this.assignedLeaves[index].leaveType = modifiedLeaveInfo.leaveType;
-                this.assignedLeaves[index].leaveName = modifiedLeaveInfo.leaveType.description;
+                this.assignedLeaves[index].endDate = modifiedLeaveInfo.endDate
+                this.assignedLeaves[index].leaveTypeId = modifiedLeaveInfo.leaveTypeId; 
+                const leaveType = this.getLeaveType(this.assignedLeaves[index].leaveTypeId)               
+                this.assignedLeaves[index].leaveType = leaveType;                
+                this.assignedLeaves[index].leaveName = leaveType.description;
                 this.assignedLeaves[index].comment = modifiedLeaveInfo.comment?modifiedLeaveInfo.comment:'';
                 if(this.isDateFullday( this.assignedLeaves[index].startDate, this.assignedLeaves[index].endDate)){ 
                     this.assignedLeaves[index]['isFullDay'] = true;
@@ -259,7 +258,6 @@
                     this.assignedLeaves[index]['isFullDay'] = false;
                     this.assignedLeaves[index]['_cellVariants'] = {isFullDay:'success'}                    
                 }
-
                 this.$emit('change');
             } 
         }
@@ -293,7 +291,16 @@
                 this.latestEditData.toggleDetails();
                 this.isEditOpen = false;
             } 
-        }        
+        }
+
+        public getLeaveType(leaveTypeId: number|null){
+            const index = this.leaveTypeInfoList.findIndex(leave=>{if(leave.id == leaveTypeId)return true})
+            if(index>=0){
+                return this.leaveTypeInfoList[index]
+            }
+            else
+                return {} as leaveInfoType;
+        } 
 
         get isFullDay(){  
 
