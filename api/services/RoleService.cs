@@ -22,8 +22,7 @@ namespace SS.Api.services
 
         public async Task<List<Role>> Roles()
         {
-            return await _db.Role.AsNoTracking().Include(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission).ToListAsync();
+            return await _db.Role.AsNoTracking().ToListAsync();
         }
 
         public async Task<Role> Role(int id)
