@@ -14,6 +14,9 @@ namespace SS.Db.models.sheriff
         public virtual List<SheriffAwayLocation> AwayLocation { get; set; } = new List<SheriffAwayLocation>();
         public virtual List<SheriffLeave> Leave { get; set; } = new List<SheriffLeave>();
         public virtual List<SheriffTraining> Training { get; set; } = new List<SheriffTraining>();
+        [AdaptIgnore]
         public byte[] Photo { get; set; }
+        [NotMapped] 
+        public string PhotoUrl => $"/api/sheriff/getPhoto/{Id}";
     }
 }

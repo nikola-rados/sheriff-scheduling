@@ -101,9 +101,6 @@
     @Component
     export default class RoleAssignmentTab extends Vue {
 
-        @commonState.State
-        public token!: string;
-
         @Prop({required: true})
         userId!: string;
 
@@ -143,9 +140,8 @@
         }
    
         public GetRoles(){
-            const url = '/api/role'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = '/api/role';
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         this.rolesJson = response.data
@@ -211,9 +207,8 @@
                         "effectiveDate": this.selectedEffectiveDate,
                         "expiryDate": this.selectedExpiryDate
                     }]
-                    const url = 'api/sheriff/assignroles' //:'api/sheriff/unassignroles' 
-                    const options = {headers:{'Authorization' :'Bearer '+this.token}}
-                    this.$http.put(url, body, options)
+                    const url = 'api/sheriff/assignroles' 
+                    this.$http.put(url, body)
                         .then(response => {
                             console.log(response)
                             console.log('assign success')
@@ -241,9 +236,8 @@
                 "userId": this.userId,
                 "roleId": this.roleToDelete.value,                        
             }]
-            const url = 'api/sheriff/unassignroles' 
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.put(url, body, options)
+            const url = 'api/sheriff/unassignroles' ;
+            this.$http.put(url, body)
                 .then(response => {
                     console.log(response)
                     console.log('unassign success')
@@ -255,9 +249,8 @@
 
         public getUserRoles()
         {
-            const url = 'api/sheriff/' + this.userId
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/sheriff/' + this.userId;
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)                        

@@ -108,9 +108,6 @@ enum gender {'Male'=0, 'Female', 'Other'}
 export default class IdentificationTab extends Vue {
 
     @commonState.State
-    public token!: string;
-
-    @commonState.State
     public commonInfo!: commonInfoType;
 
     @commonState.State
@@ -312,8 +309,7 @@ export default class IdentificationTab extends Vue {
         }
 
         const url = 'api/sheriff';
-        const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-        this.$http.put(url, body, options)
+        this.$http.put(url, body)
             .then(response => {
                 if(response.data){
                     this.updateLocation();                           
@@ -342,8 +338,7 @@ export default class IdentificationTab extends Vue {
         console.log(this.selectedHomeLocation)
         
         const url = 'api/sheriff/updatelocation?id='+this.user.id+'&locationId='+this.user.homeLocationId;
-        const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-        this.$http.put(url, options)
+        this.$http.put(url)
             .then(response => {
                 console.log(response)
                 this.resetProfileWindowState();
@@ -375,9 +370,7 @@ export default class IdentificationTab extends Vue {
         }
         // console.log(body)
         const url = 'api/sheriff';
-        const options = {headers:{'Authorization' :'Bearer '+this.token}}           
-        
-        this.$http.post(url, body, options )
+        this.$http.post(url, body )
             .then(response => {
                 if(response.data){
                     this.resetProfileWindowState();

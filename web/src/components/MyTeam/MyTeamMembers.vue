@@ -3,11 +3,28 @@
         <b-row class="bg-white">
             <b-col cols="10">
                 <page-header :pageHeaderText="sectionHeader"></page-header>
-                <b-card>  
-                    <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
-                        <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
-                        <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
-                    </b-form-group>
+                <b-card>
+                    <b-row>
+                        <b-col>  
+                            <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
+                                <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
+                                <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
+                            </b-form-group>
+                        </b-col>
+                        <b-col style="margin-top: 35px;">
+                            <b-pagination
+                                v-model="currentPage"
+                                :total-rows="totalRows"
+                                :per-page="itemsPerPage" 
+                                first-number
+                                last-number                               
+                                first-text="First"
+                                prev-text="Prev"
+                                next-text="Next"
+                                last-text="Last">
+                            </b-pagination>
+                        </b-col>
+                    </b-row>
                 </b-card> 
             </b-col>
             <b-col style="padding: 0;">
@@ -30,7 +47,7 @@
                 </div>                
                 </template> 
             </b-overlay> 
-        </b-card>
+        </b-card>        
 
         <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
@@ -177,12 +194,6 @@
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
 
         @commonState.State
-        public token!: string;
-
-        @commonState.Action
-        public UpdateToken!: (newToken: string) => void
-
-        @commonState.State
         public location!: locationInfoType;
 
         @commonState.Action
@@ -203,12 +214,17 @@
         showMemberDetails = false;
         userIsAdmin = false;
 
+        itemsPerRow = 4;//Define
+        rowsPerPage = 1;//Define
+        currentPage = 1;
+        itemsPerPage = 1;// itemsPerRow*rowsPerPage
+
         tabIndex = 0;
         isUserDataMounted = false;
         editMode = false;
         createMode = false;
         sectionHeader = '';
-        photokey=0;
+        photokey = 0;
         userAllRoles: any[] = [];
 
         searchPhrase = '';
@@ -218,6 +234,7 @@
         firstNavigation = true;
     
         allMyTeamData: teamMemberInfoType[] =[];
+        myTeam: teamMemberInfoType[] = [];
         
         @Watch('location.id', { immediate: true })
         locationChange()
@@ -230,18 +247,17 @@
             this.userIsAdmin = (this.userDetails.roles.indexOf("Administrator") > -1) || (this.userDetails.roles.indexOf("System Administrator") > -1);
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
+            this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
         }
         
         get viewStatus() {
             if(this.expiredViewChecked) return 'All Profiles';else return 'Active Profiles'
         }
 
-        public getSheriffs()
-        {
+        public getSheriffs() {            
             this.isMyTeamDataMounted = false;
-            const url = 'api/sheriff'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/sheriff';
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)
@@ -251,11 +267,9 @@
                 })
         }
         
-        public onTabChanged(newTabIndex , prevTabIndex, bvEvt)
-        {
+        public onTabChanged(newTabIndex , prevTabIndex, bvEvt) {
             this.newTabIndex = newTabIndex;            
-            if(prevTabIndex == 0 && this.firstNavigation)
-            {
+            if(prevTabIndex == 0 && this.firstNavigation) {
                 this.firstNavigation = false;
                 bvEvt.preventDefault();
                 this.identificationTabMethods.$emit('switchTab');   
@@ -278,22 +292,27 @@
                 myteam.rank = myteaminfo.rank;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
-                myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
+                myteam.image = myteaminfo.photoUrl? myteaminfo.photoUrl: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';               
                 
                 myteam.leave = myteaminfo.leave? myteaminfo.leave: [];
                 myteam.training = myteaminfo.training? myteaminfo.training: [];
-                myteam.loanedOut = myteaminfo.loanedOut;
+                myteam.loanedOut = myteaminfo.awayLocation;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
-            }            
+            }  
+            console.log(this.allMyTeamData)          
+        }
+
+        get totalRows() {
+            return this.myTeam.length
         }
 
         get myTeamData() {
-            return this.allMyTeamData.filter(member => {
+            this.myTeam =this.allMyTeamData.filter(member => {
                 if (this.expiredViewChecked || member.isEnabled)
                 {
                     if(this.searchPhrase==''){
@@ -309,7 +328,9 @@
                         if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
                     }
                 }
-            });
+            })
+            
+            return this.myTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
         }
 
         public photoChanged(id: string, image: string){           
@@ -366,9 +387,8 @@
 
         public loadUserDetails(userId): void {
             this.editMode = true;            
-            const url = 'api/sheriff/' + userId
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/sheriff/' + userId;
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)                        
@@ -393,7 +413,7 @@
             user.id = userJson.id;
             user.homeLocationId = userJson.homeLocationId;
             user.homeLocationNm = userJson.homeLocation? userJson.homeLocation.name: '';
-            user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
+            user.image = userJson['photoUrl']?userJson['photoUrl']:'';
             if(userJson.homeLocation)
                 user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
           
@@ -422,6 +442,12 @@
         font-size: 20px;
         padding: 0;
         margin: 0;
+    }
+
+    .pagination {
+        height: calc(1.6em + 0.75rem + 2px);
+        border-width: 1px;
+        border-radius: 0.25rem;
     }
 
     .form-group.required .label:after {
