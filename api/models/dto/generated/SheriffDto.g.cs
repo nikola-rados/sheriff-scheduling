@@ -13,7 +13,7 @@ namespace SS.Api.Models.Dto
         public List<SheriffAwayLocationDto> AwayLocation { get; set; }
         public List<SheriffLeaveDto> Leave { get; set; }
         public List<SheriffTrainingDto> Training { get; set; }
-        public byte[] Photo { get; set; }
+        public string PhotoUrl { get; set; }
         public Guid Id { get; set; }
         public string IdirName { get; set; }
         public bool IsEnabled { get; set; }
