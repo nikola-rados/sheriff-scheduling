@@ -1,5 +1,9 @@
 <template>
-    <div :key="refreshPage">
+    <div>
+        <b-card id="IdentificationError" border-variant="white" no-body>
+            <h2 v-if="identificationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="identificationErrorMsgDesc"  variant="danger"> {{identificationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="identificationError = false" /></b-badge></h2>
+        </b-card>
+
         <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
             <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
         </b-form-group>
@@ -33,12 +37,11 @@
         </b-row>
         <h2 v-if="duplicateBadge" class="mx-1 mt-0"><b-badge variant="danger"> Duplicate Badge</b-badge></h2>
 
-        <b-row  v-if="createMode" class="mx-1">
+        <b-row class="mx-1">
             <b-form-group class="mr-1" style="width: 25rem"><label>Home Location<span class="text-danger">*</span></label> 
                 <b-form-select                                                                                                           
                     v-model="user.homeLocationId"
-                    :state = "homeLocationState?null:false"
-                    >                            
+                    :state = "homeLocationState?null:false">
                         <b-form-select-option
                             v-for="homelocation in locationList" 
                             :key="homelocation.id"
@@ -63,6 +66,24 @@
             </template>            
             <template v-slot:modal-header-close>                 
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>
+
+
+        <b-modal v-model="showHomeLocationWarning" id="bv-modal-team-home-location-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>                
+                 <h2 class="mb-0 text-light"> <b-icon-house-door-fill class="mr-1" font-scale="1.25"/> Home Location Change </h2>                
+            </template>
+            <p>Are you sure you want to change the home location?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-team-home-location-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="updateProfile()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-home-location-warning')"
                  >&times;</b-button>
             </template>
         </b-modal>
@@ -129,11 +150,13 @@ export default class IdentificationTab extends Vue {
     showCancelWarning = false;
     cancelMessage ='cancel';
 
+    showHomeLocationWarning= false;
+
     selectedHomeLocation = {} as locationInfoType | undefined;
 
-    errorCode = 0;
-    errorText = '';
-    refreshPage =0;
+    identificationError = false;
+    identificationErrorMsg = '';
+    identificationErrorMsgDesc = '';
 
     user = {} as teamMemberInfoType;
 
@@ -152,7 +175,6 @@ export default class IdentificationTab extends Vue {
         this.ClearFormState();
         //console.log(this.userToEdit)
         this.user = _.clone(this.userToEdit);
-        this.refreshPage++;
     }
 
     public switchTab(){
@@ -198,11 +220,6 @@ export default class IdentificationTab extends Vue {
     }
 
     public changesMade(): boolean {
-        if (this.editMode) {
-            this.user.homeLocationId = this.userToEdit.homeLocationId;
-            this.user.homeLocationNm = this.userToEdit.homeLocationNm;
-            this.user.homeLocation = this.userToEdit.homeLocation;
-        }
         return !_.isEqual(this.userToEdit, this.user)
     }
 
@@ -213,10 +230,7 @@ export default class IdentificationTab extends Vue {
         return true;
     }
          
-    public saveMemberProfile() { 
-        // console.log('save') 
-        // console.log(this.user) 
-        // console.log(this.userToEdit)    
+    public saveMemberProfile() {     
         let requiredError = false;
 
         if (this.createMode && !this.user.idirUserName) {
@@ -271,11 +285,15 @@ export default class IdentificationTab extends Vue {
         }
         
         if (!requiredError) {
-            if (this.editMode) this.updateProfile();
+            if (this.editMode){
+                if(this.userToEdit.homeLocationId == this.user.homeLocationId)
+                    this.updateProfile();
+                else
+                    this.showHomeLocationWarning = true;
+            } 
             if (this.createMode) this.createProfile();              
 
-        } else { 
-            this.UpdateUserToEdit(this.user);
+        } else {
             console.log('Error required')
         }             
     }
@@ -298,26 +316,48 @@ export default class IdentificationTab extends Vue {
         this.$http.put(url, body, options)
             .then(response => {
                 if(response.data){
-                    this.resetProfileWindowState();
-                    this.$emit('closeMemberDetails');
-                    this.$emit('profileUpdated')         
+                    this.updateLocation();                           
                 }                    
             }, err => {
-                console.log(err)
-                this.errorText = err.response.data.error
-                this.errorCode = err.response.status
-                
-                if(err.response.status == 400)
-                {
-                    if (this.errorText.includes('already has badge number')){
+                console.log(err.response.data)
+                const errMsg = err.response.data.error;
+                if(err.response.status == 400){
+                    if (errMsg.includes('already has badge number')){
                         this.badgeNumberState = false;
                         this.duplicateBadge = true;
-                    } else if (this.errorText.includes('has IDIR name')) {
+                    } else if (errMsg.includes('has IDIR name')) {
                         this.idirUserNameState = false;
                         this.duplicateIdir = true;
                     }                        
                 }
+                else{                    
+                    this.identificationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.identificationErrorMsgDesc = errMsg;
+                    this.identificationError = true;
+                }
             });
+    }
+
+    public updateLocation(){       
+        console.log(this.selectedHomeLocation)
+        
+        const url = 'api/sheriff/updatelocation?id='+this.user.id+'&locationId='+this.user.homeLocationId;
+        const options = {headers:{'Authorization' :'Bearer '+this.token}} 
+        this.$http.put(url, options)
+            .then(response => {
+                console.log(response)
+                this.resetProfileWindowState();
+                this.$emit('closeMemberDetails');
+                this.$emit('profileUpdated') 
+                
+                                                            
+            }, err => {
+                console.log(err.response.data)
+                const errMsg = err.response.data.error;
+                this.identificationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                this.identificationErrorMsgDesc = errMsg;
+                this.identificationError = true;
+            });       
     }
 
     public createProfile() {
@@ -345,17 +385,20 @@ export default class IdentificationTab extends Vue {
                     this.$emit('profileUpdated')    
                 }
             }, err => {
-                this.errorText = err.response.data.error
-                this.errorCode = err.response.status                     
+                const errMsg = err.response.data.error;                                
                 
                 if(err.response.status == 400){
-                    if (this.errorText.includes('already has badge number')){
+                    if (errMsg.includes('already has badge number')){
                         this.badgeNumberState = false;
                         this.duplicateBadge = true;
-                    } else if (this.errorText.includes('has IDIR name')) {
+                    } else if (errMsg.includes('has IDIR name')) {
                         this.idirUserNameState = false;
                         this.duplicateIdir = true;
                     }                        
+                }else{
+                    this.identificationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.identificationErrorMsgDesc = errMsg;
+                    this.identificationError = true;   
                 }
 
             })   

@@ -1,10 +1,11 @@
 <template>
     <div>
         <b-card v-if="leaveTabDataReady" style="height:400px;overflow: auto;" no-body>                                        
-            <h2 v-if="leaveError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc"  variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
-
+            <b-card id="LeaveError" no-body>
+                <h2 v-if="leaveError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc"  variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
+            </b-card>
             <b-card  v-if="!addNewLeave">                
-                <b-button style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNewLeave = true"> <b-icon icon="plus" /> Add </b-button>
+                <b-button size="sm" variant="success" @click="addNewLeave = true"> <b-icon icon="plus" /> Add </b-button>
             </b-card> 
 
             <b-card v-if="addNewLeave" class="my-3" border-variant="light" no-body>
