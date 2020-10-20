@@ -5,10 +5,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using JCCommon.Clients.LocationServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SS.Api.Helpers;
+using SS.Api.Helpers.Exceptions;
 using SS.Api.Helpers.Extensions;
 using SS.Api.Models.DB;
 using SS.Db.models;
@@ -25,13 +27,15 @@ namespace SS.Api.services.JC
         private readonly SheriffDbContext _db;
         private IConfiguration Configuration { get; }
         private bool Expire { get; }
+        private bool AssociateUsersWithNoLocationToVictoria { get; }
 
         public JCDataUpdaterService(SheriffDbContext dbContext, LocationServicesClient locationClient, IConfiguration configuration, ILogger<JCDataUpdaterService> logger)
         {
             _locationClient = locationClient;
             _db = dbContext;
             Configuration = configuration;
-            Expire = Configuration.GetNonEmptyValue("JCSynchronizationExpire").Equals("true");
+            Expire = Configuration.GetNonEmptyValue("JCSynchronization:Expire").Equals("true");
+            AssociateUsersWithNoLocationToVictoria = Configuration.GetNonEmptyValue("JCSynchronization:AssociateUsersWithNoLocationToVictoria").Equals("true");
             _logger = logger;
         }
 
@@ -73,7 +77,8 @@ namespace SS.Api.services.JC
                                {
                                    Name = lnew.Name,
                                    RegionId = lnew.RegionId,
-                                   UpdatedOn = DateTime.UtcNow
+                                   UpdatedOn = DateTime.UtcNow,
+                                   Timezone = lnew.Timezone
                                })
                                .RunAsync();
 
@@ -87,6 +92,20 @@ namespace SS.Api.services.JC
                     disableLocation.ExpiryDate = DateTime.UtcNow;
                     disableLocation.UpdatedOn = DateTime.UtcNow;
                     disableLocation.UpdatedById = User.SystemUser;
+                }
+                await _db.SaveChangesAsync();
+            }
+
+            if (AssociateUsersWithNoLocationToVictoria)
+            {
+                var sheriffsWithNoHomeLocation = _db.Sheriff.Where(s => !s.HomeLocationId.HasValue);
+                var victoriaLocation = _db.Location.AsNoTracking().FirstOrDefault(l => l.Name == "Victoria Law Courts");
+                if (victoriaLocation == null)
+                    return;
+                foreach (var sheriff in sheriffsWithNoHomeLocation)
+                {
+                    _logger.LogDebug($"Setting ${sheriff.LastName}, ${sheriff.FirstName} - HomeLocation to ${victoriaLocation.Id}");
+                    sheriff.HomeLocationId = victoriaLocation.Id;
                 }
                 await _db.SaveChangesAsync();
             }
@@ -141,6 +160,7 @@ namespace SS.Api.services.JC
             }
         }
 
+
         private async Task<List<Location>> GenerateLocationsAndLinkToRegions()
         {
             var regionDictionary = new Dictionary<int, ICollection<int>>();
@@ -166,9 +186,31 @@ namespace SS.Api.services.JC
                 return location;
             });
 
+            locationsDb = AssociateLocationToTimezone(locationsDb);
+
             _logger.LogDebug("Locations without a region: ");
             _logger.LogDebug(JsonConvert.SerializeObject(locationWithoutRegion));
             return locationsDb;
         }
+
+        private List<Location> AssociateLocationToTimezone(List<Location> locations)
+        {
+            foreach (var location in locations)
+            {
+                var configurationSections =
+                    Configuration.GetSection("JCSynchronization:LocationTimeZones").Get<Dictionary<string, string>>() ??
+                    throw new ConfigurationException("Couldn't not build dictionary based on LocationTimeZones");
+
+                var otherTimezone =
+                    configurationSections.FirstOrDefault(cs => cs.Value.Split(",").Select(s => s.Trim())
+                            .Any(partialName => location.Name.Contains(partialName)))
+                        .Key;
+
+                location.Timezone = otherTimezone ?? "America/Vancouver";
+            }
+
+            return locations;
+        }
+
     }
 }

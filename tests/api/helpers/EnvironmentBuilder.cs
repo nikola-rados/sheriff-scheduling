@@ -7,6 +7,8 @@ using SS.Api.Helpers.Extensions;
 using SS.Api.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.InMemory;
+using Microsoft.Extensions.Options;
+using Moq;
 using SS.Api.models;
 using SS.Api.Models.DB;
 using SS.Db.models;
@@ -33,11 +35,15 @@ namespace tests.api.Helpers
             //Create HTTP client, usually done by Startup.cs - which handles the life cycle of HttpClient nicely.
             HttpClient = new HttpClient();
 
-            HttpClient.DefaultRequestHeaders.Authorization = new SS.Api.models.BasicAuthenticationHeaderValue(
-                Configuration.GetNonEmptyValue(usernameKey),
-                Configuration.GetNonEmptyValue(passwordKey));
+            if (usernameKey != null && passwordKey != null && urlKey != null)
+            {
+                HttpClient.DefaultRequestHeaders.Authorization = new SS.Api.models.BasicAuthenticationHeaderValue(
+                    Configuration.GetNonEmptyValue(usernameKey),
+                    Configuration.GetNonEmptyValue(passwordKey));
 
-            HttpClient.BaseAddress = new Uri(Configuration.GetNonEmptyValue(urlKey).EnsureEndingForwardSlash());
+                HttpClient.BaseAddress = new Uri(Configuration.GetNonEmptyValue(urlKey).EnsureEndingForwardSlash());
+            }
+
             //Create logger.
             LogFactory = LoggerFactory.Create(loggingBuilder =>
             {
@@ -63,6 +69,13 @@ namespace tests.api.Helpers
                 optionsBuilder.UseNpgsql(configuration.GetNonEmptyValue("DatabaseConnectionString")).EnableSensitiveDataLogging(true);
 
             return optionsBuilder.Options;
+        }
+
+        public static IOptionsSnapshot<T> CreateIOptionSnapshotMock<T>(T value) where T : class, new()
+        {
+            var mock = new Mock<IOptionsSnapshot<T>>();
+            mock.Setup(m => m.Value).Returns(value);
+            return mock.Object;
         }
 
     }

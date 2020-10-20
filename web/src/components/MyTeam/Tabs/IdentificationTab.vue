@@ -1,4 +1,3 @@
-
 <template>
     <div :key="refreshPage">
         <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
@@ -32,8 +31,41 @@
                 <b-form-select v-model="user.rank" placeholder="Select Rank" :options="commonInfo.sheriffRankList" :state = "selectedRankState?null:false"></b-form-select>
             </b-form-group>
         </b-row>
-        <h2 class="mx-1 mt-0"><b-badge v-if="duplicateBadge" variant="danger"> Duplicate Badge</b-badge></h2>
+        <h2 v-if="duplicateBadge" class="mx-1 mt-0"><b-badge variant="danger"> Duplicate Badge</b-badge></h2>
 
+        <b-row  v-if="createMode" class="mx-1">
+            <b-form-group class="mr-1" style="width: 25rem"><label>Home Location<span class="text-danger">*</span></label> 
+                <b-form-select                                                                                                           
+                    v-model="user.homeLocationId"
+                    :state = "homeLocationState?null:false"
+                    >                            
+                        <b-form-select-option
+                            v-for="homelocation in locationList" 
+                            :key="homelocation.id"
+                            :value="homelocation.id">
+                                {{homelocation.name}}
+                        </b-form-select-option>    
+                </b-form-select>
+            </b-form-group>
+        </b-row>
+
+        <b-modal v-model="showCancelWarning" id="bv-modal-team-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>                
+                 <h2 v-if="editMode" class="mb-0 text-light"> Unsaved Profile Changes </h2>
+                 <h2 v-else-if="createMode" class="mb-0 text-light"> Unsaved New Profile </h2>                
+            </template>
+            <p>Are you sure you want to {{cancelMessage}} without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="closeWarningWindow(false);"                   
+                >No</b-button>
+                <b-button variant="success" @click="closeWarningWindow(true)"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>
     </div>
 </template>
 
@@ -44,8 +76,10 @@ import {commonInfoType, locationInfoType} from '../../../types/common';
 import * as _ from 'underscore';
 
 import { namespace } from 'vuex-class';
-const commonState = namespace("CommonInformation");
-import store from '../../../store'
+import "@store/modules/CommonInformation";
+const commonState = namespace("CommonInformation"); 
+import "@store/modules/TeamMemberInformation";
+const TeamMemberState = namespace("TeamMemberInformation");
 
 enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -61,8 +95,8 @@ export default class IdentificationTab extends Vue {
     @commonState.State
     public location!: locationInfoType;
 
-    @Prop({required: true})
-    originalUser!: teamMemberInfoType;
+    @commonState.State
+    public locationList!: locationInfoType[];
 
     @Prop({required: true})
     createMode!: boolean;
@@ -73,6 +107,12 @@ export default class IdentificationTab extends Vue {
     @Prop({required: true})
     runMethod!: any;
 
+    @TeamMemberState.State
+    public userToEdit!: teamMemberInfoType;
+
+    @TeamMemberState.Action
+    public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
+
     genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
     genderValues = [0, 1, 2]
     firstNameState = true;
@@ -82,8 +122,14 @@ export default class IdentificationTab extends Vue {
     badgeNumberState = true;
     selectedRankState = true;
     idirUserNameState = true;
+    homeLocationState = true;
     duplicateBadge = false;
     duplicateIdir = false;
+
+    showCancelWarning = false;
+    cancelMessage ='cancel';
+
+    selectedHomeLocation = {} as locationInfoType | undefined;
 
     errorCode = 0;
     errorText = '';
@@ -92,17 +138,34 @@ export default class IdentificationTab extends Vue {
     user = {} as teamMemberInfoType;
 
     mounted(){
-        console.log('role')
-        this.ClearFormState();
-        if(this.createMode) 
-            this.user = {} as teamMemberInfoType;
-        else
-            this.user = _.clone(this.originalUser);
-
-        this.refreshPage++;
-        console.log(this.user)
+        //console.log('identification')
+        this.refreshTabInformation();
+        //console.log(this.user)
+        this.runMethod.$on('switchTab', this.switchTab)
         this.runMethod.$on('closeProfileWindow', this.closeProfileWindow)
-        this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)                
+        this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)
+    }
+
+    public refreshTabInformation()
+    {
+        //console.log('refresh identification tab')        
+        this.ClearFormState();
+        //console.log(this.userToEdit)
+        this.user = _.clone(this.userToEdit);
+        this.refreshPage++;
+    }
+
+    public switchTab(){
+        
+        if(this.editMode && !this.changesMade()){
+            this.$emit('changeTab', true);
+            //console.log('allow change tab')
+        }    
+        else
+        {            
+            this.cancelMessage = 'change tabs';
+            this.showCancelWarning = true;
+        }
     }
 
     public closeProfileWindow(){
@@ -116,11 +179,31 @@ export default class IdentificationTab extends Vue {
             this.resetProfileWindowState();
         }    
         else
-            this.$emit('showWarning');
+        {
+            this.cancelMessage = 'cancel';
+            this.showCancelWarning = true;
+        }
+    }
+
+    public closeWarningWindow(changingTab: boolean) {
+        this.showCancelWarning = false;
+        if(this.cancelMessage == 'cancel' && changingTab)
+        { 
+            this.$emit('closeMemberDetails');
+            this.resetProfileWindowState();            
+        }
+        else{
+            this.$emit('changeTab', changingTab);
+        }
     }
 
     public changesMade(): boolean {
-        return !_.isEqual(this.originalUser, this.user)
+        if (this.editMode) {
+            this.user.homeLocationId = this.userToEdit.homeLocationId;
+            this.user.homeLocationNm = this.userToEdit.homeLocationNm;
+            this.user.homeLocation = this.userToEdit.homeLocation;
+        }
+        return !_.isEqual(this.userToEdit, this.user)
     }
 
     public isEmpty(obj){
@@ -131,66 +214,75 @@ export default class IdentificationTab extends Vue {
     }
          
     public saveMemberProfile() { 
-        console.log('save')      
-        const requiredErrorTab: number[] = [];
+        // console.log('save') 
+        // console.log(this.user) 
+        // console.log(this.userToEdit)    
+        let requiredError = false;
 
         if (this.createMode && !this.user.idirUserName) {
             this.idirUserNameState = false;
-            requiredErrorTab.push(0);
+            requiredError = true;
         } else {
             this.idirUserNameState = true;
             this.duplicateIdir = false;
         }
         if (!this.user.firstName) {
             this.firstNameState = false;
-            requiredErrorTab.push(0);
+            requiredError = true;
         } else {
             this.firstNameState = true;
         }
         if (!this.user.lastName) {
             this.lastNameState = false;
-            requiredErrorTab.push(0);
+            requiredError = true;
         } else {
             this.lastNameState = true;
         }
         if (this.genderValues.toString().indexOf(this.user.gender) == -1) {
             this.selectedGenderState = false;
-            requiredErrorTab.push(0);
+            requiredError = true;
         } else {
             this.selectedGenderState = true;
         }
         if (!this.user.badgeNumber) {
             this.badgeNumberState = false;
-            requiredErrorTab.push(0);
+            requiredError = true;
         } else {
             this.badgeNumberState = true;
             this.duplicateBadge = false;
         }
         if (!this.user.email) {
             this.emailState = false;
-            requiredErrorTab.push(0);
+            requiredError = true;
         } else {
             this.emailState = true;
         }
         if (!this.user.rank) {
             this.selectedRankState = false;
-            requiredErrorTab.push(0);
+            requiredError = true;
         } else {
             this.selectedRankState = true;
+        }        
+        if (!this.user.homeLocationId) {           
+            requiredError = true;
+            this.homeLocationState = false;
+        } else{
+            this.homeLocationState = true;
         }
         
-        if (requiredErrorTab.length == 0) {
+        if (!requiredError) {
             if (this.editMode) this.updateProfile();
             if (this.createMode) this.createProfile();              
 
-        } else {                
-            //this.tabIndex= requiredErrorTab[0]; __emit
+        } else { 
+            this.UpdateUserToEdit(this.user);
+            console.log('Error required')
         }             
     }
 
     public updateProfile(): void {
-        const body = {
-            homeLocationId: this.location.id,               
+        console.log('update profile')
+        const body = {               
             gender: this.user.gender,
             badgeNumber: this.user.badgeNumber,
             rank: this.user.rank,
@@ -214,9 +306,7 @@ export default class IdentificationTab extends Vue {
                 console.log(err)
                 this.errorText = err.response.data.error
                 this.errorCode = err.response.status
-                    
-                //if(this.errorText.includes('already has badge number'))
-                // has IDIR name
+                
                 if(err.response.status == 400)
                 {
                     if (this.errorText.includes('already has badge number')){
@@ -227,13 +317,14 @@ export default class IdentificationTab extends Vue {
                         this.duplicateIdir = true;
                     }                        
                 }
-
             });
     }
 
     public createProfile() {
+
+        console.log('create profile')
         const body = {
-            homeLocationId: this.location.id,               
+            homeLocationId: this.user.homeLocationId,               
             gender: this.user.gender,
             badgeNumber: this.user.badgeNumber,
             rank: this.user.rank,
@@ -270,9 +361,9 @@ export default class IdentificationTab extends Vue {
             })   
     }
 
-    public resetProfileWindowState() {       
-        this.ClearFormState();
+    public resetProfileWindowState() {
         this.user = {} as teamMemberInfoType;
+        this.ClearFormState();
     }
 
     public ClearFormState(){        

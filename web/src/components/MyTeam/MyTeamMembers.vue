@@ -3,7 +3,7 @@
         <b-row class="bg-white">
             <b-col cols="10">
                 <page-header :pageHeaderText="sectionHeader"></page-header>
-                <b-card  >  
+                <b-card>  
                     <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
                         <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
                         <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
@@ -36,11 +36,18 @@
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
-                        <div @click="openMemberDetails(teamMember.id)" class="card-body">
+                        <div class="card-header bg-dark border-dark mb-0 pb-0 " >
+                            <b-row class="ml-3">                                                
+                                <user-location-summary v-if="teamMember.loanedOut.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
+                                <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
+                                <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
+                            </b-row>
+                        </div>
+                        <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
-                        <div class="card-footer text-white bg-dark border-dark" >                                                
-                            <expire-sheriff-profile :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
+                        <div class="card-footer text-white bg-dark border-dark mt-0 pt-0" >                                                
+                            <expire-sheriff-profile :disabled="!userIsAdmin" :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
                         </div>
                     </div>
                 </div>
@@ -55,33 +62,40 @@
             <b-card v-if="isUserDataMounted" no-body>
                 <b-row>
                     <b-col cols="3">
-                        <user-summary-template v-on:photoChange="photoChanged" :user="user" :editMode="editMode"/>
+                        <user-summary-template v-on:photoChange="photoChanged" :user="userToEdit" :editMode="editMode"/>
                     </b-col>
                     <b-col cols="9">
-                        <b-card no-body>
-                            <b-tabs card v-model="tabIndex">
-                                <b-tab title="Identification" >
+                        <b-card no-body >
+                            <b-tabs  card v-model="tabIndex" @activate-tab="onTabChanged">
+                                <b-tab title="Identification">
                                     <identification-tab 
-                                        :runMethod="identificationTabMethods" 
-                                        v-on:showWarning="$bvModal.show('bv-modal-team-cancel-warning')" 
-                                        v-on:closeMemberDetails="closeWarningWindow()" 
-                                        v-on:profileUpdated="getSheriffs()" 
-                                        :originalUser="user"
+                                        :runMethod="identificationTabMethods"                                         
+                                        v-on:closeMemberDetails="closeMemberDetailWindow()" 
+                                        v-on:profileUpdated="getSheriffs()"   
+                                        v-on:changeTab="changeTab"                                     
                                         :createMode="createMode" 
                                         :editMode="editMode" />
                                 </b-tab>
 
-                                <b-tab title="Locations">                                    
+                                <b-tab v-if="editMode" title="Locations" class="p-0"> 
+                                    <location-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                   
                                 </b-tab>
 
-                                <b-tab title="Leaves">                                    
+                                <b-tab v-if="editMode" title="Leaves">
+                                    <leave-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                    
                                 </b-tab>
 
-                                <b-tab title="Training"> 
+                                <b-tab v-if="editMode"  title="Training"> 
+                                    <training-tab
+                                        v-on:change="getSheriffs()"/>
                                 </b-tab>
 
                                 <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
-                                    <role-assignment-tab :userId="user.id" :userAllRoles="userAllRoles" />
+                                    <role-assignment-tab :userId="userToEdit.id" :userAllRoles="userAllRoles" />
                                 </b-tab>
 
                             </b-tabs>
@@ -110,41 +124,32 @@
             </template>           
         </b-modal>
 
-        <b-modal v-model="showCancelWarning" id="bv-modal-team-cancel-warning" header-class="bg-warning text-light">            
-            <template v-slot:modal-title>                
-                 <h2 v-if="editMode" class="mb-0 text-light"> Unsaved Profile Changes </h2>
-                 <h2 v-else-if="createMode" class="mb-0 text-light"> Unsaved New Profile </h2>                
-            </template>
-            <p>Are you sure you want to cancel without saving your changes?</p>
-            <template v-slot:modal-footer>
-                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-team-cancel-warning')"                   
-                >No</b-button>
-                <b-button variant="success" @click="closeWarningWindow()"
-                >Yes</b-button>
-            </template>            
-            <template v-slot:modal-header-close>                 
-                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-team-cancel-warning')"
-                 >&times;</b-button>
-            </template>
-        </b-modal>
+        
     </b-card>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation"); 
+    import "@store/modules/TeamMemberInformation";
+    const TeamMemberState = namespace("TeamMemberInformation");
     import * as _ from 'underscore';
-    import PageHeader from "@components/common/PageHeader.vue";
-    import UserSummaryTemplate from "./utils/UserSummaryTemplate.vue";
-    import "@store/modules/CommonInformation";  
+    import PageHeader from "@components/common/PageHeader.vue";    
     import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
     import {teamMemberInfoType, roleOptionInfoType} from '../../types/MyTeam';
-    import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';  
-    const commonState = namespace("CommonInformation");
-    import store from '../../store'
-    import ExpireSheriffProfile from './utils/ExpireSheriffProfile.vue'
-    import RoleAssignmentTab from './utils/RoleAssignmentTab.vue'
-    import IdentificationTab from './utils/IdentificationTab.vue'
+    import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';
+    import ExpireSheriffProfile from './Tabs/ExpireSheriffProfile.vue'
+    import RoleAssignmentTab from './Tabs/RoleAssignmentTab.vue'
+    import IdentificationTab from './Tabs/IdentificationTab.vue'
+    import UserSummaryTemplate from "./Tabs/UserSummaryTemplate.vue";
+    import LocationTab from './Tabs/LocationTab.vue';
+    import LeaveTab from './Tabs/LeaveTab.vue';
+    import UserLocationSummary from './Tabs/UserLocationSummary.vue';
+    import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
+    import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
+    import TrainingTab from './Tabs/TrainingTab.vue'
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -152,9 +157,15 @@
         components: {
             PageHeader,
             UserSummaryTemplate,
+            UserLocationSummary,
+            UserTrainingSummary,
+            UserLeaveSummary,
             ExpireSheriffProfile,
             RoleAssignmentTab,
-            IdentificationTab
+            IdentificationTab,
+            LocationTab,
+            LeaveTab,
+            TrainingTab
         }        
     })    
     export default class MyTeamMembers extends Vue {
@@ -179,11 +190,17 @@
 
         @commonState.State
         public userDetails!: userInfoType;
+
+        @TeamMemberState.State
+        public userToEdit!: teamMemberInfoType;
+
+        @TeamMemberState.Action
+        public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
+
+        identificationTabMethods = new Vue();
         
         expiredViewChecked = false;
         showMemberDetails = false;
-        showCancelWarning = false;
-        user = {} as teamMemberInfoType;
         userIsAdmin = false;
 
         tabIndex = 0;
@@ -197,6 +214,8 @@
         searchPhrase = '';
 
         isMyTeamDataMounted = false;
+        newTabIndex = 0;
+        firstNavigation = true;
     
         allMyTeamData: teamMemberInfoType[] =[];
         
@@ -220,7 +239,7 @@
         public getSheriffs()
         {
             this.isMyTeamDataMounted = false;
-            const url = 'api/sheriff'//?locationId=' + this.location.id
+            const url = 'api/sheriff'
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.get(url, options)
                 .then(response => {
@@ -231,13 +250,28 @@
                     this.isMyTeamDataMounted = true;
                 })
         }
+        
+        public onTabChanged(newTabIndex , prevTabIndex, bvEvt)
+        {
+            this.newTabIndex = newTabIndex;            
+            if(prevTabIndex == 0 && this.firstNavigation)
+            {
+                this.firstNavigation = false;
+                bvEvt.preventDefault();
+                this.identificationTabMethods.$emit('switchTab');   
+            }            
+        }
 
-        public extractMyTeamFromSheriffs(data: any){
-    
+        public changeTab(changingTab) {
+            if(changingTab) this.tabIndex = this.newTabIndex;
+            Vue.nextTick().then(()=>{this.firstNavigation = true;});
+        }
+
+        public extractMyTeamFromSheriffs(data: any) {    
             this.allMyTeamData = [];            
             for(const myteaminfo of data)
             {
-                const myteam: teamMemberInfoType = {id:'',idirUserName:'', rank:'', firstName:'', lastName:'', email:'', badgeNumber:'', gender:'' }
+                const myteam = {} as teamMemberInfoType;
                 myteam.fullName = Vue.filter('capitilize')(myteaminfo.firstName) + ' ' + Vue.filter('capitilize')(myteaminfo.lastName);
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
@@ -247,61 +281,38 @@
                 myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
-                myteam.homeLocationNm = myteaminfo.homeLocation?myteaminfo.homeLocation.name:'';
+                myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';               
+                
+                myteam.leave = myteaminfo.leave? myteaminfo.leave: [];
+                myteam.training = myteaminfo.training? myteaminfo.training: [];
+                myteam.loanedOut = myteaminfo.loanedOut;
+                if(myteaminfo.homeLocation)
+                    myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
             }            
         }
 
         get myTeamData() {
             return this.allMyTeamData.filter(member => {
-                if (this.expiredViewChecked)
+                if (this.expiredViewChecked || member.isEnabled)
                 {
-                    if(this.searchPhrase=='')
-                    {
-                        if(member.homeLocationId == this.location.id)
-                            return true
+                    if(this.searchPhrase==''){
+                        if(member.homeLocationId == this.location.id) return true
+                        for(const loanInx in member.loanedOut)
+                            if(member.loanedOut[loanInx].locationId == this.location.id ) return true
                     }
-                    else
-                    { 
-                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                    }
-                }
-                else if(member.isEnabled){
-                    if(this.searchPhrase=='')
-                    {
-                        if(member.homeLocationId == this.location.id)
-                            return true
-                    }
-                    else
-                    { 
-                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
-                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))
-                            return true
+                    else{ 
+                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
+                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))   return true
+                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))           return true
+                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
+                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
                     }
                 }
             });
         }
 
-        
-
-        public photoChanged(id: string, image: string){
-           
+        public photoChanged(id: string, image: string){           
             const index = this.allMyTeamData.findIndex(myteam => {if(myteam.id == id) return true;else return false})
             if( index >=0 ){
                 this.allMyTeamData[index].image = image;
@@ -310,31 +321,43 @@
         }      
 
         public openMemberDetails(userId){
-            this.createMode = false;
-            this.editMode = true;            
-            this.loadUserDetails(userId);            
-            this.editMode = true;
+            if(this.userIsAdmin)
+            {
+                this.createMode = false;
+                this.editMode = true;            
+                this.loadUserDetails(userId);
+            }                        
         }
 
-        identificationTabMethods = new Vue();
+        public saveMemberProfile() { 
+            this.identificationTabMethods.$emit('saveMemberProfile');
+        }  
 
         public closeProfileWindow(){
-            this.identificationTabMethods.$emit('closeProfileWindow'); 
+            console.log(this.tabIndex)
+            if(this.tabIndex ==0 || this.createMode)
+            {  
+                this.identificationTabMethods.$emit('closeProfileWindow');
+            }
+            else 
+                this.closeMemberDetailWindow()
         }
 
-        public closeWarningWindow() {
-            this.showCancelWarning = false;
+        public closeMemberDetailWindow(){            
             this.showMemberDetails = false;
             this.resetProfileWindowState();            
         }
 
-        public resetProfileWindowState() {
+        public resetProfileWindowState(){
             this.createMode = false;
             this.editMode = false;
-            this.user = {} as teamMemberInfoType;
+            this.tabIndex = 0;
+            const user = {} as teamMemberInfoType;
+            this.UpdateUserToEdit(user);  
         }
 
         public AddMember(){ 
+            this.tabIndex = 0;
             this.createMode = true;
             this.editMode = false;
             this.isUserDataMounted = true;
@@ -358,30 +381,34 @@
 
         public extractUserInfo(userJson): void {
             console.log(userJson)
-            this.user = {} as teamMemberInfoType;            
-            this.user.idirUserName =  userJson.idirName;
-            this.user.firstName = userJson.firstName;
-            this.user.lastName = userJson.lastName;
-            this.user.fullName = Vue.filter('capitilize')(userJson.firstName) + ' ' + Vue.filter('capitilize')(userJson.lastName);
-            this.user.gender = gender[userJson.gender];
-            this.user.rank = userJson.rank;
-            this.user.email = userJson.email;
-            this.user.badgeNumber = userJson.badgeNumber;
-            this.user.id = userJson.id;
-            this.user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:''; 
-            console.log(this.user)
+            const user = {} as teamMemberInfoType;            
+            user.idirUserName =  userJson.idirName;
+            user.firstName = userJson.firstName;
+            user.lastName = userJson.lastName;
+            user.fullName = Vue.filter('capitilize')(userJson.firstName) + ' ' + Vue.filter('capitilize')(userJson.lastName);
+            user.gender = gender[userJson.gender];
+            user.rank = userJson.rank;
+            user.email = userJson.email;
+            user.badgeNumber = userJson.badgeNumber;
+            user.id = userJson.id;
+            user.homeLocationId = userJson.homeLocationId;
+            user.homeLocationNm = userJson.homeLocation? userJson.homeLocation.name: '';
+            user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
+            if(userJson.homeLocation)
+                user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
+          
+            if(userJson.awayLocation && userJson.awayLocation.length>0)
+                user.awayLocation = userJson.awayLocation;
+
+            user.leave = userJson.leave;
+            user.training = userJson.training;
             this.userAllRoles = userJson.roles
+            this.UpdateUserToEdit(user);  
         }
 
         get getCancelLabel(){
             if(this.tabIndex<1) return 'Cancel'; else return 'Close'
         }
-
-        public saveMemberProfile() { 
-            this.identificationTabMethods.$emit('saveMemberProfile');
-        }      
-
-
     }
 </script>
 

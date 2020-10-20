@@ -36,6 +36,15 @@ namespace SS.Api.controllers
             return Ok(locations.Adapt<List<LocationDto>>());
         }
 
+        [HttpGet]
+        [Route("all")]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
+        public async Task<ActionResult<List<LocationDto>>> AllLocations()
+        {
+            var locations = await _db.Location.ToListAsync();
+            return Ok(locations.Adapt<List<LocationDto>>());
+        }
+
         [HttpPut]
         [Route("{id}/enable")]
         [PermissionClaimAuthorize(perm: Permission.ExpireLocation)]

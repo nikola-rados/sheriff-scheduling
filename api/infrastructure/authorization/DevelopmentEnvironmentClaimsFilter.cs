@@ -2,16 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using SS.Api.Helpers;
 using SS.Api.Helpers.Extensions;
-using SS.Db.models;
 
 namespace SS.Api.infrastructure.authorization
 {
