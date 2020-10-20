@@ -15,9 +15,9 @@
                             <b-pagination
                                 v-model="currentPage"
                                 :total-rows="totalRows"
-                                :per-page="rowsPerPage"
-                                :limit="limit"
-                                ellipsis-text="...."
+                                :per-page="itemsPerPage" 
+                                first-number
+                                last-number                               
                                 first-text="First"
                                 prev-text="Prev"
                                 next-text="Next"
@@ -194,12 +194,6 @@
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
 
         @commonState.State
-        public token!: string;
-
-        @commonState.Action
-        public UpdateToken!: (newToken: string) => void
-
-        @commonState.State
         public location!: locationInfoType;
 
         @commonState.Action
@@ -220,17 +214,17 @@
         showMemberDetails = false;
         userIsAdmin = false;
 
-        itemsPerRow = 4;
-        rowsPerPage = 4;
+        itemsPerRow = 4;//Define
+        rowsPerPage = 1;//Define
         currentPage = 1;
-        limit = 5;
+        itemsPerPage = 1;// itemsPerRow*rowsPerPage
 
         tabIndex = 0;
         isUserDataMounted = false;
         editMode = false;
         createMode = false;
         sectionHeader = '';
-        photokey=0;
+        photokey = 0;
         userAllRoles: any[] = [];
 
         searchPhrase = '';
@@ -253,18 +247,17 @@
             this.userIsAdmin = (this.userDetails.roles.indexOf("Administrator") > -1) || (this.userDetails.roles.indexOf("System Administrator") > -1);
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
+            this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
         }
         
         get viewStatus() {
             if(this.expiredViewChecked) return 'All Profiles';else return 'Active Profiles'
         }
 
-        public getSheriffs()
-        {
+        public getSheriffs() {            
             this.isMyTeamDataMounted = false;
-            const url = 'api/sheriff'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/sheriff';
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)
@@ -274,11 +267,9 @@
                 })
         }
         
-        public onTabChanged(newTabIndex , prevTabIndex, bvEvt)
-        {
+        public onTabChanged(newTabIndex , prevTabIndex, bvEvt) {
             this.newTabIndex = newTabIndex;            
-            if(prevTabIndex == 0 && this.firstNavigation)
-            {
+            if(prevTabIndex == 0 && this.firstNavigation) {
                 this.firstNavigation = false;
                 bvEvt.preventDefault();
                 this.identificationTabMethods.$emit('switchTab');   
@@ -301,26 +292,23 @@
                 myteam.rank = myteaminfo.rank;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
-                myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
+                myteam.image = myteaminfo.photoUrl? myteaminfo.photoUrl: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';               
                 
                 myteam.leave = myteaminfo.leave? myteaminfo.leave: [];
                 myteam.training = myteaminfo.training? myteaminfo.training: [];
-                myteam.loanedOut = myteaminfo.loanedOut;
+                myteam.loanedOut = myteaminfo.awayLocation;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
-            }            
-        }
-
-        get itemsPerPage() {
-            return (this.itemsPerRow * this.rowsPerPage)
+            }  
+            console.log(this.allMyTeamData)          
         }
 
         get totalRows() {
-            return Math.ceil(this.myTeam.length/this.itemsPerRow)
+            return this.myTeam.length
         }
 
         get myTeamData() {
@@ -399,9 +387,8 @@
 
         public loadUserDetails(userId): void {
             this.editMode = true;            
-            const url = 'api/sheriff/' + userId
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/sheriff/' + userId;
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)                        
@@ -426,7 +413,7 @@
             user.id = userJson.id;
             user.homeLocationId = userJson.homeLocationId;
             user.homeLocationNm = userJson.homeLocation? userJson.homeLocation.name: '';
-            user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
+            user.image = userJson['photoUrl']?userJson['photoUrl']:'';
             if(userJson.homeLocation)
                 user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
           

@@ -196,9 +196,6 @@
     @Component
     export default class TrainingTab extends Vue {
 
-        @commonState.State
-        public token!: string;
-
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
 
@@ -257,9 +254,8 @@
         }
    
         public GetTrainings(){
-            const url = 'api/managetypes?codeType=TrainingType'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/managetypes?codeType=TrainingType';
+            this.$http.get(url)
                 .then(response => {
                     //console.log(response)
                     if(response.data){
@@ -323,8 +319,7 @@
 
             this.trainingError = false;
             const url = 'api/sheriff/training?id='+this.trainingToDelete.id;
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.delete(url, options)
+            this.$http.delete(url)
                 .then(response => {
                     console.log(response)
                     console.log('delete success')
@@ -411,9 +406,8 @@
                     }
 
                     console.log(body)
-                    const url = 'api/sheriff/training'  
-                    const options = {headers:{'Authorization' :'Bearer '+this.token}}
-                    this.$http.post(url, body, options)
+                    const url = 'api/sheriff/training';
+                    this.$http.post(url, body)
                         .then(response => {
                             console.log(response)
                             console.log('assign success')

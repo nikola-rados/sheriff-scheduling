@@ -253,9 +253,8 @@
         }
 
         public loadLeaveTypes() {
-            const url = 'api/managetypes?codeType=LeaveType'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/managetypes?codeType=LeaveType';
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         this.extractLeaveTypeInfo(response.data);                        
@@ -329,9 +328,8 @@
                         isFullDay: isFullDay,
                         sheriffId: this.userToEdit.id,
                     }
-                    const url = 'api/sheriff/leave'  
-                    const options = {headers:{'Authorization' :'Bearer '+this.token}}
-                    this.$http.post(url, body, options)
+                    const url = 'api/sheriff/leave';
+                    this.$http.post(url, body)
                         .then(response => {
                             console.log(response)
                             this.addToLeaveList(response.data);
@@ -412,8 +410,7 @@
 
             this.leaveError = false; 
             const url = 'api/sheriff/leave?id='+this.leaveToDelete.id;
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.delete(url, options)
+            this.$http.delete(url)
                 .then(response => {
                     console.log(response)
                     console.log('delete success')

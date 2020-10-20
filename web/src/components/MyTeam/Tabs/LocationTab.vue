@@ -107,9 +107,6 @@
     export default class LocationTab extends Vue {
 
         @commonState.State
-        public token!: string;
-
-        @commonState.State
         public locationList!: locationInfoType[];
 
         @TeamMemberState.State
@@ -184,8 +181,7 @@
 
             this.locationError = false; 
             const url = 'api/sheriff/awaylocation?id='+this.locationToDelete.id;
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.delete(url, options)
+            this.$http.delete(url)
                 .then(response => {
                     //console.log(response)
                     console.log('delete success')
@@ -235,8 +231,7 @@
             //console.log(iscreate)
             const method = iscreate? 'post' :'put';
             const url = 'api/sheriff/awaylocation'  
-            const options = { method: method, url:url, data:body, headers:{'Authorization' :'Bearer '+this.token}}
-            //console.log(options)
+            const options = { method: method, url:url, data:body}
             this.$http(options)
                 .then(response => {
                     //console.log(response)

@@ -2,7 +2,8 @@
     <b-card align="center">
         <b-card-img
             v-if="photo"
-            :src="photo"
+            v-auth-image="photo"
+            src="null"            
             style="max-width: 20rem; max-height: 22rem;"
             class="mb-3"
         ></b-card-img>
@@ -52,6 +53,10 @@
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 
+    import VueAuthImage from 'vue-auth-image';
+
+Vue.use(VueAuthImage);
+
     @Component
     export default class UserSummaryTemplate extends Vue {
 
@@ -63,9 +68,6 @@
 
         @Prop({required: true})
         editMode!: boolean;
-
-        @commonState.State
-        public token!: string;
         
         imageData: string | ArrayBuffer | null = null; 
         photo: string | null | undefined = ''; 
@@ -128,10 +130,9 @@
             const formData = new FormData();
             formData.append('file', imageBlob);
 
-            const url = 'api/sheriff/uploadphoto?id='+this.user.id;
-            const options = {headers:{'Authorization' :'Bearer '+this.token, 'Content-Type': 'multipart/form-data'}}           
+            const url = 'api/sheriff/uploadphoto?id='+this.user.id;        
             this.showPhotoReplacementWarning = false
-            this.$http.post(url, formData, options )
+            this.$http.post(url, formData)
                 .then(response => {
                     // console.log(response)
                     this.photo = 'data:image/;base64,'+response.data.photo
