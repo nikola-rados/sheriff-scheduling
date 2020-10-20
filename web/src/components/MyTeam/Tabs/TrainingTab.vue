@@ -261,7 +261,7 @@
             const options = {headers:{'Authorization' :'Bearer '+this.token}}
             this.$http.get(url, options)
                 .then(response => {
-                    console.log(response)
+                    //console.log(response)
                     if(response.data){
                         this.trainingTypes = response.data   
                         this.extractTrainings();                                        
@@ -271,7 +271,7 @@
 
         public extractTrainings ()
         {
-            console.log(this.userToEdit)
+            //console.log(this.userToEdit)
             if(this.userToEdit.training)
                 for(const training of this.userToEdit.training)
                 {
