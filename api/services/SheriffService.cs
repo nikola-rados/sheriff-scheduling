@@ -56,6 +56,7 @@ namespace SS.Api.services
                 //Apply permission filters.
                 .ApplyPermissionFilters(User)
                 //Include AwayLocation/Training/Leave that is within 5 days. 
+                //TODO write an extension method that makes this generic. 
                 .Include(s => s.AwayLocation.Where(al =>
                     !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
@@ -295,7 +296,7 @@ namespace SS.Api.services
 
         private void ValidateStartAndEndDates(DateTimeOffset startDate, DateTimeOffset endDate)
         {
-            if (startDate >= endDate) throw new BusinessLayerException("The start datetime cannot be after or on the end datetime. ");
+            if (startDate >= endDate) throw new BusinessLayerException("The start datetime cannot be on or after the end datetime. ");
         }
 
         private async Task ValidateSheriffExists(Guid sheriffId)
@@ -313,12 +314,12 @@ namespace SS.Api.services
                  updateOnlyId.HasValue && sal.Id != updateOnlyId));
 
             if (entity != null)
-                throw new BusinessLayerException($"This overlaps with existing SheriffEvent {entity.Id} with date range: {entity.StartDate} to {entity.EndDate}");
+                throw new BusinessLayerException($"Overlaps with existing {typeof(T)} with date range: {entity.StartDate.Date} to {entity.EndDate.Date}");
         }
+
         
         #endregion
 
         #endregion
     }
-
 }
