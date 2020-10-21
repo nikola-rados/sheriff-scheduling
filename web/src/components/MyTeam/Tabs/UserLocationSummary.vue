@@ -71,7 +71,7 @@
         homeLocation!: string;
 
         @Prop({required: true})
-        loanedJson!: awayLocationsJsontype[];  
+        awayJson!: awayLocationsJsontype[];  
         
         @commonState.State
         public location!: locationInfoType;
@@ -96,11 +96,11 @@
             this.displayLoanedOut = false;
             this.displayLoanedIn = false;
 
-            if (this.loanedJson.length > 0 ) {
+            if (this.awayJson.length > 0 ) {
                 
                 this.userLoanedOutInfo = [];
                 this.userLoanedInInfo = [];          
-                for(const loanedInfoJson of this.loanedJson)
+                for(const loanedInfoJson of this.awayJson)
                 {
                     const loanedInfo = {} as loanedLocationInfoType;
                     loanedInfo.locationId = loanedInfoJson.locationId;
