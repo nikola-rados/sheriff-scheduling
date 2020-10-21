@@ -37,8 +37,8 @@
                                 <span 
                                     class="text-primary"
                                     v-b-tooltip.hover.right                                
-                                    :title="data.item.locationNm.nameFull"> 
-                                        {{data.item.locationNm.name}}
+                                    :title="data.item.locationNm"> 
+                                        {{data.item.locationNm | truncate(20)}}
                                 </span>
                             </template>
                             <template v-slot:cell(startDate)="data" >
@@ -73,7 +73,7 @@
             <template v-slot:modal-title>
                     <h2 class="mb-0 text-light">Confirm Delete Location</h2>                    
             </template>
-            <p>Are you sure you want to delete the "{{locationToDelete.locationNm?locationToDelete.locationNm.nameFull:''}}" location?</p>
+            <p>Are you sure you want to delete the "{{locationToDelete.locationNm}}" location?</p>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="deleteLocation()">Delete</b-button>
                 <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
@@ -307,17 +307,7 @@
 
         public getLocationName(locationId: number|null){
             const index = this.locationList.findIndex(location=>{if(location.id == locationId)return true})
-            if(index>=0){   
-                let truncName = this.locationList[index].name.slice(0,20);
-                if (this.locationList[index].name && this.locationList[index].name.length>23)
-                    truncName = truncName +'...';
-                else
-                    truncName = this.locationList[index].name.slice(0,23);
-
-                return {name:truncName, nameFull:this.locationList[index].name}
-            }
-            else
-                return {name:'', nameFull:''}
+            if(index>=0) return this.locationList[index].name; else return '';
         }
 
     }

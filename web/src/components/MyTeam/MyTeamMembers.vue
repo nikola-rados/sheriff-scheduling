@@ -244,7 +244,7 @@
         }  
 
         mounted() {
-            this.userIsAdmin = (this.userDetails.roles.indexOf("Administrator") > -1) || (this.userDetails.roles.indexOf("System Administrator") > -1);
+            this.userIsAdmin = this.userDetails.roles.includes("Administrator") || this.userDetails.roles.includes("System Administrator");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
             this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
@@ -321,17 +321,22 @@
                             if(member.loanedOut[loanInx].locationId == this.location.id ) return true
                     }
                     else{ 
-                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
-                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))   return true
-                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))           return true
-                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
-                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
+                        if(this.searchForKeyword(member.firstName)) return true
+                        if(this.searchForKeyword(member.lastName))  return true
+                        if(this.searchForKeyword(member.rank))      return true
+                        if(this.searchForKeyword(member.badgeNumber))    return true
+                        if(this.searchForKeyword(member.homeLocationNm)) return true
                     }
                 }
             })
             
             return this.myTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
         }
+
+        public searchForKeyword(phrase){
+            if(phrase && phrase.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true;else return false;
+        }
+
 
         public photoChanged(id: string, image: string){           
             const index = this.allMyTeamData.findIndex(myteam => {if(myteam.id == id) return true;else return false})
