@@ -12,8 +12,10 @@ namespace SS.Api.Models.Dto
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
         public ICollection<ShiftSheriffDto> AssignedSheriffs { get; set; }
-        public int? LocationId { get; set; }
+        public int Slots { get; set; }
+        public int LocationId { get; set; }
         public LocationDto Location { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

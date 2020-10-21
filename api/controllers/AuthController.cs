@@ -70,7 +70,7 @@ namespace SS.Api.Controllers
         }
 
         /// <summary>
-        /// Must be logged in to call this. 
+        /// Should be logged in to call this. 
         /// </summary>
         /// <returns>access_token and refresh_token for API calls.</returns>
         [HttpGet("token")]

@@ -9,8 +9,6 @@ using Microsoft.Extensions.Configuration;
 using SS.Api.Helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.infrastructure.exceptions;
-using SS.Api.models.dto;
 using SS.Api.Models.Dto;
 using SS.Api.models.dto.generated;
 using SS.Api.services;
@@ -86,7 +84,7 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
         [Route("self")]
-        public async Task<ActionResult<SheriffDto>> Sheriff()
+        public async Task<ActionResult<SheriffDto>> GetSelfSheriff()
         {
             var sheriff = await _service.GetSheriff(User.CurrentUserId());
             if (sheriff == null)

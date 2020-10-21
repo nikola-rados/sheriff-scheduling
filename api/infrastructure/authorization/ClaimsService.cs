@@ -13,11 +13,11 @@ namespace SS.Api.services
     /// <summary>
     /// This should load up our User context with claims from the database. 
     /// </summary>
-    public class AuthService
+    public class ClaimsService
     {
         private readonly SheriffDbContext _db;
 
-        public AuthService(SheriffDbContext dbContext)
+        public ClaimsService(SheriffDbContext dbContext)
         {
             _db = dbContext;
         }

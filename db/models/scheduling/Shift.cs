@@ -16,7 +16,9 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
         public ICollection<ShiftSheriff> AssignedSheriffs { get; set; } = new List<ShiftSheriff>();
-        public int? LocationId { get; set; }
+        public int Slots { get; set; }
+        public int LocationId { get; set; }
         public Location Location { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
     }
 }

@@ -10,6 +10,7 @@ namespace SS.Api.Models.Dto
         public Guid SheriffId { get; set; }
         public ShiftDto Shift { get; set; }
         public int ShiftId { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

@@ -16,5 +16,6 @@ namespace SS.Db.models.scheduling
         public Guid SheriffId { get; set; }
         public Shift Shift { get; set; }
         public int ShiftId { get; set; }
+        public DateTimeOffset? ExpiryDate { get; set; }
     }
 }

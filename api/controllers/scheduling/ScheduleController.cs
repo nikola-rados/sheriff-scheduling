@@ -6,6 +6,7 @@ using SS.Api.infrastructure.authorization;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
+using SS.Db.models.scheduling;
 
 namespace SS.Api.controllers
 {
@@ -24,7 +25,7 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
         public async Task<ActionResult<ShiftDto>> AddShift(ShiftDto shiftDto)
         {
-            var shift = await ScheduleService.AddShift();
+            var shift = await ScheduleService.AddShift(shiftDto.Adapt<Shift>());
             return Ok(shift.Adapt<ShiftDto>());
         }
 
