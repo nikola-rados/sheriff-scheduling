@@ -63,6 +63,7 @@ namespace SS.Api.services
                     savedUserRole.User = user;
                     savedUserRole.ExpiryDate = assignRole.ExpiryDate;
                     savedUserRole.EffectiveDate = assignRole.EffectiveDate;
+                    savedUserRole.ExpiryReason = assignRole.ExpiryReason;
                 }
                 else
                 {
@@ -86,7 +87,11 @@ namespace SS.Api.services
                 user.ThrowBusinessExceptionIfNull($"User with id {unassignRole.UserId} does not exist.");
 
                 var userRole = user.UserRoles.FirstOrDefault(r => r.UserId == unassignRole.UserId && r.RoleId == unassignRole.RoleId);
-                if (userRole != null) userRole.ExpiryDate = DateTime.UtcNow;
+                if (userRole != null)
+                {
+                    userRole.ExpiryDate = DateTime.UtcNow;
+                    userRole.ExpiryReason = unassignRole.ExpiryReason;
+                }
             }
             await _db.SaveChangesAsync();
         }
