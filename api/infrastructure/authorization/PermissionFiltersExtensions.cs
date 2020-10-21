@@ -29,8 +29,8 @@ namespace SS.Api.infrastructure.authorization
 
         private static IQueryable<Sheriff> FilterUsersInHomeLocationAndLoanedWithin5Days(this IQueryable<Sheriff> query, int homeLocationId)
         {
-            var sevenDaysFromNow = DateTimeOffset.Now.AddDays(7).Date;
-            var now = DateTimeOffset.Now.Date;
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7).Date;
+            var now = DateTimeOffset.UtcNow.Date;
 
             return query.Where(s => s.HomeLocationId == homeLocationId ||
                              s.AwayLocation.Any(al =>
