@@ -29,7 +29,7 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {trainingInfoType} from '../../../types/MyTeam';
+    import {userTrainingInfoType} from '../../../types/MyTeam';
     import {trainingJsontype} from '../../../types/MyTeam/jsonTypes';
 
     @Component
@@ -41,7 +41,7 @@
         @Prop({required: true})
         trainingJson!: trainingJsontype[];               
         
-        userTrainingInfo: trainingInfoType[] = [];
+        userTrainingInfo: userTrainingInfoType[] = [];
         displayTraining = false;
         userTrainingFields = [
           { key: 'trainingName', label: 'Training Type', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
@@ -61,7 +61,7 @@
                 this.userTrainingInfo = [];            
                 for(const trainingInfoJson of this.trainingJson)
                 {
-                    const trainingInfo = {} as trainingInfoType;
+                    const trainingInfo = {} as userTrainingInfoType;
                     trainingInfo.trainingTypeId = trainingInfoJson.trainingTypeId
                     trainingInfo.trainingName = trainingInfoJson.trainingType.description;
 

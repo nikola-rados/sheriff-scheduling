@@ -13,6 +13,12 @@ export interface leaveInfoType {
     description?: string;
 }
 
+export interface trainingInfoType {
+    code: string;
+    id: number;
+    description?: string;
+}
+
 export interface userInfoType {
     "roles": string[],
     "homeLocationId": number

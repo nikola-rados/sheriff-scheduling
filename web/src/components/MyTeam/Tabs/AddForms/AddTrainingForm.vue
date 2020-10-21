@@ -5,26 +5,33 @@
                 <b-tr>
                     <b-td>   
                         <b-tr class="mt-1 bg-white">   
-                            <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Leave: </b>                          
-                            <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Leave: </b> 
-                            <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day Leave: </b>
+                            <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Training: </b>                          
+                            <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Training: </b> 
+                            <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day Training: </b>
                         </b-tr>
                         <b-tr >
                             <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 19rem"> 
                                 <b-form-select
                                     size = "sm"
-                                    v-model="selectedLeave"
-                                    :state = "leaveState?null:false">
+                                    v-model="selectedTrainingType"
+                                    :state = "trainingTypeState?null:false">
                                         <b-form-select-option :value="{}">
-                                            Select a Leave Type*
+                                            Select a Training Type*
                                         </b-form-select-option>
                                         <b-form-select-option
-                                            v-for="leave in leaveTypeInfoList" 
-                                            :key="leave.id"
-                                            :value="leave">
-                                                {{leave.description}}
+                                            v-for="training in trainingTypeInfoList" 
+                                            :key="training.id"
+                                            :value="training">
+                                                {{training.description}}
                                         </b-form-select-option>     
                                 </b-form-select>
+                                <b-form-input
+                                        v-if="selectedTrainingType.code=='Other'"
+                                        v-model="selectedTrainingTypeComment"
+                                        placeholder="Comment*"
+                                        :state = "trainingTypeCommentState?null:false"
+                                        size = "sm">
+                                </b-form-input>
                             </b-form-group>
                         </b-tr>                        
                     </b-td>
@@ -69,6 +76,16 @@
                         </b-form-timepicker>
                     </b-td>
                     <b-td >
+                        <label class="h6 m-0 p-0"> Expiry Date: </label>
+                        <b-form-datepicker
+                            class="mb-1 mt-0 pt-0"
+                            size="sm"
+                            v-model="selectedExpiryDate"
+                            placeholder="Expiry Date*"
+                            :state = "expiryDateState?null:false"                                    
+                            :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+                            locale="en-US">
+                        </b-form-datepicker> 
                         <b-button                                    
                             style="margin: 2rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
                             variant="secondary"
@@ -91,48 +108,54 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {teamMemberInfoType ,userLeaveInfoType} from '../../../../types/MyTeam';
-    import {leaveInfoType} from '../../../../types/common';
-    import { leaveTypeJson } from '../../../../types/common/jsonTypes';
+    import {teamMemberInfoType ,userTrainingInfoType} from '../../../../types/MyTeam';
+    import {trainingInfoType} from '../../../../types/common';
+    import { trainingTypeJson } from '../../../../types/common/jsonTypes';
     import { namespace } from 'vuex-class';
     import "@store/modules/TeamMemberInformation"; 
     const TeamMemberState = namespace("TeamMemberInformation");
 
     @Component
-    export default class AddLeaveForm extends Vue {        
+    export default class AddTrainingForm extends Vue {        
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
 
         @Prop({required: true})
-        formData!: userLeaveInfoType;
+        formData!: userTrainingInfoType;
 
         @Prop({required: true})
         isCreate!: boolean;
 
         @Prop({required: true})
-        leaveTypeInfoList!: leaveInfoType[];       
+        trainingTypeInfoList!: trainingInfoType[];       
 
-        selectedLeave = {} as leaveInfoType | undefined;
-        leaveState = true;      
+        selectedTrainingType = {} as trainingInfoType | undefined;
+        trainingTypeState = true;
 
-        selectedStartDate = '';
-        startDateState = true; 
+        selectedTrainingTypeComment =''
+        trainingTypeCommentState = true
 
-        selectedEndDate = '';
-        endDateState = true;
+        selectedEndDate = ''
+        endDateState = true
 
-        selectedStartTime = '';
-        startTimeState = true;
+        selectedStartDate = ''
+        startDateState = true
 
-        selectedEndTime = '';
-        endTimeState = true; 
+        selectedStartTime = ''
+        startTimeState = true
+
+        selectedEndTime = ''
+        endTimeState = true
+
+        selectedExpiryDate = ''
+        expiryDateState = true; 
 
         formDataId = 0;
         
         mounted()
         { 
-            this.clearSelections();
+            this.clearTrainingSelections();
             if(this.formData.id) {
                 this.extractFormInfo();
             }               
@@ -141,8 +164,10 @@
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
             
-            const index = this.leaveTypeInfoList.findIndex(leave=>{if(leave.id == this.formData.leaveTypeId)return true})
-            this.selectedLeave = (index>=0)? this.leaveTypeInfoList[index]: {} as leaveInfoType;            
+            const index = this.trainingTypeInfoList.findIndex(training=>{if(training.id == this.formData.trainingTypeId)return true})
+            this.selectedTrainingType = (index>=0)? this.trainingTypeInfoList[index]: {} as trainingInfoType; 
+            this.selectedExpiryDate = this.formData.expiryDate.substring(0,10);
+            this.selectedTrainingTypeComment = this.formData.comment? this.formData.comment:'';          
             this.selectedStartDate = this.formData.startDate.substring(0,10)            
             this.selectedEndDate =  this.formData.endDate.substring(0,10)
             
@@ -155,49 +180,68 @@
         }
 
         public saveForm(){
-                this.leaveState  = true;
-                this.endDateState   = true;
-                this.startDateState = true;
-                this.startTimeState = true;
-                this.endTimeState   = true;
+                this.trainingTypeState  = true;
+                this.endDateState    = true;
+                this.startDateState  = true;
+                this.startTimeState  = true;
+                this.endTimeState    = true;
+                this.expiryDateState = true;
                 const isFullDay = this.isFullDay
 
-                if(this.selectedLeave && !this.selectedLeave.id ){
-                    this.leaveState  = false;
+                if(this.selectedTrainingType && !this.selectedTrainingType.id ){
+                    this.trainingTypeState  = false;
+                }else if(this.selectedTrainingType && this.selectedTrainingType.code=='Other' && this.selectedTrainingTypeComment == ""){
+                    this.trainingTypeState  = true;
+                    this.trainingTypeCommentState = false;
                 }else if(this.selectedStartDate == ""){
-                    this.leaveState  = true;
+                    this.trainingTypeState  = true;
+                    this.trainingTypeCommentState = true;
                     this.startDateState = false;
                 }else if(this.selectedEndDate == ""){
-                    this.leaveState  = true;
+                    this.trainingTypeState  = true;
+                    this.trainingTypeCommentState = true;
                     this.startDateState = true;
                     this.endDateState   = false;
                 }else if(this.selectedEndTime == "" && this.selectedStartTime != ""){
-                    this.leaveState  = true;
+                    this.trainingTypeState  = true;
+                    this.trainingTypeCommentState = true;
                     this.startDateState = true;
                     this.endDateState   = true;
                     this.startTimeState = true;
                     this.endTimeState   = false;
                 }else if(this.selectedStartTime == "" && this.selectedEndTime != ""){
-                    this.leaveState  = true;
+                    this.trainingTypeState  = true;
+                    this.trainingTypeCommentState = true;
                     this.startDateState = true;
                     this.endDateState   = true;
                     this.endTimeState   = true;
                     this.startTimeState = false;
+                }else if(this.selectedExpiryDate == ""){
+                    this.trainingTypeState  = true;
+                    this.trainingTypeCommentState = true;
+                    this.startDateState = true;
+                    this.endDateState   = true;
+                    this.endTimeState   = true;
+                    this.startTimeState = true;
+                    this.expiryDateState = false;
                 }else{
-                    this.leaveState  = true;
+                    this.trainingTypeState  = true;
+                    this.trainingTypeCommentState = true;
                     this.endDateState   = true;
                     this.startDateState = true;
                     this.startTimeState = true;
                     this.endTimeState   = true;
+                    this.expiryDateState = true;
 
                     const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
                     const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
 
                     const body = {
-                        leaveTypeId: this.selectedLeave?this.selectedLeave.id:0,
+                        trainingTypeId: this.selectedTrainingType?this.selectedTrainingType.id:0,
                         startDate: startDate,
                         endDate: endDate,                      
-                        isFullDay: isFullDay,
+                        trainingCertificationExpiry: this.selectedExpiryDate,
+                        comment: this.selectedTrainingTypeComment,
                         id: this.formDataId
                     } 
                     this.$emit('submit', body, this.isCreate);                  
@@ -205,21 +249,25 @@
         }
 
         public closeForm(){
-            this.clearSelections();
+            this.clearTrainingSelections();
             this.$emit('cancel');
         }
 
-        public clearSelections(){
-            this.selectedLeave = {} as leaveInfoType;
+        public clearTrainingSelections(){
+            this.selectedTrainingType = {} as trainingInfoType | undefined;
+            this.selectedTrainingTypeComment = '';
             this.selectedEndDate = '';
             this.selectedStartDate = '';
             this.selectedStartTime = '';
             this.selectedEndTime = '';
-            this.leaveState  = true;
+
+            this.trainingTypeState  = true;
+            this.trainingTypeCommentState = true;
             this.endDateState   = true;
             this.startDateState = true;
             this.startTimeState = true;
-            this.endTimeState   = true;            
+            this.endTimeState   = true;
+            this.expiryDateState = true;            
         }
 
         public isDateFullday(startDate, endDate){

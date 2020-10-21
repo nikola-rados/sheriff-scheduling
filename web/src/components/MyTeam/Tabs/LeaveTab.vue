@@ -8,7 +8,7 @@
                 <b-button size="sm" variant="success" @click="addNewLeave"> <b-icon icon="plus" /> Add </b-button>
             </b-card>
 
-            <b-card v-if="addNewLeaveForm" id="addLocationForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
+            <b-card v-if="addNewLeaveForm" id="addLeaveForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
                 <add-leave-form :formData="{}" :isCreate="true" :leaveTypeInfoList="leaveTypeInfoList" v-on:submit="saveLeave" v-on:cancel="closeLeaveForm" />              
             </b-card>
 
@@ -300,21 +300,7 @@
             }
             else
                 return {} as leaveInfoType;
-        } 
-
-        get isFullDay(){  
-
-            if(this.selectedStartTime == '' && this.selectedEndTime == '')
-                return true
-            else if(this.selectedStartDate && this.selectedEndDate)
-            {
-                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-                return this.isDateFullday(startDate,endDate)
-            }
-            else
-                return false
-        }
+        }       
 
         public editLeave(data) {
             if(this.addNewLeaveForm){
