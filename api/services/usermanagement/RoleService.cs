@@ -81,13 +81,14 @@ namespace SS.Api.services
         private async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)
         {
             var role = await _db.Role.AsSingleQuery().Include(r => r.RolePermissions)
+                                    .ThenInclude(p => p.Permission)
                                      .FirstOrDefaultAsync( r=> r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             foreach (var permissionId in permissionIds)
             {
                 var permission = await _db.Permission.FindAsync(permissionId);
-                if (permission == null || role.RolePermissions.Any(rp => rp.Role.Id == roleId && rp.Permission.Id == permissionId))
+                if (permission == null || role.RolePermissions.Any(rp => rp.Role.Id == roleId && rp.Permission?.Id == permissionId))
                     continue;
 
                 role.RolePermissions.Add(new RolePermission
