@@ -33,3 +33,7 @@ Vue.filter('capitilize', function(str: string){
 		return ''
 	
 })
+
+Vue.filter('truncate', function (text: string, stop: number) {
+    return text.slice(0, stop) + (stop < text.length ? '...' : '')
+})

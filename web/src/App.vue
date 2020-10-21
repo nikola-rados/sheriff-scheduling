@@ -1,5 +1,5 @@
 <template>    
-    <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady">
+    <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady" style="user-select: none;">
         <navigation-topbar />
         <router-view></router-view>
         <navigation-footer id="footer" />
