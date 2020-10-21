@@ -121,7 +121,7 @@ namespace tests
                     {
                         Id = 2,
                         LocationId = 4,
-                        StartDate = DateTimeOffset.UtcNow.AddDays(6),
+                        StartDate = DateTimeOffset.UtcNow.AddDays(8),
                         EndDate = DateTimeOffset.UtcNow.AddDays(20),
                         ExpiryDate = null,
                         SheriffId = _ownUserId

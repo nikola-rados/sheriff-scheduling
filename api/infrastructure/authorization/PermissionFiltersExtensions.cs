@@ -29,13 +29,13 @@ namespace SS.Api.infrastructure.authorization
 
         private static IQueryable<Sheriff> FilterUsersInHomeLocationAndLoanedWithin5Days(this IQueryable<Sheriff> query, int homeLocationId)
         {
-            var fiveDaysFromNow = DateTimeOffset.Now.AddDays(5).Date;
+            var sevenDaysFromNow = DateTimeOffset.Now.AddDays(7).Date;
             var now = DateTimeOffset.Now.Date;
 
             return query.Where(s => s.HomeLocationId == homeLocationId ||
                              s.AwayLocation.Any(al =>
                                  al.LocationId == homeLocationId &&
-                                 !(al.StartDate > fiveDaysFromNow || now > al.EndDate) &&
+                                 !(al.StartDate > sevenDaysFromNow || now > al.EndDate) &&
                                  al.ExpiryDate == null));
         }
         #endregion

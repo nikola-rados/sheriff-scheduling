@@ -41,7 +41,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         /// <summary>
-        /// This gets a general list of Sheriffs. Includes Training, AwayLocation, Leave data within 5 days.
+        /// This gets a general list of Sheriffs. Includes Training, AwayLocation, Leave data within 7 days.
         /// </summary>
         /// <returns></returns>
         [HttpGet]

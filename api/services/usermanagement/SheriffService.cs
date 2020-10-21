@@ -47,15 +47,15 @@ namespace SS.Api.services
 
         public async Task<List<Sheriff>> GetSheriffs()
         {
-            var fiveDaysFromNow = DateTimeOffset.Now.AddDays(5).Date;
-            var now = DateTimeOffset.Now.Date;
+            var fiveDaysFromNow = DateTimeOffset.UtcNow.AddDays(7).Date;
+            var now = DateTimeOffset.UtcNow.Date;
 
             var sheriffQuery = _db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
 
                 //Apply permission filters.
                 .ApplyPermissionFilters(User)
-                //Include AwayLocation/Training/Leave that is within 5 days. 
+                //Include AwayLocation/Training/Leave that is within 7 days. 
                 //TODO write an extension method that makes this generic. 
                 .Include(s => s.AwayLocation.Where(al =>
                     !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
