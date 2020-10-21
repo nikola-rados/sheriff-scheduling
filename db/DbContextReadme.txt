@@ -6,6 +6,7 @@ When running in Package Manager Console inside of Visual Studio:
 Make sure that the api project is set as the startup project, with the default project set to db.
 
 ====================================================================================================
+EF Core:
 
 This was also another key piece of documentation I found along the way:
 
@@ -15,3 +16,13 @@ In case of tracking queries, results of Filtered Include may be unexpected due t
 All relevant entities that have been queried for previously and have been stored in the Change Tracker will be present in the results of 
 Filtered Include query, even if they don't meet the requirements of the filter. Consider using NoTracking queries or re-create the DbContext 
 when using Filtered Include in those situations.
+
+=====================================================================================================
+Timezones:
+
+https://www.npgsql.org/doc/types/nodatime.html
+
+WARNING
+A common mistake is for users to think that the PostgreSQL timestamp with timezone type stores the timezone in the database. 
+This is not the case: only the timestamp is stored. 
+There is no single PostgreSQL type that stores both a date/time and a timezone, similar to .NET DateTimeOffset.
