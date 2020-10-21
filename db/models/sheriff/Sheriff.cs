@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Mapster;
+using Newtonsoft.Json;
 using SS.Db.models.auth;
 
 namespace SS.Db.models.sheriff
 {
-    [AdaptTo("[name]Dto")]
+    [AdaptTo("[name]Dto", IgnoreAttributes = new [] {typeof(JsonIgnoreAttribute)})]
     public class Sheriff : User
     {
         public Gender Gender { get; set; }
@@ -17,6 +18,6 @@ namespace SS.Db.models.sheriff
         [AdaptIgnore]
         public byte[] Photo { get; set; }
         [NotMapped] 
-        public string PhotoUrl => $"/api/sheriff/getPhoto/{Id}";
+        public string PhotoUrl => Photo?.Length > 0 ? $"/api/sheriff/getPhoto/{Id}" : null;
     }
 }

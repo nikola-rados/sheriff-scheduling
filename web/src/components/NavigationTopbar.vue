@@ -78,7 +78,6 @@
   import {commonInfoType, locationInfoType, userInfoType} from '../types/common';  
   const commonState = namespace("CommonInformation");
 
-
   @Component
   export default class NavigationTopbar extends Vue {
 
@@ -102,7 +101,7 @@
     
     disableLocationChange = false;
     userIsAdmin = false;
-    selectedLocation: locationInfoType = {name: '', id: 0};
+    selectedLocation ={} as locationInfoType;
     locationDataReady = false;
      
     mounted() {
@@ -129,7 +128,7 @@
       this.UpdateLocation(currentLocation);
       this.selectedLocation = this.location;
       if (this.selectedLocation.name.length > 0) this.locationDataReady = true;
-    }   
+    }
 
   }
 </script>

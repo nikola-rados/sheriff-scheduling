@@ -24,13 +24,13 @@ namespace SS.Api.Controllers
     {
         private readonly bool _isImpersonated;
         private readonly ChesEmailService _emailService;
-        private string RequestAccessEmailAddress { get; }
+        private IConfiguration Configuration { get; }
         public AuthController(IWebHostEnvironment env, IConfiguration configuration, ChesEmailService emailService)
         {
+            Configuration = configuration;
             _emailService = emailService;
             _isImpersonated = env.IsDevelopment() &&
                               configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
-            RequestAccessEmailAddress = configuration.GetNonEmptyValue("RequestAccessEmailAddress");
         }
         /// <summary>
         /// This cannot be called from AJAX or SWAGGER. It must be loaded in the browser location, because it brings the user to the SSO page. 
@@ -61,14 +61,16 @@ namespace SS.Api.Controllers
         {
             var emailString =
                 $"{User.FullName()} - {User.IdirUserName()} - {currentEmailAddress} - Has requested access to Sheriff Scheduling on {DateTime.Now}.";
-            
+
+            var requestAccessEmailAddress = Configuration.GetNonEmptyValue("RequestAccessEmailAddress");
+
             await _emailService.SendEmail(emailString,
-                "Access Request", RequestAccessEmailAddress);
+                "Access Request", requestAccessEmailAddress);
             return NoContent();
         }
 
         /// <summary>
-        /// Must be logged in to call this. 
+        /// Should be logged in to call this. 
         /// </summary>
         /// <returns>access_token and refresh_token for API calls.</returns>
         [HttpGet("token")]

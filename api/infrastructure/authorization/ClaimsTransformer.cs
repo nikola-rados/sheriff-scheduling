@@ -16,13 +16,13 @@ namespace SS.Api.infrastructure.authorization
     {
         private readonly IMemoryCache _cache;
         private bool _isTransformed;
-        private readonly AuthService _authService;
+        private readonly ClaimsService _claimsService;
         private readonly TimeSpan _claimCachePeriod;
 
-        public ClaimsTransformer(IMemoryCache cache,  AuthService authService, IConfiguration configuration)
+        public ClaimsTransformer(IMemoryCache cache,  ClaimsService claimsService, IConfiguration configuration)
         {
             _cache = cache;
-            _authService = authService;
+            _claimsService = claimsService;
             _claimCachePeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("ClaimsCachePeriod"));
         }
 
@@ -35,7 +35,7 @@ namespace SS.Api.infrastructure.authorization
             var nameIdentifier = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier));
             if (!_cache.TryGetValue(nameIdentifier, out List<Claim> claims))
             {
-                claims = await _authService.GenerateClaims(currentClaims);
+                claims = await _claimsService.GenerateClaims(currentClaims);
                 _cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.Add(_claimCachePeriod));
             }
             currentPrincipal.AddClaims(claims);

@@ -9,7 +9,6 @@ using SS.Api.models.dto;
 using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
-using SS.Db.models.sheriff;
 
 namespace SS.Api.controllers.usermanagement
 {

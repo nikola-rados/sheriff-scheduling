@@ -32,7 +32,7 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.Login)]
         public async Task<ActionResult<List<LocationDto>>> Locations()
         {
-            var locations = await _db.Location.ToListAsync();
+            var locations = await _db.Location.ApplyPermissionFilters(User,_db).ToListAsync();
             return Ok(locations.Adapt<List<LocationDto>>());
         }
 
