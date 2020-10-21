@@ -11,7 +11,7 @@ namespace SS.Api.Models.Dto
         public ShiftType Type { get; set; }
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        public ICollection<SheriffDto> AssignedSheriff { get; set; }
+        public ICollection<ShiftSheriffDto> AssignedSheriffs { get; set; }
         public int? LocationId { get; set; }
         public LocationDto Location { get; set; }
         public uint ConcurrencyToken { get; set; }
