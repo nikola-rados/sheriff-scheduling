@@ -27,7 +27,7 @@ namespace SS.Api.services
 
         public async Task<Role> Role(int id)
         {
-            return await _db.Role.AsNoTracking().Include(r => r.RolePermissions)
+            return await _db.Role.AsNoTracking().AsSingleQuery().Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission).SingleOrDefaultAsync(r => r.Id == id);
         }
 
@@ -57,7 +57,7 @@ namespace SS.Api.services
 
         public async Task<Role> UpdateRole(Role role, List<int> permissionIds)
         {
-            var savedRole = await _db.Role.Include(r => r.RolePermissions)
+            var savedRole = await _db.Role.AsSingleQuery().Include(r => r.RolePermissions)
                                           .FirstOrDefaultAsync(r => r.Id == role.Id);
             if (savedRole.Name != role.Name)
             {
@@ -80,7 +80,7 @@ namespace SS.Api.services
 
         private async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)
         {
-            var role = await _db.Role.Include(r => r.RolePermissions)
+            var role = await _db.Role.AsSingleQuery().Include(r => r.RolePermissions)
                                      .FirstOrDefaultAsync( r=> r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
@@ -100,7 +100,7 @@ namespace SS.Api.services
 
         private async Task UnassignPermissionsFromRole(int roleId, List<int> permissionIds)
         {
-            var role = await _db.Role.Include(r => r.RolePermissions)
+            var role = await _db.Role.AsSingleQuery().Include(r => r.RolePermissions)
                                      .FirstOrDefaultAsync(r => r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
             
