@@ -52,10 +52,11 @@ namespace SS.Api.infrastructure
             services.AddTransient(s => s.GetService<IHttpContextAccessor>().HttpContext.User);
             services.AddScoped<ManageTypesService>();
             services.AddScoped<ChesEmailService>();
-            services.AddScoped<AuthService>();
+            services.AddScoped<ClaimsService>();
             services.AddScoped<RoleService>();
             services.AddScoped<UserService>();
             services.AddScoped<SheriffService>();
+            services.AddScoped<ScheduleService>();
             services.AddScoped<JCDataUpdaterService>();
       
 

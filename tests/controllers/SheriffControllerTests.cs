@@ -23,6 +23,7 @@ using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
 using SS.Api.Helpers.Extensions;
+using SS.Api.models.dto.generated;
 
 namespace tests.controllers
 {
@@ -58,7 +59,7 @@ namespace tests.controllers
                 HomeLocationId = null
             };
 
-            var sheriffDto = newSheriff.Adapt<SheriffDto>();
+            var sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
@@ -82,7 +83,7 @@ namespace tests.controllers
                 HomeLocationId = null
             };
 
-            var sheriffDto = newSheriff.Adapt<SheriffDto>();
+            var sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
@@ -91,7 +92,7 @@ namespace tests.controllers
             Assert.NotNull(await _dbContext.Sheriff.FindAsync(sheriffResponse.Id));
 
             newSheriff.BadgeNumber = "554";
-            sheriffDto = newSheriff.Adapt<SheriffDto>();
+            sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             BusinessLayerException ble = null;

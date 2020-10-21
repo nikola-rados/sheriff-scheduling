@@ -55,7 +55,7 @@
                     <div  class="card h-100 bg-dark">
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >
                             <b-row class="ml-3">                                                
-                                <user-location-summary v-if="teamMember.loanedOut.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
+                                <user-location-summary v-if="teamMember.awayLocation.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :awayJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>
                                 <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
                                 <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
                             </b-row>
@@ -299,7 +299,7 @@
                 
                 myteam.leave = myteaminfo.leave? myteaminfo.leave: [];
                 myteam.training = myteaminfo.training? myteaminfo.training: [];
-                myteam.loanedOut = myteaminfo.awayLocation;
+                myteam.awayLocation = myteaminfo.awayLocation;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
@@ -317,8 +317,8 @@
                 {
                     if(this.searchPhrase==''){
                         if(member.homeLocationId == this.location.id) return true
-                        for(const loanInx in member.loanedOut)
-                            if(member.loanedOut[loanInx].locationId == this.location.id ) return true
+                        for(const awayInx in member.awayLocation)
+                            if(member.awayLocation[awayInx].locationId == this.location.id ) return true
                     }
                     else{ 
                         if(this.searchForKeyword(member.firstName)) return true

@@ -25,7 +25,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         [HttpGet]
-        public async Task<ActionResult<PermissionDto>> GetPermissions()
+        public async Task<ActionResult<List<PermissionDto>>> GetPermissions()
         {
             var permissions = await _db.Permission.ToListAsync();
             return Ok(permissions.Adapt<List<PermissionDto>>());
