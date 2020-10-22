@@ -246,7 +246,7 @@
         }  
 
         mounted() {
-            this.userIsAdmin = this.userDetails.roles.includes("Administrator") || this.userDetails.roles.includes("System Administrator");
+            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
             this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
