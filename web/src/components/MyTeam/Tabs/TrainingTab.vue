@@ -9,7 +9,7 @@
             </b-card>
 
             <b-card v-if="addNewTrainingForm" id="addTrainingForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
-                <add-training-form :formData="{}" :isCreate="true" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />              
+                <add-training-form :formData="{}" :editable="true" :isCreate="true" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />              
             </b-card>
 
             <div>
@@ -19,18 +19,33 @@
 
                 <b-card v-else  no-body border-variant="light" bg-variant="white">
                     <b-table
-                        :items="assignedTrainings"
+                        :items="filteredAssignedTrainings"
                         :fields="fields"
                         head-row-variant="primary"
-                        striped
                         borderless
                         small
                         sort-by="startDate"
+                        :sort-desc="true"
                         responsive="sm"
                         >  
+                            <template v-slot:head(editTraining)>
+                                <b-form-group style="margin: 0; padding: 0; width: 7rem;"> 
+                                    <b-form-select
+                                        size = "sm"
+                                        v-model="selectedPastTrainings">
+                                            <b-form-select-option value="pastyear">
+                                                Past Year
+                                            </b-form-select-option>
+                                            <b-form-select-option value="allyears">
+                                                View All
+                                            </b-form-select-option>     
+                                    </b-form-select>
+                                </b-form-group>
+                            </template>
+
                             <template v-slot:cell(isFullDay)="data" >
-                                <span v-if="data.value">Full</span> 
-                                <span v-else>Partial</span> 
+                                <span v-if="data.value" class="fullDay">Full</span> 
+                                <span v-else class="partialDay">Partial</span> 
                             </template>
                             <template v-slot:cell(trainingType)="data" >
                                 <span 
@@ -56,13 +71,13 @@
                                 <span>{{data.value | beautify-date}}</span> 
                             </template>
                             <template v-slot:cell(editTraining)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" :disabled="data.item['_rowVariant']?true:false" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
                                 <b-card :id="'Tr-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
-                                    <add-training-form :formData="data.item" :isCreate="false" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />
+                                    <add-training-form :formData="data.item" :editable="data.item['_rowVariant']?false:true" :isCreate="false" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />
                                 </b-card>
                             </template>
                             
@@ -125,22 +140,30 @@
         assignedTrainings: userTrainingInfoType[] = [];
         trainingTypeInfoList: trainingInfoType[] =[];
 
+        currentTime = '';
+        lastyear = '';
+        selectedPastTrainings = 'pastyear';
+
         fields =  
         [     
-            {key:'isFullDay', label:'Day',sortable:false, tdClass: 'border-top', }, 
-            {key:'trainingType', label:'Type',sortable:false, tdClass: 'border-top', }, 
-            {key:'startDate', label:'Start Date',  sortable:false, tdClass: 'border-top', thClass:'',},
+            {key:'isFullDay',  label:'Day',sortable:false, tdClass: 'border-top', thClass:'align-middle'}, 
+            {key:'trainingType', label:'Type',sortable:false, tdClass: 'border-top', thClass:'align-middle'}, 
+            {key:'startDate', label:'Start Date',  sortable:false, tdClass: 'border-top', thClass:'align-middle',},
             {key:'startTime', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
-            {key:'endDate',   label:'End Date',  sortable:false, tdClass: 'border-top', thClass:'',},
+            {key:'endDate',   label:'End Date',  sortable:false, tdClass: 'border-top', thClass:'align-middle',},
             {key:'endTime',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
-            {key:'expiryDate',label:'Expiry Date',  sortable:false, tdClass: 'border-top', thClass:'',},    
+            {key:'expiryDate',label:'Expiry Date',  sortable:false, tdClass: 'border-top', thClass:'align-middle',},    
             {key:'editTraining',      label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
         ];
 
         mounted()
-        {             
+        {        
+            this.currentTime = moment(new Date()).tz("UTC").format();
+            //console.log(this.currentTime)  
+            this.lastyear = moment().subtract(1,'year').tz("UTC").format(); 
+            //console.log(this.lastyear)   
             this.trainingTabDataReady = false;
-            this.extractTrainings();            
+            this.extractTrainings();                        
         }
    
         public loadTrainingTypes(){
@@ -165,33 +188,39 @@
             this.trainingTabDataReady = true;
         }
 
-        public extractTrainings ()
-        {
+        public extractTrainings (){
+
             if(this.userToEdit.training)
                 for(const training of this.userToEdit.training)
                 {
                     const assignedTraining = {} as userTrainingInfoType;
-
                     assignedTraining.id = training.id;
                     assignedTraining.trainingType = training.trainingType;
                     assignedTraining.trainingTypeId = training.trainingTypeId;
                     assignedTraining.startDate = moment(training.startDate).tz("UTC").format();
                     assignedTraining.endDate = moment(training.endDate).tz("UTC").format();
                     assignedTraining.expiryDate = training.trainingCertificationExpiry;
-                    assignedTraining.comment = training.comment 
+                    assignedTraining.comment = training.comment;
+                    assignedTraining['_rowVariant'] = '';
+                    if(assignedTraining.endDate < this.currentTime)
+                        assignedTraining['_rowVariant'] = 'info';
 
                     if(this.isDateFullday(assignedTraining.startDate,assignedTraining.endDate)){ 
-                        assignedTraining.isFullDay = true;
-                        assignedTraining['_cellVariants'] = {isFullDay:'danger'}                 
+                        assignedTraining.isFullDay = true;                                        
                     }else{
-                        assignedTraining.isFullDay = false;
-                        assignedTraining['_cellVariants'] = {isFullDay:'success'}                    
+                        assignedTraining.isFullDay = false;                    
                     }
                     
                     this.assignedTrainings.push(assignedTraining)
                 }
             this.loadTrainingTypes();
         }
+
+        get filteredAssignedTrainings(){
+            const pastYear = this.selectedPastTrainings == 'pastyear'?this.lastyear:'1900-01-01T00:00:00Z';
+            return this.assignedTrainings.filter(training =>{if(training.endDate> pastYear ) return true})
+        }
+
 
         public isDateFullday(startDate, endDate){
             const start = moment(startDate); 
@@ -205,7 +234,10 @@
                 location.href = '#Tr-Date-'+this.latestEditData.item.startDate.substring(0,10)
                 this.addFormColor = 'danger'
             }else
-                this.addNewTrainingForm = true
+            {
+                this.addNewTrainingForm = true;
+                this.$nextTick(()=>{location.href = '#addTrainingForm';})
+            }
         }
 
         public confirmDeleteTraining(training) {
@@ -289,12 +321,15 @@
                 this.assignedTrainings[index].expiryDate = modifiedTrainingInfo.trainingCertificationExpiry? modifiedTrainingInfo.trainingCertificationExpiry:'';
                 this.assignedTrainings[index].comment = modifiedTrainingInfo.comment?modifiedTrainingInfo.comment:'';
                 if(this.isDateFullday( this.assignedTrainings[index].startDate, this.assignedTrainings[index].endDate)){ 
-                    this.assignedTrainings[index]['isFullDay'] = true;
-                    this.assignedTrainings[index]['_cellVariants'] = {isFullDay:'danger'}                 
+                    this.assignedTrainings[index]['isFullDay'] = true;                 
                 }else{
-                    this.assignedTrainings[index]['isFullDay'] = false;
-                    this.assignedTrainings[index]['_cellVariants'] = {isFullDay:'success'}                    
+                    this.assignedTrainings[index]['isFullDay'] = false;                   
                 }
+
+                this.assignedTrainings[index]['_rowVariant'] = '';
+                if(this.assignedTrainings[index].endDate < this.currentTime)
+                    this.assignedTrainings[index]['_rowVariant'] = 'info';
+
                 this.$emit('change');
             } 
         }
@@ -314,12 +349,14 @@
             }
             
             if(this.isDateFullday(assignedTraining.startDate,assignedTraining.endDate)){ 
-                assignedTraining['isFullDay'] = true;
-                assignedTraining['_cellVariants'] = {isFullDay:'danger'}                 
+                assignedTraining['isFullDay'] = true;                 
             }else{
-                assignedTraining['isFullDay'] = false;
-                assignedTraining['_cellVariants'] = {isFullDay:'success'}                    
+                assignedTraining['isFullDay'] = false;                   
             }
+
+            assignedTraining['_rowVariant'] = '';
+            if(assignedTraining.endDate < this.currentTime)
+                assignedTraining['_rowVariant'] = 'info';
 
             this.assignedTrainings.push(assignedTraining); 
             this.$emit('change');                     
@@ -350,10 +387,16 @@
     .card {
         border: white;
     }
-    td {
-        margin: 0rem 1rem 0.1rem 0rem;
-        padding: 0rem 1rem 0.1rem 0rem;
-        
-        background-color: whitesmoke ;
+    .fullDay{
+        padding: 0.25rem 1rem 0.25rem 1rem; 
+        background-color: rgb(232, 181, 181); 
+        color: rgb(82, 78, 78);
+        font-weight: bold;        
+    }
+    .partialDay{
+        padding: 0.25rem 0.25rem 0.25rem 0.25rem; 
+        background-color: rgb(174, 212, 188); 
+        color:rgb(82, 78, 78); 
+        font-weight: bold;       
     }
 </style>

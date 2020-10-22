@@ -205,8 +205,10 @@
             if(this.isEditOpen){
                 location.href = '#Le-Date-'+this.latestEditData.item.startDate.substring(0,10)
                 this.addFormColor = 'danger'
-            }else
-                this.addNewLeaveForm = true
+            }else{
+                this.addNewLeaveForm = true;
+                this.$nextTick(()=>{location.href = '#addLeaveForm';})
+            }
         }
        
         public isDateFullday(startDate, endDate){

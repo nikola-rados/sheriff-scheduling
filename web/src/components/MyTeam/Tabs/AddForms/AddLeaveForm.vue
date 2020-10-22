@@ -6,8 +6,8 @@
                     <b-td>   
                         <b-tr class="mt-1 bg-white">   
                             <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Leave: </b>                          
-                            <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Leave: </b> 
-                            <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day Leave: </b>
+                            <b class="ml-3 px-1" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Leave: </b> 
+                            <b class="ml-3 px-1" style="background-color: #aed4bc" v-else >Partial Day Leave: </b>
                         </b-tr>
                         <b-tr >
                             <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 19rem"> 

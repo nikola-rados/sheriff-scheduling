@@ -6,13 +6,14 @@
                     <b-td>   
                         <b-tr class="mt-1 bg-white">   
                             <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Training: </b>                          
-                            <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Training: </b> 
-                            <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day Training: </b>
+                            <b class="ml-3 px-1" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Training: </b> 
+                            <b class="ml-3 px-1" style="background-color: #aed4bc" v-else >Partial Day Training: </b>
                         </b-tr>
                         <b-tr >
-                            <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 19rem"> 
+                            <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem"> 
                                 <b-form-select
                                     size = "sm"
+                                    :disabled="!editable"
                                     v-model="selectedTrainingType"
                                     :state = "trainingTypeState?null:false">
                                         <b-form-select-option :value="{}">
@@ -28,6 +29,7 @@
                                 <b-form-input
                                         v-if="selectedTrainingType.code=='Other'"
                                         v-model="selectedTrainingTypeComment"
+                                        :disabled="!editable"
                                         placeholder="Comment*"
                                         :state = "trainingTypeCommentState?null:false"
                                         size = "sm">
@@ -40,6 +42,7 @@
                         <b-form-datepicker
                             class="mb-1"
                             size="sm"
+                            :disabled="!editable"
                             v-model="selectedStartDate"
                             placeholder="Start Date*"
                             :state = "startDateState?null:false"
@@ -48,6 +51,7 @@
                         </b-form-datepicker>
                         <b-form-timepicker
                             size="sm"
+                            :disabled="!editable"
                             v-model="selectedStartTime"
                             placeholder="Start Time"
                             reset-button
@@ -60,6 +64,7 @@
                         <b-form-datepicker
                             class="mb-1 mt-0 pt-0"
                             size="sm"
+                            :disabled="!editable"
                             v-model="selectedEndDate"
                             placeholder="End Date*"
                             :state = "endDateState?null:false"                                    
@@ -68,6 +73,7 @@
                         </b-form-datepicker> 
                         <b-form-timepicker
                             size="sm" 
+                            :disabled="!editable"
                             v-model="selectedEndTime"
                             placeholder="End Time" 
                             reset-button
@@ -87,13 +93,13 @@
                             locale="en-US">
                         </b-form-datepicker> 
                         <b-button                                    
-                            style="margin: 2rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                            style="margin: 0rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
                             variant="secondary"
                             @click="closeForm()">
                             Cancel
                         </b-button>   
                         <b-button                                    
-                            style="margin: 2rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                            style="margin: 0rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
                             variant="success"                        
                             @click="saveForm()">
                             Save
@@ -146,7 +152,10 @@
         isCreate!: boolean;
 
         @Prop({required: true})
-        trainingTypeInfoList!: trainingInfoType[];       
+        trainingTypeInfoList!: trainingInfoType[]; 
+        
+        @Prop({required: true})
+        editable!: boolean;
 
         selectedTrainingType = {} as trainingInfoType | undefined;
         trainingTypeState = true;

@@ -362,7 +362,7 @@
         }  
 
         public closeProfileWindow(){
-            console.log(this.tabIndex)
+            //console.log(this.tabIndex)
             if(this.tabIndex ==0 || this.createMode)
             {  
                 this.identificationTabMethods.$emit('closeProfileWindow');
