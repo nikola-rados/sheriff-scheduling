@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -314,7 +315,10 @@ namespace SS.Api.services
                  updateOnlyId.HasValue && sal.Id != updateOnlyId));
 
             if (entity != null)
-                throw new BusinessLayerException($"Overlaps with existing {typeof(T)} with date range: {entity.StartDate.Date} to {entity.EndDate.Date}");
+            {
+                throw new BusinessLayerException(
+                    $"Overlaps with existing {Regex.Replace(typeof(T).Name, "([A-Z])", " $1").Trim().ToLower()} with date range: {entity.StartDate.UtcDateTime.Date.ToString("dd MMM yyyy")} to {entity.EndDate.UtcDateTime.Date.ToString("dd MMM yyyy")}");
+            }
         }
 
         
