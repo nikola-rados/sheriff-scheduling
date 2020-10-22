@@ -42,14 +42,26 @@
                             :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                             locale="en-US">
                         </b-form-datepicker>
-                        <b-form-timepicker
-                            size="sm"
-                            v-model="selectedStartTime"
-                            placeholder="Start Time"
-                            reset-button
-                            :state = "startTimeState?null:false" 
-                            locale="en">                                   
-                        </b-form-timepicker>
+                        <b-input-group style="width: 7rem">
+                            <b-form-input
+                                v-model="selectedStartTime"
+                                size="sm"
+                                type="text"
+                                :formatter="timeFormat"
+                                placeholder="HH:MM"
+                                :state = "startTimeState?null:false"
+                            ></b-form-input>
+                            <b-input-group-append>
+                                <b-form-timepicker
+                                    size="sm"
+                                    button-only
+                                    v-model="selectedStartTime"
+                                    placeholder="Start Time"
+                                    reset-button
+                                    locale="en">                                   
+                                </b-form-timepicker>
+                            </b-input-group-append>
+                        </b-input-group>
                     </b-td>
                     <b-td>
                         <label class="h6 m-0 p-0"> To: </label>
@@ -62,14 +74,26 @@
                             :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                             locale="en-US">
                         </b-form-datepicker> 
-                        <b-form-timepicker
-                            size="sm" 
-                            v-model="selectedEndTime"
-                            placeholder="End Time" 
-                            reset-button
-                            :state = "endTimeState?null:false"
-                            locale="en">
-                        </b-form-timepicker>
+                        <b-input-group style="width: 7rem">
+                            <b-form-input
+                                v-model="selectedEndTime"
+                                size="sm"
+                                type="text"
+                                :formatter="timeFormat"
+                                placeholder="HH:MM"
+                                :state = "endTimeState?null:false"
+                            ></b-form-input>
+                            <b-input-group-append>
+                                <b-form-timepicker
+                                    size="sm" 
+                                    button-only
+                                    v-model="selectedEndTime"
+                                    placeholder="End Time" 
+                                    reset-button                                    
+                                    locale="en">
+                                </b-form-timepicker>
+                            </b-input-group-append>
+                        </b-input-group>
                     </b-td>
                     <b-td >
                         <b-button                                    
@@ -133,6 +157,27 @@
         endTimeState = true; 
 
         formDataId = 0;
+
+        public timeFormat(value){
+            
+            if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':')
+                return value.slice(0,-1) 
+            if(value.length!=3 && value.slice(-1) == ':')
+                return value.slice(0,-1)
+            if(value.length==2){
+                if(value>24) return '0'+value.slice(0,1)+':'+value.slice(1,2)
+            }            
+            if(value.length==3 && value.slice(2,3) != ':' ){
+                return value.slice(0,2)+':'+value.slice(2,3)
+            }
+            if(value.length==5){
+                if(value.slice(3,5)<60) return value; else return value.slice(0,3)
+            }
+            if(value.length>5)
+                return value.slice(0,5)
+
+            return value
+        }
         
         mounted()
         {             
@@ -193,8 +238,8 @@
                     this.startTimeState = true;
                     this.endTimeState   = true;
 
-                    const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                    const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
+                    const startDate = Vue.filter('convertDate')(this.selectedStartDate,this.selectedStartTime, 'StartTime');
+                    const endDate =   Vue.filter('convertDate')(this.selectedEndDate,this.selectedEndTime,'EndTime');
 
                     const body = {
                         locationId: this.selectedLocation?this.selectedLocation.id:0,
