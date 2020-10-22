@@ -84,7 +84,25 @@
                     </b-td>
                 </b-tr>   
             </b-tbody>
-        </b-table-simple>              
+        </b-table-simple>  
+
+        <b-modal v-model="showCancelWarning" id="bv-modal-leave-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>
+                <h2 v-if="isCreate" class="mb-0 text-light"> Unsaved New Leave </h2>                
+                <h2 v-else class="mb-0 text-light"> Unsaved Leave Changes </h2>                                 
+            </template>
+            <p>Are you sure you want to cancel without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-leave-cancel-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="confirmedCloseForm()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-leave-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>             
     </div>
 </template>
 
@@ -128,7 +146,14 @@
         selectedEndTime = '';
         endTimeState = true; 
 
+        originalLeave = {} as leaveInfoType | undefined;
+        originalStartDate = '';
+        originalEndDate = '';
+        originalStartTime = '';
+        originalEndTime = '';
+
         formDataId = 0;
+        showCancelWarning = false;
         
         mounted()
         { 
@@ -142,16 +167,16 @@
             this.formDataId = this.formData.id? this.formData.id:0;
             
             const index = this.leaveTypeInfoList.findIndex(leave=>{if(leave.id == this.formData.leaveTypeId)return true})
-            this.selectedLeave = (index>=0)? this.leaveTypeInfoList[index]: {} as leaveInfoType;            
-            this.selectedStartDate = this.formData.startDate.substring(0,10)            
-            this.selectedEndDate =  this.formData.endDate.substring(0,10)
+            this.originalLeave = this.selectedLeave = (index>=0)? this.leaveTypeInfoList[index]: {} as leaveInfoType;            
+            this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
+            this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
             
             const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
             const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
             const displayTime = this.isDateFullday(startDate,endDate)
            
-            this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,19)            
-            this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,19)
+            this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,19)            
+            this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,19)
         }
 
         public saveForm(){
@@ -205,6 +230,29 @@
         }
 
         public closeForm(){
+            if(this.isChanged())
+                this.showCancelWarning = true;
+            else
+                this.confirmedCloseForm();
+        }
+
+        public isChanged(){
+            if(this.isCreate){
+                if((this.selectedLeave && this.selectedLeave.id) ||
+                    this.selectedStartDate || this.selectedEndDate ||
+                    this.selectedStartTime || this.selectedEndTime) return true;
+                return false;
+            }else{
+                if((this.originalLeave && this.selectedLeave && (this.originalLeave.id != this.selectedLeave.id)) ||
+                    (this.originalStartDate != this.selectedStartDate)|| 
+                    (this.originalEndDate != this.selectedEndDate) ||
+                    (this.originalStartTime != this.selectedStartTime) || 
+                    (this.originalEndTime != this.selectedEndTime)) return true;
+                return false;
+            }
+        }
+
+        public confirmedCloseForm(){           
             this.clearSelections();
             this.$emit('cancel');
         }

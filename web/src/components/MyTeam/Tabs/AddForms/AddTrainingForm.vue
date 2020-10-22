@@ -101,7 +101,25 @@
                     </b-td>
                 </b-tr>   
             </b-tbody>
-        </b-table-simple>              
+        </b-table-simple> 
+
+        <b-modal v-model="showCancelWarning" id="bv-modal-training-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>
+                <h2 v-if="isCreate" class="mb-0 text-light"> Unsaved New Training </h2>                
+                <h2 v-else class="mb-0 text-light"> Unsaved Training Changes </h2>                                 
+            </template>
+            <p>Are you sure you want to cancel without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-training-cancel-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="confirmedCloseForm()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-training-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>             
     </div>
 </template>
 
@@ -151,7 +169,16 @@
         selectedExpiryDate = ''
         expiryDateState = true; 
 
+        originalTrainingType = {} as trainingInfoType | undefined;
+        originalTrainingTypeComment =''
+        originalEndDate = ''
+        originalStartDate = ''
+        originalStartTime = ''
+        originalEndTime = ''
+        originalExpiryDate = ''
+
         formDataId = 0;
+        showCancelWarning = false;
         
         mounted()
         { 
@@ -165,18 +192,18 @@
             this.formDataId = this.formData.id? this.formData.id:0;
             
             const index = this.trainingTypeInfoList.findIndex(training=>{if(training.id == this.formData.trainingTypeId)return true})
-            this.selectedTrainingType = (index>=0)? this.trainingTypeInfoList[index]: {} as trainingInfoType; 
-            this.selectedExpiryDate = this.formData.expiryDate.substring(0,10);
-            this.selectedTrainingTypeComment = this.formData.comment? this.formData.comment:'';          
-            this.selectedStartDate = this.formData.startDate.substring(0,10)            
-            this.selectedEndDate =  this.formData.endDate.substring(0,10)
+            this.originalTrainingType = this.selectedTrainingType = (index>=0)? this.trainingTypeInfoList[index]: {} as trainingInfoType; 
+            this.originalExpiryDate = this.selectedExpiryDate = this.formData.expiryDate.substring(0,10);
+            this.originalTrainingTypeComment = this.selectedTrainingTypeComment = this.formData.comment? this.formData.comment:'';          
+            this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
+            this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
             
             const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
             const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
             const displayTime = this.isDateFullday(startDate,endDate)
            
-            this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,19)            
-            this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,19)
+            this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,19)            
+            this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,19)
         }
 
         public saveForm(){
@@ -249,6 +276,32 @@
         }
 
         public closeForm(){
+            if(this.isChanged())
+                this.showCancelWarning = true;
+            else
+                this.confirmedCloseForm();
+        }
+
+        public isChanged(){
+            if(this.isCreate){
+                if((this.selectedTrainingType && this.selectedTrainingType.id) ||
+                    this.selectedStartDate || this.selectedEndDate ||
+                    this.selectedExpiryDate || this.selectedTrainingTypeComment ||
+                    this.selectedStartTime || this.selectedEndTime) return true;
+                return false;
+            }else{
+                if((this.originalTrainingType && this.selectedTrainingType && (this.originalTrainingType.id != this.selectedTrainingType.id)) ||
+                    (this.originalStartDate != this.selectedStartDate)|| 
+                    (this.originalEndDate != this.selectedEndDate) ||
+                    (this.originalExpiryDate != this.selectedExpiryDate) ||
+                    (this.originalTrainingTypeComment != this.selectedTrainingTypeComment) ||
+                    (this.originalStartTime != this.selectedStartTime) || 
+                    (this.originalEndTime != this.selectedEndTime)) return true;
+                return false;
+            }
+        }
+
+        public confirmedCloseForm(){  
             this.clearTrainingSelections();
             this.$emit('cancel');
         }
