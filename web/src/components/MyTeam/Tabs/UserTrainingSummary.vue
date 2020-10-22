@@ -13,6 +13,10 @@
                     responsive="sm"
                     class="my-0 py-0"
                     >
+                    <template v-slot:cell(trainingName)="data" >                      
+                        <span v-if="data.item.comment && data.item.comment.length">{{data.value}}<br><b class="text-success">({{data.item.comment}})</b></span>
+                        <span v-else>{{data.value}}</span> 
+                    </template>
                     <template v-slot:cell(startDate)="data" >
                         <span v-if="data.item.isFullDay">{{data.value | beautify-date}}</span>
                         <span v-else>{{data.value | beautify-date-time}}</span> 
@@ -64,7 +68,9 @@
                     const trainingInfo = {} as userTrainingInfoType;
                     trainingInfo.trainingTypeId = trainingInfoJson.trainingTypeId
                     trainingInfo.trainingName = trainingInfoJson.trainingType.description;
-
+                    if (trainingInfo.trainingName.toUpperCase == ("other").toUpperCase) {
+                        trainingInfo.comment = trainingInfoJson.comment?trainingInfoJson.comment:'';
+                    }
                     trainingInfo.startDate = moment(trainingInfoJson.startDate).tz("UTC").format();
                     trainingInfo.endDate = moment(trainingInfoJson.endDate).tz("UTC").format();
                     trainingInfo.isFullDay = this.isDateFullday(trainingInfo.startDate, trainingInfo.endDate);
