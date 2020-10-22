@@ -6,6 +6,7 @@ export interface teamMemberInfoType {
     id?: string;
     idirUserName?: string;
     rank: string;
+    rankOrder: number;
     firstName?: string;
     lastName?: string;
     email?: string;
