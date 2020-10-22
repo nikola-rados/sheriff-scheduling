@@ -239,8 +239,10 @@
         @Watch('location.id', { immediate: true })
         locationChange()
         {
-            this.getSheriffs()
-            this.sectionHeader = "My Team - " + this.location.name;
+            if (this.isMyTeamDataMounted) {
+                this.getSheriffs()
+                this.sectionHeader = "My Team - " + this.location.name;
+            }            
         }  
 
         mounted() {
@@ -260,7 +262,7 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
+                        // console.log(response.data)
                         this.extractMyTeamFromSheriffs(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
@@ -304,7 +306,7 @@
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
             }  
-            console.log(this.allMyTeamData)          
+            // console.log(this.allMyTeamData)          
         }
 
         get totalRows() {
