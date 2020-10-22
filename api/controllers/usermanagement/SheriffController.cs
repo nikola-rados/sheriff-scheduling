@@ -170,9 +170,9 @@ namespace SS.Api.controllers.usermanagement
         [HttpDelete]
         [Route("awayLocation")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult> RemoveSheriffAwayLocation(int id)
+        public async Task<ActionResult> RemoveSheriffAwayLocation(int id, string expiryReason)
         {
-            await _service.RemoveSheriffAwayLocation(id);
+            await _service.RemoveSheriffAwayLocation(id, expiryReason);
             return NoContent();
         }
         #endregion
@@ -201,9 +201,9 @@ namespace SS.Api.controllers.usermanagement
         [HttpDelete]
         [Route("leave")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult> RemoveSheriffLeave(int id)
+        public async Task<ActionResult> RemoveSheriffLeave(int id, string expiryReason)
         {
-            await _service.RemoveSheriffLeave(id);
+            await _service.RemoveSheriffLeave(id, expiryReason);
             return NoContent();
         }
         #endregion
@@ -232,9 +232,9 @@ namespace SS.Api.controllers.usermanagement
         [HttpDelete]
         [Route("training")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult> RemoveSheriffTraining(int id)
+        public async Task<ActionResult> RemoveSheriffTraining(int id, string expiryReason)
         {
-            await _service.RemoveSheriffTraining(id);
+            await _service.RemoveSheriffTraining(id, expiryReason);
             return NoContent();
         }
         #endregion SheriffTraining
