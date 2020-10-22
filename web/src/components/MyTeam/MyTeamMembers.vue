@@ -292,6 +292,7 @@
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
                 myteam.rank = myteaminfo.rank;
+                myteam.rankOrder = this.getRankOrder(myteam.rank)[0].id;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
                 myteam.image = myteaminfo.photoUrl? myteaminfo.photoUrl: '';
@@ -331,8 +332,21 @@
                     }
                 }
             })
-            
-            return this.myTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
+
+            const sortedTeam = this.sortTeamMembers(this.myTeam);            
+            return sortedTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
+        }
+
+        public sortTeamMembers(teamList) {
+            return _.chain(teamList).sortBy('lastName').sortBy('rankOrder').value()
+        }
+
+        public getRankOrder(rankName: string) {
+            return this.commonInfo.sheriffRankList.filter(rank => {
+                if (rank.name == rankName) {
+                    return true;
+                }
+            })
         }
 
         public searchForKeyword(phrase){

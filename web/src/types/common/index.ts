@@ -25,5 +25,10 @@ export interface userInfoType {
 }
 
 export interface commonInfoType {
-    "sheriffRankList": string[]    
+    "sheriffRankList": sheriffRankInfoType[]    
+}
+
+export interface sheriffRankInfoType {
+    id: number,
+    name: string
 }

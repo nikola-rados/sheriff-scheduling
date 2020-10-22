@@ -29,7 +29,7 @@
 
         <b-row class="mx-1">
             <b-form-group class="mr-1" style="width: 20rem"><label>Badge Number<span class="text-danger">*</span></label>
-                <b-form-input v-model="user.badgeNumber" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
+                <b-form-input v-model="user.badgeNumber" type="number" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
             </b-form-group>                                            
             <b-form-group class="ml-1" style="width: 15rem"><label>Rank<span class="text-danger">*</span></label>
                 <b-form-select v-model="user.rank" placeholder="Select Rank" :options="commonInfo.sheriffRankList" :state = "selectedRankState?null:false"></b-form-select>
