@@ -9,9 +9,8 @@ using Microsoft.Extensions.Configuration;
 using SS.Api.Helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.infrastructure.exceptions;
-using SS.Api.models.dto;
 using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Api.services;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
@@ -34,7 +33,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateUsers)]
-        public async Task<ActionResult<SheriffDto>> CreateSheriff(SheriffDto sheriffDto)
+        public async Task<ActionResult<SheriffDto>> CreateSheriff(CreateSheriffDto sheriffDto)
         {
             var sheriff = sheriffDto.Adapt<Sheriff>();
             sheriff = await _service.CreateSheriff(sheriff);
@@ -42,7 +41,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         /// <summary>
-        /// This gets a general list of Sheriffs. Includes Training, AwayLocation, Leave data within 5 days.
+        /// This gets a general list of Sheriffs. Includes Training, AwayLocation, Leave data within 7 days.
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -85,7 +84,7 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
         [Route("self")]
-        public async Task<ActionResult<SheriffDto>> Sheriff()
+        public async Task<ActionResult<SheriffDto>> GetSelfSheriff()
         {
             var sheriff = await _service.GetSheriff(User.CurrentUserId());
             if (sheriff == null)

@@ -19,3 +19,11 @@ export interface leaveTypeJson {
     description: string,
     concurrencyToken: number
 }
+
+export interface trainingTypeJson {
+    id: number,
+    type: string,
+    code: string,
+    description: string,
+    concurrencyToken: number
+}

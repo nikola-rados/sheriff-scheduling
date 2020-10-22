@@ -185,7 +185,7 @@ namespace SS.Api
             services.AddAuthorization();
 
             services.AddMapster();
-            services.AddLazyCache();
+            services.AddMemoryCache();
 
             services.AddCors(options =>
             {

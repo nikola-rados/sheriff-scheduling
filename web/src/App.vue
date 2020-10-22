@@ -11,7 +11,7 @@
     import NavigationFooter from "@components/NavigationFooter.vue";
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import {commonInfoType, locationInfoType, userInfoType} from './types/common';
+    import {commonInfoType, locationInfoType, sheriffRankInfoType, userInfoType} from './types/common';
     import {sheriffRankJsonType, locationJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";
     import store from "./store";  
@@ -53,7 +53,7 @@
         errorCode = 0;
         errorText = '';
         isCommonDataReady= false;
-        sheriffRankList: string[] = []
+        sheriffRankList: sheriffRankInfoType[] = []
         currentLocation;
        
         mounted() {            
@@ -95,7 +95,7 @@
             let sheriffRank: sheriffRankJsonType;
 
             for(sheriffRank of sheriffRankList){                
-                this.sheriffRankList.push(sheriffRank.description)
+                this.sheriffRankList.push({id: Number(sheriffRank.id), name: sheriffRank.description})
             }                       
             this.UpdateCommonInfo({
                 sheriffRankList: this.sheriffRankList 

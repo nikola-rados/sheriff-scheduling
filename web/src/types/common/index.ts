@@ -13,11 +13,22 @@ export interface leaveInfoType {
     description?: string;
 }
 
+export interface trainingInfoType {
+    code: string;
+    id: number;
+    description?: string;
+}
+
 export interface userInfoType {
     "roles": string[],
     "homeLocationId": number
 }
 
 export interface commonInfoType {
-    "sheriffRankList": string[]    
+    "sheriffRankList": sheriffRankInfoType[]    
+}
+
+export interface sheriffRankInfoType {
+    id: number,
+    name: string
 }

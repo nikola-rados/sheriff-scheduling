@@ -201,8 +201,10 @@
             if(this.isEditOpen){
                 location.href = '#Lo-Date-'+this.latestEditData.item.startDate.substring(0,10)
                 this.addFormColor = 'danger'
-            }else
-                this.addNewLocationForm = true
+            }else{
+                this.addNewLocationForm = true;
+                this.$nextTick(()=>{location.href = '#addLocationForm';})
+            }
         }
 
         public editLocation(data){

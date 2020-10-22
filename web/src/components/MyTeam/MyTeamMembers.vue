@@ -55,7 +55,7 @@
                     <div  class="card h-100 bg-dark">
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >
                             <b-row class="ml-3">                                                
-                                <user-location-summary v-if="teamMember.loanedOut.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.loanedOut" :index="teamMember.badgeNumber"/>
+                                <user-location-summary v-if="teamMember.awayLocation.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :awayJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>
                                 <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
                                 <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
                             </b-row>
@@ -239,12 +239,14 @@
         @Watch('location.id', { immediate: true })
         locationChange()
         {
-            this.getSheriffs()
-            this.sectionHeader = "My Team - " + this.location.name;
+            if (this.isMyTeamDataMounted) {
+                this.getSheriffs()
+                this.sectionHeader = "My Team - " + this.location.name;
+            }            
         }  
 
         mounted() {
-            this.userIsAdmin = this.userDetails.roles.includes("Administrator") || this.userDetails.roles.includes("System Administrator");
+            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
             this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
@@ -260,7 +262,7 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
+                        // console.log(response.data)
                         this.extractMyTeamFromSheriffs(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
@@ -290,6 +292,7 @@
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
                 myteam.rank = myteaminfo.rank;
+                myteam.rankOrder = this.getRankOrder(myteam.rank)[0].id;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
                 myteam.image = myteaminfo.photoUrl? myteaminfo.photoUrl: '';
@@ -299,12 +302,12 @@
                 
                 myteam.leave = myteaminfo.leave? myteaminfo.leave: [];
                 myteam.training = myteaminfo.training? myteaminfo.training: [];
-                myteam.loanedOut = myteaminfo.awayLocation;
+                myteam.awayLocation = myteaminfo.awayLocation;
                 if(myteaminfo.homeLocation)
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
                 this.allMyTeamData.push(myteam);
             }  
-            console.log(this.allMyTeamData)          
+            // console.log(this.allMyTeamData)          
         }
 
         get totalRows() {
@@ -317,8 +320,8 @@
                 {
                     if(this.searchPhrase==''){
                         if(member.homeLocationId == this.location.id) return true
-                        for(const loanInx in member.loanedOut)
-                            if(member.loanedOut[loanInx].locationId == this.location.id ) return true
+                        for(const awayInx in member.awayLocation)
+                            if(member.awayLocation[awayInx].locationId == this.location.id ) return true
                     }
                     else{ 
                         if(this.searchForKeyword(member.firstName)) return true
@@ -329,8 +332,21 @@
                     }
                 }
             })
-            
-            return this.myTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
+
+            const sortedTeam = this.sortTeamMembers(this.myTeam);            
+            return sortedTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
+        }
+
+        public sortTeamMembers(teamList) {
+            return _.chain(teamList).sortBy('lastName').sortBy('rankOrder').value()
+        }
+
+        public getRankOrder(rankName: string) {
+            return this.commonInfo.sheriffRankList.filter(rank => {
+                if (rank.name == rankName) {
+                    return true;
+                }
+            })
         }
 
         public searchForKeyword(phrase){
@@ -360,7 +376,7 @@
         }  
 
         public closeProfileWindow(){
-            console.log(this.tabIndex)
+            //console.log(this.tabIndex)
             if(this.tabIndex ==0 || this.createMode)
             {  
                 this.identificationTabMethods.$emit('closeProfileWindow');

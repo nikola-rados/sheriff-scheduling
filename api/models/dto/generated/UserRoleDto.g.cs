@@ -11,6 +11,7 @@ namespace SS.Api.Models.Dto
         public RoleDto Role { get; set; }
         public DateTimeOffset EffectiveDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
+        public string ExpiryReason { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
