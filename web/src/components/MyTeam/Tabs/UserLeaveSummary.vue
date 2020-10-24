@@ -39,6 +39,9 @@
         index!: number;
 
         @Prop({required: true})
+        timezone!: string;
+
+        @Prop({required: true})
         leaveJson!: leaveJsontype[];  
         
         userLeaveInfo: userLeaveInfoType[] = [];
@@ -66,9 +69,9 @@
                     leaveInfo.leaveTypeId = leaveInfoJson.leaveTypeId;
                     leaveInfo.leaveName = leaveInfoJson.leaveType.description;
 
-                    leaveInfo.startDate = moment(leaveInfoJson.startDate).tz("UTC").format();
-                    leaveInfo.endDate = moment(leaveInfoJson.endDate).tz("UTC").format();
-                    leaveInfo.isFullDay = this.isDateFullday(leaveInfo.startDate, leaveInfo.endDate);
+                    leaveInfo.startDate = moment(leaveInfoJson.startDate).tz(this.timezone).format();
+                    leaveInfo.endDate = moment(leaveInfoJson.endDate).tz(this.timezone).format();
+                    leaveInfo.isFullDay = Vue.filter('isDateFullday')(leaveInfo.startDate, leaveInfo.endDate);
                     this.userLeaveInfo.push(leaveInfo);
                 }
                 if(this.userLeaveInfo.length) this.displayLeave = true;       
@@ -77,12 +80,6 @@
             }
         }
 
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
-        }
     }
 </script>
 

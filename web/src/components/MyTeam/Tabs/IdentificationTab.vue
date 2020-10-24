@@ -32,7 +32,14 @@
                 <b-form-input v-model="user.badgeNumber" type="number" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
             </b-form-group>                                            
             <b-form-group class="ml-1" style="width: 15rem"><label>Rank<span class="text-danger">*</span></label>
-                <b-form-select v-model="user.rank" placeholder="Select Rank" :options="commonInfo.sheriffRankList" :state = "selectedRankState?null:false"></b-form-select>
+                <b-form-select v-model="user.rank" placeholder="Select Rank" :state = "selectedRankState?null:false">
+                    <b-form-select-option
+                        v-for="sheriffRank in commonInfo.sheriffRankList" 
+                        :key="sheriffRank.id"
+                        :value="sheriffRank.name">
+                            {{sheriffRank.name}}
+                    </b-form-select-option>
+                </b-form-select>
             </b-form-group>
         </b-row>
         <h2 v-if="duplicateBadge" class="mx-1 mt-0"><b-badge variant="danger"> Duplicate Badge</b-badge></h2>
@@ -164,6 +171,7 @@ export default class IdentificationTab extends Vue {
         this.runMethod.$on('switchTab', this.switchTab)
         this.runMethod.$on('closeProfileWindow', this.closeProfileWindow)
         this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)
+        console.log(this.commonInfo.sheriffRankList)
     }
 
     public refreshTabInformation()
@@ -217,7 +225,15 @@ export default class IdentificationTab extends Vue {
     }
 
     public changesMade(): boolean {
-        return !_.isEqual(this.userToEdit, this.user)
+         if((this.userToEdit.homeLocationId != this.user.homeLocationId) ||
+            (this.userToEdit.firstName != this.user.firstName) ||
+            (this.userToEdit.lastName != this.user.lastName) ||
+            (this.userToEdit.gender != this.user.gender) ||
+            (this.userToEdit.email != this.user.email) ||
+            (this.userToEdit.badgeNumber != this.user.badgeNumber) ||
+            (this.userToEdit.rank != this.user.rank) ||                    
+            (this.userToEdit.homeLocationId != this.user.homeLocationId)) return true;
+        return false;
     }
 
     public isEmpty(obj){

@@ -4,7 +4,8 @@ export interface locationInfoType {
     regionId: number| null;
     agencyId?: string;
     concurrencyToken?: number;
-    justinCode?: string
+    justinCode?: string;
+    timezone: string;
 }
 
 export interface leaveInfoType {

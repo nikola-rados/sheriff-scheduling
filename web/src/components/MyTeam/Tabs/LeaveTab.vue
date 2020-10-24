@@ -134,6 +134,7 @@
         leaveToDelete = {} as userLeaveInfoType;
         
         assignedLeaves: userLeaveInfoType[] = [];
+        timezone = 'UTC';
 
         fields =  
         [     
@@ -148,12 +149,13 @@
 
         mounted()
         {
+            this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.leaveTabDataReady = false;
-            this.extractLeaves();          
+            this.extractLeaves();                     
         }
 
-        public extractLeaves ()
-        {
+        public extractLeaves () {   
+                     
             const assignedLeavesJson = this.userToEdit.leave? this.userToEdit.leave: [];
             for(const leaveJson of assignedLeavesJson){                
                 const leave = {} as userLeaveInfoType;
@@ -163,7 +165,7 @@
                 leave.leaveName = leaveJson.leaveType?leaveJson.leaveType.description: '';
                 leave.comment = leaveJson.comment?leaveJson.comment:'';               
 
-                if(this.isDateFullday(leaveJson.startDate,leaveJson.endDate)){ 
+                if(Vue.filter('isDateFullday')(leaveJson.startDate,leaveJson.endDate)){ 
                     leave.isFullDay = true;
                     leave['_cellVariants'] = {isFullDay:'danger'}                 
                 } else{
@@ -171,8 +173,8 @@
                     leave['_cellVariants'] = {isFullDay:'success'}                    
                 }
                 
-                leave.startDate = moment(leaveJson.startDate).tz("UTC").format();
-                leave.endDate = moment(leaveJson.endDate).tz("UTC").format();
+                leave.startDate = moment(leaveJson.startDate).tz(this.timezone).format();
+                leave.endDate = moment(leaveJson.endDate).tz(this.timezone).format();
                 this.assignedLeaves.push(leave);               
             }
             
@@ -210,13 +212,6 @@
                 this.$nextTick(()=>{location.href = '#addLeaveForm';})
             }
         }
-       
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
-        }
 
         public saveLeave(body, iscreate) {
             this.leaveError  = false; 
@@ -246,14 +241,14 @@
             const index = this.assignedLeaves.findIndex(assignedleave =>{ if(assignedleave.id == modifiedLeaveInfo.id) return true})
             if(index>=0){
                 this.assignedLeaves[index].id =  modifiedLeaveInfo.id;
-                this.assignedLeaves[index].startDate = modifiedLeaveInfo.startDate
-                this.assignedLeaves[index].endDate = modifiedLeaveInfo.endDate
+                this.assignedLeaves[index].startDate = moment(modifiedLeaveInfo.startDate).tz(this.timezone).format();
+                this.assignedLeaves[index].endDate = moment(modifiedLeaveInfo.endDate).tz(this.timezone).format();
                 this.assignedLeaves[index].leaveTypeId = modifiedLeaveInfo.leaveTypeId; 
                 const leaveType = this.getLeaveType(this.assignedLeaves[index].leaveTypeId)               
                 this.assignedLeaves[index].leaveType = leaveType;                
                 this.assignedLeaves[index].leaveName = leaveType.description;
                 this.assignedLeaves[index].comment = modifiedLeaveInfo.comment?modifiedLeaveInfo.comment:'';
-                if(this.isDateFullday( this.assignedLeaves[index].startDate, this.assignedLeaves[index].endDate)){ 
+                if(Vue.filter('isDateFullday')( this.assignedLeaves[index].startDate, this.assignedLeaves[index].endDate)){ 
                     this.assignedLeaves[index]['isFullDay'] = true;
                     this.assignedLeaves[index]['_cellVariants'] = {isFullDay:'danger'}                 
                 }else{
@@ -270,11 +265,11 @@
             leave.leaveType = addedLeaveInfo.leaveType;
             leave.leaveTypeId = addedLeaveInfo.leaveTypeId; 
             leave.leaveName = addedLeaveInfo.leaveType.description;
-            leave.startDate = addedLeaveInfo.startDate;
-            leave.endDate = addedLeaveInfo.endDate;
+            leave.startDate = moment(addedLeaveInfo.startDate).tz(this.timezone).format();
+            leave.endDate = moment(addedLeaveInfo.endDate).tz(this.timezone).format();
             leave.comment = addedLeaveInfo.comment? addedLeaveInfo.comment:'';
             
-            if(this.isDateFullday(leave.startDate,leave.endDate)){ 
+            if(Vue.filter('isDateFullday')(leave.startDate,leave.endDate)){ 
                 leave.isFullDay = true;
                 leave['_cellVariants'] = {isFullDay:'danger'}                 
             }else{

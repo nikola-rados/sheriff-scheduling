@@ -41,6 +41,9 @@
 
         @Prop({required: true})
         index!: number;
+        
+        @Prop({required: true})
+        timezone!: string;
 
         @Prop({required: true})
         trainingJson!: trainingJsontype[];               
@@ -71,9 +74,9 @@
                     if (trainingInfo.trainingName.toUpperCase == ("other").toUpperCase) {
                         trainingInfo.comment = trainingInfoJson.comment?trainingInfoJson.comment:'';
                     }
-                    trainingInfo.startDate = moment(trainingInfoJson.startDate).tz("UTC").format();
-                    trainingInfo.endDate = moment(trainingInfoJson.endDate).tz("UTC").format();
-                    trainingInfo.isFullDay = this.isDateFullday(trainingInfo.startDate, trainingInfo.endDate);
+                    trainingInfo.startDate = moment(trainingInfoJson.startDate).tz(this.timezone).format();
+                    trainingInfo.endDate = moment(trainingInfoJson.endDate).tz(this.timezone).format();
+                    trainingInfo.isFullDay = Vue.filter('isDateFullday')(trainingInfo.startDate, trainingInfo.endDate);
                     this.userTrainingInfo.push(trainingInfo);
                 }
                 if(this.userTrainingInfo.length) this.displayTraining = true;       
@@ -82,12 +85,6 @@
             }
         }
 
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
-        }
     }
 </script>
 

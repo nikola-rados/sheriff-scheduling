@@ -147,26 +147,20 @@
             this.assignedAwayLocations = this.userToEdit.awayLocation? this.userToEdit.awayLocation: [];
             for(const inx in this.assignedAwayLocations)
             {
-                this.assignedAwayLocations[inx]['locationNm'] = this.getLocationName(this.assignedAwayLocations[inx].locationId);
+                const location = this.getLocation(this.assignedAwayLocations[inx].locationId)
+                this.assignedAwayLocations[inx]['locationNm'] = location? location.name : '';
 
-                if(this.isDateFullday(this.assignedAwayLocations[inx].startDate,this.assignedAwayLocations[inx].endDate)){ 
+                if(Vue.filter('isDateFullday')(this.assignedAwayLocations[inx].startDate,this.assignedAwayLocations[inx].endDate)){ 
                     this.assignedAwayLocations[inx]['isFullDay'] = true;
                     this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'danger'}                 
                 }else{
                     this.assignedAwayLocations[inx]['isFullDay'] = false;
                     this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'success'}                    
                 }
-                
-                this.assignedAwayLocations[inx].startDate = moment(this.assignedAwayLocations[inx].startDate).tz("UTC").format();
-                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz("UTC").format();               
+                const timezone = location? location.timezone : 'UTC';
+                this.assignedAwayLocations[inx].startDate = moment(this.assignedAwayLocations[inx].startDate).tz(timezone).format();
+                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz(timezone).format();               
             }
-        }
-
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
 
         public confirmDeleteLocation(location) {
@@ -256,12 +250,15 @@
         public modifyAssignedLocationList(modifiedLocationInfo){
 
             const index = this.assignedAwayLocations.findIndex(assignedlocation =>{ if(assignedlocation.id == modifiedLocationInfo.id) return true})
-            if(index>=0){            
-                this.assignedAwayLocations[index].locationId =  modifiedLocationInfo.locationId
-                this.assignedAwayLocations[index].startDate = modifiedLocationInfo.startDate
-                this.assignedAwayLocations[index].endDate = modifiedLocationInfo.endDate 
-                this.assignedAwayLocations[index]['locationNm'] = this.getLocationName(modifiedLocationInfo.locationId);
-                if(this.isDateFullday( this.assignedAwayLocations[index].startDate, this.assignedAwayLocations[index].endDate)){ 
+            if(index>=0){  
+                const location = this.getLocation(modifiedLocationInfo.locationId);
+                const timezone = location? location.timezone : 'UTC';          
+                this.assignedAwayLocations[index].locationId =  modifiedLocationInfo.locationId;
+                this.assignedAwayLocations[index].startDate = moment(modifiedLocationInfo.startDate).tz(timezone).format();
+                this.assignedAwayLocations[index].endDate = moment(modifiedLocationInfo.endDate).tz(timezone).format();                
+                this.assignedAwayLocations[index]['locationNm'] = location? location.name :'' ;
+                
+                if(Vue.filter('isDateFullday')( this.assignedAwayLocations[index].startDate, this.assignedAwayLocations[index].endDate)){ 
                     this.assignedAwayLocations[index]['isFullDay'] = true;
                     this.assignedAwayLocations[index]['_cellVariants'] = {isFullDay:'danger'}                 
                 }else{
@@ -275,16 +272,19 @@
 
         public addToAssignedLocationList(addedLocationInfo){
 
+            const location = this.getLocation(addedLocationInfo.locationId);
+            const timezone = location? location.timezone : 'UTC';
             const assignedAwayLocation: awayLocationInfoType =
             {
                 id: addedLocationInfo.id,
                 sheriffId : addedLocationInfo.sheriffId,    
                 locationId: addedLocationInfo.locationId,
-                startDate: addedLocationInfo.startDate,
-                endDate: addedLocationInfo.endDate,               
+                startDate: moment(addedLocationInfo.startDate).tz(timezone).format(),
+                endDate: moment(addedLocationInfo.endDate).tz(timezone).format(),               
             }
-            assignedAwayLocation['locationNm'] = this.getLocationName(addedLocationInfo.locationId);
-            if(this.isDateFullday(assignedAwayLocation.startDate,assignedAwayLocation.endDate)){ 
+            
+            assignedAwayLocation['locationNm'] = location? location.name :''
+            if(Vue.filter('isDateFullday')(assignedAwayLocation.startDate,assignedAwayLocation.endDate)){ 
                 assignedAwayLocation['isFullDay'] = true;
                 assignedAwayLocation['_cellVariants'] = {isFullDay:'danger'}                 
             }else{
@@ -307,9 +307,9 @@
             } 
         }
 
-        public getLocationName(locationId: number|null){
+        public getLocation(locationId: number|null){
             const index = this.locationList.findIndex(location=>{if(location.id == locationId)return true})
-            if(index>=0) return this.locationList[index].name; else return '';
+            if(index>=0) return this.locationList[index]; else return "";
         }
 
     }

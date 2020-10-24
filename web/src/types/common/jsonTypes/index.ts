@@ -10,6 +10,7 @@ export interface locationJsonType {
     name: string;
     regionId: number|null;
     concurrencyToken: number;
+    timezone: string;
 }
 
 export interface leaveTypeJson {

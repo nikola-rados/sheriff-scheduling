@@ -39,14 +39,18 @@
                             :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                             locale="en-US">
                         </b-form-datepicker>
-                        <b-form-timepicker
-                            size="sm"
-                            v-model="selectedStartTime"
-                            placeholder="Start Time"
-                            reset-button
-                            :state = "startTimeState?null:false" 
-                            locale="en">                                   
-                        </b-form-timepicker>
+                        <b-input-group style="width: 4.2rem">
+                            <b-form-input
+                                v-model="selectedStartTime"
+                                size="sm"
+                                type="text"
+                                autocomplete="off"
+                                @paste.prevent
+                                :formatter="timeFormat"
+                                placeholder="HH:MM"
+                                :state = "startTimeState?null:false"
+                            ></b-form-input>
+                        </b-input-group>                        
                     </b-td>
                     <b-td>
                         <label class="h6 m-0 p-0"> To: </label>
@@ -58,15 +62,19 @@
                             :state = "endDateState?null:false"                                    
                             :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                             locale="en-US">
-                        </b-form-datepicker> 
-                        <b-form-timepicker
-                            size="sm" 
-                            v-model="selectedEndTime"
-                            placeholder="End Time" 
-                            reset-button
-                            :state = "endTimeState?null:false"
-                            locale="en">
-                        </b-form-timepicker>
+                        </b-form-datepicker>
+                        <b-input-group style="width: 4.2rem">
+                            <b-form-input
+                                v-model="selectedEndTime"
+                                size="sm"
+                                type="text"
+                                autocomplete="off"
+                                @paste.prevent
+                                :formatter="timeFormat"
+                                placeholder="HH:MM"
+                                :state = "endTimeState?null:false"
+                            ></b-form-input>
+                        </b-input-group>
                     </b-td>
                     <b-td >
                         <b-button                                    
@@ -171,12 +179,30 @@
             this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
             this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
             
-            const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-            const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-            const displayTime = this.isDateFullday(startDate,endDate)
+            const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00')//+":00.000Z";
+            const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00')//+":00.000Z";
+            const displayTime = Vue.filter('isDateFullday')(startDate,endDate)
            
-            this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,19)            
-            this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,19)
+            this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,16)            
+            this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,16)
+        }
+
+        public timeFormat(value , event){        
+            if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1) 
+            if(value.length!=3 && value.slice(-1) == ':') return value.slice(0,-1);
+            if(value.length==2 && event.data && value.slice(0,1)>=6 && value.slice(-1)>=6) return value.slice(0,-1);
+            if(value.length==2 && event.data && value.slice(-1)<6) return '0'+value.slice(0,1)+':'+value.slice(1,2);
+            if(value.length==2 && event.data && value.slice(0,1)>=2 && value.slice(0,1)<6 && value.slice(-1)>=6) return '00:'+value.slice(0,2);            
+            if(value.length==2 && event.data && value.slice(0,1)<2 && value.slice(-1)>=6) return value.slice(0,2)+':';
+            if(value.length==4 && value.slice(-1)>=6) return value.slice(0,-1);
+            if(value.length==3 && value.slice(0,1)!=':' && value.slice(1,2)!=':' && value.slice(-1)<6) return value.slice(0,2)+':'+value.slice(2,3);
+            if(value.length==3 && value.slice(-1)>=6 ) return value.slice(0,-1);
+            if(value.length==6 && value.slice(0,1)==0 && value.slice(4,6)<60 && (value.slice(1,2)+value.slice(3,4))<24) return value.slice(1,2)+value.slice(3,4)+':'+value.slice(4,5)+value.slice(5,6);           
+            if(value.length>5) return value.slice(0,5);
+            if(value.length==5 && (value.slice(0,2)>=24 || value.slice(3,5)>=60)) return '';
+            if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
+            if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
+            return value
         }
 
         public saveForm(){
@@ -215,8 +241,9 @@
                     this.startTimeState = true;
                     this.endTimeState   = true;
 
-                    const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                    const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
+                    const timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
+                    const startDate = Vue.filter('convertDate')(this.selectedStartDate,this.selectedStartTime, 'StartTime',timezone);
+                    const endDate =   Vue.filter('convertDate')(this.selectedEndDate,this.selectedEndTime,'EndTime',timezone);
 
                     const body = {
                         leaveTypeId: this.selectedLeave?this.selectedLeave.id:0,
@@ -270,20 +297,13 @@
             this.endTimeState   = true;            
         }
 
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
-        }
-
         get isFullDay(){    
             if(this.selectedStartTime == '' && this.selectedEndTime == '')
                 return true
             else if(this.selectedStartDate && this.selectedEndDate){
-                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-                return this.isDateFullday(startDate,endDate)
+                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00')//+":00.000Z";
+                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00')//+":00.000Z";
+                return Vue.filter('isDateFullday')(startDate,endDate)
             }else
                 return false           
         }

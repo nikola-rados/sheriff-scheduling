@@ -143,6 +143,7 @@
         currentTime = '';
         lastyear = '';
         selectedPastTrainings = 'pastyear';
+        timezone = 'UTC';
 
         fields =  
         [     
@@ -158,10 +159,11 @@
 
         mounted()
         {        
-            this.currentTime = moment(new Date()).tz("UTC").format();
-            //console.log(this.currentTime)  
-            this.lastyear = moment().subtract(1,'year').tz("UTC").format(); 
-            //console.log(this.lastyear)   
+            this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
+            this.currentTime = moment(new Date()).tz(this.timezone).format();
+            console.log(this.currentTime)  
+            this.lastyear = moment().subtract(1,'year').tz(this.timezone).format(); 
+            console.log(this.lastyear)   
             this.trainingTabDataReady = false;
             this.extractTrainings();                        
         }
@@ -197,15 +199,15 @@
                     assignedTraining.id = training.id;
                     assignedTraining.trainingType = training.trainingType;
                     assignedTraining.trainingTypeId = training.trainingTypeId;
-                    assignedTraining.startDate = moment(training.startDate).tz("UTC").format();
-                    assignedTraining.endDate = moment(training.endDate).tz("UTC").format();
+                    assignedTraining.startDate = moment(training.startDate).tz(this.timezone).format();
+                    assignedTraining.endDate = moment(training.endDate).tz(this.timezone).format();
                     assignedTraining.expiryDate = training.trainingCertificationExpiry;
                     assignedTraining.comment = training.comment;
                     assignedTraining['_rowVariant'] = '';
                     if(assignedTraining.endDate < this.currentTime)
                         assignedTraining['_rowVariant'] = 'info';
 
-                    if(this.isDateFullday(assignedTraining.startDate,assignedTraining.endDate)){ 
+                    if(Vue.filter('isDateFullday')(assignedTraining.startDate,assignedTraining.endDate)){ 
                         assignedTraining.isFullDay = true;                                        
                     }else{
                         assignedTraining.isFullDay = false;                    
@@ -219,14 +221,6 @@
         get filteredAssignedTrainings(){
             const pastYear = this.selectedPastTrainings == 'pastyear'?this.lastyear:'1900-01-01T00:00:00Z';
             return this.assignedTrainings.filter(training =>{if(training.endDate> pastYear ) return true})
-        }
-
-
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
 
         public addNewTraining(){
@@ -312,15 +306,15 @@
             const index = this.assignedTrainings.findIndex(assignedtraining =>{ if(assignedtraining.id == modifiedTrainingInfo.id) return true})
             if(index>=0){
                 this.assignedTrainings[index].id =  modifiedTrainingInfo.id;
-                this.assignedTrainings[index].startDate = modifiedTrainingInfo.startDate
-                this.assignedTrainings[index].endDate = modifiedTrainingInfo.endDate
+                this.assignedTrainings[index].startDate = moment(modifiedTrainingInfo.startDate).tz(this.timezone).format();
+                this.assignedTrainings[index].endDate = moment(modifiedTrainingInfo.endDate).tz(this.timezone).format();
                 this.assignedTrainings[index].trainingTypeId = modifiedTrainingInfo.trainingTypeId; 
                 const trainingType = this.getTrainingType(this.assignedTrainings[index].trainingTypeId);               
                 this.assignedTrainings[index].trainingType = trainingType;
                 this.assignedTrainings[index].trainingName = trainingType.description;
                 this.assignedTrainings[index].expiryDate = modifiedTrainingInfo.trainingCertificationExpiry? modifiedTrainingInfo.trainingCertificationExpiry:'';
                 this.assignedTrainings[index].comment = modifiedTrainingInfo.comment?modifiedTrainingInfo.comment:'';
-                if(this.isDateFullday( this.assignedTrainings[index].startDate, this.assignedTrainings[index].endDate)){ 
+                if(Vue.filter('isDateFullday')( this.assignedTrainings[index].startDate, this.assignedTrainings[index].endDate)){ 
                     this.assignedTrainings[index]['isFullDay'] = true;                 
                 }else{
                     this.assignedTrainings[index]['isFullDay'] = false;                   
@@ -342,13 +336,13 @@
                 trainingType: addedTrainingInfo.trainingType,
                 trainingTypeId: addedTrainingInfo.trainingTypeId,
                 sheriffId : addedTrainingInfo.sheriffId,
-                startDate: addedTrainingInfo.startDate,
-                endDate: addedTrainingInfo.endDate,
+                startDate: moment(addedTrainingInfo.startDate).tz(this.timezone).format(),
+                endDate: moment(addedTrainingInfo.endDate).tz(this.timezone).format(),
                 expiryDate: addedTrainingInfo.trainingCertificationExpiry,
                 comment: addedTrainingInfo.comment              
             }
             
-            if(this.isDateFullday(assignedTraining.startDate,assignedTraining.endDate)){ 
+            if(Vue.filter('isDateFullday')(assignedTraining.startDate,assignedTraining.endDate)){ 
                 assignedTraining['isFullDay'] = true;                 
             }else{
                 assignedTraining['isFullDay'] = false;                   

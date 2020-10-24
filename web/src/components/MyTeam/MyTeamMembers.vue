@@ -56,8 +56,8 @@
                         <div class="card-header bg-dark border-dark mb-0 pb-0 " >
                             <b-row class="ml-3">                                                
                                 <user-location-summary v-if="teamMember.awayLocation.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :awayJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>
-                                <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
-                                <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
+                                <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber" :timezone="teamMember.homeLocation?teamMember.homeLocation.timezone:'UTC'"/>
+                                <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber" :timezone="teamMember.homeLocation?teamMember.homeLocation.timezone:'UTC'"/>
                             </b-row>
                         </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
@@ -286,13 +286,13 @@
         public extractMyTeamFromSheriffs(data: any) {    
             this.allMyTeamData = [];            
             for(const myteaminfo of data)
-            {
+            {                
                 const myteam = {} as teamMemberInfoType;
                 myteam.fullName = Vue.filter('capitilize')(myteaminfo.firstName) + ' ' + Vue.filter('capitilize')(myteaminfo.lastName);
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
                 myteam.rank = myteaminfo.rank;
-                myteam.rankOrder = this.getRankOrder(myteam.rank)[0].id;
+                myteam.rankOrder = this.getRankOrder(myteam.rank)[0]?this.getRankOrder(myteam.rank)[0].id:0;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
                 myteam.image = myteaminfo.photoUrl? myteaminfo.photoUrl: '';
@@ -303,11 +303,13 @@
                 myteam.leave = myteaminfo.leave? myteaminfo.leave: [];
                 myteam.training = myteaminfo.training? myteaminfo.training: [];
                 myteam.awayLocation = myteaminfo.awayLocation;
+                
                 if(myteaminfo.homeLocation)
-                    myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
+                    myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId, timezone: myteaminfo.homeLocation.timezone};
+                
                 this.allMyTeamData.push(myteam);
             }  
-            // console.log(this.allMyTeamData)          
+             console.log(this.allMyTeamData)          
         }
 
         get totalRows() {
@@ -338,7 +340,10 @@
         }
 
         public sortTeamMembers(teamList) {
-            return _.chain(teamList).sortBy('lastName').sortBy('rankOrder').value()
+            return _.chain(teamList)
+                    .sortBy(member =>{return (member['lastName']? member['lastName'].toUpperCase() : '')})
+                    .sortBy('rankOrder')
+                    .value()
         }
 
         public getRankOrder(rankName: string) {
@@ -436,7 +441,7 @@
             user.homeLocationNm = userJson.homeLocation? userJson.homeLocation.name: '';
             user.image = userJson['photoUrl']?userJson['photoUrl']:'';
             if(userJson.homeLocation)
-                user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
+                user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId, timezone: userJson.homeLocation.timezone};
           
             if(userJson.awayLocation && userJson.awayLocation.length>0)
                 user.awayLocation = userJson.awayLocation;

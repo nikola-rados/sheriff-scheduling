@@ -2,7 +2,7 @@
     <b-card v-if="displayLoanedIn || displayLoanedOut" no-body class="bg-dark text-white">
         <b-row> 
             <b-icon-box-arrow-left class="mx-2" v-if="displayLoanedOut" :id="'loanedOutIcon'+index" font-scale="1.5"></b-icon-box-arrow-left>
-                <b-tooltip :target="'loanedOutIcon'+index" variant="warning" show.sync ="true" triggers="hover">
+                <b-tooltip v-if="displayLoanedOut" :target="'loanedOutIcon'+index" variant="warning" show.sync ="true" triggers="hover">
                     <h2 class="text-danger">On loan to:</h2>                
                     <b-table  
                         :items="userLoanedOutInfo"
@@ -25,7 +25,7 @@
                     </b-table>                                        
                 </b-tooltip>
             <b-icon-box-arrow-in-right class="mx-2" v-if="displayLoanedIn" :id="'loanedInIcon'+index" font-scale="1.5"></b-icon-box-arrow-in-right>
-                <b-tooltip :target="'loanedInIcon'+index" variant="warning" show.sync ="true" triggers="hover">
+                <b-tooltip v-if="displayLoanedIn" :target="'loanedInIcon'+index" variant="warning" show.sync ="true" triggers="hover">
                     <h2 class="text-danger">Loaned in from:</h2>                
                     <b-table  
                         :items="userLoanedInInfo"
@@ -104,10 +104,11 @@
                 {
                     const loanedInfo = {} as loanedLocationInfoType;
                     loanedInfo.locationId = loanedInfoJson.locationId;
+                    const timezone = loanedInfoJson.location.timezone;
 
-                    loanedInfo.startDate = moment(loanedInfoJson.startDate).tz("UTC").format();
-                    loanedInfo.endDate = moment(loanedInfoJson.endDate).tz("UTC").format();
-                    loanedInfo.isFullDay = this.isDateFullday(loanedInfo.startDate, loanedInfo.endDate);                    
+                    loanedInfo.startDate = moment(loanedInfoJson.startDate).tz(timezone).format();
+                    loanedInfo.endDate = moment(loanedInfoJson.endDate).tz(timezone).format();
+                    loanedInfo.isFullDay = Vue.filter('isDateFullday')(loanedInfo.startDate, loanedInfo.endDate);                    
 
                     if(loanedInfo.locationId == this.location.id)
                     {
@@ -130,12 +131,6 @@
             }
         }
 
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
-        }
     }
 </script>
 
