@@ -103,6 +103,16 @@ export interface roleJsonType {
     "concurrencyToken": number  
 }
 
+export interface userRoleJsonType {  
+    role: {
+        id: number;
+        name: string;
+        description: string;
+    };
+    effectiveDate: string;
+    expiryDate: string;  
+}
+
 export interface rolePermissionsJsonType {
   "id": string,
   "roleId": string,
