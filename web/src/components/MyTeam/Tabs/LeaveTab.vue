@@ -105,20 +105,7 @@
 
         leaveTypeInfoList: leaveInfoType[] = [];
         leaveTabDataReady = false;
-        selectedLeave = {} as leaveInfoType | undefined;
-        leaveState = true;
-
-        selectedEndDate = ''
-        endDateState = true
-
-        selectedStartDate = ''
-        startDateState = true
-
-        selectedStartTime = ''
-        startTimeState = true
-
-        selectedEndTime = ''
-        endTimeState = true
+        
 
         addNewLeaveForm = false;
         addFormColor = 'secondary';

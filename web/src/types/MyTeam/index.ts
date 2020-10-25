@@ -1,5 +1,5 @@
 import {leaveInfoType, locationInfoType, trainingInfoType} from '../common';
-import {awayLocationsJsontype, leaveJsontype, trainingJsontype} from './jsonTypes';
+import {awayLocationsJsontype, leaveJsontype, trainingJsontype, userRoleJsonType} from './jsonTypes';
 
 export interface teamMemberInfoType {
 
@@ -14,7 +14,7 @@ export interface teamMemberInfoType {
     gender: string;
     fullName?: string;
     image?: string | null;
-    userRoles?: userRoleInfoType[];
+    userRoles?: userRoleJsonType[];
     isEnabled?: boolean;
     homeLocationId?: number | null;
     homeLocationNm?: string | null;
@@ -26,11 +26,9 @@ export interface teamMemberInfoType {
 }
 
 export interface userRoleInfoType{
-    role: {
-        id: number;
-        name: string;
-        description: string;
-    };
+    value: string;
+    text: string;
+    desc: string;    
     effectiveDate: string;
     expiryDate: string;
   }
@@ -39,8 +37,6 @@ export interface roleOptionInfoType{
     text: string;
     desc: string;
     value: string;
-    effDate: string;
-    expDate: string;
 }
 
 export interface permissionInfoType {

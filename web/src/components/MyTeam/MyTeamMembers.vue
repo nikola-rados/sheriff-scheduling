@@ -112,7 +112,8 @@
                                 </b-tab>
 
                                 <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
-                                    <role-assignment-tab :userId="userToEdit.id" :userAllRoles="userAllRoles" />
+                                    <role-assignment-tab  v-on:change="getSheriffs()"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>
                                 </b-tab>
 
                             </b-tabs>
@@ -450,7 +451,7 @@
 
             user.leave = userJson.leave;
             user.training = userJson.training;
-            this.userAllRoles = userJson.roles
+            user.userRoles = userJson.roles
             this.UpdateUserToEdit(user);  
         }
 
