@@ -34,7 +34,7 @@
             <b-form-group class="ml-1" style="width: 15rem"><label>Rank<span class="text-danger">*</span></label>
                 <b-form-select v-model="user.rank" placeholder="Select Rank" :state = "selectedRankState?null:false">
                     <b-form-select-option
-                        v-for="sheriffRank in commonInfo.sheriffRankList" 
+                        v-for="sheriffRank in sheriffRankList" 
                         :key="sheriffRank.id"
                         :value="sheriffRank.name">
                             {{sheriffRank.name}}
@@ -429,6 +429,11 @@ export default class IdentificationTab extends Vue {
         this.duplicateBadge = false;
         this.duplicateIdir = false;
     }
+
+    get sheriffRankList(){
+        return _.sortBy(this.commonInfo.sheriffRankList, 'id')
+    }
+
     
 }
 </script>

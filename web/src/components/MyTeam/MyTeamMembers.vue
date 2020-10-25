@@ -135,7 +135,7 @@
                  <b-button
                   variant="outline-primary"
                   class="text-light closeButton"
-                  @click="$bvModal.hide('bv-modal-team-member-details')"                  
+                  @click="closeProfileWindow()"                  
                   >
                   &times;</b-button>
             </template>           
@@ -403,7 +403,9 @@
             this.UpdateUserToEdit(user);  
         }
 
-        public AddMember(){ 
+        public AddMember(){
+            const user = {} as teamMemberInfoType;
+            this.UpdateUserToEdit(user); 
             this.tabIndex = 0;
             this.createMode = true;
             this.editMode = false;

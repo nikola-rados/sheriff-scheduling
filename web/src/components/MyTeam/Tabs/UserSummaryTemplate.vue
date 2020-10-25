@@ -1,6 +1,7 @@
 <template> 
     <b-card align="center">
         <b-card-img
+            :key="photoUpdateKey"
             v-if="photo"
             v-auth-image="photo"
             src="null"            
@@ -71,9 +72,12 @@ Vue.use(VueAuthImage);
         
         imageData: string | ArrayBuffer | null = null; 
         photo: string | null | undefined = ''; 
-        photoError = false
-        photoErrorMsg = ''
-        showPhotoReplacementWarning = false
+        photoError = false;
+        photoErrorMsg = '';
+        showPhotoReplacementWarning = false;
+
+        photoUpdateKey =0;
+
 
         mounted()
         {
@@ -135,8 +139,9 @@ Vue.use(VueAuthImage);
             this.$http.post(url, formData)
                 .then(response => {
                     // console.log(response)
-                    this.photo = 'data:image/;base64,'+response.data.photo
+                    this.photo = response.data.photoUrl
                     this.$emit('photoChange', this.user.id,this.photo)
+                    this.photoUpdateKey++;
                 
                 }, err => {
                     console.log(err.response.data);
