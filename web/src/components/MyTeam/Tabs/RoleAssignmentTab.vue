@@ -86,6 +86,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
+    import moment from 'moment-timezone';
     import {roleOptionInfoType, teamMemberInfoType, userRoleInfoType} from '../../../types/MyTeam';
     import { namespace } from 'vuex-class';
     import "@store/modules/TeamMemberInformation";
@@ -126,6 +127,8 @@
         assignedRoles: userRoleInfoType[] = [];
         roleDeleteReason = '';
 
+        timezone = 'UTC';
+
         roleFields =  
         [           
             {key:'text',    label:'Role',sortable:false, tdClass: 'border-top',  }, 
@@ -136,8 +139,9 @@
 
         mounted()
         {
-           this.roleTabDataReady = false;
-           this.loadRoles();
+            this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
+            this.roleTabDataReady = false;
+            this.loadRoles();
         }
    
         public loadRoles(){
@@ -157,15 +161,15 @@
             this.roleAssignError = false;
 
             if (this.userToEdit.userRoles && this.userToEdit.userRoles.length>0) {
-                let userRole: userRoleJsonType; 
+                let userRole: userRoleJsonType;
                 for(userRole of this.userToEdit.userRoles) 
-                { 
+                {                    
                     this.assignedRoles.push({
                         text:userRole.role.name, 
                         desc: userRole.role.description, 
                         value:userRole.role.id.toString(), 
-                        effectiveDate:userRole.effectiveDate, 
-                        expiryDate:userRole.expiryDate
+                        effectiveDate:moment(userRole.effectiveDate).tz(this.timezone).format(), 
+                        expiryDate:userRole.expiryDate?moment(userRole.expiryDate).tz(this.timezone).format():''
                     })
                 }
             }
@@ -189,7 +193,7 @@
         
         public addNewRole(){
             if(this.isEditOpen){
-                location.href = '#Ro-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                location.href = '#Ro-Date-'+this.latestEditData.item.effectiveDate.substring(0,10)
                 this.addFormColor = 'danger'
             }else{
                 this.addNewRoleForm = true;
@@ -225,8 +229,8 @@
             const index = this.assignedRoles.findIndex(assignedrole =>{ if(assignedrole.value == modifiedRoleInfo.roleId) return true})
             if(index>=0){
                 this.assignedRoles[index].value =  modifiedRoleInfo.roleId;
-                this.assignedRoles[index].effectiveDate = modifiedRoleInfo.effectiveDate;
-                this.assignedRoles[index].expiryDate = modifiedRoleInfo.expiryDate;
+                this.assignedRoles[index].effectiveDate = moment(modifiedRoleInfo.effectiveDate).tz(this.timezone).format();
+                this.assignedRoles[index].expiryDate = modifiedRoleInfo.expiryDate? moment(modifiedRoleInfo.expiryDate).tz(this.timezone).format():'';
                 this.assignedRoles[index].text = modifiedRoleInfo.text;
                 this.assignedRoles[index].desc = modifiedRoleInfo.desc;                  
                 this.$emit('change');
@@ -234,12 +238,13 @@
         }
 
         public addToRoleList(addedRoleInfo){
+            console.log(addedRoleInfo)
             const role = {} as userRoleInfoType;
             role.value = addedRoleInfo.roleId;
             role.text = addedRoleInfo.text;
             role.desc = addedRoleInfo.desc; 
-            role.effectiveDate = addedRoleInfo.effectiveDate;
-            role.expiryDate = addedRoleInfo.expiryDate;
+            role.effectiveDate = moment(addedRoleInfo.effectiveDate).tz(this.timezone).format();
+            role.expiryDate = addedRoleInfo.expiryDate? moment(addedRoleInfo.expiryDate).tz(this.timezone).format():'';
             this.assignedRoles.push(role); 
             this.$emit('change');                     
         }
@@ -266,7 +271,8 @@
         public deleteRole(){
             if (this.roleDeleteReason.length) {
                 this.roleAssignError = false;
-                this.confirmDelete = false;                 
+                this.confirmDelete = false;
+                this.roleDeleteReason = ''; 
                 const body = 
                 [{
                     "userId": this.userToEdit.id,
@@ -284,7 +290,6 @@
                         this.roleErrorMsgDesc = errMsg;                    
                         this.roleAssignError = true;
                     });
-                    this.roleDeleteReason = '';
             }
         }
         

@@ -4,11 +4,11 @@
             <b-tbody>
                 <b-tr>
                     <b-td>   
-                        <b-tr class="mt-1 bg-white">   
-                            <b class="ml-3" v-if="!selectedEffectiveDate" >Role: </b>                          
+                        <b-tr class="mt-1 mb-1 pb-0 bg-white">   
+                            <h4 class="ml-3 my-1 pb-0">Role: </h4>                          
                         </b-tr>
-                        <b-tr >
-                            <b-form-group v-if="isCreate" style="margin: 0.25rem 0 0 0.5rem;width: 19rem"> 
+                        <b-tr >                           
+                            <b-form-group v-if="isCreate" style="padding: 0; margin: 0rem 0 0 .5rem;width: 15rem"> 
                                 <b-form-select
                                     size = "sm"
                                     v-model="selectedRole"
@@ -24,8 +24,8 @@
                                         </b-form-select-option>     
                                 </b-form-select>                                
                             </b-form-group>
-                             <b-form-group v-else style="margin: 0.25rem 0 0 0.5rem;width: 19rem">                                
-                                <b-form-text >
+                            <b-form-group v-else style="border-radius: 4px; border:1px solid #bbbbbb; padding:0 0 .0 0;; margin: 0 0 0 0.5rem;width: 15rem">                                
+                                <b-form-text class="h5 align-middle my-2 font-weight-normal ml-2">
                                     {{this.selectedRole.text}}
                                 </b-form-text>
                             </b-form-group>
@@ -58,13 +58,13 @@
                     </b-td>
                     <b-td >
                         <b-button                                    
-                            style="margin: 2rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                            style="margin: 1.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
                             variant="secondary"
                             @click="closeForm()">
                             Cancel
                         </b-button>   
                         <b-button                                    
-                            style="margin: 2rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                            style="margin: 1.5rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
                             variant="success"                                                    
                             @click="saveForm()">
                             Save
@@ -96,7 +96,6 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import moment from 'moment-timezone';
     import {teamMemberInfoType ,roleOptionInfoType, userRoleInfoType} from '../../../../types/MyTeam';
     // import {leaveInfoType} from '../../../../types/common';
     // import { leaveTypeJson } from '../../../../types/common/jsonTypes';
@@ -156,8 +155,7 @@
                 this.roleState = true;
                 this.effectiveDateState = true;                
 
-                if(!this.selectedRole)
-                {
+                if(this.selectedRole && !this.selectedRole.value){
                     this.roleState = false;
                 }
                 else if(this.selectedEffectiveDate == "")
@@ -169,12 +167,17 @@
                 {
                     this.roleState = true;
                     this.effectiveDateState = true;
+
+                    const timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
+                    const effectiveDate = Vue.filter('convertDate')(this.selectedEffectiveDate,"", 'StartTime',timezone);
+                    const expiryDate =this.selectedExpiryDate? Vue.filter('convertDate')(this.selectedExpiryDate,"",'EndTime',timezone): '';
+
                     const body = [{                        
-                        effectiveDate: this.selectedEffectiveDate,
-                        expiryDate: this.selectedExpiryDate,
-                        roleId: this.selectedRole.value,
-                        text: this.selectedRole.text,
-                        desc: this.selectedRole.desc
+                        effectiveDate: effectiveDate,
+                        expiryDate: expiryDate,
+                        roleId: this.selectedRole?this.selectedRole.value:'',
+                        text: this.selectedRole?this.selectedRole.text:'',
+                        desc: this.selectedRole?this.selectedRole.desc:''
                     }] 
                     this.$emit('submit', body, this.isCreate);                  
                 }

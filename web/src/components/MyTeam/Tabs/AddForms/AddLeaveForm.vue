@@ -78,13 +78,13 @@
                     </b-td>
                     <b-td >
                         <b-button                                    
-                            style="margin: 2rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                            style="margin: 2.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
                             variant="secondary"
                             @click="closeForm()">
                             Cancel
                         </b-button>   
                         <b-button                                    
-                            style="margin: 2rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                            style="margin: 2.5rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
                             variant="success"                        
                             @click="saveForm()">
                             Save
@@ -116,7 +116,6 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import moment from 'moment-timezone';
     import {teamMemberInfoType ,userLeaveInfoType} from '../../../../types/MyTeam';
     import {leaveInfoType} from '../../../../types/common';
     import { leaveTypeJson } from '../../../../types/common/jsonTypes';

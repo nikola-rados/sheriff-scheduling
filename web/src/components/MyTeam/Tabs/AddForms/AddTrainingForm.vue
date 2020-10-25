@@ -27,12 +27,13 @@
                                         </b-form-select-option>     
                                 </b-form-select>
                                 <b-form-input
-                                        v-if="selectedTrainingType.code=='Other'"
-                                        v-model="selectedTrainingTypeComment"
-                                        :disabled="!editable"
-                                        placeholder="Comment*"
-                                        :state = "trainingTypeCommentState?null:false"
-                                        size = "sm">
+                                    class="mt-1 mb-0"
+                                    v-if="selectedTrainingType.code=='Other'"
+                                    v-model="selectedTrainingTypeComment"
+                                    :disabled="!editable"
+                                    placeholder="Comment*"
+                                    :state = "trainingTypeCommentState?null:false"
+                                    size = "sm">
                                 </b-form-input>
                             </b-form-group>
                         </b-tr>                        
@@ -156,7 +157,6 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import moment from 'moment-timezone';
     import {teamMemberInfoType ,userTrainingInfoType} from '../../../../types/MyTeam';
     import {trainingInfoType} from '../../../../types/common';
     import { trainingTypeJson } from '../../../../types/common/jsonTypes';
