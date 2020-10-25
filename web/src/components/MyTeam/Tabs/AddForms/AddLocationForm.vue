@@ -95,7 +95,25 @@
                     </b-td>
                 </b-tr>   
             </b-tbody>
-        </b-table-simple>              
+        </b-table-simple> 
+
+        <b-modal v-model="showCancelWarning" id="bv-modal-location-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>
+                <h2 v-if="isCreate" class="mb-0 text-light"> Unsaved New Location </h2>                
+                <h2 v-else class="mb-0 text-light"> Unsaved Location Changes </h2>                                 
+            </template>
+            <p>Are you sure you want to cancel without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-location-cancel-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="confirmedCloseForm()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-location-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>              
     </div>
 </template>
 
@@ -138,9 +156,17 @@
         startTimeState = true;
 
         selectedEndTime = '';
-        endTimeState = true; 
+        endTimeState = true;
+        
+        originalLocation = {} as locationInfoType;
+        originalStartDate = '';
+        originalEndDate = '';
+        originalStartTime = '';
+        originalEndTime = '';
 
         formDataId = 0;
+
+        showCancelWarning = false;
 
         public timeFormat(value , event){        
             if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1) 
@@ -171,16 +197,14 @@
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
             const index = this.locationList.findIndex(location=>{if(location.id == this.formData.locationId)return true})
-            this.selectedLocation = (index>=0)? this.locationList[index]: {} as locationInfoType;
-            this.selectedStartDate = this.formData.startDate.substring(0,10)            
-            this.selectedEndDate =  this.formData.endDate.substring(0,10)
-            
-            const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00')//+":00.000Z";
-            const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00')//+":00.000Z";
-            const displayTime = Vue.filter('isDateFullday')(startDate,endDate)
-           
-            this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,16)            
-            this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,16)
+            this.originalLocation = this.selectedLocation = (index>=0)? this.locationList[index]: {} as locationInfoType;
+            this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
+            this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
+
+            const displayTime = Vue.filter('isDateFullday')(this.formData.startDate,this.formData.endDate)
+            this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,16)            
+            this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,16)
+        
         }
 
         public saveForm(){
@@ -190,8 +214,6 @@
                 this.startTimeState = true;
                 this.endTimeState   = true;
                 const isFullDay = this.isFullDay
-
-                //console.log(this.selectedLocation)
 
                 if(this.selectedLocation && !this.selectedLocation.id ){
                     this.locationState  = false;
@@ -224,8 +246,6 @@
                     const startDate = Vue.filter('convertDate')(this.selectedStartDate,this.selectedStartTime, 'StartTime',this.selectedLocation.timezone);
                     const endDate =   Vue.filter('convertDate')(this.selectedEndDate,this.selectedEndTime,'EndTime',this.selectedLocation.timezone);
 
-//console.log(startDate)
-//console.log(endDate)
                     const body = {
                         locationId: this.selectedLocation?this.selectedLocation.id:0,
                         startDate: startDate,
@@ -237,7 +257,31 @@
                 }
         }
 
+
         public closeForm(){
+            if(this.isChanged())
+                this.showCancelWarning = true;
+            else
+                this.confirmedCloseForm();
+        }
+
+        public isChanged(){
+            if(this.isCreate){
+                if((this.selectedLocation && this.selectedLocation.id) ||
+                    this.selectedStartDate || this.selectedEndDate ||                    
+                    this.selectedStartTime || this.selectedEndTime) return true;
+                return false;
+            }else{
+                if((this.originalLocation && this.selectedLocation && (this.originalLocation.id != this.selectedLocation.id)) ||
+                    (this.originalStartDate != this.selectedStartDate)|| 
+                    (this.originalEndDate != this.selectedEndDate) ||
+                    (this.originalStartTime != this.selectedStartTime) || 
+                    (this.originalEndTime != this.selectedEndTime)) return true;
+                return false;
+            }
+        }
+
+        public confirmedCloseForm(){  
             this.clearSelections();
             this.$emit('cancel');
         }

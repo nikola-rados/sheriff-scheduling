@@ -53,7 +53,7 @@
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
-                        <div class="card-header bg-dark border-dark mb-0 pb-0 " >
+                        <div class="card-header bg-dark border-dark mb-0 pb-0 " style="width: 13.4rem; height: 2.5rem;">
                             <b-row class="ml-3">                                                
                                 <user-location-summary v-if="teamMember.awayLocation.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :awayJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>
                                 <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber" :timezone="teamMember.homeLocation?teamMember.homeLocation.timezone:'UTC'"/>
@@ -63,7 +63,7 @@
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
-                        <div class="card-footer text-white bg-dark border-dark mt-0 pt-0" >                                                
+                        <div class="card-footer text-white bg-dark border-dark mt-0 pt-0" style="width: 13.4rem; height: 2.5rem;">                                                
                             <expire-sheriff-profile :disabled="!userIsAdmin" :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
                         </div>
                     </div>
@@ -288,7 +288,7 @@
             for(const myteaminfo of data)
             {                
                 const myteam = {} as teamMemberInfoType;
-                myteam.fullName = Vue.filter('capitilize')(myteaminfo.firstName) + ' ' + Vue.filter('capitilize')(myteaminfo.lastName);
+                myteam.fullName = Vue.filter('capitalize')(myteaminfo.firstName) + ' ' + Vue.filter('capitalize')(myteaminfo.lastName);
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
                 myteam.rank = myteaminfo.rank;
@@ -433,7 +433,7 @@
             user.idirUserName =  userJson.idirName;
             user.firstName = userJson.firstName;
             user.lastName = userJson.lastName;
-            user.fullName = Vue.filter('capitilize')(userJson.firstName) + ' ' + Vue.filter('capitilize')(userJson.lastName);
+            user.fullName = Vue.filter('capitalize')(userJson.firstName) + ' ' + Vue.filter('capitalize')(userJson.lastName);
             user.gender = gender[userJson.gender];
             user.rank = userJson.rank;
             user.email = userJson.email;

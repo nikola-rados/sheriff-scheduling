@@ -26,7 +26,7 @@ Vue.filter('beautify-time', function(date){
 		return ''
 })
 
-Vue.filter('capitilize', function(str: string){
+Vue.filter('capitalize', function(str: string){
 	
 	if(str)
 		return str.charAt(0).toUpperCase() + (str.slice(1)).toLowerCase();
@@ -50,8 +50,12 @@ Vue.filter('convertDate', function(date: string, time: string, type: string, tim
 })
 
 Vue.filter('isDateFullday', function(startDate: string, endDate: string){
-	const start = moment(startDate); 
-	const end = moment(endDate);
+	const tail="1900-01-01T00:00:00";
+	const start = moment(startDate+ tail.slice(startDate.length)); 
+	const end = moment(endDate+ tail.slice(endDate.length));
 	const duration = moment.duration(end.diff(start));
-	if(duration.asMinutes() < 1439 && duration.asMinutes()> -1439 )  return false;  else return true;
+	if(duration.asMinutes() < 1439 && duration.asMinutes()> -1439 )
+		return false; 
+	else
+	 	return true;	
 })

@@ -215,10 +215,7 @@
             this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
             this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
             
-            const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00')//+":00.000Z";
-            const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00')//+":00.000Z";
-            const displayTime = Vue.filter('isDateFullday')(startDate,endDate)
-           
+            const displayTime = Vue.filter('isDateFullday')(this.formData.startDate,this.formData.endDate)           
             this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,16)            
             this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,16)
         }

@@ -1,15 +1,15 @@
 <template> 
-    <b-card align="center">
+    <b-card align="center" style="width: 13.4rem; height: 21rem;">
         <b-card-img
             :key="photoUpdateKey"
             v-if="photo"
             v-auth-image="photo"
             src="null"            
-            style="max-width: 20rem; max-height: 22rem;"
+            style="width: 11rem; height: 11rem;"
             class="mb-3"
         ></b-card-img>
     
-        <b-icon-person-circle v-else class="mb-3" variant="secondary" font-scale="7.5"></b-icon-person-circle>
+        <b-icon-person-circle v-else class="mb-3" variant="secondary" font-scale="7.5" style="width: 11rem; height: 11rem;"></b-icon-person-circle>
         
         <b-card no-body class="mb-3 mt-2" v-if="editMode">
                 <h4 ><b-badge v-if="photoError" variant="danger"> {{photoErrorMsg}} <b-icon class="ml-1" icon = x-square-fill @click="photoError = false" /></b-badge></h4>
@@ -21,8 +21,12 @@
 
         <b-card-sub-title class="my-1">{{user.badgeNumber}}</b-card-sub-title>
         <b-card-title>{{user.fullName}}</b-card-title>        
-        <b-card-sub-title class="my-1">{{user.rank|capitilize}}</b-card-sub-title>
-        <b-card-text class="my-1" style="color: #8a3078; font-size: 0.75rem;"><b-icon-house-door-fill class="mr-1" font-scale="1.25"/>{{user.homeLocationNm}}</b-card-text>
+        <b-card-sub-title class="my-1">{{user.rank|capitalize}}</b-card-sub-title>
+        <b-card-text 
+            style="color: #8a3078; font-size: 0.75rem;" 
+            class="my-1">
+                <b-icon-house-door-fill class="mr-1" font-scale="1.25"/>{{user.homeLocationNm}}
+        </b-card-text>
         
 
         <b-modal v-model="showPhotoReplacementWarning" id="bv-modal-photo-replacement-warning" header-class="bg-warning text-light">            
