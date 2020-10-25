@@ -95,7 +95,7 @@
                             class="mb-1 mt-0 pt-0"
                             size="sm"
                             v-model="selectedExpiryDate"
-                            placeholder="Expiry Date*"
+                            placeholder="Expiry Date"
                             :state = "expiryDateState?null:false"                                    
                             :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                             locale="en-US">
@@ -133,7 +133,24 @@
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-training-cancel-warning')"
                  >&times;</b-button>
             </template>
-        </b-modal>             
+        </b-modal>
+
+        <b-modal v-model="showSaveWarning" id="bv-modal-training-save-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>                              
+                <h2 class="mb-0 text-light"> Training Without Expiry Date </h2>                                 
+            </template>
+            <p>Are you sure you want to save training without specifying an expiry date?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-training-save-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="confirmedSave()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-training-save-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>              
     </div>
 </template>
 
@@ -196,6 +213,7 @@
 
         formDataId = 0;
         showCancelWarning = false;
+        showSaveWarning = false;
         
         mounted()
         { 
@@ -210,7 +228,7 @@
             
             const index = this.trainingTypeInfoList.findIndex(training=>{if(training.id == this.formData.trainingTypeId)return true})
             this.originalTrainingType = this.selectedTrainingType = (index>=0)? this.trainingTypeInfoList[index]: {} as trainingInfoType; 
-            this.originalExpiryDate = this.selectedExpiryDate = this.formData.expiryDate.substring(0,10);
+            this.originalExpiryDate = this.selectedExpiryDate = this.formData.expiryDate? this.formData.expiryDate.substring(0,10):'';
             this.originalTrainingTypeComment = this.selectedTrainingTypeComment = this.formData.comment? this.formData.comment:'';          
             this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
             this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
@@ -239,73 +257,80 @@
         }
 
         public saveForm(){
+            this.trainingTypeState  = true;
+            this.endDateState    = true;
+            this.startDateState  = true;
+            this.startTimeState  = true;
+            this.endTimeState    = true;
+            this.expiryDateState = true;
+
+            if(this.selectedTrainingType && !this.selectedTrainingType.id ){
+                this.trainingTypeState  = false;
+            }else if(this.selectedTrainingType && this.selectedTrainingType.code=='Other' && this.selectedTrainingTypeComment == ""){
                 this.trainingTypeState  = true;
-                this.endDateState    = true;
-                this.startDateState  = true;
-                this.startTimeState  = true;
-                this.endTimeState    = true;
-                this.expiryDateState = true;
-                const isFullDay = this.isFullDay
+                this.trainingTypeCommentState = false;
+            }else if(this.selectedStartDate == ""){
+                this.trainingTypeState  = true;
+                this.trainingTypeCommentState = true;
+                this.startDateState = false;
+            }else if(this.selectedEndDate == ""){
+                this.trainingTypeState  = true;
+                this.trainingTypeCommentState = true;
+                this.startDateState = true;
+                this.endDateState   = false;
+            }else if(this.selectedEndTime == "" && this.selectedStartTime != ""){
+                this.trainingTypeState  = true;
+                this.trainingTypeCommentState = true;
+                this.startDateState = true;
+                this.endDateState   = true;
+                this.startTimeState = true;
+                this.endTimeState   = false;
+            }else if(this.selectedStartTime == "" && this.selectedEndTime != ""){
+                this.trainingTypeState  = true;
+                this.trainingTypeCommentState = true;
+                this.startDateState = true;
+                this.endDateState   = true;
+                this.endTimeState   = true;
+                this.startTimeState = false;
+            }else if(this.selectedExpiryDate == ""){
+                this.trainingTypeState  = true;
+                this.trainingTypeCommentState = true;
+                this.startDateState = true;
+                this.endDateState   = true;
+                this.endTimeState   = true;
+                this.startTimeState = true;
+                this.showSaveWarning = true;
+                this.expiryDateState = false;
 
-                if(this.selectedTrainingType && !this.selectedTrainingType.id ){
-                    this.trainingTypeState  = false;
-                }else if(this.selectedTrainingType && this.selectedTrainingType.code=='Other' && this.selectedTrainingTypeComment == ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = false;
-                }else if(this.selectedStartDate == ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = false;
-                }else if(this.selectedEndDate == ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = true;
-                    this.endDateState   = false;
-                }else if(this.selectedEndTime == "" && this.selectedStartTime != ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.startTimeState = true;
-                    this.endTimeState   = false;
-                }else if(this.selectedStartTime == "" && this.selectedEndTime != ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.endTimeState   = true;
-                    this.startTimeState = false;
-                }else if(this.selectedExpiryDate == ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.endTimeState   = true;
-                    this.startTimeState = true;
-                    this.expiryDateState = false;
-                }else{
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.endDateState   = true;
-                    this.startDateState = true;
-                    this.startTimeState = true;
-                    this.endTimeState   = true;
-                    this.expiryDateState = true;
+            }else{
+                this.confirmedSave(); 
+            }
+        }
 
-                    const timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
-                    const startDate = Vue.filter('convertDate')(this.selectedStartDate,this.selectedStartTime, 'StartTime',timezone);
-                    const endDate =   Vue.filter('convertDate')(this.selectedEndDate,this.selectedEndTime,'EndTime',timezone);
+        public confirmedSave() {            
+            this.showSaveWarning = false;
+            this.trainingTypeState  = true;
+            this.trainingTypeCommentState = true;
+            this.endDateState   = true;
+            this.startDateState = true;
+            this.startTimeState = true;
+            this.endTimeState   = true;
+            this.expiryDateState = true;
 
-                    const body = {
-                        trainingTypeId: this.selectedTrainingType?this.selectedTrainingType.id:0,
-                        startDate: startDate,
-                        endDate: endDate,                      
-                        trainingCertificationExpiry: this.selectedExpiryDate,
-                        comment: this.selectedTrainingTypeComment,
-                        id: this.formDataId
-                    } 
-                    this.$emit('submit', body, this.isCreate);                  
-                }
+            const timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
+            const startDate = Vue.filter('convertDate')(this.selectedStartDate,this.selectedStartTime, 'StartTime',timezone);
+            const endDate =   Vue.filter('convertDate')(this.selectedEndDate,this.selectedEndTime,'EndTime',timezone);
+
+            const body = {
+                trainingTypeId: this.selectedTrainingType?this.selectedTrainingType.id:0,
+                startDate: startDate,
+                endDate: endDate,                      
+                trainingCertificationExpiry: this.selectedExpiryDate,
+                comment: this.selectedTrainingTypeComment,
+                id: this.formDataId
+            } 
+            this.$emit('submit', body, this.isCreate);                  
+                
         }
 
         public closeForm(){
