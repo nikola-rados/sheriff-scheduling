@@ -55,11 +55,26 @@
          <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
             <template v-slot:modal-title>
                     <h2 class="mb-0 text-light">Confirm Delete Role</h2>                    
-            </template>
-            <p>Are you sure you want to delete the "{{roleToDelete.desc}}" role?</p>
+            </template>            
+            <h4>Are you sure you want to delete the "{{roleToDelete.desc}}" role?</h4>
+            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+                <b-form-select
+                    size = "sm"
+                    v-model="roleDeleteReason">
+                        <b-form-select-option value="OPERDEMAND">
+                            Cover Operational Demands
+                        </b-form-select-option>
+                        <b-form-select-option value="PERSONAL">
+                            Personal Decision
+                        </b-form-select-option>
+                        <b-form-select-option value="ENTRYERR">
+                            Entry Error
+                        </b-form-select-option>     
+                </b-form-select>
+            </b-form-group>
             <template v-slot:modal-footer>
-                <b-button variant="danger" @click="deleteRole()">Delete</b-button>
-                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+                <b-button variant="danger" @click="deleteRole()" :disabled="roleDeleteReason.length == 0">Delete</b-button>
+                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
@@ -109,6 +124,7 @@
         confirmDelete = false;
         roleToDelete = {} as userRoleInfoType;
         assignedRoles: userRoleInfoType[] = [];
+        roleDeleteReason = '';
 
         roleFields =  
         [           
@@ -242,26 +258,34 @@
             this.confirmDelete = true; 
         }
 
+        public cancelDeletion() {
+            this.confirmDelete = false;
+            this.roleDeleteReason = '';
+        }
+
         public deleteRole(){
-            this.roleAssignError = false;
-            this.confirmDelete = false; 
-            const body = 
-            [{
-                "userId": this.userToEdit.id,
-                "roleId": this.roleToDelete.value,                        
-            }]
-            const url = 'api/sheriff/unassignroles' ;
-            this.$http.put(url, body)
-                .then(response => {
-                    this.updateDeletedRole();
-                    this.$emit('change');
-                                                     
-                }, err=>{
-                    const errMsg = err.response.data.error;
-                    this.roleErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                    this.roleErrorMsgDesc = errMsg;                    
-                    this.roleAssignError = true;
-                });
+            if (this.roleDeleteReason.length) {
+                this.roleAssignError = false;
+                this.confirmDelete = false;
+                this.roleDeleteReason = ''; 
+                const body = 
+                [{
+                    "userId": this.userToEdit.id,
+                    "roleId": this.roleToDelete.value,                        
+                }]
+                const url = 'api/sheriff/unassignroles' ;
+                this.$http.put(url, body)
+                    .then(response => {
+                        this.updateDeletedRole();
+                        this.$emit('change');
+                                                        
+                    }, err=>{
+                        const errMsg = err.response.data.error;
+                        this.roleErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.roleErrorMsgDesc = errMsg;                    
+                        this.roleAssignError = true;
+                    });
+            }
         }
         
         public updateDeletedRole(){ 

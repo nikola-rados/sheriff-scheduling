@@ -87,10 +87,25 @@
                     <template v-slot:modal-title>
                             <h2 class="mb-0 text-light">Confirm Delete Training</h2>                    
                     </template>
-                    <p>Are you sure you want to delete the "{{trainingToDelete.trainingType?trainingToDelete.trainingType.description:''}}" training?</p>
+                    <h4>Are you sure you want to delete the "{{trainingToDelete.trainingType?trainingToDelete.trainingType.description:''}}" training?</h4>
+                    <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+                        <b-form-select
+                            size = "sm"
+                            v-model="trainingDeleteReason">
+                                <b-form-select-option value="OPERDEMAND">
+                                    Cover Operational Demands
+                                </b-form-select-option>
+                                <b-form-select-option value="PERSONAL">
+                                    Personal Decision
+                                </b-form-select-option>
+                                <b-form-select-option value="ENTRYERR">
+                                    Entry Error
+                                </b-form-select-option>     
+                        </b-form-select>
+                    </b-form-group>
                     <template v-slot:modal-footer>
-                        <b-button variant="danger" @click="deleteTraining()">Delete</b-button>
-                        <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+                        <b-button variant="danger" @click="deleteTraining()" :disabled="trainingDeleteReason.length == 0">Delete</b-button>
+                        <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
                     </template>            
                     <template v-slot:modal-header-close>                 
                         <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
@@ -144,6 +159,7 @@
         lastyear = '';
         selectedPastTrainings = 'pastyear';
         timezone = 'UTC';
+        trainingDeleteReason = '';
 
         fields =  
         [     
@@ -161,9 +177,9 @@
         {        
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.currentTime = moment(new Date()).tz(this.timezone).format();
-            console.log(this.currentTime)  
+            // console.log(this.currentTime)  
             this.lastyear = moment().subtract(1,'year').tz(this.timezone).format(); 
-            console.log(this.lastyear)   
+            // console.log(this.lastyear)   
             this.trainingTabDataReady = false;
             this.extractTrainings();                        
         }
@@ -239,25 +255,33 @@
             this.confirmDelete=true; 
         }
 
-        public deleteTraining(){
-            console.log('delete training')
-            this.confirmDelete = false;            
+        public cancelDeletion() {
+            this.confirmDelete = false;
+            this.trainingDeleteReason = '';
+        }
 
-            this.trainingError = false;
-            const url = 'api/sheriff/training?id='+this.trainingToDelete.id;
-            this.$http.delete(url)
-                .then(response => {
-                    console.log(response)
-                    console.log('delete success')
-                    const index = this.assignedTrainings.findIndex(assignedtraining=>{if(assignedtraining.id == this.trainingToDelete.id) return true;})
-                    if(index>=0) this.assignedTrainings.splice(index,1);
-                    this.$emit('change');
-                }, err=>{
-                    const errMsg = err.response.data.error;
-                    this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                    this.trainingErrorMsgDesc = errMsg;
-                    this.trainingError = true;
-                });
+        public deleteTraining(){
+            // console.log('delete training')
+            if (this.trainingDeleteReason.length) {
+                this.confirmDelete = false;
+                this.trainingDeleteReason = '';         
+
+                this.trainingError = false;
+                const url = 'api/sheriff/training?id='+this.trainingToDelete.id+'&expiryReason='+this.trainingDeleteReason;
+                this.$http.delete(url)
+                    .then(response => {
+                        // console.log(response)
+                        // console.log('delete success')
+                        const index = this.assignedTrainings.findIndex(assignedtraining=>{if(assignedtraining.id == this.trainingToDelete.id) return true;})
+                        if(index>=0) this.assignedTrainings.splice(index,1);
+                        this.$emit('change');
+                    }, err=>{
+                        const errMsg = err.response.data.error;
+                        this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.trainingErrorMsgDesc = errMsg;
+                        this.trainingError = true;
+                    });
+            }            
         }
 
         public editTraining(training){
