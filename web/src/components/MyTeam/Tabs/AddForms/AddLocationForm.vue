@@ -187,9 +187,7 @@
         }
         
         mounted()
-        {             
-            console.log('locationForm')
-            console.log(this.formData) 
+        {    
             this.clearSelections();
             if(this.formData.id) this.extractFormInfo();  
         }

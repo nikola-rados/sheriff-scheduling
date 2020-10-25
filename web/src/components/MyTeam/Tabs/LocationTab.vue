@@ -73,10 +73,25 @@
             <template v-slot:modal-title>
                     <h2 class="mb-0 text-light">Confirm Delete Location</h2>                    
             </template>
-            <p>Are you sure you want to delete the "{{locationToDelete.locationNm}}" location?</p>
+            <h4>Are you sure you want to delete the "{{locationToDelete.locationNm}}" location?</h4>
+            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+                <b-form-select
+                    size = "sm"
+                    v-model="locationDeleteReason">
+                        <b-form-select-option value="OPERDEMAND">
+                            Cover Operational Demands
+                        </b-form-select-option>
+                        <b-form-select-option value="PERSONAL">
+                            Personal Decision
+                        </b-form-select-option>
+                        <b-form-select-option value="ENTRYERR">
+                            Entry Error
+                        </b-form-select-option>     
+                </b-form-select>
+            </b-form-group>
             <template v-slot:modal-footer>
-                <b-button variant="danger" @click="deleteLocation()">Delete</b-button>
-                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+                <b-button variant="danger" @click="deleteLocation()" :disabled="locationDeleteReason.length == 0">Delete</b-button>
+                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
@@ -123,6 +138,7 @@
         addFormColor = 'secondary';
         latestEditData;
         isEditOpen = false;
+        locationDeleteReason = '';
         
         assignedAwayLocations: awayLocationInfoType[] = [];
 
@@ -169,26 +185,32 @@
             this.confirmDelete=true; 
         }
 
-        public deleteLocation(){
-            console.log('delete location')
+         public cancelDeletion() {
             this.confirmDelete = false;
+            this.locationDeleteReason = '';
+        }
 
-            this.locationError = false; 
-            const url = 'api/sheriff/awaylocation?id='+this.locationToDelete.id;
-            this.$http.delete(url)
-                .then(response => {
-                    //console.log(response)
-                    console.log('delete success')
-                    const index = this.assignedAwayLocations.findIndex(assignedlocation=>{if(assignedlocation.id == this.locationToDelete.id) return true;})
-                    if(index>=0) this.assignedAwayLocations.splice(index,1);
-                    this.$emit('change');
-                }, err=>{
-                    const errMsg = err.response.data.error;
-                    this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                    this.locationErrorMsgDesc = errMsg;
-                    this.locationError = true;
-                    location.href = '#LocationError'
-                });
+        public deleteLocation(){
+            if (this.locationDeleteReason.length) {
+                this.confirmDelete = false;
+                this.locationError = false; 
+                const url = 'api/sheriff/awaylocation?id='+this.locationToDelete.id+'&expiryReason='+this.locationDeleteReason;
+                this.$http.delete(url)
+                    .then(response => {
+                        //console.log(response)
+                        // console.log('delete success')
+                        const index = this.assignedAwayLocations.findIndex(assignedlocation=>{if(assignedlocation.id == this.locationToDelete.id) return true;})
+                        if(index>=0) this.assignedAwayLocations.splice(index,1);
+                        this.$emit('change');
+                    }, err=>{
+                        const errMsg = err.response.data.error;
+                        this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.locationErrorMsgDesc = errMsg;
+                        this.locationError = true;
+                        location.href = '#LocationError'
+                    });
+                    this.locationDeleteReason = '';
+            }
         }
         
         public addNewLocation(){
@@ -229,9 +251,7 @@
             const url = 'api/sheriff/awaylocation'  
             const options = { method: method, url:url, data:body}
             this.$http(options)
-                .then(response => {
-                    //console.log(response)
-                    console.log('save success')
+                .then(response => {                    
                     if(iscreate) 
                         this.addToAssignedLocationList(response.data);
                     else
@@ -296,9 +316,7 @@
             this.$emit('change');                     
         }
 
-        public closeLocationForm(){
-            console.log('close form')  
-            //console.log(this.latestEditData)          
+        public closeLocationForm(){        
             this.addNewLocationForm= false; 
             this.addFormColor = 'secondary'
             if(this.isEditOpen){

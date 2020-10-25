@@ -69,10 +69,25 @@
             <template v-slot:modal-title>
                     <h2 class="mb-0 text-light">Confirm Delete Leave</h2>                    
             </template>
-            <p>Are you sure you want to delete the "{{leaveToDelete.leaveType?leaveToDelete.leaveType.description:''}}" leave?</p>
+            <h4>Are you sure you want to delete the "{{leaveToDelete.leaveType?leaveToDelete.leaveType.description:''}}" leave?</h4>
+            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+                <b-form-select
+                    size = "sm"
+                    v-model="leaveDeleteReason">
+                        <b-form-select-option value="OPERDEMAND">
+                            Cover Operational Demands
+                        </b-form-select-option>
+                        <b-form-select-option value="PERSONAL">
+                            Personal Decision
+                        </b-form-select-option>
+                        <b-form-select-option value="ENTRYERR">
+                            Entry Error
+                        </b-form-select-option>     
+                </b-form-select>
+            </b-form-group>
             <template v-slot:modal-footer>
-                <b-button variant="danger" @click="deleteLeave()">Delete</b-button>
-                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+                <b-button variant="danger" @click="deleteLeave()" :disabled="leaveDeleteReason.length == 0">Delete</b-button>
+                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
@@ -122,6 +137,7 @@
         
         assignedLeaves: userLeaveInfoType[] = [];
         timezone = 'UTC';
+        leaveDeleteReason = '';
 
         fields =  
         [     
@@ -308,22 +324,29 @@
             this.confirmDelete=true; 
         }
 
-        public deleteLeave() {
-            this.confirmDelete = false;    
+        public cancelDeletion() {
+            this.confirmDelete = false;
+            this.leaveDeleteReason = '';
+        }
 
-            this.leaveError = false; 
-            const url = 'api/sheriff/leave?id='+this.leaveToDelete.id;
-            this.$http.delete(url)
-                .then(response => {
-                    const index = this.assignedLeaves.findIndex(assignedleave=>{if(assignedleave.id == this.leaveToDelete.id) return true;})
-                    if(index>=0) this.assignedLeaves.splice(index,1);
-                    this.$emit('change');
-                }, err=>{
-                    const errMsg = err.response.data.error;
-                    this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                    this.leaveErrorMsgDesc = errMsg;
-                    this.leaveError = true;
-                });           
+        public deleteLeave() {
+            if (this.leaveDeleteReason.length) {
+                this.confirmDelete = false;
+                this.leaveError = false; 
+                const url = 'api/sheriff/leave?id='+this.leaveToDelete.id+'&expiryReason='+this.leaveDeleteReason;
+                this.$http.delete(url)
+                    .then(response => {
+                        const index = this.assignedLeaves.findIndex(assignedleave=>{if(assignedleave.id == this.leaveToDelete.id) return true;})
+                        if(index>=0) this.assignedLeaves.splice(index,1);
+                        this.$emit('change');
+                    }, err=>{
+                        const errMsg = err.response.data.error;
+                        this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.leaveErrorMsgDesc = errMsg;
+                        this.leaveError = true;
+                    });
+                    this.leaveDeleteReason = '';
+            }           
         }
     }
 </script>

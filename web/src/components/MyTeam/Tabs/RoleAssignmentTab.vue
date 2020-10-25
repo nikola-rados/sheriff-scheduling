@@ -266,8 +266,7 @@
         public deleteRole(){
             if (this.roleDeleteReason.length) {
                 this.roleAssignError = false;
-                this.confirmDelete = false;
-                this.roleDeleteReason = ''; 
+                this.confirmDelete = false;                 
                 const body = 
                 [{
                     "userId": this.userToEdit.id,
@@ -285,6 +284,7 @@
                         this.roleErrorMsgDesc = errMsg;                    
                         this.roleAssignError = true;
                     });
+                    this.roleDeleteReason = '';
             }
         }
         

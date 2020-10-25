@@ -261,17 +261,12 @@
         }
 
         public deleteTraining(){
-            // console.log('delete training')
             if (this.trainingDeleteReason.length) {
                 this.confirmDelete = false;
-                this.trainingDeleteReason = '';         
-
                 this.trainingError = false;
                 const url = 'api/sheriff/training?id='+this.trainingToDelete.id+'&expiryReason='+this.trainingDeleteReason;
                 this.$http.delete(url)
                     .then(response => {
-                        // console.log(response)
-                        // console.log('delete success')
                         const index = this.assignedTrainings.findIndex(assignedtraining=>{if(assignedtraining.id == this.trainingToDelete.id) return true;})
                         if(index>=0) this.assignedTrainings.splice(index,1);
                         this.$emit('change');
@@ -279,8 +274,9 @@
                         const errMsg = err.response.data.error;
                         this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                         this.trainingErrorMsgDesc = errMsg;
-                        this.trainingError = true;
+                        this.trainingError = true;                       
                     });
+                    this.trainingDeleteReason = '';
             }            
         }
 
