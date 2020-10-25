@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -167,19 +168,25 @@ namespace SS.Api.services
             var savedAwayLocation = await _db.SheriffAwayLocation.FindAsync(awayLocation.Id);
             savedAwayLocation.ThrowBusinessExceptionIfNull($"{nameof(awayLocation)} with the id: {awayLocation.Id} could not be found. ");
 
+            if (savedAwayLocation.ExpiryDate.HasValue)
+                throw new BusinessLayerException($"{nameof(awayLocation)} with the id: {awayLocation.Id} has been expired");
+
             await ValidateNoOverlapAsync(awayLocation, awayLocation.Id);
-            
+
+            _db.Entry(savedAwayLocation).Property(x => x.ExpiryDate).IsModified = false;
+            _db.Entry(savedAwayLocation).Property(x => x.ExpiryReason).IsModified = false;
             _db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
             await _db.SaveChangesAsync();
             return awayLocation;
         }
 
-        public async Task RemoveSheriffAwayLocation(int id)
+        public async Task RemoveSheriffAwayLocation(int id, string expiryReason)
         {
             var sheriffAwayLocation = await _db.SheriffAwayLocation.FindAsync(id);
             sheriffAwayLocation.ThrowBusinessExceptionIfNull(
                 $"SheriffAwayLocation with the id: {id} could not be found. ");
             sheriffAwayLocation.ExpiryDate = DateTimeOffset.UtcNow;
+            sheriffAwayLocation.ExpiryReason = expiryReason;
             await _db.SaveChangesAsync();
         }
 
@@ -209,19 +216,25 @@ namespace SS.Api.services
             savedLeave.ThrowBusinessExceptionIfNull(
                 $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
 
+            if (savedLeave.ExpiryDate.HasValue)
+                throw new BusinessLayerException($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} has been expired");
+
             await ValidateNoOverlapAsync(sheriffLeave, sheriffLeave.Id);
 
+            _db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
+            _db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
             _db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
             await _db.SaveChangesAsync();
             return sheriffLeave;
         }
 
-        public async Task RemoveSheriffLeave(int id)
+        public async Task RemoveSheriffLeave(int id, string expiryReason)
         {
             var sheriffLeave = await _db.SheriffLeave.FindAsync(id);
             sheriffLeave.ThrowBusinessExceptionIfNull(
                 $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
             sheriffLeave.ExpiryDate = DateTimeOffset.UtcNow;
+            sheriffLeave.ExpiryReason = expiryReason;
             await _db.SaveChangesAsync();
         }
 
@@ -251,19 +264,25 @@ namespace SS.Api.services
             savedTraining.ThrowBusinessExceptionIfNull(
                 $"{nameof(savedTraining)} with the id: {sheriffTraining.Id} could not be found. ");
 
+            if (savedTraining.ExpiryDate.HasValue)
+                throw new BusinessLayerException($"{nameof(savedTraining)} with the id: {sheriffTraining.Id} has been expired");
+
             await ValidateNoOverlapAsync(sheriffTraining, sheriffTraining.Id);
 
+            _db.Entry(savedTraining).Property(x => x.ExpiryDate).IsModified = false;
+            _db.Entry(savedTraining).Property(x => x.ExpiryReason).IsModified = false;
             _db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
             await _db.SaveChangesAsync();
             return sheriffTraining;
         }
 
-        public async Task RemoveSheriffTraining(int id)
+        public async Task RemoveSheriffTraining(int id, string expiryReason)
         {
             var sheriffTraining = await _db.SheriffTraining.FindAsync(id);
             sheriffTraining.ThrowBusinessExceptionIfNull(
                 $"{nameof(sheriffTraining)} with the id: {id} could not be found. ");
             sheriffTraining.ExpiryDate = DateTimeOffset.UtcNow;
+            sheriffTraining.ExpiryReason = expiryReason;
             await _db.SaveChangesAsync();
         }
 
@@ -314,7 +333,10 @@ namespace SS.Api.services
                  updateOnlyId.HasValue && sal.Id != updateOnlyId));
 
             if (entity != null)
-                throw new BusinessLayerException($"Overlaps with existing {typeof(T)} with date range: {entity.StartDate.Date} to {entity.EndDate.Date}");
+            {
+                throw new BusinessLayerException(
+                    $"Overlaps with existing {Regex.Replace(typeof(T).Name, "([A-Z])", " $1").Trim().ToLower()} with date range: {entity.StartDate.UtcDateTime.Date.ToString("dd MMM yyyy")} to {entity.EndDate.UtcDateTime.Date.ToString("dd MMM yyyy")}");
+            }
         }
 
         

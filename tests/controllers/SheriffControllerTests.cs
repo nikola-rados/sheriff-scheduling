@@ -245,7 +245,7 @@ namespace tests.controllers
             Detach();
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffAwayLocation(response.Id);
+            var controllerResult4 = await _controller.RemoveSheriffAwayLocation(response.Id, "hello");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult6 = await _controller.FindSheriff(sheriffObject.Id);
@@ -325,7 +325,7 @@ namespace tests.controllers
             Assert.Equal(response3.LeaveType.Id, updateSheriffLeave.LeaveTypeId);
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffLeave(updateSheriffLeave.Id);
+            var controllerResult4 = await _controller.RemoveSheriffLeave(updateSheriffLeave.Id, "expired");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
@@ -394,7 +394,7 @@ namespace tests.controllers
             Assert.Equal(response3.TrainingType.Id, updateSheriffTraining.TrainingTypeId);
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffTraining(updateSheriffTraining.Id);
+            var controllerResult4 = await _controller.RemoveSheriffTraining(updateSheriffTraining.Id, "expired");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
