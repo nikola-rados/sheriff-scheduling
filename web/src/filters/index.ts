@@ -54,8 +54,9 @@ Vue.filter('isDateFullday', function(startDate: string, endDate: string){
 	const start = moment(startDate+ tail.slice(startDate.length)); 
 	const end = moment(endDate+ tail.slice(endDate.length));
 	const duration = moment.duration(end.diff(start));
-	if(duration.asMinutes() < 1439 && duration.asMinutes()> -1439 )
+	if(duration.asMinutes() < 1439 && duration.asMinutes()> -1439 ){
 		return false; 
-	else
-	 	return true;	
+	}else{
+		return true;
+	}	 	
 })
