@@ -1,6 +1,5 @@
 ﻿using Mapster;
 using SS.Api.controllers.usermanagement;
-using SS.Api.Models.Dto;
 using SS.Api.services;
 using SS.Db.models.auth;
 using System.Collections.Generic;
@@ -8,6 +7,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.models.dto;
+using SS.Api.models.dto.generated;
+using SS.Api.services.usermanagement;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;

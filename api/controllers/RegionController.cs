@@ -4,30 +4,24 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Db.models;
 
 namespace SS.Api.controllers
 {
-    /// <summary>
-    /// Used to fetch Locations, plus expire locations. 
-    /// </summary>
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
     public class RegionController : ControllerBase
     {
-        private readonly SheriffDbContext _db;
+        private SheriffDbContext Db { get; }
 
-        public RegionController(SheriffDbContext dbContext)
-        {
-            _db = dbContext;
-        }
+        public RegionController(SheriffDbContext dbContext) {  Db = dbContext; }
 
         [HttpGet]
         public async Task<ActionResult<List<RegionDto>>> Regions()
         {
-            var locations = await _db.Region.ToListAsync();
+            var locations = await Db.Region.ToListAsync();
             return Ok(locations.Adapt<List<RegionDto>>());
         }
     }

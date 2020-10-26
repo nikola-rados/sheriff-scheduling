@@ -6,24 +6,22 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using SS.Api.Helpers;
-using SS.Api.services;
-using SS.Db.models;
+using SS.Api.helpers;
 
 namespace SS.Api.infrastructure.authorization
 {
     public class ClaimsTransformer : IClaimsTransformation
     {
-        private readonly IMemoryCache _cache;
+        private IMemoryCache Cache { get; }
+        private ClaimsService ClaimsService { get; }
+        private TimeSpan ClaimCachePeriod { get; }
         private bool _isTransformed;
-        private readonly ClaimsService _claimsService;
-        private readonly TimeSpan _claimCachePeriod;
 
         public ClaimsTransformer(IMemoryCache cache,  ClaimsService claimsService, IConfiguration configuration)
         {
-            _cache = cache;
-            _claimsService = claimsService;
-            _claimCachePeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("ClaimsCachePeriod"));
+            Cache = cache;
+            ClaimsService = claimsService;
+            ClaimCachePeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("ClaimsCachePeriod"));
         }
 
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -33,10 +31,10 @@ namespace SS.Api.infrastructure.authorization
             var currentClaims = currentPrincipal.Claims.ToList();
 
             var nameIdentifier = Guid.Parse(principal.FindFirstValue(ClaimTypes.NameIdentifier));
-            if (!_cache.TryGetValue(nameIdentifier, out List<Claim> claims))
+            if (!Cache.TryGetValue(nameIdentifier, out List<Claim> claims))
             {
-                claims = await _claimsService.GenerateClaims(currentClaims);
-                _cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.Add(_claimCachePeriod));
+                claims = await ClaimsService.GenerateClaims(currentClaims);
+                Cache.Set(nameIdentifier, claims, DateTimeOffset.UtcNow.Add(ClaimCachePeriod));
             }
             currentPrincipal.AddClaims(claims);
             _isTransformed = true;
