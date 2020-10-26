@@ -5,7 +5,7 @@
             v-if="photo"
             v-auth-image="photo"
             src="null"            
-            style="width: 11rem; height: 11rem;"
+            style="width: 11rem; height: 11rem; object-fit: scale-down;"
             class="mb-3"
         ></b-card-img>
     
