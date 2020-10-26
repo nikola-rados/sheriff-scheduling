@@ -37,8 +37,8 @@
                                 <span 
                                     class="text-primary"
                                     v-b-tooltip.hover.right                                
-                                    :title="data.item.locationNm.nameFull"> 
-                                        {{data.item.locationNm.name}}
+                                    :title="data.item.locationNm"> 
+                                        {{data.item.locationNm | truncate(20)}}
                                 </span>
                             </template>
                             <template v-slot:cell(startDate)="data" >
@@ -73,10 +73,25 @@
             <template v-slot:modal-title>
                     <h2 class="mb-0 text-light">Confirm Delete Location</h2>                    
             </template>
-            <p>Are you sure you want to delete the "{{locationToDelete.locationNm?locationToDelete.locationNm.nameFull:''}}" location?</p>
+            <h4>Are you sure you want to delete the "{{locationToDelete.locationNm}}" location?</h4>
+            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+                <b-form-select
+                    size = "sm"
+                    v-model="locationDeleteReason">
+                        <b-form-select-option value="OPERDEMAND">
+                            Cover Operational Demands
+                        </b-form-select-option>
+                        <b-form-select-option value="PERSONAL">
+                            Personal Decision
+                        </b-form-select-option>
+                        <b-form-select-option value="ENTRYERR">
+                            Entry Error
+                        </b-form-select-option>     
+                </b-form-select>
+            </b-form-group>
             <template v-slot:modal-footer>
-                <b-button variant="danger" @click="deleteLocation()">Delete</b-button>
-                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+                <b-button variant="danger" @click="deleteLocation()" :disabled="locationDeleteReason.length == 0">Delete</b-button>
+                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
@@ -107,9 +122,6 @@
     export default class LocationTab extends Vue {
 
         @commonState.State
-        public token!: string;
-
-        @commonState.State
         public locationList!: locationInfoType[];
 
         @TeamMemberState.State
@@ -126,6 +138,7 @@
         addFormColor = 'secondary';
         latestEditData;
         isEditOpen = false;
+        locationDeleteReason = '';
         
         assignedAwayLocations: awayLocationInfoType[] = [];
 
@@ -150,26 +163,20 @@
             this.assignedAwayLocations = this.userToEdit.awayLocation? this.userToEdit.awayLocation: [];
             for(const inx in this.assignedAwayLocations)
             {
-                this.assignedAwayLocations[inx]['locationNm'] = this.getLocationName(this.assignedAwayLocations[inx].locationId);
+                const location = this.getLocation(this.assignedAwayLocations[inx].locationId)
+                this.assignedAwayLocations[inx]['locationNm'] = location? location.name : '';
 
-                if(this.isDateFullday(this.assignedAwayLocations[inx].startDate,this.assignedAwayLocations[inx].endDate)){ 
+                if(Vue.filter('isDateFullday')(this.assignedAwayLocations[inx].startDate,this.assignedAwayLocations[inx].endDate)){ 
                     this.assignedAwayLocations[inx]['isFullDay'] = true;
                     this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'danger'}                 
                 }else{
                     this.assignedAwayLocations[inx]['isFullDay'] = false;
                     this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'success'}                    
                 }
-                
-                this.assignedAwayLocations[inx].startDate = moment(this.assignedAwayLocations[inx].startDate).tz("UTC").format();
-                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz("UTC").format();               
+                const timezone = location? location.timezone : 'UTC';
+                this.assignedAwayLocations[inx].startDate = moment(this.assignedAwayLocations[inx].startDate).tz(timezone).format();
+                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz(timezone).format();               
             }
-        }
-
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
         }
 
         public confirmDeleteLocation(location) {
@@ -178,35 +185,42 @@
             this.confirmDelete=true; 
         }
 
-        public deleteLocation(){
-            console.log('delete location')
+         public cancelDeletion() {
             this.confirmDelete = false;
+            this.locationDeleteReason = '';
+        }
 
-            this.locationError = false; 
-            const url = 'api/sheriff/awaylocation?id='+this.locationToDelete.id;
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.delete(url, options)
-                .then(response => {
-                    //console.log(response)
-                    console.log('delete success')
-                    const index = this.assignedAwayLocations.findIndex(assignedlocation=>{if(assignedlocation.id == this.locationToDelete.id) return true;})
-                    if(index>=0) this.assignedAwayLocations.splice(index,1);
-                    this.$emit('change');
-                }, err=>{
-                    const errMsg = err.response.data.error;
-                    this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                    this.locationErrorMsgDesc = errMsg;
-                    this.locationError = true;
-                    location.href = '#LocationError'
-                });
+        public deleteLocation(){
+            if (this.locationDeleteReason.length) {
+                this.confirmDelete = false;
+                this.locationError = false; 
+                const url = 'api/sheriff/awaylocation?id='+this.locationToDelete.id+'&expiryReason='+this.locationDeleteReason;
+                this.$http.delete(url)
+                    .then(response => {
+                        //console.log(response)
+                        // console.log('delete success')
+                        const index = this.assignedAwayLocations.findIndex(assignedlocation=>{if(assignedlocation.id == this.locationToDelete.id) return true;})
+                        if(index>=0) this.assignedAwayLocations.splice(index,1);
+                        this.$emit('change');
+                    }, err=>{
+                        const errMsg = err.response.data.error;
+                        this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.locationErrorMsgDesc = errMsg;
+                        this.locationError = true;
+                        location.href = '#LocationError'
+                    });
+                    this.locationDeleteReason = '';
+            }
         }
         
         public addNewLocation(){
             if(this.isEditOpen){
                 location.href = '#Lo-Date-'+this.latestEditData.item.startDate.substring(0,10)
                 this.addFormColor = 'danger'
-            }else
-                this.addNewLocationForm = true
+            }else{
+                this.addNewLocationForm = true;
+                this.$nextTick(()=>{location.href = '#addLocationForm';})
+            }
         }
 
         public editLocation(data){
@@ -235,12 +249,9 @@
             //console.log(iscreate)
             const method = iscreate? 'post' :'put';
             const url = 'api/sheriff/awaylocation'  
-            const options = { method: method, url:url, data:body, headers:{'Authorization' :'Bearer '+this.token}}
-            //console.log(options)
+            const options = { method: method, url:url, data:body}
             this.$http(options)
-                .then(response => {
-                    //console.log(response)
-                    console.log('save success')
+                .then(response => {                    
                     if(iscreate) 
                         this.addToAssignedLocationList(response.data);
                     else
@@ -259,12 +270,15 @@
         public modifyAssignedLocationList(modifiedLocationInfo){
 
             const index = this.assignedAwayLocations.findIndex(assignedlocation =>{ if(assignedlocation.id == modifiedLocationInfo.id) return true})
-            if(index>=0){            
-                this.assignedAwayLocations[index].locationId =  modifiedLocationInfo.locationId
-                this.assignedAwayLocations[index].startDate = modifiedLocationInfo.startDate
-                this.assignedAwayLocations[index].endDate = modifiedLocationInfo.endDate 
-                this.assignedAwayLocations[index]['locationNm'] = this.getLocationName(modifiedLocationInfo.locationId);
-                if(this.isDateFullday( this.assignedAwayLocations[index].startDate, this.assignedAwayLocations[index].endDate)){ 
+            if(index>=0){  
+                const location = this.getLocation(modifiedLocationInfo.locationId);
+                const timezone = location? location.timezone : 'UTC';          
+                this.assignedAwayLocations[index].locationId =  modifiedLocationInfo.locationId;
+                this.assignedAwayLocations[index].startDate = moment(modifiedLocationInfo.startDate).tz(timezone).format();
+                this.assignedAwayLocations[index].endDate = moment(modifiedLocationInfo.endDate).tz(timezone).format();                
+                this.assignedAwayLocations[index]['locationNm'] = location? location.name :'' ;
+                
+                if(Vue.filter('isDateFullday')( this.assignedAwayLocations[index].startDate, this.assignedAwayLocations[index].endDate)){ 
                     this.assignedAwayLocations[index]['isFullDay'] = true;
                     this.assignedAwayLocations[index]['_cellVariants'] = {isFullDay:'danger'}                 
                 }else{
@@ -278,16 +292,19 @@
 
         public addToAssignedLocationList(addedLocationInfo){
 
+            const location = this.getLocation(addedLocationInfo.locationId);
+            const timezone = location? location.timezone : 'UTC';
             const assignedAwayLocation: awayLocationInfoType =
             {
                 id: addedLocationInfo.id,
                 sheriffId : addedLocationInfo.sheriffId,    
                 locationId: addedLocationInfo.locationId,
-                startDate: addedLocationInfo.startDate,
-                endDate: addedLocationInfo.endDate,               
+                startDate: moment(addedLocationInfo.startDate).tz(timezone).format(),
+                endDate: moment(addedLocationInfo.endDate).tz(timezone).format(),               
             }
-            assignedAwayLocation['locationNm'] = this.getLocationName(addedLocationInfo.locationId);
-            if(this.isDateFullday(assignedAwayLocation.startDate,assignedAwayLocation.endDate)){ 
+            
+            assignedAwayLocation['locationNm'] = location? location.name :''
+            if(Vue.filter('isDateFullday')(assignedAwayLocation.startDate,assignedAwayLocation.endDate)){ 
                 assignedAwayLocation['isFullDay'] = true;
                 assignedAwayLocation['_cellVariants'] = {isFullDay:'danger'}                 
             }else{
@@ -299,9 +316,7 @@
             this.$emit('change');                     
         }
 
-        public closeLocationForm(){
-            console.log('close form')  
-            //console.log(this.latestEditData)          
+        public closeLocationForm(){        
             this.addNewLocationForm= false; 
             this.addFormColor = 'secondary'
             if(this.isEditOpen){
@@ -310,19 +325,9 @@
             } 
         }
 
-        public getLocationName(locationId: number|null){
+        public getLocation(locationId: number|null){
             const index = this.locationList.findIndex(location=>{if(location.id == locationId)return true})
-            if(index>=0){   
-                let truncName = this.locationList[index].name.slice(0,20);
-                if (this.locationList[index].name && this.locationList[index].name.length>23)
-                    truncName = truncName +'...';
-                else
-                    truncName = this.locationList[index].name.slice(0,23);
-
-                return {name:truncName, nameFull:this.locationList[index].name}
-            }
-            else
-                return {name:'', nameFull:''}
+            if(index>=0) return this.locationList[index]; else return "";
         }
 
     }

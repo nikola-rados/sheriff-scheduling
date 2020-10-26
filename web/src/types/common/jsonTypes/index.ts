@@ -10,9 +10,18 @@ export interface locationJsonType {
     name: string;
     regionId: number|null;
     concurrencyToken: number;
+    timezone: string;
 }
 
 export interface leaveTypeJson {
+    id: number,
+    type: string,
+    code: string,
+    description: string,
+    concurrencyToken: number
+}
+
+export interface trainingTypeJson {
     id: number,
     type: string,
     code: string,
