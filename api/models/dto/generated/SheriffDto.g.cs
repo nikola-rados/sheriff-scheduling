@@ -14,6 +14,7 @@ namespace SS.Api.Models.Dto
         public List<SheriffLeaveDto> Leave { get; set; }
         public List<SheriffTrainingDto> Training { get; set; }
         public string PhotoUrl { get; set; }
+        public DateTimeOffset LastPhotoUpdate { get; set; }
         public Guid Id { get; set; }
         public bool IsEnabled { get; set; }
         public string FirstName { get; set; }
