@@ -215,6 +215,8 @@
         showMemberDetails = false;
         userIsAdmin = false;
 
+        maxRank = 1000;
+
         itemsPerRow = 4;//Define
         rowsPerPage = 1;//Define
         currentPage = 1;
@@ -247,6 +249,7 @@
         }  
 
         mounted() {
+            this.maxRank = this.commonInfo.sheriffRankList.reduce((max, rank) => rank.id > max ? rank.id : max, this.commonInfo.sheriffRankList[0].id);
             this.userIsAdmin = this.userDetails.roles.includes("Administrator");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
@@ -340,10 +343,10 @@
             return sortedTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
         }
 
-        public sortTeamMembers(teamList) {
+        public sortTeamMembers(teamList) {            
             return _.chain(teamList)
                     .sortBy(member =>{return (member['lastName']? member['lastName'].toUpperCase() : '')})
-                    .sortBy('rankOrder')
+                    .sortBy(member =>{return (member['rankOrder']? member['rankOrder'] : this.maxRank + 1)})
                     .value()
         }
 
