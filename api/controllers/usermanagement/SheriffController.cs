@@ -117,6 +117,7 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewOwnProfile,
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
+        [ResponseCache(Duration = 15552000, Location = ResponseCacheLocation.Client )]
         public async Task<IActionResult> GetPhoto(Guid id)
         {
             return File(await _service.GetPhoto(id), "image/jpeg");
