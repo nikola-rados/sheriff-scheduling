@@ -1,11 +1,12 @@
-import {locationInfoType} from '../common';
-import {awayLocationsJsontype, leaveJsontype, trainingJsontype} from './jsonTypes';
+import {leaveInfoType, locationInfoType, trainingInfoType} from '../common';
+import {awayLocationsJsontype, leaveJsontype, trainingJsontype, userRoleJsonType} from './jsonTypes';
 
 export interface teamMemberInfoType {
 
     id?: string;
     idirUserName?: string;
     rank: string;
+    rankOrder: number;
     firstName?: string;
     lastName?: string;
     email?: string;
@@ -13,7 +14,7 @@ export interface teamMemberInfoType {
     gender: string;
     fullName?: string;
     image?: string | null;
-    userRoles?: userRoleInfoType[];
+    userRoles?: userRoleJsonType[];
     isEnabled?: boolean;
     homeLocationId?: number | null;
     homeLocationNm?: string | null;
@@ -25,11 +26,9 @@ export interface teamMemberInfoType {
 }
 
 export interface userRoleInfoType{
-    role: {
-        id: number;
-        name: string;
-        description: string;
-    };
+    value: string;
+    text: string;
+    desc: string;    
     effectiveDate: string;
     expiryDate: string;
   }
@@ -38,8 +37,6 @@ export interface roleOptionInfoType{
     text: string;
     desc: string;
     value: string;
-    effDate: string;
-    expDate: string;
 }
 
 export interface permissionInfoType {
@@ -82,9 +79,9 @@ export interface awayLocationInfoType{
     concurrencyToken?: number      
 }
 
-export interface trainingInfoType{ 
+export interface userTrainingInfoType{ 
     id: number;   
-    trainingType: trainingTypeInfoType;
+    trainingType: trainingInfoType;
     trainingTypeId?:number|null;
     trainingName?: string;
     sheriffId?: string;
@@ -95,29 +92,13 @@ export interface trainingInfoType{
     comment?: string;    
 }
 
-export interface trainingTypeInfoType{    
-    code: string;
-    concurrencyToken: number;
-    description: string;
-    id: number|null;
-    type: string;    
-}
-
 export interface userLeaveInfoType{
     id: number;    
     leaveTypeId: number|null;
     leaveName?: string;
-    leaveType?: leaveTypeInfoType;
+    leaveType?: leaveInfoType;
     comment: string,
     isFullDay: boolean;
     startDate: string;
     endDate: string;    
-}
-
-export interface leaveTypeInfoType{    
-    code: string;
-    concurrencyToken: number;
-    description: string;
-    id: number|null;
-    type: string;    
 }

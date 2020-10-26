@@ -37,9 +37,6 @@
     @Component
     export default class ExpireSheriffProfile extends Vue {
 
-        @commonState.State
-        public token!: string;
-
         @Prop({required: true})
         userID!: string;
 
@@ -71,10 +68,9 @@
             Vue.nextTick().then(()=>{
 
                 this.expireStatusError = false;
-                const url ='api/sheriff/'+this.userID+ (this.expireChecked? '/disable' : '/enable')
-                const options = {headers:{'Authorization' :'Bearer '+this.token}}
+                const url ='api/sheriff/'+this.userID+ (this.expireChecked? '/disable' : '/enable');                
                 this.showExpireWarning = false;
-                this.$http.put(url, options)
+                this.$http.put(url)
                     .then(response => {
                         console.log(response)
                         this.$emit('change')

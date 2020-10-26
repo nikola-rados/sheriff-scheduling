@@ -29,7 +29,6 @@ namespace SS.Api.services.ef
         {
             try
             {
-                _logger.LogInformation($"{Environment.CurrentDirectory}");
                 _logger.LogInformation("Starting Migrations.");
                 using var scope = Services.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<SheriffDbContext>();

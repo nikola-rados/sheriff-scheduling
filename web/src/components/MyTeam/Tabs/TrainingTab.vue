@@ -1,115 +1,15 @@
 <template>
     <div>
-        <b-card  style="height:400px;overflow: auto;" no-body>                                        
-            <h2 v-if="trainingError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="trainingErrorMsgDesc"  variant="danger"> {{trainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="trainingError = false" /></b-badge></h2>
-            <b-card v-if="!addNewTraining">
-                <b-button  style="transform:translate(0px,-5px);" size="sm" variant="success" @click="addNewTraining = true"> <b-icon icon="plus" /> Add </b-button>
-            </b-card> 
+        <b-card v-if="trainingTabDataReady"  style="height:400px;overflow: auto;" no-body>
+            <b-card id="TrainingError" no-body>
+                <h2 v-if="trainingError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="trainingErrorMsgDesc"  variant="danger"> {{trainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="trainingError = false" /></b-badge></h2>
+            </b-card>
+            <b-card v-if="!addNewTrainingForm">
+                <b-button size="sm" variant="success" @click="addNewTraining"><b-icon icon="plus"/> Add </b-button>
+            </b-card>
 
-            <b-card v-if="addNewTraining" class="my-3" border-variant="light" no-body>
-                <b-table-simple small borderless >
-                    <b-tbody>
-                        <b-tr>
-                            <b-td>   
-                                <b-tr class="mt-1">   
-                                    <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Training: </b>                          
-                                    <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Training: </b> 
-                                    <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day Training: </b>
-                                </b-tr>
-                                <b-tr >
-                                    <b-form-group style="margin: 0 0 0 0.75rem;width: 15rem"> 
-                                        <b-form-select
-                                            class="mb-1"
-                                            size = "sm"
-                                            v-model="selectedTrainingType"
-                                            :state = "trainingTypeState?null:false">
-                                                <b-form-select-option :value="{}">
-                                                    Select a Training Type*
-                                                </b-form-select-option>
-                                                <b-form-select-option
-                                                    v-for="training in trainingTypes" 
-                                                    :key="training.id"
-                                                    :value="training">
-                                                        {{training.description}}
-                                                </b-form-select-option>     
-                                        </b-form-select>
-                                        <b-form-input
-                                        v-if="selectedTrainingType.code=='Other'"
-                                        v-model="selectedTrainingTypeComment"
-                                        placeholder="Comment*"
-                                        :state = "trainingTypeCommentState?null:false"
-                                        size = "sm">
-                                        </b-form-input>
-                                    </b-form-group>
-                                </b-tr>                                
-                            </b-td>
-                            <b-td>
-                                <label class="h6 m-0 p-0"> From: </label>
-                                <b-form-datepicker
-                                    class="mb-1"
-                                    size="sm"
-                                    v-model="selectedStartDate"
-                                    placeholder="Start Date*"
-                                    :state = "startDateState?null:false"
-                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                                    locale="en-US">
-                                </b-form-datepicker>
-                                <b-form-timepicker
-                                    size="sm"
-                                    v-model="selectedStartTime"
-                                    placeholder="Start Time"
-                                    reset-button
-                                    :state = "startTimeState?null:false" 
-                                    locale="en">                                   
-                                </b-form-timepicker>
-                            </b-td>
-                            <b-td>
-                                <label class="h6 m-0 p-0"> To: </label>
-                                <b-form-datepicker
-                                    class="mb-1 mt-0 pt-0"
-                                    size="sm"
-                                    v-model="selectedEndDate"
-                                    placeholder="End Date*"
-                                    :state = "endDateState?null:false"                                    
-                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                                    locale="en-US">
-                                </b-form-datepicker> 
-                                <b-form-timepicker
-                                    size="sm" 
-                                    v-model="selectedEndTime"
-                                    placeholder="End Time" 
-                                    reset-button
-                                    :state = "endTimeState?null:false"
-                                    locale="en">
-                                </b-form-timepicker>
-                            </b-td>
-                            <b-td >
-                                <label class="h6 m-0 p-0"> Expiry Date: </label>
-                                <b-form-datepicker
-                                    class="mb-1 mt-0 pt-0"
-                                    size="sm"
-                                    v-model="selectedExpiryDate"
-                                    placeholder="Expiry Date*"
-                                    :state = "expiryDateState?null:false"                                    
-                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                                    locale="en-US">
-                                </b-form-datepicker> 
-                                <b-button                                    
-                                    style="margin: 0 .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
-                                    variant="secondary"
-                                    @click="clearTrainingSelection()">
-                                    Cancel
-                                </b-button>   
-                                <b-button                                    
-                                    style="width:70px;margin: 0 0 0 0; padding:0 1rem 0 1rem; "
-                                    variant="success"                        
-                                    @click="saveTraining()">
-                                    Save
-                                </b-button>   
-                            </b-td>
-                        </b-tr>   
-                    </b-tbody>
-                </b-table-simple>              
+            <b-card v-if="addNewTrainingForm" id="addTrainingForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
+                <add-training-form :formData="{}" :editable="true" :isCreate="true" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />              
             </b-card>
 
             <div>
@@ -119,18 +19,33 @@
 
                 <b-card v-else  no-body border-variant="light" bg-variant="white">
                     <b-table
-                        :items="assignedTrainings"
+                        :items="filteredAssignedTrainings"
                         :fields="fields"
                         head-row-variant="primary"
-                        striped
                         borderless
                         small
                         sort-by="startDate"
+                        :sort-desc="true"
                         responsive="sm"
                         >  
+                            <template v-slot:head(editTraining)>
+                                <b-form-group style="margin: 0; padding: 0; width: 7rem;"> 
+                                    <b-form-select
+                                        size = "sm"
+                                        v-model="selectedPastTrainings">
+                                            <b-form-select-option value="pastyear">
+                                                Past Year
+                                            </b-form-select-option>
+                                            <b-form-select-option value="allyears">
+                                                View All
+                                            </b-form-select-option>     
+                                    </b-form-select>
+                                </b-form-group>
+                            </template>
+
                             <template v-slot:cell(isFullDay)="data" >
-                                <span v-if="data.value">Full</span> 
-                                <span v-else>Partial</span> 
+                                <span v-if="data.value" class="fullDay">Full</span> 
+                                <span v-else class="partialDay">Partial</span> 
                             </template>
                             <template v-slot:cell(trainingType)="data" >
                                 <span 
@@ -155,9 +70,15 @@
                             <template v-slot:cell(expiryDate)="data" >
                                 <span>{{data.value | beautify-date}}</span> 
                             </template>
-                            <template v-slot:cell(edit)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editTraining(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            <template v-slot:cell(editTraining)="data" >                                       
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" :disabled="data.item['_rowVariant']?true:false" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            </template>
+
+                            <template v-slot:row-details="data">
+                                <b-card :id="'Tr-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
+                                    <add-training-form :formData="data.item" :editable="data.item['_rowVariant']?false:true" :isCreate="false" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />
+                                </b-card>
                             </template>
                             
                     </b-table> 
@@ -166,10 +87,25 @@
                     <template v-slot:modal-title>
                             <h2 class="mb-0 text-light">Confirm Delete Training</h2>                    
                     </template>
-                    <p>Are you sure you want to delete the "{{trainingToDelete.trainingType?trainingToDelete.trainingType.description:''}}" training?</p>
+                    <h4>Are you sure you want to delete the "{{trainingToDelete.trainingType?trainingToDelete.trainingType.description:''}}" training?</h4>
+                    <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+                        <b-form-select
+                            size = "sm"
+                            v-model="trainingDeleteReason">
+                                <b-form-select-option value="OPERDEMAND">
+                                    Cover Operational Demands
+                                </b-form-select-option>
+                                <b-form-select-option value="PERSONAL">
+                                    Personal Decision
+                                </b-form-select-option>
+                                <b-form-select-option value="ENTRYERR">
+                                    Entry Error
+                                </b-form-select-option>     
+                        </b-form-select>
+                    </b-form-group>
                     <template v-slot:modal-footer>
-                        <b-button variant="danger" @click="deleteTraining()">Delete</b-button>
-                        <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+                        <b-button variant="danger" @click="deleteTraining()" :disabled="trainingDeleteReason.length == 0">Delete</b-button>
+                        <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
                     </template>            
                     <template v-slot:modal-header-close>                 
                         <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
@@ -182,310 +118,282 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Prop } from 'vue-property-decorator';
+    import { Component, Vue } from 'vue-property-decorator';
     import moment from 'moment-timezone';
-    import {teamMemberInfoType, trainingInfoType,trainingTypeInfoType} from '../../../types/MyTeam';
-    
+    import {teamMemberInfoType, userTrainingInfoType} from '../../../types/MyTeam'; 
+    import { trainingTypeJson } from '../../../types/common/jsonTypes';    
+    import { trainingInfoType } from '../../../types/common';    
+    import AddTrainingForm from './AddForms/AddTrainingForm.vue'   
     import { namespace } from 'vuex-class';
-    import "@store/modules/CommonInformation"; 
-    const commonState = namespace("CommonInformation");
-
-    import "@store/modules/TeamMemberInformation"; 
+    import "@store/modules/TeamMemberInformation";    
     const TeamMemberState = namespace("TeamMemberInformation");
 
-    @Component
+    @Component({
+        components: {
+            AddTrainingForm
+        }        
+    }) 
     export default class TrainingTab extends Vue {
-
-        @commonState.State
-        public token!: string;
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
+        
+        trainingTabDataReady = false;
+        addNewTrainingForm = false;
+        addFormColor = 'secondary';
+        latestEditData;
+        isEditOpen = false;
 
-        @TeamMemberState.Action
-        public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
-
-        selectedTrainingType = {} as trainingTypeInfoType | undefined;
-        trainingTypeState = true;
-
-        selectedTrainingTypeComment =''
-        trainingTypeCommentState = true
-
-        selectedEndDate = ''
-        endDateState = true
-
-        selectedStartDate = ''
-        startDateState = true
-
-        selectedStartTime = ''
-        startTimeState = true
-
-        selectedEndTime = ''
-        endTimeState = true
-
-        selectedExpiryDate = ''
-        expiryDateState = true;
-
-        addNewTraining = false;
         trainingError = false;
         trainingErrorMsg = '';
         trainingErrorMsgDesc = '';
         updateTable = 0;
 
         confirmDelete = false;
-        trainingToDelete = {} as trainingInfoType;
+        trainingToDelete = {} as userTrainingInfoType;
         
-        assignedTrainings: trainingInfoType[] = [];
-        trainingTypes: trainingTypeInfoType[] =[];
+        assignedTrainings: userTrainingInfoType[] = [];
+        trainingTypeInfoList: trainingInfoType[] =[];
+
+        currentTime = '';
+        lastyear = '';
+        selectedPastTrainings = 'pastyear';
+        timezone = 'UTC';
+        trainingDeleteReason = '';
 
         fields =  
         [     
-            {key:'isFullDay', label:'Day',sortable:false, tdClass: 'border-top', }, 
-            {key:'trainingType', label:'Type',sortable:false, tdClass: 'border-top', }, 
-            {key:'startDate', label:'Start Date',  sortable:false, tdClass: 'border-top', thClass:'',},
+            {key:'isFullDay',  label:'Day',sortable:false, tdClass: 'border-top', thClass:'align-middle'}, 
+            {key:'trainingType', label:'Type',sortable:false, tdClass: 'border-top', thClass:'align-middle'}, 
+            {key:'startDate', label:'Start Date',  sortable:false, tdClass: 'border-top', thClass:'align-middle',},
             {key:'startTime', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
-            {key:'endDate',   label:'End Date',  sortable:false, tdClass: 'border-top', thClass:'',},
+            {key:'endDate',   label:'End Date',  sortable:false, tdClass: 'border-top', thClass:'align-middle',},
             {key:'endTime',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
-            {key:'expiryDate',label:'Expiry Date',  sortable:false, tdClass: 'border-top', thClass:'',},    
-            {key:'edit',      label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
+            {key:'expiryDate',label:'Expiry Date',  sortable:false, tdClass: 'border-top', thClass:'align-middle',},    
+            {key:'editTraining',      label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
         ];
 
         mounted()
-        {             
-            console.log('TrainingTab')
-            this.GetTrainings();            
+        {        
+            this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
+            this.currentTime = moment(new Date()).tz(this.timezone).format();
+            // console.log(this.currentTime)  
+            this.lastyear = moment().subtract(1,'year').tz(this.timezone).format(); 
+            // console.log(this.lastyear)   
+            this.trainingTabDataReady = false;
+            this.extractTrainings();                        
         }
    
-        public GetTrainings(){
-            const url = 'api/managetypes?codeType=TrainingType'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+        public loadTrainingTypes(){
+            const url = 'api/managetypes?codeType=TrainingType';
+            this.$http.get(url)
                 .then(response => {
-                    //console.log(response)
                     if(response.data){
-                        this.trainingTypes = response.data   
-                        this.extractTrainings();                                        
+                        this.extractTrainingTypeInfo(response.data)                                                                
                     }                                   
                 })
         }
 
-        public extractTrainings ()
-        {
-            //console.log(this.userToEdit)
+        public extractTrainingTypeInfo(trainingTypeListJson){
+            let trainingType: trainingTypeJson;
+            for(trainingType of trainingTypeListJson){
+                const trainingTypeInfo = {} as trainingInfoType;
+                trainingTypeInfo.id = trainingType.id;
+                trainingTypeInfo.code = trainingType.code;
+                trainingTypeInfo.description = trainingType.description;
+                this.trainingTypeInfoList.push(trainingTypeInfo)
+            }
+            this.trainingTabDataReady = true;
+        }
+
+        public extractTrainings (){
+
             if(this.userToEdit.training)
                 for(const training of this.userToEdit.training)
                 {
-                    const assignedTraining = {} as trainingInfoType;
-
+                    const assignedTraining = {} as userTrainingInfoType;
                     assignedTraining.id = training.id;
                     assignedTraining.trainingType = training.trainingType;
                     assignedTraining.trainingTypeId = training.trainingTypeId;
-                    assignedTraining.startDate = moment(training.startDate).tz("UTC").format();
-                    assignedTraining.endDate = moment(training.endDate).tz("UTC").format();
+                    assignedTraining.startDate = moment(training.startDate).tz(this.timezone).format();
+                    assignedTraining.endDate = moment(training.endDate).tz(this.timezone).format();
                     assignedTraining.expiryDate = training.trainingCertificationExpiry;
-                    assignedTraining.comment = training.comment 
+                    assignedTraining.comment = training.comment;
+                    assignedTraining['_rowVariant'] = '';
+                    if(assignedTraining.endDate < this.currentTime)
+                        assignedTraining['_rowVariant'] = 'info';
 
-                    if(this.isDateFullday(assignedTraining.startDate,assignedTraining.endDate)){ 
-                        assignedTraining.isFullDay = true;
-                        assignedTraining['_cellVariants'] = {isFullDay:'danger'}                 
+                    if(Vue.filter('isDateFullday')(assignedTraining.startDate,assignedTraining.endDate)){ 
+                        assignedTraining.isFullDay = true;                                        
                     }else{
-                        assignedTraining.isFullDay = false;
-                        assignedTraining['_cellVariants'] = {isFullDay:'success'}                    
+                        assignedTraining.isFullDay = false;                    
                     }
                     
                     this.assignedTrainings.push(assignedTraining)
                 }
+            this.loadTrainingTypes();
         }
 
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
+        get filteredAssignedTrainings(){
+            const pastYear = this.selectedPastTrainings == 'pastyear'?this.lastyear:'1900-01-01T00:00:00Z';
+            return this.assignedTrainings.filter(training =>{if(training.endDate> pastYear ) return true})
         }
 
-        public updateUser(){
-            const user = this.userToEdit            
-            this.UpdateUserToEdit(user);
-            console.log(user)
-            this.$emit('change') 
+        public addNewTraining(){
+            if(this.isEditOpen){
+                location.href = '#Tr-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                this.addFormColor = 'danger'
+            }else
+            {
+                this.addNewTrainingForm = true;
+                this.$nextTick(()=>{location.href = '#addTrainingForm';})
+            }
         }
 
         public confirmDeleteTraining(training) {
-            console.log(location)
             this.trainingToDelete = training;           
             this.confirmDelete=true; 
         }
 
-        public deleteTraining(){
-            console.log('delete training')
-            this.confirmDelete = false;            
+        public cancelDeletion() {
+            this.confirmDelete = false;
+            this.trainingDeleteReason = '';
+        }
 
-            this.trainingError = false;
-            const url = 'api/sheriff/training?id='+this.trainingToDelete.id;
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.delete(url, options)
-                .then(response => {
-                    console.log(response)
-                    console.log('delete success')
-                    const index = this.assignedTrainings.findIndex(assignedtraining=>{if(assignedtraining.id == this.trainingToDelete.id) return true;})
-                    if(index>=0) this.assignedTrainings.splice(index,1);
-                    this.$emit('change');
-                }, err=>{
-                    const errMsg = err.response.data.error;
-                    this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                    this.trainingErrorMsgDesc = errMsg;
-                    this.trainingError = true;
-                });
+        public deleteTraining(){
+            if (this.trainingDeleteReason.length) {
+                this.confirmDelete = false;
+                this.trainingError = false;
+                const url = 'api/sheriff/training?id='+this.trainingToDelete.id+'&expiryReason='+this.trainingDeleteReason;
+                this.$http.delete(url)
+                    .then(response => {
+                        const index = this.assignedTrainings.findIndex(assignedtraining=>{if(assignedtraining.id == this.trainingToDelete.id) return true;})
+                        if(index>=0) this.assignedTrainings.splice(index,1);
+                        this.$emit('change');
+                    }, err=>{
+                        const errMsg = err.response.data.error;
+                        this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.trainingErrorMsgDesc = errMsg;
+                        this.trainingError = true;                       
+                    });
+                    this.trainingDeleteReason = '';
+            }            
         }
 
         public editTraining(training){
-            console.log('edit training')
+            if(this.addNewTrainingForm){
+                location.href = '#addTrainingForm'
+                this.addFormColor = 'danger'
+            }else if(this.isEditOpen){
+                location.href = '#Tr-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                this.addFormColor = 'danger'               
+            }else if(!this.isEditOpen && !training.detailsShowing){
+                training.toggleDetails();
+                this.isEditOpen = true;
+                this.latestEditData = training
+                Vue.nextTick().then(()=>{
+                    location.href = '#Tr-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                });
+            }  
         }
 
-        public saveTraining(){
+        public saveTraining(body, iscreate){
                 this.trainingError   = false; 
-                this.trainingTypeState  = true;
-                this.endDateState    = true;
-                this.startDateState  = true;
-                this.startTimeState  = true;
-                this.endTimeState    = true;
-                this.expiryDateState = true;
-                const isFullDay = this.isFullDay
-
-                if(this.selectedTrainingType && !this.selectedTrainingType.id ){
-                    this.trainingTypeState  = false;
-                }else if(this.selectedTrainingType && this.selectedTrainingType.code=='Other' && this.selectedTrainingTypeComment == ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = false;
-                }else if(this.selectedStartDate == ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = false;
-                }else if(this.selectedEndDate == ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = true;
-                    this.endDateState   = false;
-                }else if(this.selectedEndTime == "" && this.selectedStartTime != ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.startTimeState = true;
-                    this.endTimeState   = false;
-                }else if(this.selectedStartTime == "" && this.selectedEndTime != ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.endTimeState   = true;
-                    this.startTimeState = false;
-                }else if(this.selectedExpiryDate == ""){
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.endTimeState   = true;
-                    this.startTimeState = true;
-                    this.expiryDateState = false;
-                }else{
-                    this.trainingTypeState  = true;
-                    this.trainingTypeCommentState = true;
-                    this.endDateState   = true;
-                    this.startDateState = true;
-                    this.startTimeState = true;
-                    this.endTimeState   = true;
-                    this.expiryDateState = true;
-
-                    const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                    const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-
-                    const body = {
-                        trainingTypeId: this.selectedTrainingType?this.selectedTrainingType.id:0,
-                        startDate: startDate,
-                        endDate: endDate,                      
-                        trainingCertificationExpiry: this.selectedExpiryDate,
-                        sheriffId: this.userToEdit.id,
-                        comment: this.selectedTrainingTypeComment
-                    }
-
-                    console.log(body)
-                    const url = 'api/sheriff/training'  
-                    const options = {headers:{'Authorization' :'Bearer '+this.token}}
-                    this.$http.post(url, body, options)
-                        .then(response => {
-                            console.log(response)
-                            console.log('assign success')
+                body['sheriffId']= this.userToEdit.id;
+                const method = iscreate? 'post' :'put';            
+                const url = 'api/sheriff/training'  
+                const options = { method: method, url:url, data:body}
+               
+                this.$http(options)
+                    .then(response => {
+                        if(iscreate) 
                             this.addToAssignedTrainingList(response.data);
-                            this.clearTrainingSelection();
-                        }, err=>{   
-                            //console.log(err.response.data);
-                            const errMsg = err.response.data.error;
-                            this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                            this.trainingErrorMsgDesc = errMsg;
-                            this.trainingError = true;
-                        });
+                        else
+                            this.modifyAssignedTrainingList(response.data);
+                        
+                        this.closeTrainingForm();
+                    }, err=>{
+                        const errMsg = err.response.data.error;
+                        this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.trainingErrorMsgDesc = errMsg;
+                        this.trainingError = true;
+                        location.href = '#TrainingError'
+                    });                
+        }
+
+        public modifyAssignedTrainingList(modifiedTrainingInfo){            
+
+            const index = this.assignedTrainings.findIndex(assignedtraining =>{ if(assignedtraining.id == modifiedTrainingInfo.id) return true})
+            if(index>=0){
+                this.assignedTrainings[index].id =  modifiedTrainingInfo.id;
+                this.assignedTrainings[index].startDate = moment(modifiedTrainingInfo.startDate).tz(this.timezone).format();
+                this.assignedTrainings[index].endDate = moment(modifiedTrainingInfo.endDate).tz(this.timezone).format();
+                this.assignedTrainings[index].trainingTypeId = modifiedTrainingInfo.trainingTypeId; 
+                const trainingType = this.getTrainingType(this.assignedTrainings[index].trainingTypeId);               
+                this.assignedTrainings[index].trainingType = trainingType;
+                this.assignedTrainings[index].trainingName = trainingType.description;
+                this.assignedTrainings[index].expiryDate = modifiedTrainingInfo.trainingCertificationExpiry? modifiedTrainingInfo.trainingCertificationExpiry:'';
+                this.assignedTrainings[index].comment = modifiedTrainingInfo.comment?modifiedTrainingInfo.comment:'';
+                if(Vue.filter('isDateFullday')( this.assignedTrainings[index].startDate, this.assignedTrainings[index].endDate)){ 
+                    this.assignedTrainings[index]['isFullDay'] = true;                 
+                }else{
+                    this.assignedTrainings[index]['isFullDay'] = false;                   
                 }
+
+                this.assignedTrainings[index]['_rowVariant'] = '';
+                if(this.assignedTrainings[index].endDate < this.currentTime)
+                    this.assignedTrainings[index]['_rowVariant'] = 'info';
+
+                this.$emit('change');
+            } 
         }
 
         public addToAssignedTrainingList(addedTrainingInfo)
         {
-            const assignedTraining: trainingInfoType =
+            const assignedTraining: userTrainingInfoType =
             {
                 id: addedTrainingInfo.id,
                 trainingType: addedTrainingInfo.trainingType,
                 trainingTypeId: addedTrainingInfo.trainingTypeId,
                 sheriffId : addedTrainingInfo.sheriffId,
-                startDate: addedTrainingInfo.startDate,
-                endDate: addedTrainingInfo.endDate,
+                startDate: moment(addedTrainingInfo.startDate).tz(this.timezone).format(),
+                endDate: moment(addedTrainingInfo.endDate).tz(this.timezone).format(),
                 expiryDate: addedTrainingInfo.trainingCertificationExpiry,
                 comment: addedTrainingInfo.comment              
             }
             
-            if(this.isDateFullday(assignedTraining.startDate,assignedTraining.endDate)){ 
-                assignedTraining['isFullDay'] = true;
-                assignedTraining['_cellVariants'] = {isFullDay:'danger'}                 
+            if(Vue.filter('isDateFullday')(assignedTraining.startDate,assignedTraining.endDate)){ 
+                assignedTraining['isFullDay'] = true;                 
             }else{
-                assignedTraining['isFullDay'] = false;
-                assignedTraining['_cellVariants'] = {isFullDay:'success'}                    
+                assignedTraining['isFullDay'] = false;                   
             }
+
+            assignedTraining['_rowVariant'] = '';
+            if(assignedTraining.endDate < this.currentTime)
+                assignedTraining['_rowVariant'] = 'info';
 
             this.assignedTrainings.push(assignedTraining); 
             this.$emit('change');                     
         }
 
-        public clearTrainingSelection(){
-            this.selectedTrainingType = {} as trainingTypeInfoType | undefined;
-            this.selectedTrainingTypeComment = '';
-            this.selectedEndDate = '';
-            this.selectedStartDate = '';
-            this.selectedStartTime = '';
-            this.selectedEndTime = '';
-            this.addNewTraining= false;
-
-            this.trainingTypeState  = true;
-            this.trainingTypeCommentState = true;
-            this.endDateState   = true;
-            this.startDateState = true;
-            this.startTimeState = true;
-            this.endTimeState   = true;
-            this.expiryDateState = true;
+        public closeTrainingForm() {                     
+            this.addNewTrainingForm= false; 
+            this.addFormColor = 'secondary'
+            if(this.isEditOpen){
+                this.latestEditData.toggleDetails();
+                this.isEditOpen = false;
+            } 
         }
 
-        get isFullDay(){    
-
-            if(this.selectedStartTime == '' && this.selectedEndTime == '')
-                return true
-            else if(this.selectedStartDate && this.selectedEndDate)
-            {
-                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-                return this.isDateFullday(startDate,endDate)
+        public getTrainingType(trainingTypeId){
+            const index = this.trainingTypeInfoList.findIndex(training=>{if(training.id == trainingTypeId)return true})
+            if(index>=0){
+                return this.trainingTypeInfoList[index]
             }
             else
-                return false
-        }
+                return {} as trainingInfoType;
+        }       
+       
     }
 </script>
 
@@ -493,10 +401,16 @@
     .card {
         border: white;
     }
-    td {
-        margin: 0rem 1rem 0.1rem 0rem;
-        padding: 0rem 1rem 0.1rem 0rem;
-        
-        background-color: whitesmoke ;
+    .fullDay{
+        padding: 0.25rem 1rem 0.25rem 1rem; 
+        background-color: rgb(232, 181, 181); 
+        color: rgb(82, 78, 78);
+        font-weight: bold;        
+    }
+    .partialDay{
+        padding: 0.25rem 0.25rem 0.25rem 0.25rem; 
+        background-color: rgb(174, 212, 188); 
+        color:rgb(82, 78, 78); 
+        font-weight: bold;       
     }
 </style>

@@ -31,8 +31,10 @@ namespace SS.Db.models.auth
         public const string CreateAndAssignShifts = nameof(CreateAndAssignShifts);
         public const string ExpireShifts = nameof(ExpireShifts);
         public const string EditShifts = nameof(EditShifts);
+        public const string ImportShifts = nameof(ImportShifts);
         public const string ViewDistributeSchedule = nameof(ViewDistributeSchedule);
-        public const string ViewHomeLocationAndAssignedLocation = nameof(ViewHomeLocationAndAssignedLocation);
+        public const string ViewHomeLocation = nameof(ViewHomeLocation);
+        public const string ViewAssignedLocation = nameof(ViewAssignedLocation);
         public const string ViewRegion = nameof(ViewRegion);
         public const string ViewProvince = nameof(ViewProvince);
         public const string ExpireLocation = nameof(ExpireLocation);

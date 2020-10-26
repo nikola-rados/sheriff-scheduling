@@ -1,5 +1,5 @@
 <template>    
-    <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady">
+    <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady" style="user-select: none;">
         <navigation-topbar />
         <router-view></router-view>
         <navigation-footer id="footer" />
@@ -11,7 +11,7 @@
     import NavigationFooter from "@components/NavigationFooter.vue";
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
-    import {commonInfoType, locationInfoType, userInfoType} from './types/common';
+    import {commonInfoType, locationInfoType, sheriffRankInfoType, userInfoType} from './types/common';
     import {sheriffRankJsonType, locationJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";
     import store from "./store";  
@@ -31,12 +31,6 @@
 
         @commonState.Action
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
-
-        @commonState.State
-        public token!: string;
-
-        @commonState.Action
-        public UpdateToken!: (newToken: string) => void
 
         @commonState.State
         public location!: locationInfoType;
@@ -59,7 +53,7 @@
         errorCode = 0;
         errorText = '';
         isCommonDataReady= false;
-        sheriffRankList: string[] = []
+        sheriffRankList: sheriffRankInfoType[] = []
         currentLocation;
        
         mounted() {            
@@ -68,8 +62,7 @@
 
         public loadUserDetails() {
             const url = 'api/auth/info'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         const userData = response.data;
@@ -82,11 +75,9 @@
                 })  
         }
 
-        public loadSheriffRankList()  
-        {  
+        public loadSheriffRankList(){  
             const url = 'api/managetypes?codeType=SheriffRank'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         this.extractSheriffRankInfo(response.data);
@@ -99,13 +90,12 @@
                 })          
         }        
 
-        public extractSheriffRankInfo(sheriffRankList)
-        {
+        public extractSheriffRankInfo(sheriffRankList){
+
             let sheriffRank: sheriffRankJsonType;
 
-            for(sheriffRank of sheriffRankList)
-            {                
-                this.sheriffRankList.push(sheriffRank.description)
+            for(sheriffRank of sheriffRankList){                
+                this.sheriffRankList.push({id: Number(sheriffRank.id), name: sheriffRank.description})
             }                       
             this.UpdateCommonInfo({
                 sheriffRankList: this.sheriffRankList 
@@ -115,8 +105,7 @@
         public getLocations(): void {
 
             const url = 'api/location'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         this.extractLocationInfo(response.data);
@@ -125,13 +114,10 @@
                 }) 
         }
         
-        public extractLocationInfo(locationListJson)
-        {
-            let locationJson: locationJsonType;
-
-            for(locationJson of locationListJson)
-            {
-                const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId}
+        public extractLocationInfo(locationListJson){            
+            //let locationJson: locationJsonType;
+            for(const locationJson of locationListJson){                
+                const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId, timezone: locationJson.timezone}
                 this.locationList.push(locationInfo)
             }                       
             this.UpdateLocationList(_.sortBy(this.locationList,'name'));

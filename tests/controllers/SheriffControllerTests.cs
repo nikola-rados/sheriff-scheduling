@@ -23,6 +23,7 @@ using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
 using SS.Api.Helpers.Extensions;
+using SS.Api.models.dto.generated;
 
 namespace tests.controllers
 {
@@ -58,7 +59,7 @@ namespace tests.controllers
                 HomeLocationId = null
             };
 
-            var sheriffDto = newSheriff.Adapt<SheriffDto>();
+            var sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
@@ -82,7 +83,7 @@ namespace tests.controllers
                 HomeLocationId = null
             };
 
-            var sheriffDto = newSheriff.Adapt<SheriffDto>();
+            var sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
@@ -91,7 +92,7 @@ namespace tests.controllers
             Assert.NotNull(await _dbContext.Sheriff.FindAsync(sheriffResponse.Id));
 
             newSheriff.BadgeNumber = "554";
-            sheriffDto = newSheriff.Adapt<SheriffDto>();
+            sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             BusinessLayerException ble = null;
@@ -244,7 +245,7 @@ namespace tests.controllers
             Detach();
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffAwayLocation(response.Id);
+            var controllerResult4 = await _controller.RemoveSheriffAwayLocation(response.Id, "hello");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult6 = await _controller.FindSheriff(sheriffObject.Id);
@@ -324,7 +325,7 @@ namespace tests.controllers
             Assert.Equal(response3.LeaveType.Id, updateSheriffLeave.LeaveTypeId);
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffLeave(updateSheriffLeave.Id);
+            var controllerResult4 = await _controller.RemoveSheriffLeave(updateSheriffLeave.Id, "expired");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
@@ -393,7 +394,7 @@ namespace tests.controllers
             Assert.Equal(response3.TrainingType.Id, updateSheriffTraining.TrainingTypeId);
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffTraining(updateSheriffTraining.Id);
+            var controllerResult4 = await _controller.RemoveSheriffTraining(updateSheriffTraining.Id, "expired");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
