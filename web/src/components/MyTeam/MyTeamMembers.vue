@@ -76,7 +76,7 @@
                  <h2 v-if="editMode" class="mb-0 text-light"> Updating User Profile </h2>
                  <h2 v-else-if="createMode" class="mb-0 text-light"> Creating User Profile </h2>                
             </template>
-            <b-card v-if="isUserDataMounted" no-body>
+            <b-card v-if="isUserDataMounted" no-body style="user-select: none;">
                 <b-row>
                     <b-col cols="3">
                         <user-summary-template v-on:photoChange="photoChanged" :user="userToEdit" :editMode="editMode"/>
