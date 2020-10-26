@@ -23,6 +23,12 @@ const options: AxiosAuthRefreshOptions = {
 
 function configureInstance(){
     createAuthRefreshInterceptor(axios, refreshAuthLogic, options);    
+    
+    axios.interceptors.request.use(function (config) {
+        const token = store.state.CommonInformation.token;
+        config.headers['Authorization'] = 'Bearer ' +  token;    
+        return config;
+    });
     return axios
 }
 

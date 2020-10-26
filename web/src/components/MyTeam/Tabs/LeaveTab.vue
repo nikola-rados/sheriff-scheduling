@@ -4,96 +4,12 @@
             <b-card id="LeaveError" no-body>
                 <h2 v-if="leaveError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc"  variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
             </b-card>
-            <b-card  v-if="!addNewLeave">                
-                <b-button size="sm" variant="success" @click="addNewLeave = true"> <b-icon icon="plus" /> Add </b-button>
-            </b-card> 
+            <b-card  v-if="!addNewLeaveForm">                
+                <b-button size="sm" variant="success" @click="addNewLeave"> <b-icon icon="plus" /> Add </b-button>
+            </b-card>
 
-            <b-card v-if="addNewLeave" class="my-3" border-variant="light" no-body>
-                <b-table-simple small borderless >
-                    <b-tbody>
-                        <b-tr>
-                            <b-td>   
-                                <b-tr class="mt-1">   
-                                    <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Leave: </b>                          
-                                    <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Leave: </b> 
-                                    <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day Leave: </b>
-                                </b-tr>
-                                <b-tr >
-                                    <b-form-group style="margin: 0.25rem 0 0 0.75rem;width: 15rem"> 
-                                        <b-form-select
-                                            size = "sm"
-                                            v-model="selectedLeave"
-                                            :state = "leaveState?null:false">
-                                                <b-form-select-option :value="{}">
-                                                    Select a Leave Type*
-                                                </b-form-select-option>
-                                                <b-form-select-option
-                                                    v-for="leave in leaveTypeInfoList" 
-                                                    :key="leave.id"
-                                                    :value="leave">
-                                                        {{leave.description}}
-                                                </b-form-select-option>     
-                                        </b-form-select>
-                                    </b-form-group>
-                                </b-tr>                                
-                            </b-td>
-                            <b-td>
-                                <label class="h6 m-0 p-0"> From: </label>
-                                <b-form-datepicker
-                                    class="mb-1"
-                                    size="sm"
-                                    v-model="selectedStartDate"
-                                    placeholder="Start Date*"
-                                    :state = "startDateState?null:false"
-                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                                    locale="en-US">
-                                </b-form-datepicker>
-                                <b-form-timepicker
-                                    size="sm"
-                                    v-model="selectedStartTime"
-                                    placeholder="Start Time"
-                                    reset-button
-                                    :state = "startTimeState?null:false" 
-                                    locale="en">                                   
-                                </b-form-timepicker>
-                            </b-td>
-                            <b-td>
-                                <label class="h6 m-0 p-0"> To: </label>
-                                <b-form-datepicker
-                                    class="mb-1 mt-0 pt-0"
-                                    size="sm"
-                                    v-model="selectedEndDate"
-                                    placeholder="End Date*"
-                                    :state = "endDateState?null:false"                                    
-                                    :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                                    locale="en-US">
-                                </b-form-datepicker> 
-                                <b-form-timepicker
-                                    size="sm" 
-                                    v-model="selectedEndTime"
-                                    placeholder="End Time" 
-                                    reset-button
-                                    :state = "endTimeState?null:false"
-                                    locale="en">
-                                </b-form-timepicker>
-                            </b-td>
-                            <b-td >
-                                <b-button                                    
-                                    style="margin: 2rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
-                                    variant="secondary"
-                                    @click="clearLeaveSelection()">
-                                    Cancel
-                                </b-button>   
-                                <b-button                                    
-                                    style="width:70px;margin: 2rem 0 0 0; padding:0 1rem 0 1rem; "
-                                    variant="success"                        
-                                    @click="saveLeave()">
-                                    Save
-                                </b-button> 
-                            </b-td>
-                        </b-tr>   
-                    </b-tbody>
-                </b-table-simple>              
+            <b-card v-if="addNewLeaveForm" id="addLeaveForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
+                <add-leave-form :formData="{}" :isCreate="true" :leaveTypeInfoList="leaveTypeInfoList" v-on:submit="saveLeave" v-on:cancel="closeLeaveForm" />              
             </b-card>
 
             <div>
@@ -137,7 +53,13 @@
                             </template>
                             <template v-slot:cell(editLeave)="data" >                                       
                                 <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data.item)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            </template>
+
+                            <template v-slot:row-details="data">
+                                <b-card :id="'Le-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
+                                    <add-leave-form :formData="data.item" :isCreate="false" :leaveTypeInfoList="leaveTypeInfoList" v-on:submit="saveLeave" v-on:cancel="closeLeaveForm" />
+                                </b-card>
                             </template>
                     </b-table> 
                 </b-card> 
@@ -147,10 +69,25 @@
             <template v-slot:modal-title>
                     <h2 class="mb-0 text-light">Confirm Delete Leave</h2>                    
             </template>
-            <p>Are you sure you want to delete the "{{leaveToDelete.leaveType?leaveToDelete.leaveType.description:''}}" leave?</p>
+            <h4>Are you sure you want to delete the "{{leaveToDelete.leaveType?leaveToDelete.leaveType.description:''}}" leave?</h4>
+            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+                <b-form-select
+                    size = "sm"
+                    v-model="leaveDeleteReason">
+                        <b-form-select-option value="OPERDEMAND">
+                            Cover Operational Demands
+                        </b-form-select-option>
+                        <b-form-select-option value="PERSONAL">
+                            Personal Decision
+                        </b-form-select-option>
+                        <b-form-select-option value="ENTRYERR">
+                            Entry Error
+                        </b-form-select-option>     
+                </b-form-select>
+            </b-form-group>
             <template v-slot:modal-footer>
-                <b-button variant="danger" @click="deleteLeave()">Delete</b-button>
-                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+                <b-button variant="danger" @click="deleteLeave()" :disabled="leaveDeleteReason.length == 0">Delete</b-button>
+                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
@@ -164,41 +101,32 @@
     import { Component, Vue } from 'vue-property-decorator';
     import moment from 'moment-timezone';    
     import { namespace } from 'vuex-class';
-    import "@store/modules/CommonInformation";
-    const commonState = namespace("CommonInformation"); 
+    import AddLeaveForm from './AddForms/AddLeaveForm.vue'
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
     import {teamMemberInfoType, userLeaveInfoType} from '../../../types/MyTeam';
     import {leaveInfoType} from '../../../types/common';
     import { leaveTypeJson } from '../../../types/common/jsonTypes';
 
-    @Component
-    export default class LeaveTab extends Vue {
-
-        @commonState.State
-        public token!: string;
+    @Component({
+        components: {
+            AddLeaveForm
+        }        
+    })  
+    export default class LeaveTab extends Vue {        
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;                
 
         leaveTypeInfoList: leaveInfoType[] = [];
         leaveTabDataReady = false;
-        selectedLeave = {} as leaveInfoType | undefined;
-        leaveState = true;
+        
 
-        selectedEndDate = ''
-        endDateState = true
+        addNewLeaveForm = false;
+        addFormColor = 'secondary';
+        latestEditData;
+        isEditOpen = false;
 
-        selectedStartDate = ''
-        startDateState = true
-
-        selectedStartTime = ''
-        startTimeState = true
-
-        selectedEndTime = ''
-        endTimeState = true
-
-        addNewLeave = false;
         leaveError = false;
         leaveErrorMsg = '';
         leaveErrorMsgDesc = '';
@@ -208,6 +136,8 @@
         leaveToDelete = {} as userLeaveInfoType;
         
         assignedLeaves: userLeaveInfoType[] = [];
+        timezone = 'UTC';
+        leaveDeleteReason = '';
 
         fields =  
         [     
@@ -222,12 +152,13 @@
 
         mounted()
         {
+            this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.leaveTabDataReady = false;
-            this.extractLeaves();          
+            this.extractLeaves();                     
         }
 
-        public extractLeaves ()
-        {
+        public extractLeaves () {   
+                     
             const assignedLeavesJson = this.userToEdit.leave? this.userToEdit.leave: [];
             for(const leaveJson of assignedLeavesJson){                
                 const leave = {} as userLeaveInfoType;
@@ -237,7 +168,7 @@
                 leave.leaveName = leaveJson.leaveType?leaveJson.leaveType.description: '';
                 leave.comment = leaveJson.comment?leaveJson.comment:'';               
 
-                if(this.isDateFullday(leaveJson.startDate,leaveJson.endDate)){ 
+                if(Vue.filter('isDateFullday')(leaveJson.startDate,leaveJson.endDate)){ 
                     leave.isFullDay = true;
                     leave['_cellVariants'] = {isFullDay:'danger'}                 
                 } else{
@@ -245,17 +176,17 @@
                     leave['_cellVariants'] = {isFullDay:'success'}                    
                 }
                 
-                leave.startDate = moment(leaveJson.startDate).tz("UTC").format();
-                leave.endDate = moment(leaveJson.endDate).tz("UTC").format();
+                leave.startDate = moment(leaveJson.startDate).tz(this.timezone).format();
+                leave.endDate = moment(leaveJson.endDate).tz(this.timezone).format();
                 this.assignedLeaves.push(leave);               
             }
+            
             this.loadLeaveTypes();
         }
 
         public loadLeaveTypes() {
-            const url = 'api/managetypes?codeType=LeaveType'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/managetypes?codeType=LeaveType';
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         this.extractLeaveTypeInfo(response.data);                        
@@ -271,79 +202,64 @@
                 leaveTypeInfo.code = leaveType.code;
                 leaveTypeInfo.description = leaveType.description;
                 this.leaveTypeInfoList.push(leaveTypeInfo)
-            } 
+            }
+            this.leaveTabDataReady = true;
+        }
+
+        public addNewLeave(){
+            if(this.isEditOpen){
+                location.href = '#Le-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                this.addFormColor = 'danger'
+            }else{
+                this.addNewLeaveForm = true;
+                this.$nextTick(()=>{location.href = '#addLeaveForm';})
+            }
+        }
+
+        public saveLeave(body, iscreate) {
+            this.leaveError  = false; 
+            body['sheriffId']= this.userToEdit.id;
+            const method = iscreate? 'post' :'put';            
+            const url = 'api/sheriff/leave'  
+            const options = { method: method, url:url, data:body}
             
-            this.leaveTabDataReady = true; 
+            this.$http(options)
+                .then(response => {
+                    if(iscreate) 
+                        this.addToLeaveList(response.data);
+                    else
+                        this.modifyAssignedLeaveList(response.data);
+                    this.closeLeaveForm();
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.leaveErrorMsgDesc = errMsg;
+                    this.leaveError = true;
+                    location.href = '#LeaveError'
+                });
         }
 
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
-        }
+        public modifyAssignedLeaveList(modifiedLeaveInfo){
 
-        public saveLeave() {
-                this.leaveError  = false; 
-                this.leaveState  = true;
-                this.endDateState   = true;
-                this.startDateState = true;
-                this.startTimeState = true;
-                this.endTimeState   = true;
-                const isFullDay = this.isFullDay
-
-                if(this.selectedLeave && !this.selectedLeave.id ){
-                    this.leaveState  = false;
-                }else if(this.selectedStartDate == ""){
-                    this.leaveState  = true;
-                    this.startDateState = false;
-                }else if(this.selectedEndDate == ""){
-                    this.leaveState  = true;
-                    this.startDateState = true;
-                    this.endDateState   = false;
-                }else if(this.selectedEndTime == "" && this.selectedStartTime != ""){
-                    this.leaveState  = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.startTimeState = true;
-                    this.endTimeState   = false;
-                }else if(this.selectedStartTime == "" && this.selectedEndTime != ""){
-                    this.leaveState     = true;
-                    this.startDateState = true;
-                    this.endDateState   = true;
-                    this.endTimeState   = true;
-                    this.startTimeState = false;
+            const index = this.assignedLeaves.findIndex(assignedleave =>{ if(assignedleave.id == modifiedLeaveInfo.id) return true})
+            if(index>=0){
+                this.assignedLeaves[index].id =  modifiedLeaveInfo.id;
+                this.assignedLeaves[index].startDate = moment(modifiedLeaveInfo.startDate).tz(this.timezone).format();
+                this.assignedLeaves[index].endDate = moment(modifiedLeaveInfo.endDate).tz(this.timezone).format();
+                this.assignedLeaves[index].leaveTypeId = modifiedLeaveInfo.leaveTypeId; 
+                const leaveType = this.getLeaveType(this.assignedLeaves[index].leaveTypeId)               
+                this.assignedLeaves[index].leaveType = leaveType;                
+                this.assignedLeaves[index].leaveName = leaveType.description;
+                this.assignedLeaves[index].comment = modifiedLeaveInfo.comment?modifiedLeaveInfo.comment:'';
+                if(Vue.filter('isDateFullday')( this.assignedLeaves[index].startDate, this.assignedLeaves[index].endDate)){ 
+                    this.assignedLeaves[index]['isFullDay'] = true;
+                    this.assignedLeaves[index]['_cellVariants'] = {isFullDay:'danger'}                 
                 }else{
-                    this.leaveState     = true;
-                    this.endDateState   = true;
-                    this.startDateState = true;
-                    this.startTimeState = true;
-                    this.endTimeState   = true;
-
-                    const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                    const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-                    const body = {
-                        leaveTypeId: this.selectedLeave?this.selectedLeave.id:0,
-                        startDate: startDate,
-                        endDate: endDate,                      
-                        isFullDay: isFullDay,
-                        sheriffId: this.userToEdit.id,
-                    }
-                    const url = 'api/sheriff/leave'  
-                    const options = {headers:{'Authorization' :'Bearer '+this.token}}
-                    this.$http.post(url, body, options)
-                        .then(response => {
-                            console.log(response)
-                            this.addToLeaveList(response.data);
-                            this.clearLeaveSelection();
-                        }, err=>{   
-                            //console.log(err.response.data);
-                            const errMsg = err.response.data.error;
-                            this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                            this.leaveErrorMsgDesc = errMsg;
-                            this.leaveError = true;
-                        });
+                    this.assignedLeaves[index]['isFullDay'] = false;
+                    this.assignedLeaves[index]['_cellVariants'] = {isFullDay:'success'}                    
                 }
+                this.$emit('change');
+            } 
         }
 
         public addToLeaveList(addedLeaveInfo){
@@ -352,11 +268,11 @@
             leave.leaveType = addedLeaveInfo.leaveType;
             leave.leaveTypeId = addedLeaveInfo.leaveTypeId; 
             leave.leaveName = addedLeaveInfo.leaveType.description;
-            leave.startDate = addedLeaveInfo.startDate;
-            leave.endDate = addedLeaveInfo.endDate;
+            leave.startDate = moment(addedLeaveInfo.startDate).tz(this.timezone).format();
+            leave.endDate = moment(addedLeaveInfo.endDate).tz(this.timezone).format();
             leave.comment = addedLeaveInfo.comment? addedLeaveInfo.comment:'';
             
-            if(this.isDateFullday(leave.startDate,leave.endDate)){ 
+            if(Vue.filter('isDateFullday')(leave.startDate,leave.endDate)){ 
                 leave.isFullDay = true;
                 leave['_cellVariants'] = {isFullDay:'danger'}                 
             }else{
@@ -368,37 +284,39 @@
             this.$emit('change');                     
         }
 
-        public clearLeaveSelection() {
-            this.selectedLeave = {} as leaveInfoType | undefined;
-            this.selectedEndDate = '';
-            this.selectedStartDate = '';
-            this.selectedStartTime = '';
-            this.selectedEndTime = '';
-            this.addNewLeave= false;
-
-            this.leaveState     = true;
-            this.endDateState   = true;
-            this.startDateState = true;
-            this.startTimeState = true;
-            this.endTimeState   = true;
+        public closeLeaveForm() {                     
+            this.addNewLeaveForm= false; 
+            this.addFormColor = 'secondary'
+            if(this.isEditOpen){
+                this.latestEditData.toggleDetails();
+                this.isEditOpen = false;
+            } 
         }
 
-        get isFullDay(){  
-
-            if(this.selectedStartTime == '' && this.selectedEndTime == '')
-                return true
-            else if(this.selectedStartDate && this.selectedEndDate)
-            {
-                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-                return this.isDateFullday(startDate,endDate)
+        public getLeaveType(leaveTypeId: number|null){
+            const index = this.leaveTypeInfoList.findIndex(leave=>{if(leave.id == leaveTypeId)return true})
+            if(index>=0){
+                return this.leaveTypeInfoList[index]
             }
             else
-                return false
-        }
+                return {} as leaveInfoType;
+        }       
 
-        public editLeave() {
-            console.log("editing")
+        public editLeave(data) {
+            if(this.addNewLeaveForm){
+                location.href = '#addLeaveForm'
+                this.addFormColor = 'danger'
+            }else if(this.isEditOpen){
+                location.href = '#Le-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                this.addFormColor = 'danger'               
+            }else if(!this.isEditOpen && !data.detailsShowing){
+                data.toggleDetails();
+                this.isEditOpen = true;
+                this.latestEditData = data
+                Vue.nextTick().then(()=>{
+                    location.href = '#Le-Date-'+this.latestEditData.item.startDate.substring(0,10)
+                });
+            }   
         }
 
         public confirmDeleteLeave(leave) {
@@ -406,28 +324,29 @@
             this.confirmDelete=true; 
         }
 
-        public deleteLeave() {
-            console.log('delete leave')
-            this.confirmDelete = false;    
+        public cancelDeletion() {
+            this.confirmDelete = false;
+            this.leaveDeleteReason = '';
+        }
 
-            this.leaveError = false; 
-            const url = 'api/sheriff/leave?id='+this.leaveToDelete.id;
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.delete(url, options)
-                .then(response => {
-                    console.log(response)
-                    console.log('delete success')
-                    const index = this.assignedLeaves.findIndex(assignedleave=>{if(assignedleave.id == this.leaveToDelete.id) return true;})
-                    if(index>=0) this.assignedLeaves.splice(index,1);
-                    this.$emit('change');
-                }, err=>{
-                    const errMsg = err.response.data.error;
-                    this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                    this.leaveErrorMsgDesc = errMsg;
-                    this.leaveError = true;
-                });
-        
-           
+        public deleteLeave() {
+            if (this.leaveDeleteReason.length) {
+                this.confirmDelete = false;
+                this.leaveError = false; 
+                const url = 'api/sheriff/leave?id='+this.leaveToDelete.id+'&expiryReason='+this.leaveDeleteReason;
+                this.$http.delete(url)
+                    .then(response => {
+                        const index = this.assignedLeaves.findIndex(assignedleave=>{if(assignedleave.id == this.leaveToDelete.id) return true;})
+                        if(index>=0) this.assignedLeaves.splice(index,1);
+                        this.$emit('change');
+                    }, err=>{
+                        const errMsg = err.response.data.error;
+                        this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.leaveErrorMsgDesc = errMsg;
+                        this.leaveError = true;
+                    });
+                    this.leaveDeleteReason = '';
+            }           
         }
     }
 </script>

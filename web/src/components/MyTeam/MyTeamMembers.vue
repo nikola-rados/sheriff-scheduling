@@ -3,11 +3,28 @@
         <b-row class="bg-white">
             <b-col cols="10">
                 <page-header :pageHeaderText="sectionHeader"></page-header>
-                <b-card>  
-                    <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
-                        <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
-                        <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
-                    </b-form-group>
+                <b-card>
+                    <b-row>
+                        <b-col>  
+                            <b-form-group class="mr-1" style="width: 20rem"><label class="ml-1">Searching keyword:</label>
+                                <b-form-input v-model="searchPhrase" placeholder="Enter Keyword"></b-form-input>
+                                <b-form-text class="text-light font-italic"> Name/Rank/Location/Badge Number </b-form-text>
+                            </b-form-group>
+                        </b-col>
+                        <b-col style="margin-top: 35px;">
+                            <b-pagination
+                                v-model="currentPage"
+                                :total-rows="totalRows"
+                                :per-page="itemsPerPage" 
+                                first-number
+                                last-number                               
+                                first-text="First"
+                                prev-text="Prev"
+                                next-text="Next"
+                                last-text="Last">
+                            </b-pagination>
+                        </b-col>
+                    </b-row>
                 </b-card> 
             </b-col>
             <b-col style="padding: 0;">
@@ -30,23 +47,23 @@
                 </div>                
                 </template> 
             </b-overlay> 
-        </b-card>
+        </b-card>        
 
         <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
                 <div v-for="teamMember in myTeamData" :key="teamMember.badgeNumber" class="col-3  my-1">
                     <div  class="card h-100 bg-dark">
-                        <div class="card-header bg-dark border-dark mb-0 pb-0 " >
+                        <div class="card-header bg-dark border-dark mb-0 pb-0 " style="width: 13.4rem; height: 2.5rem;">
                             <b-row class="ml-3">                                                
-                                <user-location-summary v-if="teamMember.awayLocation.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :loanedJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>
-                                <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber"/>
-                                <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber"/>
+                                <user-location-summary v-if="teamMember.awayLocation.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :awayJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/>
+                                <user-training-summary class="mx-2" v-if="teamMember.training.length>0" :trainingJson="teamMember.training" :index="teamMember.badgeNumber" :timezone="teamMember.homeLocation?teamMember.homeLocation.timezone:'UTC'"/>
+                                <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber" :timezone="teamMember.homeLocation?teamMember.homeLocation.timezone:'UTC'"/>
                             </b-row>
                         </div>
                         <div @click="openMemberDetails(teamMember.id)" class="card-body my-1 py-0">
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
-                        <div class="card-footer text-white bg-dark border-dark mt-0 pt-0" >                                                
+                        <div class="card-footer text-white bg-dark border-dark mt-0 pt-0" style="width: 13.4rem; height: 2.5rem;">                                                
                             <expire-sheriff-profile :disabled="!userIsAdmin" :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
                         </div>
                     </div>
@@ -95,7 +112,8 @@
                                 </b-tab>
 
                                 <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
-                                    <role-assignment-tab :userId="userToEdit.id" :userAllRoles="userAllRoles" />
+                                    <role-assignment-tab  v-on:change="getSheriffs()"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>
                                 </b-tab>
 
                             </b-tabs>
@@ -118,7 +136,7 @@
                  <b-button
                   variant="outline-primary"
                   class="text-light closeButton"
-                  @click="$bvModal.hide('bv-modal-team-member-details')"                  
+                  @click="closeProfileWindow()"                  
                   >
                   &times;</b-button>
             </template>           
@@ -177,12 +195,6 @@
         public UpdateCommonInfo!: (newCommonInfo: commonInfoType) => void
 
         @commonState.State
-        public token!: string;
-
-        @commonState.Action
-        public UpdateToken!: (newToken: string) => void
-
-        @commonState.State
         public location!: locationInfoType;
 
         @commonState.Action
@@ -203,12 +215,17 @@
         showMemberDetails = false;
         userIsAdmin = false;
 
+        itemsPerRow = 4;//Define
+        rowsPerPage = 1;//Define
+        currentPage = 1;
+        itemsPerPage = 1;// itemsPerRow*rowsPerPage
+
         tabIndex = 0;
         isUserDataMounted = false;
         editMode = false;
         createMode = false;
         sectionHeader = '';
-        photokey=0;
+        photokey = 0;
         userAllRoles: any[] = [];
 
         searchPhrase = '';
@@ -218,44 +235,44 @@
         firstNavigation = true;
     
         allMyTeamData: teamMemberInfoType[] =[];
+        myTeam: teamMemberInfoType[] = [];
         
         @Watch('location.id', { immediate: true })
         locationChange()
         {
-            this.getSheriffs()
-            this.sectionHeader = "My Team - " + this.location.name;
+            if (this.isMyTeamDataMounted) {
+                this.getSheriffs()
+                this.sectionHeader = "My Team - " + this.location.name;
+            }            
         }  
 
         mounted() {
-            this.userIsAdmin = (this.userDetails.roles.indexOf("Administrator") > -1) || (this.userDetails.roles.indexOf("System Administrator") > -1);
+            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
+            this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
         }
         
         get viewStatus() {
             if(this.expiredViewChecked) return 'All Profiles';else return 'Active Profiles'
         }
 
-        public getSheriffs()
-        {
+        public getSheriffs() {            
             this.isMyTeamDataMounted = false;
-            const url = 'api/sheriff'
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/sheriff';
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
+                        // console.log(response.data)
                         this.extractMyTeamFromSheriffs(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
                 })
         }
         
-        public onTabChanged(newTabIndex , prevTabIndex, bvEvt)
-        {
+        public onTabChanged(newTabIndex , prevTabIndex, bvEvt) {
             this.newTabIndex = newTabIndex;            
-            if(prevTabIndex == 0 && this.firstNavigation)
-            {
+            if(prevTabIndex == 0 && this.firstNavigation) {
                 this.firstNavigation = false;
                 bvEvt.preventDefault();
                 this.identificationTabMethods.$emit('switchTab');   
@@ -270,15 +287,16 @@
         public extractMyTeamFromSheriffs(data: any) {    
             this.allMyTeamData = [];            
             for(const myteaminfo of data)
-            {
+            {                
                 const myteam = {} as teamMemberInfoType;
-                myteam.fullName = Vue.filter('capitilize')(myteaminfo.firstName) + ' ' + Vue.filter('capitilize')(myteaminfo.lastName);
+                myteam.fullName = Vue.filter('capitalize')(myteaminfo.firstName) + ' ' + Vue.filter('capitalize')(myteaminfo.lastName);
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
                 myteam.rank = myteaminfo.rank;
+                myteam.rankOrder = this.getRankOrder(myteam.rank)[0]?this.getRankOrder(myteam.rank)[0].id:0;
                 myteam.badgeNumber = myteaminfo.badgeNumber;
                 myteam.id = myteaminfo.id;
-                myteam.image = myteaminfo.photo? 'data:image/;base64,'+myteaminfo.photo: '';
+                myteam.image = myteaminfo.photoUrl? myteaminfo.photoUrl: '';
                 myteam.isEnabled = myteaminfo.isEnabled;
                 myteam.homeLocationId = myteaminfo.homeLocationId;
                 myteam.homeLocationNm = myteaminfo.homeLocation? myteaminfo.homeLocation.name: '';               
@@ -286,31 +304,61 @@
                 myteam.leave = myteaminfo.leave? myteaminfo.leave: [];
                 myteam.training = myteaminfo.training? myteaminfo.training: [];
                 myteam.awayLocation = myteaminfo.awayLocation;
+                
                 if(myteaminfo.homeLocation)
-                    myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId};
+                    myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId, timezone: myteaminfo.homeLocation.timezone};
+                
                 this.allMyTeamData.push(myteam);
-            }            
+            }  
+             console.log(this.allMyTeamData)          
+        }
+
+        get totalRows() {
+            return this.myTeam.length
         }
 
         get myTeamData() {
-            return this.allMyTeamData.filter(member => {
+            this.myTeam =this.allMyTeamData.filter(member => {
                 if (this.expiredViewChecked || member.isEnabled)
                 {
                     if(this.searchPhrase==''){
                         if(member.homeLocationId == this.location.id) return true
-                        for(const loanInx in member.loanedOut)
-                            if(member.loanedOut[loanInx].locationId == this.location.id ) return true
+                        for(const awayInx in member.awayLocation)
+                            if(member.awayLocation[awayInx].locationId == this.location.id ) return true
                     }
                     else{ 
-                        if(member.firstName && member.firstName.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
-                        if(member.lastName && member.lastName.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))   return true
-                        if(member.rank && member.rank.toLowerCase().startsWith(this.searchPhrase.toLowerCase()))           return true
-                        if(member.badgeNumber && member.badgeNumber.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
-                        if(member.homeLocationNm && member.homeLocationNm.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true
+                        if(this.searchForKeyword(member.firstName)) return true
+                        if(this.searchForKeyword(member.lastName))  return true
+                        if(this.searchForKeyword(member.rank))      return true
+                        if(this.searchForKeyword(member.badgeNumber))    return true
+                        if(this.searchForKeyword(member.homeLocationNm)) return true
                     }
                 }
-            });
+            })
+
+            const sortedTeam = this.sortTeamMembers(this.myTeam);            
+            return sortedTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
         }
+
+        public sortTeamMembers(teamList) {
+            return _.chain(teamList)
+                    .sortBy(member =>{return (member['lastName']? member['lastName'].toUpperCase() : '')})
+                    .sortBy('rankOrder')
+                    .value()
+        }
+
+        public getRankOrder(rankName: string) {
+            return this.commonInfo.sheriffRankList.filter(rank => {
+                if (rank.name == rankName) {
+                    return true;
+                }
+            })
+        }
+
+        public searchForKeyword(phrase){
+            if(phrase && phrase.toLowerCase().startsWith(this.searchPhrase.toLowerCase())) return true;else return false;
+        }
+
 
         public photoChanged(id: string, image: string){           
             const index = this.allMyTeamData.findIndex(myteam => {if(myteam.id == id) return true;else return false})
@@ -334,7 +382,7 @@
         }  
 
         public closeProfileWindow(){
-            console.log(this.tabIndex)
+            //console.log(this.tabIndex)
             if(this.tabIndex ==0 || this.createMode)
             {  
                 this.identificationTabMethods.$emit('closeProfileWindow');
@@ -356,7 +404,9 @@
             this.UpdateUserToEdit(user);  
         }
 
-        public AddMember(){ 
+        public AddMember(){
+            const user = {} as teamMemberInfoType;
+            this.UpdateUserToEdit(user); 
             this.tabIndex = 0;
             this.createMode = true;
             this.editMode = false;
@@ -366,9 +416,8 @@
 
         public loadUserDetails(userId): void {
             this.editMode = true;            
-            const url = 'api/sheriff/' + userId
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            const url = 'api/sheriff/' + userId;
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)                        
@@ -385,7 +434,7 @@
             user.idirUserName =  userJson.idirName;
             user.firstName = userJson.firstName;
             user.lastName = userJson.lastName;
-            user.fullName = Vue.filter('capitilize')(userJson.firstName) + ' ' + Vue.filter('capitilize')(userJson.lastName);
+            user.fullName = Vue.filter('capitalize')(userJson.firstName) + ' ' + Vue.filter('capitalize')(userJson.lastName);
             user.gender = gender[userJson.gender];
             user.rank = userJson.rank;
             user.email = userJson.email;
@@ -393,16 +442,16 @@
             user.id = userJson.id;
             user.homeLocationId = userJson.homeLocationId;
             user.homeLocationNm = userJson.homeLocation? userJson.homeLocation.name: '';
-            user.image = userJson['photo']?'data:image/;base64,'+userJson['photo']:'';
+            user.image = userJson['photoUrl']?userJson['photoUrl']:'';
             if(userJson.homeLocation)
-                user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId};
+                user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId, timezone: userJson.homeLocation.timezone};
           
             if(userJson.awayLocation && userJson.awayLocation.length>0)
                 user.awayLocation = userJson.awayLocation;
 
             user.leave = userJson.leave;
             user.training = userJson.training;
-            this.userAllRoles = userJson.roles
+            user.userRoles = userJson.roles
             this.UpdateUserToEdit(user);  
         }
 
@@ -422,6 +471,12 @@
         font-size: 20px;
         padding: 0;
         margin: 0;
+    }
+
+    .pagination {
+        height: calc(1.6em + 0.75rem + 2px);
+        border-width: 1px;
+        border-radius: 0.25rem;
     }
 
     .form-group.required .label:after {

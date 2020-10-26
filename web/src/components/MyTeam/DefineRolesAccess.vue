@@ -172,12 +172,6 @@
 
         @commonState.State
         public userDetails!: userInfoType;
-
-        @commonState.State
-        public token!: string;
-
-        @commonState.Action
-        public UpdateToken!: (newToken: string) => void
         
         showRoleDetails = false;
         showCancelWarning = false;
@@ -214,7 +208,7 @@
         roleData: roleInfoType[] = [];
 
         mounted() {
-            this.userIsAdmin = (this.userDetails.roles.indexOf("Administrator") > -1) || (this.userDetails.roles.indexOf("System Administrator") > -1);
+            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
             this.getRoles();
             this.sectionHeader = "Manage System Roles and Access";
         }
@@ -223,8 +217,7 @@
         {
             this.isRolesDataMounted = false;
             const url = 'api/role';
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         // console.log(response.data)
@@ -271,8 +264,7 @@
         public getPermissions(): void {
 
             const url = 'api/permission';
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         this.extractPermissions(response.data);                                               
@@ -289,8 +281,7 @@
         public loadRoleDetails(roleId): void {
             this.editMode = true;            
             const url = 'api/role/' + roleId
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}
-            this.$http.get(url, options)
+            this.$http.get(url)
                 .then(response => {
                     if(response.data){                        
                         this.extractRoleInfo(response.data);                 
@@ -433,9 +424,8 @@
             }
             // console.log(body)
 
-            const url = 'api/role';
-            const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-            this.$http.put(url, body, options)
+            const url = 'api/role'; 
+            this.$http.put(url, body)
                 .then(response => {
                     if(response.data){
                         this.resetRoleWindowState();
@@ -462,9 +452,7 @@
             }
             // console.log(body)
             const url = 'api/role';
-            const options = {headers:{'Authorization' :'Bearer '+this.token}}         
-            
-            this.$http.post(url, body, options )
+            this.$http.post(url, body)
                 .then(response => {
                     if(response.data){
                         this.resetRoleWindowState();
