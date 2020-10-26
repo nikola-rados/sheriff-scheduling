@@ -130,7 +130,7 @@ namespace SS.Api.services.usermanagement
             savedSheriff.ThrowBusinessExceptionIfNull($"No {nameof(Sheriff)} with Badge: {badgeNumber} or Id: {id}");
             savedSheriff.Photo = photoData;
             savedSheriff.LastPhotoUpdate = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
             return savedSheriff;
         }
 
