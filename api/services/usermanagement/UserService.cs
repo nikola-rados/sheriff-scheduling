@@ -63,6 +63,7 @@ namespace SS.Api.services
                     savedUserRole.User = user;
                     savedUserRole.ExpiryDate = assignRole.ExpiryDate;
                     savedUserRole.EffectiveDate = assignRole.EffectiveDate;
+                    savedUserRole.ExpiryReason = null;
                 }
                 else
                 {
