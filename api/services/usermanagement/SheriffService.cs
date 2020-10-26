@@ -48,8 +48,8 @@ namespace SS.Api.services.usermanagement
         //Used for the Shift scheduling screen.
         public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset startDateUtc, DateTimeOffset endDateUtc)
         {
-            var startDate = startDateUtc.UtcDateTime.Date;
-            var endDate = endDateUtc.UtcDateTime.Date;
+            var startDate = startDateUtc.UtcDateTime;
+            var endDate = endDateUtc.UtcDateTime;
 
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
@@ -65,8 +65,8 @@ namespace SS.Api.services.usermanagement
 
         public async Task<List<Sheriff>> GetSheriffsForTeams()
         {
-            var today = DateTimeOffset.UtcNow.Date;
-            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7).Date;
+            var today = DateTimeOffset.UtcNow;
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
 
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
@@ -78,8 +78,8 @@ namespace SS.Api.services.usermanagement
 
         public async Task<Sheriff> GetSheriffForTeams(Guid id)
         {
-            var today = DateTimeOffset.UtcNow.Date;
-            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7).Date;
+            var today = DateTimeOffset.UtcNow;
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
 
             return await Db.Sheriff.AsNoTracking().AsSingleQuery()
                 .ApplyPermissionFilters(User, today, sevenDaysFromNow)
