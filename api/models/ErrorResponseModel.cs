@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using SS.Api.Helpers.Extensions;
 using System;
+using SS.Api.helpers.extensions;
 
 namespace SS.Api.Models
 {

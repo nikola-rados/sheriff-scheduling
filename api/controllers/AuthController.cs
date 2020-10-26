@@ -11,9 +11,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using SS.Api.Helpers;
+using SS.Api.helpers;
 using SS.Api.helpers.extensions;
-using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.services;
 
@@ -22,14 +21,14 @@ namespace SS.Api.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly bool _isImpersonated;
-        private readonly ChesEmailService _emailService;
+        private bool IsImpersonated { get; }
+        private ChesEmailService ChesEmailService { get; }
         private IConfiguration Configuration { get; }
-        public AuthController(IWebHostEnvironment env, IConfiguration configuration, ChesEmailService emailService)
+        public AuthController(IWebHostEnvironment env, IConfiguration configuration, ChesEmailService chesEmailService)
         {
             Configuration = configuration;
-            _emailService = emailService;
-            _isImpersonated = env.IsDevelopment() &&
+            ChesEmailService = chesEmailService;
+            IsImpersonated = env.IsDevelopment() &&
                               configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
         }
         /// <summary>
@@ -64,7 +63,7 @@ namespace SS.Api.Controllers
 
             var requestAccessEmailAddress = Configuration.GetNonEmptyValue("RequestAccessEmailAddress");
 
-            await _emailService.SendEmail(emailString,
+            await ChesEmailService.SendEmail(emailString,
                 "Access Request", requestAccessEmailAddress);
             return NoContent();
         }
@@ -95,7 +94,7 @@ namespace SS.Api.Controllers
             var permissions = HttpContext.User.FindAll(CustomClaimTypes.Permission).SelectToList(r => r.Value);
             var userId = HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value;
             var homeLocationId = HttpContext.User.FindFirst(CustomClaimTypes.HomeLocationId)?.Value;
-            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, IsImpersonated = _isImpersonated, DateTime.UtcNow });
+            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, IsImpersonated = IsImpersonated, DateTime.UtcNow });
         }
     }
 }

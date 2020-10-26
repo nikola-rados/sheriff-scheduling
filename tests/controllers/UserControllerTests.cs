@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using SS.Api.controllers.usermanagement;
 using SS.Api.models.dto;
 using SS.Api.services;
+using SS.Api.services.usermanagement;
 using SS.Db.models.auth;
 using tests.api.helpers;
 using tests.api.Helpers;

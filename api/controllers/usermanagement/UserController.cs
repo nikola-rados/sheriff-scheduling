@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.infrastructure.authorization;
 using SS.Api.models.dto;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Api.services;
+using SS.Api.services.usermanagement;
 using SS.Db.models.auth;
 
 namespace SS.Api.controllers.usermanagement
@@ -18,11 +18,11 @@ namespace SS.Api.controllers.usermanagement
     /// 
     public abstract class UserController : ControllerBase
     {
-        private readonly UserService _service;
+        private UserService UserService { get; }
 
-        protected UserController(UserService userService)
+        protected UserController(UserService userUserService)
         {
-            _service = userService;
+            UserService = userUserService;
         }
 
         [HttpPut]
@@ -31,7 +31,7 @@ namespace SS.Api.controllers.usermanagement
         public async Task<ActionResult> AssignRoles(List<AssignRoleDto> assignRole)
         {
             var entity = assignRole.Adapt<List<UserRole>>();
-            await _service.AssignRolesToUser(entity);
+            await UserService.AssignRolesToUser(entity);
             return NoContent();
         }
 
@@ -41,7 +41,7 @@ namespace SS.Api.controllers.usermanagement
         public async Task<ActionResult> UnassignRoles(List<UnassignRoleDto> unassignRole)
         {
             var entity = unassignRole.Adapt<List<UserRole>>();
-            await _service.UnassignRoleFromUser(entity);
+            await UserService.UnassignRoleFromUser(entity);
             return NoContent();
         }
 
@@ -50,7 +50,7 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.ExpireUsers)]
         public async Task<ActionResult<SheriffDto>> EnableUser(Guid id)
         {
-            var user = await _service.EnableUser(id);
+            var user = await UserService.EnableUser(id);
             return Ok(user.Adapt<SheriffDto>());
         }
 
@@ -59,7 +59,7 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.ExpireUsers)]
         public async Task<ActionResult<SheriffDto>> DisableUser(Guid id)
         {
-            var user = await _service.DisableUser(id);
+            var user = await UserService.DisableUser(id);
             return Ok(user.Adapt<SheriffDto>());
         }
     }

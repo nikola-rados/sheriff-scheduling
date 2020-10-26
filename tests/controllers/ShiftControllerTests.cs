@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SS.Db.models.scheduling
+namespace tests.controllers
 {
-    public class Schedule
+    class ShiftControllerTests
     {
     }
 }

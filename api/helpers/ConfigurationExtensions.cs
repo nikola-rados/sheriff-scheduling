@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
-using SS.Api.Helpers.Exceptions;
+using SS.Api.infrastructure.exceptions;
 
-namespace SS.Api.Helpers
+namespace SS.Api.helpers
 {
     public static class ConfigurationExtension
     {

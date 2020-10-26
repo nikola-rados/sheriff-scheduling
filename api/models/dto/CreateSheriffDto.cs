@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using SS.Api.Models.Dto;
+﻿using SS.Api.models.dto.generated;
 
-namespace SS.Api.models.dto.generated
+namespace SS.Api.models.dto
 {
     public class CreateSheriffDto : SheriffDto
     {
