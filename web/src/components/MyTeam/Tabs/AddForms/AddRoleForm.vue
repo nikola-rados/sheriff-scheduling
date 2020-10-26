@@ -136,9 +136,7 @@
         
         mounted()
         { 
-            this.clearSelections();
-            console.log(this.formData)
-            console.log(this.roleTypeInfoList)
+            this.clearSelections();            
             if(this.formData.value) {
                 this.extractFormInfo();
             }               

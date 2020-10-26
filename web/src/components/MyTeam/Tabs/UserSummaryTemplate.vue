@@ -4,7 +4,7 @@
             :key="photoUpdateKey"
             v-if="photo"
             v-auth-image="photo"
-            src="null"            
+            src=""            
             style="width: 11rem; height: 11rem; object-fit: scale-down;"
             class="mb-3"
         ></b-card-img>

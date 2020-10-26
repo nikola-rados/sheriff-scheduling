@@ -266,7 +266,6 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        // console.log(response.data)
                         this.extractMyTeamFromSheriffs(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
@@ -312,8 +311,8 @@
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId, timezone: myteaminfo.homeLocation.timezone};
                 
                 this.allMyTeamData.push(myteam);
-            }  
-             console.log(this.allMyTeamData)          
+            } 
+                     
         }
 
         get totalRows() {
@@ -384,8 +383,7 @@
             this.identificationTabMethods.$emit('saveMemberProfile');
         }  
 
-        public closeProfileWindow(){
-            //console.log(this.tabIndex)
+        public closeProfileWindow(){            
             if(this.tabIndex ==0 || this.createMode)
             {  
                 this.identificationTabMethods.$emit('closeProfileWindow');
@@ -422,8 +420,7 @@
             const url = 'api/sheriff/' + userId;
             this.$http.get(url)
                 .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
+                    if(response.data){                                              
                         this.extractUserInfo(response.data);
                         this.isUserDataMounted = true;
                         this.showMemberDetails=true;                                              
@@ -431,8 +428,7 @@
                 });
         }
 
-        public extractUserInfo(userJson): void {
-            console.log(userJson)
+        public extractUserInfo(userJson): void {            
             const user = {} as teamMemberInfoType;            
             user.idirUserName =  userJson.idirName;
             user.firstName = userJson.firstName;

@@ -238,7 +238,6 @@
         }
 
         public addToRoleList(addedRoleInfo){
-            console.log(addedRoleInfo)
             const role = {} as userRoleInfoType;
             role.value = addedRoleInfo.roleId;
             role.text = addedRoleInfo.text;
