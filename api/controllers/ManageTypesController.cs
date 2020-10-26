@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Net;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +9,6 @@ using SS.Api.services;
 using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.lookupcodes;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace SS.Api.controllers
 {
@@ -30,8 +28,6 @@ namespace SS.Api.controllers
         }
         
         [HttpGet]
-        [SwaggerResponse((int)HttpStatusCode.OK)]
-        [SwaggerResponse((int)HttpStatusCode.NotFound)]
         [Route("{id}")]
         [PermissionClaimAuthorize(perm: Permission.ViewManageTypes)]
         public async Task<ActionResult<LookupCodeDto>> Find(int id)

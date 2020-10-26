@@ -24,6 +24,7 @@ namespace SS.Db.models.auth
         public static readonly Guid SystemUser = new Guid("00000000-0000-0000-0000-000000000001");
         [Key]
         public Guid Id { get; set; }
+        [JsonIgnore]
         public string IdirName { get; set; }
         [AdaptIgnore]
         [JsonIgnore]

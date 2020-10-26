@@ -4,10 +4,17 @@ export interface locationInfoType {
     regionId: number| null;
     agencyId?: string;
     concurrencyToken?: number;
-    justinCode?: string
+    justinCode?: string;
+    timezone: string;
 }
 
 export interface leaveInfoType {
+    code: string;
+    id: number;
+    description?: string;
+}
+
+export interface trainingInfoType {
     code: string;
     id: number;
     description?: string;
@@ -19,5 +26,10 @@ export interface userInfoType {
 }
 
 export interface commonInfoType {
-    "sheriffRankList": string[]    
+    "sheriffRankList": sheriffRankInfoType[]    
+}
+
+export interface sheriffRankInfoType {
+    id: number,
+    name: string
 }

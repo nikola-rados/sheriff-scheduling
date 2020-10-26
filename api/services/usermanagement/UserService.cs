@@ -49,7 +49,7 @@ namespace SS.Api.services
                 var user = await _db.User.FindAsync(assignRole.UserId);
                 user.ThrowBusinessExceptionIfNull($"User with id {assignRole.UserId} does not exist.");
 
-                var role = await _db.Role.Include(r => r.UserRoles).FirstOrDefaultAsync(r => r.Id == assignRole.RoleId);
+                var role = await _db.Role.AsSingleQuery().Include(r => r.UserRoles).FirstOrDefaultAsync(r => r.Id == assignRole.RoleId);
                 role.ThrowBusinessExceptionIfNull($"Role with id {assignRole.RoleId} does not exist.");
 
                 var savedUserRole = user.UserRoles.FirstOrDefault(ur =>
@@ -82,11 +82,15 @@ namespace SS.Api.services
         {
             foreach (var unassignRole in unassignRoles)
             {
-                var user = await _db.User.Include(r => r.UserRoles).FirstOrDefaultAsync(u => u.Id == unassignRole.UserId);
+                var user = await _db.User.AsSingleQuery().Include(r => r.UserRoles).FirstOrDefaultAsync(u => u.Id == unassignRole.UserId);
                 user.ThrowBusinessExceptionIfNull($"User with id {unassignRole.UserId} does not exist.");
 
                 var userRole = user.UserRoles.FirstOrDefault(r => r.UserId == unassignRole.UserId && r.RoleId == unassignRole.RoleId);
-                if (userRole != null) userRole.ExpiryDate = DateTime.UtcNow;
+                if (userRole != null)
+                {
+                    userRole.ExpiryDate = DateTime.UtcNow;
+                    userRole.ExpiryReason = unassignRole.ExpiryReason;
+                }
             }
             await _db.SaveChangesAsync();
         }

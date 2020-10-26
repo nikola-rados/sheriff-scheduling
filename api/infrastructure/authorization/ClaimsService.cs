@@ -13,11 +13,11 @@ namespace SS.Api.services
     /// <summary>
     /// This should load up our User context with claims from the database. 
     /// </summary>
-    public class AuthService
+    public class ClaimsService
     {
         private readonly SheriffDbContext _db;
 
-        public AuthService(SheriffDbContext dbContext)
+        public ClaimsService(SheriffDbContext dbContext)
         {
             _db = dbContext;
         }
@@ -30,7 +30,7 @@ namespace SS.Api.services
 
             //Match by IdirID (already logged into SSO before) or Idir with no IdirID (created, but hasn't logged in yet).
             //Hopefully IdirID doesn't change when the base IdirName does (getting married / divorced etc).
-            var user = await _db.User.Include(u => u.UserRoles)
+            var user = await _db.User.AsSingleQuery().Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .ThenInclude(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)

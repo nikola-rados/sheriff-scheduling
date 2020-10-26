@@ -6,8 +6,8 @@
                     <b-td>   
                         <b-tr class="mt-1 bg-white">   
                             <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day: </b>                          
-                            <b class="ml-3" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day: </b> 
-                            <b class="ml-3" style="background-color: #aed4bc" v-else >Partial Day: </b>
+                            <b class="ml-3 px-1" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day: </b> 
+                            <b class="ml-3 px-1" style="background-color: #aed4bc" v-else >Partial Day: </b>
                         </b-tr>
                         <b-tr >
                             <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 19rem"> 
@@ -42,14 +42,18 @@
                             :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                             locale="en-US">
                         </b-form-datepicker>
-                        <b-form-timepicker
-                            size="sm"
-                            v-model="selectedStartTime"
-                            placeholder="Start Time"
-                            reset-button
-                            :state = "startTimeState?null:false" 
-                            locale="en">                                   
-                        </b-form-timepicker>
+                        <b-input-group style="width: 4.2rem">
+                            <b-form-input
+                                v-model="selectedStartTime"
+                                size="sm"
+                                type="text"
+                                autocomplete="off"
+                                @paste.prevent
+                                :formatter="timeFormat"
+                                placeholder="HH:MM"
+                                :state = "startTimeState?null:false"
+                            ></b-form-input>
+                        </b-input-group>
                     </b-td>
                     <b-td>
                         <label class="h6 m-0 p-0"> To: </label>
@@ -62,24 +66,28 @@
                             :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                             locale="en-US">
                         </b-form-datepicker> 
-                        <b-form-timepicker
-                            size="sm" 
-                            v-model="selectedEndTime"
-                            placeholder="End Time" 
-                            reset-button
-                            :state = "endTimeState?null:false"
-                            locale="en">
-                        </b-form-timepicker>
+                        <b-input-group style="width: 4.2rem">
+                            <b-form-input
+                                v-model="selectedEndTime"
+                                size="sm"
+                                type="text"
+                                autocomplete="off"
+                                @paste.prevent
+                                :formatter="timeFormat"
+                                placeholder="HH:MM"
+                                :state = "endTimeState?null:false"
+                            ></b-form-input>
+                        </b-input-group>
                     </b-td>
                     <b-td >
                         <b-button                                    
-                            style="margin: 2rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                            style="margin: 2.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
                             variant="secondary"
                             @click="closeForm()">
                             Cancel
                         </b-button>   
                         <b-button                                    
-                            style="margin: 2rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                            style="margin: 2.5rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
                             variant="success"                        
                             @click="saveForm()">
                             Save
@@ -87,13 +95,30 @@
                     </b-td>
                 </b-tr>   
             </b-tbody>
-        </b-table-simple>              
+        </b-table-simple> 
+
+        <b-modal v-model="showCancelWarning" id="bv-modal-location-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>
+                <h2 v-if="isCreate" class="mb-0 text-light"> Unsaved New Location </h2>                
+                <h2 v-else class="mb-0 text-light"> Unsaved Location Changes </h2>                                 
+            </template>
+            <p>Are you sure you want to cancel without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-location-cancel-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="confirmedCloseForm()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-location-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>              
     </div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import moment from 'moment-timezone';
     import {teamMemberInfoType ,awayLocationInfoType} from '../../../../types/MyTeam';
     import {locationInfoType} from '../../../../types/common';
     import { namespace } from 'vuex-class';
@@ -130,31 +155,53 @@
         startTimeState = true;
 
         selectedEndTime = '';
-        endTimeState = true; 
+        endTimeState = true;
+        
+        originalLocation = {} as locationInfoType;
+        originalStartDate = '';
+        originalEndDate = '';
+        originalStartTime = '';
+        originalEndTime = '';
 
         formDataId = 0;
+
+        showCancelWarning = false;
+
+        public timeFormat(value , event){        
+            if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1) 
+            if(value.length!=3 && value.slice(-1) == ':') return value.slice(0,-1);
+            if(value.length==2 && event.data && value.slice(0,1)>=6 && value.slice(-1)>=6) return value.slice(0,-1);
+            if(value.length==2 && event.data && value.slice(-1)<6) return '0'+value.slice(0,1)+':'+value.slice(1,2);
+            if(value.length==2 && event.data && value.slice(0,1)>=2 && value.slice(0,1)<6 && value.slice(-1)>=6) return '00:'+value.slice(0,2);            
+            if(value.length==2 && event.data && value.slice(0,1)<2 && value.slice(-1)>=6) return value.slice(0,2)+':';
+            if(value.length==4 && value.slice(-1)>=6) return value.slice(0,-1);
+            if(value.length==3 && value.slice(0,1)!=':' && value.slice(1,2)!=':' && value.slice(-1)<6) return value.slice(0,2)+':'+value.slice(2,3);
+            if(value.length==3 && value.slice(-1)>=6 ) return value.slice(0,-1);
+            if(value.length==6 && value.slice(0,1)==0 && value.slice(4,6)<60 && (value.slice(1,2)+value.slice(3,4))<24) return value.slice(1,2)+value.slice(3,4)+':'+value.slice(4,5)+value.slice(5,6);           
+            if(value.length>5) return value.slice(0,5);
+            if(value.length==5 && (value.slice(0,2)>=24 || value.slice(3,5)>=60)) return '';
+            if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
+            if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
+            return value
+        }
         
         mounted()
-        {             
-            console.log('locationForm')
-            console.log(this.formData) 
+        {    
             this.clearSelections();
-            if(this.formData.id) this.extractFormInfo();    
+            if(this.formData.id) this.extractFormInfo();  
         }
 
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
             const index = this.locationList.findIndex(location=>{if(location.id == this.formData.locationId)return true})
-            this.selectedLocation = (index>=0)? this.locationList[index]: {} as locationInfoType;
-            this.selectedStartDate = this.formData.startDate.substring(0,10)            
-            this.selectedEndDate =  this.formData.endDate.substring(0,10)
-            
-            const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-            const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-            const displayTime = this.isDateFullday(startDate,endDate)
-           
-            this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,19)            
-            this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,19)
+            this.originalLocation = this.selectedLocation = (index>=0)? this.locationList[index]: {} as locationInfoType;
+            this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
+            this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
+
+            const displayTime = Vue.filter('isDateFullday')(this.formData.startDate,this.formData.endDate)
+            this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,16)            
+            this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,16)
+        
         }
 
         public saveForm(){
@@ -193,8 +240,8 @@
                     this.startTimeState = true;
                     this.endTimeState   = true;
 
-                    const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                    const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
+                    const startDate = Vue.filter('convertDate')(this.selectedStartDate,this.selectedStartTime, 'StartTime',this.selectedLocation.timezone);
+                    const endDate =   Vue.filter('convertDate')(this.selectedEndDate,this.selectedEndTime,'EndTime',this.selectedLocation.timezone);
 
                     const body = {
                         locationId: this.selectedLocation?this.selectedLocation.id:0,
@@ -207,7 +254,31 @@
                 }
         }
 
+
         public closeForm(){
+            if(this.isChanged())
+                this.showCancelWarning = true;
+            else
+                this.confirmedCloseForm();
+        }
+
+        public isChanged(){
+            if(this.isCreate){
+                if((this.selectedLocation && this.selectedLocation.id) ||
+                    this.selectedStartDate || this.selectedEndDate ||                    
+                    this.selectedStartTime || this.selectedEndTime) return true;
+                return false;
+            }else{
+                if((this.originalLocation && this.selectedLocation && (this.originalLocation.id != this.selectedLocation.id)) ||
+                    (this.originalStartDate != this.selectedStartDate)|| 
+                    (this.originalEndDate != this.selectedEndDate) ||
+                    (this.originalStartTime != this.selectedStartTime) || 
+                    (this.originalEndTime != this.selectedEndTime)) return true;
+                return false;
+            }
+        }
+
+        public confirmedCloseForm(){  
             this.clearSelections();
             this.$emit('cancel');
         }
@@ -225,20 +296,13 @@
             this.endTimeState   = true;            
         }
 
-        public isDateFullday(startDate, endDate){
-            const start = moment(startDate); 
-            const end = moment(endDate);
-            const duration = moment.duration(end.diff(start));
-            if(duration.asMinutes() < 1440 && duration.asMinutes()> -1440 )  return false;  else return true;
-        }
-
         get isFullDay(){    
             if(this.selectedStartTime == '' && this.selectedEndTime == '')
                 return true
             else if(this.selectedStartDate && this.selectedEndDate){
-                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00:00')+".000Z";
-                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00:00')+".000Z";
-                return this.isDateFullday(startDate,endDate)
+                const startDate = this.selectedStartDate+"T"+(this.selectedStartTime?this.selectedStartTime:'00:00')//+":00.000Z";
+                const endDate =   this.selectedEndDate+"T"+(this.selectedEndTime?this.selectedEndTime:'00:00')//+":00.000Z";
+                return Vue.filter('isDateFullday')(startDate,endDate)
             }else
                 return false           
         }
