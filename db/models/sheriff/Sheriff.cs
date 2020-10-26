@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Mapster;
 using Newtonsoft.Json;
@@ -18,6 +19,7 @@ namespace SS.Db.models.sheriff
         [AdaptIgnore]
         public byte[] Photo { get; set; }
         [NotMapped] 
-        public string PhotoUrl => Photo?.Length > 0 ? $"/api/sheriff/getPhoto/{Id}" : null;
+        public string PhotoUrl => Photo?.Length > 0 ? $"/api/sheriff/getPhoto/{Id}?{LastPhotoUpdate.Ticks}" : null;
+        public DateTimeOffset LastPhotoUpdate { get; set; }
     }
 }
