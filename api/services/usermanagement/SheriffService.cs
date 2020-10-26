@@ -130,6 +130,7 @@ namespace SS.Api.services
             var savedSheriff = await _db.Sheriff.FirstOrDefaultAsync(s => (id.HasValue && s.Id == id) || (!id.HasValue && s.BadgeNumber == badgeNumber));
             savedSheriff.ThrowBusinessExceptionIfNull($"No sheriff with Badge: {badgeNumber} or Id: {id}");
             savedSheriff.Photo = photoData;
+            savedSheriff.LastPhotoUpdate = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             return savedSheriff;
         }
