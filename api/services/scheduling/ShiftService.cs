@@ -49,7 +49,7 @@ namespace SS.Api.services.scheduling
         public async Task<Shift> UpdateShift(Shift entity)
         {
             var savedShift = await Db.Shift.FindAsync(entity.Id);
-            savedShift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with the id: {entity.Id} could not be found. ");
+            savedShift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with the id: {entity.Id} could not be found.");
 
             if (entity.SheriffId.HasValue && entity.SheriffId != savedShift.SheriffId)
             {

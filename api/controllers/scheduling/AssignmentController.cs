@@ -1,4 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Mapster;
+using Microsoft.AspNetCore.Mvc;
+using SS.Api.infrastructure.authorization;
+using SS.Api.models.dto.generated;
+using SS.Api.services.scheduling;
+using SS.Db.models;
+using SS.Db.models.auth;
+using SS.Db.models.scheduling;
 
 namespace SS.Api.controllers.scheduling
 {
@@ -6,6 +15,45 @@ namespace SS.Api.controllers.scheduling
     [ApiController]
     public class AssignmentController : ControllerBase
     {
-        //This orders the lookup codes by their ManagedTypes.
+        private AssignmentService AssignmentService { get; }
+    
+
+        public AssignmentController(AssignmentService assignmentService)
+        {
+            AssignmentService = assignmentService;
+        }
+
+        [HttpGet]
+        [PermissionClaimAuthorize(perm: "GetAssignments")]
+        public async Task<ActionResult<List<AssignmentDto>>> GetAssignments(int locationId)
+        {
+            var assignments = await AssignmentService.GetAssignments(locationId);
+            return Ok(assignments.Adapt<List<AssignmentDto>>());
+        }
+
+        [HttpGet]
+        [PermissionClaimAuthorize(perm: "CreateAssignment")]
+        public async Task<ActionResult<AssignmentDto>> AddAssignment(AssignmentDto assignmentDto)
+        {
+            var assignment = assignmentDto.Adapt<Assignment>();
+            var createdAssignment = await AssignmentService.CreateAssignment(assignment);
+            return Ok(createdAssignment.Adapt<AssignmentDto>());
+        }
+
+        [PermissionClaimAuthorize(perm: "UpdateAssignment")]
+        public async Task<ActionResult<AssignmentDto>> UpdateAssignment(AssignmentDto assignmentDto)
+        {
+            var assignment = assignmentDto.Adapt<Assignment>();
+            var updatedAssignment = await AssignmentService.UpdateAssignment(assignment);
+            return Ok(updatedAssignment.Adapt<AssignmentDto>());
+        }
+
+        [PermissionClaimAuthorize(perm: "RemoveAssignment")]
+        public async Task<ActionResult> RemoveAssignment(int id, string expiryReason)
+        {
+            await AssignmentService.RemoveAssignment(id, expiryReason);
+            return NoContent();
+        }
+
     }
 }
