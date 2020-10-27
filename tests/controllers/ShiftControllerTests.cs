@@ -92,7 +92,7 @@ namespace tests.controllers
             var updatedShift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shift));
 
             Assert.Equal(shiftDto.LocationId,updatedShift.LocationId);
-            Assert.Equal(null, updatedShift.ExpiryDate);
+            Assert.Null(updatedShift.ExpiryDate);
             Assert.Equal(5, updatedShift.AnticipatedAssignmentId);
             Assert.Equal(sheriffId, updatedShift.SheriffId);
 
