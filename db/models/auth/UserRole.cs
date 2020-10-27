@@ -18,5 +18,6 @@ namespace SS.Db.models.auth
         [Required]
         public DateTimeOffset EffectiveDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
+        public string ExpiryReason { get; set; }
     }
 }

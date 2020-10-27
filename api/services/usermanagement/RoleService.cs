@@ -22,13 +22,12 @@ namespace SS.Api.services
 
         public async Task<List<Role>> Roles()
         {
-            return await _db.Role.AsNoTracking().Include(r => r.RolePermissions)
-                .ThenInclude(rp => rp.Permission).ToListAsync();
+            return await _db.Role.AsNoTracking().ToListAsync();
         }
 
         public async Task<Role> Role(int id)
         {
-            return await _db.Role.AsNoTracking().Include(r => r.RolePermissions)
+            return await _db.Role.AsNoTracking().AsSingleQuery().Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission).SingleOrDefaultAsync(r => r.Id == id);
         }
 
@@ -58,7 +57,7 @@ namespace SS.Api.services
 
         public async Task<Role> UpdateRole(Role role, List<int> permissionIds)
         {
-            var savedRole = await _db.Role.Include(r => r.RolePermissions)
+            var savedRole = await _db.Role.AsSingleQuery().Include(r => r.RolePermissions)
                                           .FirstOrDefaultAsync(r => r.Id == role.Id);
             if (savedRole.Name != role.Name)
             {
@@ -81,14 +80,15 @@ namespace SS.Api.services
 
         private async Task AssignPermissionsToRole(int roleId, List<int> permissionIds)
         {
-            var role = await _db.Role.Include(r => r.RolePermissions)
+            var role = await _db.Role.AsSingleQuery().Include(r => r.RolePermissions)
+                                    .ThenInclude(p => p.Permission)
                                      .FirstOrDefaultAsync( r=> r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
 
             foreach (var permissionId in permissionIds)
             {
                 var permission = await _db.Permission.FindAsync(permissionId);
-                if (permission == null || role.RolePermissions.Any(rp => rp.Role.Id == roleId && rp.Permission.Id == permissionId))
+                if (permission == null || role.RolePermissions.Any(rp => rp.Role.Id == roleId && rp.Permission?.Id == permissionId))
                     continue;
 
                 role.RolePermissions.Add(new RolePermission
@@ -101,7 +101,7 @@ namespace SS.Api.services
 
         private async Task UnassignPermissionsFromRole(int roleId, List<int> permissionIds)
         {
-            var role = await _db.Role.Include(r => r.RolePermissions)
+            var role = await _db.Role.AsSingleQuery().Include(r => r.RolePermissions)
                                      .FirstOrDefaultAsync(r => r.Id == roleId);
             role.ThrowBusinessExceptionIfNull($"Role with id {roleId} does not exist.");
             

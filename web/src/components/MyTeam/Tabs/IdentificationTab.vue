@@ -29,10 +29,17 @@
 
         <b-row class="mx-1">
             <b-form-group class="mr-1" style="width: 20rem"><label>Badge Number<span class="text-danger">*</span></label>
-                <b-form-input v-model="user.badgeNumber" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
+                <b-form-input v-model="user.badgeNumber" type="number" placeholder="Enter Badge Number" :state = "badgeNumberState?null:false"></b-form-input>
             </b-form-group>                                            
             <b-form-group class="ml-1" style="width: 15rem"><label>Rank<span class="text-danger">*</span></label>
-                <b-form-select v-model="user.rank" placeholder="Select Rank" :options="commonInfo.sheriffRankList" :state = "selectedRankState?null:false"></b-form-select>
+                <b-form-select v-model="user.rank" placeholder="Select Rank" :state = "selectedRankState?null:false">
+                    <b-form-select-option
+                        v-for="sheriffRank in sheriffRankList" 
+                        :key="sheriffRank.id"
+                        :value="sheriffRank.name">
+                            {{sheriffRank.name}}
+                    </b-form-select-option>
+                </b-form-select>
             </b-form-group>
         </b-row>
         <h2 v-if="duplicateBadge" class="mx-1 mt-0"><b-badge variant="danger"> Duplicate Badge</b-badge></h2>
@@ -108,9 +115,6 @@ enum gender {'Male'=0, 'Female', 'Other'}
 export default class IdentificationTab extends Vue {
 
     @commonState.State
-    public token!: string;
-
-    @commonState.State
     public commonInfo!: commonInfoType;
 
     @commonState.State
@@ -161,19 +165,15 @@ export default class IdentificationTab extends Vue {
     user = {} as teamMemberInfoType;
 
     mounted(){
-        //console.log('identification')
         this.refreshTabInformation();
-        //console.log(this.user)
         this.runMethod.$on('switchTab', this.switchTab)
         this.runMethod.$on('closeProfileWindow', this.closeProfileWindow)
         this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)
     }
 
     public refreshTabInformation()
-    {
-        //console.log('refresh identification tab')        
+    {        
         this.ClearFormState();
-        //console.log(this.userToEdit)
         this.user = _.clone(this.userToEdit);
     }
 
@@ -181,7 +181,6 @@ export default class IdentificationTab extends Vue {
         
         if(this.editMode && !this.changesMade()){
             this.$emit('changeTab', true);
-            //console.log('allow change tab')
         }    
         else
         {            
@@ -220,7 +219,15 @@ export default class IdentificationTab extends Vue {
     }
 
     public changesMade(): boolean {
-        return !_.isEqual(this.userToEdit, this.user)
+         if((this.userToEdit.homeLocationId != this.user.homeLocationId) ||
+            (this.userToEdit.firstName != this.user.firstName) ||
+            (this.userToEdit.lastName != this.user.lastName) ||
+            (this.userToEdit.gender != this.user.gender) ||
+            (this.userToEdit.email != this.user.email) ||
+            (this.userToEdit.badgeNumber != this.user.badgeNumber) ||
+            (this.userToEdit.rank != this.user.rank) ||                    
+            (this.userToEdit.homeLocationId != this.user.homeLocationId)) return true;
+        return false;
     }
 
     public isEmpty(obj){
@@ -299,7 +306,6 @@ export default class IdentificationTab extends Vue {
     }
 
     public updateProfile(): void {
-        console.log('update profile')
         const body = {               
             gender: this.user.gender,
             badgeNumber: this.user.badgeNumber,
@@ -312,14 +318,12 @@ export default class IdentificationTab extends Vue {
         }
 
         const url = 'api/sheriff';
-        const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-        this.$http.put(url, body, options)
+        this.$http.put(url, body)
             .then(response => {
                 if(response.data){
                     this.updateLocation();                           
                 }                    
-            }, err => {
-                console.log(err.response.data)
+            }, err => {               
                 const errMsg = err.response.data.error;
                 if(err.response.status == 400){
                     if (errMsg.includes('already has badge number')){
@@ -338,21 +342,17 @@ export default class IdentificationTab extends Vue {
             });
     }
 
-    public updateLocation(){       
-        console.log(this.selectedHomeLocation)
+    public updateLocation(){
         
         const url = 'api/sheriff/updatelocation?id='+this.user.id+'&locationId='+this.user.homeLocationId;
-        const options = {headers:{'Authorization' :'Bearer '+this.token}} 
-        this.$http.put(url, options)
-            .then(response => {
-                console.log(response)
+        this.$http.put(url)
+            .then(response => {                
                 this.resetProfileWindowState();
                 this.$emit('closeMemberDetails');
-                this.$emit('profileUpdated') 
+                this.$emit('profileUpdated');
                 
                                                             
-            }, err => {
-                console.log(err.response.data)
+            }, err => {                
                 const errMsg = err.response.data.error;
                 this.identificationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                 this.identificationErrorMsgDesc = errMsg;
@@ -362,7 +362,6 @@ export default class IdentificationTab extends Vue {
 
     public createProfile() {
 
-        console.log('create profile')
         const body = {
             homeLocationId: this.user.homeLocationId,               
             gender: this.user.gender,
@@ -373,11 +372,8 @@ export default class IdentificationTab extends Vue {
             lastName: this.user.lastName,
             email: this.user.email
         }
-        // console.log(body)
         const url = 'api/sheriff';
-        const options = {headers:{'Authorization' :'Bearer '+this.token}}           
-        
-        this.$http.post(url, body, options )
+        this.$http.post(url, body )
             .then(response => {
                 if(response.data){
                     this.resetProfileWindowState();
@@ -420,6 +416,11 @@ export default class IdentificationTab extends Vue {
         this.duplicateBadge = false;
         this.duplicateIdir = false;
     }
+
+    get sheriffRankList(){
+        return _.sortBy(this.commonInfo.sheriffRankList, 'id')
+    }
+
     
 }
 </script>

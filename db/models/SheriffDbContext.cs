@@ -15,6 +15,7 @@ using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
 using SS.Api.infrastructure.authorization;
 using SS.Db.models.lookupcodes;
+using SS.Db.models.scheduling;
 
 namespace SS.Db.models
 {
@@ -44,6 +45,7 @@ namespace SS.Db.models
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<Permission> Permission { get; set; }
         public virtual DbSet<Role> Role { get; set; }
+        public virtual DbSet<Shift> Shift { get; set; }
 
         // This maps to the table that stores keys.
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }

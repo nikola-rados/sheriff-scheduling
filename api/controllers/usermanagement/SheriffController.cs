@@ -9,9 +9,8 @@ using Microsoft.Extensions.Configuration;
 using SS.Api.Helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.infrastructure.exceptions;
-using SS.Api.models.dto;
 using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Api.services;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
@@ -34,7 +33,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateUsers)]
-        public async Task<ActionResult<SheriffDto>> CreateSheriff(SheriffDto sheriffDto)
+        public async Task<ActionResult<SheriffDto>> CreateSheriff(CreateSheriffDto sheriffDto)
         {
             var sheriff = sheriffDto.Adapt<Sheriff>();
             sheriff = await _service.CreateSheriff(sheriff);
@@ -42,7 +41,7 @@ namespace SS.Api.controllers.usermanagement
         }
 
         /// <summary>
-        /// This gets a general list of Sheriffs, based on location. Includes Training, AwayLocation, Leave data within 5 days.
+        /// This gets a general list of Sheriffs. Includes Training, AwayLocation, Leave data within 7 days.
         /// </summary>
         /// <returns></returns>
         [HttpGet]
@@ -50,10 +49,10 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewOwnProfile,
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
-        public async Task<ActionResult<SheriffByLocationDto>> GetSheriffsForLocation(int? locationId)
+        public async Task<ActionResult<SheriffDto>> GetSheriffs()
         {
-            var sheriffs = await _service.GetSheriffsForLocation(locationId);
-            return Ok(sheriffs.Adapt<List<SheriffByLocationDto>>());
+            var sheriffs = await _service.GetSheriffs();
+            return Ok(sheriffs.Adapt<List<SheriffDto>>());
         }
 
         /// <summary>
@@ -85,7 +84,7 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
         [Route("self")]
-        public async Task<ActionResult<SheriffDto>> Sheriff()
+        public async Task<ActionResult<SheriffDto>> GetSelfSheriff()
         {
             var sheriff = await _service.GetSheriff(User.CurrentUserId());
             if (sheriff == null)
@@ -112,6 +111,17 @@ namespace SS.Api.controllers.usermanagement
             return NoContent();
         }
 
+        [HttpGet]
+        [Route("getPhoto/{id}")]
+        [PermissionClaimAuthorize(AuthorizeOperation.Or,
+            Permission.ViewOwnProfile,
+            Permission.ViewProfilesInOwnLocation,
+            Permission.ViewProfilesInAllLocation)]
+        [ResponseCache(Duration = 15552000, Location = ResponseCacheLocation.Client )]
+        public async Task<IActionResult> GetPhoto(Guid id)
+        {
+            return File(await _service.GetPhoto(id), "image/jpeg");
+        }
 
         [HttpPost]
         [Route("uploadPhoto")]
@@ -161,9 +171,9 @@ namespace SS.Api.controllers.usermanagement
         [HttpDelete]
         [Route("awayLocation")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult> RemoveSheriffAwayLocation(int id)
+        public async Task<ActionResult> RemoveSheriffAwayLocation(int id, string expiryReason)
         {
-            await _service.RemoveSheriffAwayLocation(id);
+            await _service.RemoveSheriffAwayLocation(id, expiryReason);
             return NoContent();
         }
         #endregion
@@ -192,9 +202,9 @@ namespace SS.Api.controllers.usermanagement
         [HttpDelete]
         [Route("leave")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult> RemoveSheriffLeave(int id)
+        public async Task<ActionResult> RemoveSheriffLeave(int id, string expiryReason)
         {
-            await _service.RemoveSheriffLeave(id);
+            await _service.RemoveSheriffLeave(id, expiryReason);
             return NoContent();
         }
         #endregion
@@ -223,9 +233,9 @@ namespace SS.Api.controllers.usermanagement
         [HttpDelete]
         [Route("training")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult> RemoveSheriffTraining(int id)
+        public async Task<ActionResult> RemoveSheriffTraining(int id, string expiryReason)
         {
-            await _service.RemoveSheriffTraining(id);
+            await _service.RemoveSheriffTraining(id, expiryReason);
             return NoContent();
         }
         #endregion SheriffTraining

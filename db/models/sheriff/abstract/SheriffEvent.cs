@@ -13,6 +13,7 @@ namespace SS.Db.models
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
+        public string ExpiryReason { get; set; }
         public Guid SheriffId { get; set; }
         [AdaptIgnore]
         public virtual Sheriff Sheriff { get; set; }

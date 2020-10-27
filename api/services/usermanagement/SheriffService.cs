@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
-using SS.Api.models.dto;
 using SS.Db.models;
 using SS.Db.models.sheriff;
 
@@ -47,32 +46,28 @@ namespace SS.Api.services
         }
 
 
-        public async Task<List<SheriffByLocationDto>> GetSheriffsForLocation(int? locationId)
+        public async Task<List<Sheriff>> GetSheriffs()
         {
-            var fiveDaysFromNow = DateTimeOffset.Now.AddDays(5).Date;
-            var now = DateTimeOffset.Now.Date;
-
+            var now = DateTimeOffset.UtcNow;
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
+            
             var sheriffQuery = _db.Sheriff.AsNoTracking()
-                .AsSingleQuery()
+                .AsSplitQuery()
 
-                //Get sheriffs that are on Loan and have the matching home location, or all sheriffs.
-                .Where(s => !locationId.HasValue ||
-                            s.HomeLocationId == locationId || 
-                            s.AwayLocation.Any(al => al.LocationId == locationId && !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
-                                                                                 && al.ExpiryDate == null))
                 //Apply permission filters.
                 .ApplyPermissionFilters(User)
-                //Include AwayLocation/Training/Leave that is within 5 days. 
+                //Include AwayLocation/Training/Leave that is within 7 days. 
+                //TODO write an extension method that makes this generic. 
                 .Include(s => s.AwayLocation.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    !(al.StartDate > sevenDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)
                 .Include(s => s.Training.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    !(al.StartDate > sevenDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(t => t.TrainingType)
                 .Include(s => s.Leave.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    !(al.StartDate > sevenDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
                 .Include(s => s.HomeLocation)
@@ -81,22 +76,12 @@ namespace SS.Api.services
 
             var sheriffs = await sheriffQuery.ToListAsync();
 
-            var sheriffsByLocation = sheriffs.Adapt<List<SheriffByLocationDto>>();
-            foreach (var sheriff in sheriffsByLocation)
-            {
-                //If LocationId = null, only show LoanedOuts. 
-                sheriff.LoanedIn =
-                    sheriff.AwayLocation.WhereToList(aw => locationId.HasValue && sheriff.HomeLocationId != locationId);
-                sheriff.LoanedOut =
-                    sheriff.AwayLocation.WhereToList(aw => !locationId.HasValue || sheriff.HomeLocationId == locationId);
-            }
-
-            return sheriffsByLocation;
+            return sheriffs;
         }
 
         public async Task<Sheriff> GetSheriff(Guid id)
         {
-            var today = DateTimeOffset.Now.Date;
+            var today = DateTimeOffset.UtcNow.Date;
             return await _db.Sheriff.AsNoTracking().AsSingleQuery()
                 .ApplyPermissionFilters(User)
                 .Include(s=> s.HomeLocation)
@@ -133,11 +118,19 @@ namespace SS.Api.services
             return sheriff;
         }
 
+        public async Task<byte[]> GetPhoto(Guid id)
+        {
+            var savedSheriff = await _db.Sheriff.FindAsync(id);
+            savedSheriff.ThrowBusinessExceptionIfNull($"No sheriff with Id: {id}");
+            return savedSheriff.Photo;
+        }
+
         public async Task<Sheriff> UpdateSheriffPhoto(Guid? id, string badgeNumber, byte[] photoData)
         {
             var savedSheriff = await _db.Sheriff.FirstOrDefaultAsync(s => (id.HasValue && s.Id == id) || (!id.HasValue && s.BadgeNumber == badgeNumber));
             savedSheriff.ThrowBusinessExceptionIfNull($"No sheriff with Badge: {badgeNumber} or Id: {id}");
             savedSheriff.Photo = photoData;
+            savedSheriff.LastPhotoUpdate = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             return savedSheriff;
         }
@@ -176,19 +169,25 @@ namespace SS.Api.services
             var savedAwayLocation = await _db.SheriffAwayLocation.FindAsync(awayLocation.Id);
             savedAwayLocation.ThrowBusinessExceptionIfNull($"{nameof(awayLocation)} with the id: {awayLocation.Id} could not be found. ");
 
+            if (savedAwayLocation.ExpiryDate.HasValue)
+                throw new BusinessLayerException($"{nameof(awayLocation)} with the id: {awayLocation.Id} has been expired");
+
             await ValidateNoOverlapAsync(awayLocation, awayLocation.Id);
-            
+
+            _db.Entry(savedAwayLocation).Property(x => x.ExpiryDate).IsModified = false;
+            _db.Entry(savedAwayLocation).Property(x => x.ExpiryReason).IsModified = false;
             _db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
             await _db.SaveChangesAsync();
             return awayLocation;
         }
 
-        public async Task RemoveSheriffAwayLocation(int id)
+        public async Task RemoveSheriffAwayLocation(int id, string expiryReason)
         {
             var sheriffAwayLocation = await _db.SheriffAwayLocation.FindAsync(id);
             sheriffAwayLocation.ThrowBusinessExceptionIfNull(
                 $"SheriffAwayLocation with the id: {id} could not be found. ");
-            sheriffAwayLocation.ExpiryDate = DateTimeOffset.Now;
+            sheriffAwayLocation.ExpiryDate = DateTimeOffset.UtcNow;
+            sheriffAwayLocation.ExpiryReason = expiryReason;
             await _db.SaveChangesAsync();
         }
 
@@ -218,19 +217,25 @@ namespace SS.Api.services
             savedLeave.ThrowBusinessExceptionIfNull(
                 $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
 
+            if (savedLeave.ExpiryDate.HasValue)
+                throw new BusinessLayerException($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} has been expired");
+
             await ValidateNoOverlapAsync(sheriffLeave, sheriffLeave.Id);
 
+            _db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
+            _db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
             _db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
             await _db.SaveChangesAsync();
             return sheriffLeave;
         }
 
-        public async Task RemoveSheriffLeave(int id)
+        public async Task RemoveSheriffLeave(int id, string expiryReason)
         {
             var sheriffLeave = await _db.SheriffLeave.FindAsync(id);
             sheriffLeave.ThrowBusinessExceptionIfNull(
                 $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
-            sheriffLeave.ExpiryDate = DateTimeOffset.Now;
+            sheriffLeave.ExpiryDate = DateTimeOffset.UtcNow;
+            sheriffLeave.ExpiryReason = expiryReason;
             await _db.SaveChangesAsync();
         }
 
@@ -260,19 +265,25 @@ namespace SS.Api.services
             savedTraining.ThrowBusinessExceptionIfNull(
                 $"{nameof(savedTraining)} with the id: {sheriffTraining.Id} could not be found. ");
 
+            if (savedTraining.ExpiryDate.HasValue)
+                throw new BusinessLayerException($"{nameof(savedTraining)} with the id: {sheriffTraining.Id} has been expired");
+
             await ValidateNoOverlapAsync(sheriffTraining, sheriffTraining.Id);
 
+            _db.Entry(savedTraining).Property(x => x.ExpiryDate).IsModified = false;
+            _db.Entry(savedTraining).Property(x => x.ExpiryReason).IsModified = false;
             _db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
             await _db.SaveChangesAsync();
             return sheriffTraining;
         }
 
-        public async Task RemoveSheriffTraining(int id)
+        public async Task RemoveSheriffTraining(int id, string expiryReason)
         {
             var sheriffTraining = await _db.SheriffTraining.FindAsync(id);
             sheriffTraining.ThrowBusinessExceptionIfNull(
                 $"{nameof(sheriffTraining)} with the id: {id} could not be found. ");
-            sheriffTraining.ExpiryDate = DateTimeOffset.Now;
+            sheriffTraining.ExpiryDate = DateTimeOffset.UtcNow;
+            sheriffTraining.ExpiryReason = expiryReason;
             await _db.SaveChangesAsync();
         }
 
@@ -305,7 +316,7 @@ namespace SS.Api.services
 
         private void ValidateStartAndEndDates(DateTimeOffset startDate, DateTimeOffset endDate)
         {
-            if (startDate >= endDate) throw new BusinessLayerException("The start datetime cannot be after or on the end datetime. ");
+            if (startDate >= endDate) throw new BusinessLayerException("The start datetime cannot be on or after the end datetime. ");
         }
 
         private async Task ValidateSheriffExists(Guid sheriffId)
@@ -323,12 +334,15 @@ namespace SS.Api.services
                  updateOnlyId.HasValue && sal.Id != updateOnlyId));
 
             if (entity != null)
-                throw new BusinessLayerException($"This overlaps with existing SheriffEvent {entity.Id} with date range: {entity.StartDate} to {entity.EndDate}");
+            {
+                throw new BusinessLayerException(
+                    $"Overlaps with existing {Regex.Replace(typeof(T).Name, "([A-Z])", " $1").Trim().ToLower()} with date range: {entity.StartDate.UtcDateTime.Date.ToString("dd MMM yyyy")} to {entity.EndDate.UtcDateTime.Date.ToString("dd MMM yyyy")}");
+            }
         }
+
         
         #endregion
 
         #endregion
     }
-
 }
