@@ -306,7 +306,6 @@ export default class IdentificationTab extends Vue {
     }
 
     public updateProfile(): void {
-        console.log('update profile')
         const body = {               
             gender: this.user.gender,
             badgeNumber: this.user.badgeNumber,
@@ -324,8 +323,7 @@ export default class IdentificationTab extends Vue {
                 if(response.data){
                     this.updateLocation();                           
                 }                    
-            }, err => {
-                console.log(err.response.data)
+            }, err => {               
                 const errMsg = err.response.data.error;
                 if(err.response.status == 400){
                     if (errMsg.includes('already has badge number')){
@@ -344,20 +342,17 @@ export default class IdentificationTab extends Vue {
             });
     }
 
-    public updateLocation(){       
-        console.log(this.selectedHomeLocation)
+    public updateLocation(){
         
         const url = 'api/sheriff/updatelocation?id='+this.user.id+'&locationId='+this.user.homeLocationId;
         this.$http.put(url)
-            .then(response => {
-                console.log(response)
+            .then(response => {                
                 this.resetProfileWindowState();
                 this.$emit('closeMemberDetails');
-                this.$emit('profileUpdated') 
+                this.$emit('profileUpdated');
                 
                                                             
-            }, err => {
-                console.log(err.response.data)
+            }, err => {                
                 const errMsg = err.response.data.error;
                 this.identificationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                 this.identificationErrorMsgDesc = errMsg;
@@ -367,7 +362,6 @@ export default class IdentificationTab extends Vue {
 
     public createProfile() {
 
-        console.log('create profile')
         const body = {
             homeLocationId: this.user.homeLocationId,               
             gender: this.user.gender,
@@ -378,7 +372,6 @@ export default class IdentificationTab extends Vue {
             lastName: this.user.lastName,
             email: this.user.email
         }
-        // console.log(body)
         const url = 'api/sheriff';
         this.$http.post(url, body )
             .then(response => {

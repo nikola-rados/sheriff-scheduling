@@ -76,7 +76,7 @@
                  <h2 v-if="editMode" class="mb-0 text-light"> Updating User Profile </h2>
                  <h2 v-else-if="createMode" class="mb-0 text-light"> Creating User Profile </h2>                
             </template>
-            <b-card v-if="isUserDataMounted" no-body>
+            <b-card v-if="isUserDataMounted" no-body style="user-select: none;">
                 <b-row>
                     <b-col cols="3">
                         <user-summary-template v-on:photoChange="photoChanged" :user="userToEdit" :editMode="editMode"/>
@@ -215,6 +215,8 @@
         showMemberDetails = false;
         userIsAdmin = false;
 
+        maxRank = 1000;
+
         itemsPerRow = 4;//Define
         rowsPerPage = 1;//Define
         currentPage = 1;
@@ -247,6 +249,7 @@
         }  
 
         mounted() {
+            this.maxRank = this.commonInfo.sheriffRankList.reduce((max, rank) => rank.id > max ? rank.id : max, this.commonInfo.sheriffRankList[0].id);
             this.userIsAdmin = this.userDetails.roles.includes("Administrator");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
@@ -263,7 +266,6 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        // console.log(response.data)
                         this.extractMyTeamFromSheriffs(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
@@ -309,8 +311,8 @@
                     myteam.homeLocation = {id: myteaminfo.homeLocation.id, name: myteaminfo.homeLocation.name, regionId: myteaminfo.homeLocation.regionId, timezone: myteaminfo.homeLocation.timezone};
                 
                 this.allMyTeamData.push(myteam);
-            }  
-             console.log(this.allMyTeamData)          
+            } 
+                     
         }
 
         get totalRows() {
@@ -340,10 +342,10 @@
             return sortedTeam.slice((this.itemsPerPage)*(this.currentPage-1), (this.itemsPerPage)*(this.currentPage-1) + this.itemsPerPage);
         }
 
-        public sortTeamMembers(teamList) {
+        public sortTeamMembers(teamList) {            
             return _.chain(teamList)
                     .sortBy(member =>{return (member['lastName']? member['lastName'].toUpperCase() : '')})
-                    .sortBy('rankOrder')
+                    .sortBy(member =>{return (member['rankOrder']? member['rankOrder'] : this.maxRank + 1)})
                     .value()
         }
 
@@ -381,8 +383,7 @@
             this.identificationTabMethods.$emit('saveMemberProfile');
         }  
 
-        public closeProfileWindow(){
-            //console.log(this.tabIndex)
+        public closeProfileWindow(){            
             if(this.tabIndex ==0 || this.createMode)
             {  
                 this.identificationTabMethods.$emit('closeProfileWindow');
@@ -419,8 +420,7 @@
             const url = 'api/sheriff/' + userId;
             this.$http.get(url)
                 .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
+                    if(response.data){                                              
                         this.extractUserInfo(response.data);
                         this.isUserDataMounted = true;
                         this.showMemberDetails=true;                                              
@@ -428,8 +428,7 @@
                 });
         }
 
-        public extractUserInfo(userJson): void {
-            console.log(userJson)
+        public extractUserInfo(userJson): void {            
             const user = {} as teamMemberInfoType;            
             user.idirUserName =  userJson.idirName;
             user.firstName = userJson.firstName;
