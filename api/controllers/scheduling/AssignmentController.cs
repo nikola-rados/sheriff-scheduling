@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using SS.Api.infrastructure.authorization;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
+using SS.Db.models.auth;
 using SS.Db.models.scheduling;
 
 namespace SS.Api.controllers.scheduling
@@ -21,7 +22,7 @@ namespace SS.Api.controllers.scheduling
         }
 
         [HttpGet]
-        [PermissionClaimAuthorize(perm: "GetAssignments")]
+        [PermissionClaimAuthorize(perm: Permission.ViewAssignments)]
         public async Task<ActionResult<List<AssignmentDto>>> GetAssignments(int locationId)
         {
             var assignments = await AssignmentService.GetAssignments(locationId);
@@ -29,7 +30,7 @@ namespace SS.Api.controllers.scheduling
         }
 
         [HttpPost]
-        [PermissionClaimAuthorize(perm: "AddAssignment")]
+        [PermissionClaimAuthorize(perm: Permission.CreateAssignments)]
         public async Task<ActionResult<AssignmentDto>> AddAssignment(AssignmentDto assignmentDto)
         {
             var assignment = assignmentDto.Adapt<Assignment>();
@@ -38,7 +39,7 @@ namespace SS.Api.controllers.scheduling
         }
 
         [HttpPut]
-        [PermissionClaimAuthorize(perm: "UpdateAssignment")]
+        [PermissionClaimAuthorize(perm: Permission.EditAssignments)]
         public async Task<ActionResult<AssignmentDto>> UpdateAssignment(AssignmentDto assignmentDto)
         {
             var assignment = assignmentDto.Adapt<Assignment>();
@@ -47,7 +48,7 @@ namespace SS.Api.controllers.scheduling
         }
 
         [HttpDelete]
-        [PermissionClaimAuthorize(perm: "RemoveAssignment")]
+        [PermissionClaimAuthorize(perm: Permission.ExpireAssignments)]
         public async Task<ActionResult> RemoveAssignment(int id, string expiryReason)
         {
             await AssignmentService.RemoveAssignment(id, expiryReason);

@@ -53,7 +53,7 @@ namespace SS.Api.services.scheduling
 
             if (entity.SheriffId.HasValue && entity.SheriffId != savedShift.SheriffId)
             {
-                var conflict = await CheckForConflict(entity.StartDate, entity.EndDate, entity.SheriffId.Value);
+                var conflict = await CheckForConflictForSingleShift(entity.StartDate, entity.EndDate, entity.SheriffId.Value);
                 conflict.ThrowBusinessExceptionIfNotNull(conflict);
             }
 
@@ -81,6 +81,19 @@ namespace SS.Api.services.scheduling
                 throw new BusinessLayerException("Couldn't find all shift ids provided.");
           
             //Multiple shift overlap checking
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             foreach (var savedShift in savedShifts)
                 savedShift.Sheriff = savedSheriff;
@@ -134,8 +147,8 @@ namespace SS.Api.services.scheduling
                 shift.Duties = new List<Duty>();
                 shift.SheriffId = includeSheriffs ? shift.SheriffId : null;
                 shift.LocationId = importShift.LocationId;
-                shift.StartDate = TranslateDateIfDaylightSavings(shift.StartDate, importShift.Location.Timezone, 7).ToDateTimeOffset();
-                shift.EndDate = TranslateDateIfDaylightSavings(shift.StartDate, importShift.Location.Timezone, 7).ToDateTimeOffset();
+                shift.StartDate = TranslateDateIfDaylightSavings(shift.StartDate, timezone, 7).ToDateTimeOffset();
+                shift.EndDate = TranslateDateIfDaylightSavings(shift.StartDate, timezone, 7).ToDateTimeOffset();
                 await Db.Shift.AddAsync(shift);
                 importedShifts.Add(shift);
             }
@@ -149,7 +162,7 @@ namespace SS.Api.services.scheduling
         private string ConflictingSheriffAndSchedule(Sheriff conflictingSheriff, Shift conflictingShift)
             => $"Conflict - {nameof(Sheriff)}: {conflictingSheriff.LastName}, {conflictingSheriff.FirstName} - Shift already exists: {conflictingShift.StartDate} -> {conflictingShift.EndDate} @ {conflictingShift.Location.Name}";
 
-        public async Task<string> CheckForConflict(DateTimeOffset start, DateTimeOffset end, Guid sheriffId)
+        public async Task<string> CheckForConflictForSingleShift(DateTimeOffset start, DateTimeOffset end, Guid sheriffId)
         {
             var conflictingShift = await Db.Shift.AsNoTracking().AsSingleQuery()
                 .Include(s=> s.Location)

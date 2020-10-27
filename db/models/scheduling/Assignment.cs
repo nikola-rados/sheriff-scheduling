@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
+using ss.db.models;
 
 namespace SS.Db.models.scheduling
 {
@@ -12,6 +14,8 @@ namespace SS.Db.models.scheduling
         [Key]
         public int Id { get; set; }
         public string Name { get; set; }
+        public TimeSpan StartTime { get; set; }
+        public TimeSpan EndTime { get; set; }
         public bool Monday { get; set; }
         public bool Tuesday { get; set; }
         public bool Wednesday { get; set; }
@@ -24,7 +28,9 @@ namespace SS.Db.models.scheduling
         public int NumberOfSheriffs { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string ExpiryReason { get; set; }
-        //ManageType association?
+
+        //public LookupCode LookupCode { get; set; }
+        //public int? LookupTypeId { get; set; }
 
         public bool IsAvailableOnDate(DateTimeOffset utcDate)
         {
