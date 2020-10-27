@@ -37,7 +37,17 @@
                                 <span>{{data.value | beautify-date}}</span> 
                             </template>
                             <template v-slot:cell(editRole)="data" >                                       
-                                <span><b-button class="m-0" style="padding: 1px 2px 1px 2px;" size="sm" variant="warning" @click="confirmDeleteRole(data.item)"><b-icon icon="clock" font-scale="1.25" variant="white"/></b-button></span>
+                                <span><b-button class="m-0"
+                                                style="padding: 1px 2px 1px 2px;" 
+                                                size="sm"
+                                                v-b-tooltip.hover
+                                                title="Expire" 
+                                                variant="warning" 
+                                                @click="confirmDeleteRole(data.item)">
+                                                <b-icon icon="clock" 
+                                                        font-scale="1.25" 
+                                                        variant="white"/>
+                                </b-button></span>
                                 <span><b-button class="my-0 py-0" size="sm" variant="transparent" @click="editRole(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button></span> 
                             </template>
 
@@ -45,8 +55,7 @@
                                 <b-card :id="'Ro-Date-'+data.item.effectiveDate.substring(0,10)" :border-variant="addFormColor" body-class="m-0 px-0 py-1" style="border:2px solid">
                                     <add-role-form :formData="data.item" :isCreate="false" :roleTypeInfoList="roles" v-on:submit="saveRole" v-on:cancel="closeRoleForm" />
                                 </b-card>
-                            </template>
-                            
+                            </template>                            
                     </b-table> 
                 </b-card>
             </div>                                        
@@ -54,10 +63,10 @@
 
          <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
             <template v-slot:modal-title>
-                    <h2 class="mb-0 text-light">Confirm Delete Role</h2>                    
+                    <h2 class="mb-0 text-light">Confirm Expire Role</h2>                    
             </template>            
-            <h4>Are you sure you want to delete the "{{roleToDelete.desc}}" role?</h4>
-            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+            <h4>Are you sure you want to expire the "{{roleToDelete.desc}}" role?</h4>
+            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Expiration:</label> 
                 <b-form-select
                     size = "sm"
                     v-model="roleDeleteReason">
@@ -201,8 +210,7 @@
             }
         }
 
-        public saveRole(body, iscreate){
-            const saveBody = [];                
+        public saveRole(body, iscreate){                            
             this.roleError = false; 
             body[0]['userId']= this.userToEdit.id;
             const method = 'put';   

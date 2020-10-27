@@ -399,7 +399,7 @@
         public addTimeCheckBoxChanged() {
             Vue.nextTick(()=>{                
                 if(this.addTime){
-                    this.selectedEndDate = this.selectedStartDate;
+                    if(this.isCreate) this.selectedEndDate = this.selectedStartDate;
                 }
                 else{
                     this.selectedStartTime = '';
@@ -411,7 +411,7 @@
         public startTimePicked(){
             this.startDateState = true;
             this.endDateState = true;
-            this.selectedEndDate = this.selectedStartDate;
+            if(this.isCreate) this.selectedEndDate = this.selectedStartDate;
         }
 
         get isFullDay(){    
