@@ -53,7 +53,8 @@ namespace SS.Api.services.scheduling
 
             if (entity.SheriffId.HasValue && entity.SheriffId != savedShift.SheriffId)
             {
-                //TODO check for conflicts?
+                var conflict = await CheckForConflict(entity.StartDate, entity.EndDate, entity.SheriffId.Value);
+                conflict.ThrowBusinessExceptionIfNotNull(conflict);
             }
 
             Db.Entry(savedShift).CurrentValues.SetValues(entity);
@@ -79,7 +80,7 @@ namespace SS.Api.services.scheduling
             if (savedShifts.Count() != shiftIds.Count)
                 throw new BusinessLayerException("Couldn't find all shift ids provided.");
           
-            //TODO check for conflicts?
+            //Multiple shift overlap checking
 
             foreach (var savedShift in savedShifts)
                 savedShift.Sheriff = savedSheriff;
@@ -110,13 +111,13 @@ namespace SS.Api.services.scheduling
             var timezone = location?.Timezone;
             timezone.ThrowBusinessExceptionIfNull("Timezone was null.");
 
-            var copyStart = DateTime.Today.AddDays(-(int) DateTime.Now.DayOfWeek - 6);
-            var copyEnd = copyStart.AddDays(7);
+            var copyLastMondayStart = DateTime.Today.AddDays(-(int) DateTime.Now.DayOfWeek - 6);
+            var copyThisMondayEnd = copyLastMondayStart.AddDays(7);
             var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone!];
 
             //We need to adjust to their start of the week, because it can differ depending on the TZ! 
-            var startOfWeekInTz = Instant.FromDateTimeOffset(copyStart).InZone(locationTimeZone);
-            var endOfWeekInTz = Instant.FromDateTimeOffset(copyEnd).InZone(locationTimeZone);
+            var startOfWeekInTz = Instant.FromDateTimeOffset(copyLastMondayStart).InZone(locationTimeZone);
+            var endOfWeekInTz = Instant.FromDateTimeOffset(copyThisMondayEnd).InZone(locationTimeZone);
 
             var targetStartDate = startOfWeekInTz.ToDateTimeOffset();
             var targetEndDate = endOfWeekInTz.ToDateTimeOffset();
@@ -128,7 +129,6 @@ namespace SS.Api.services.scheduling
             var importedShifts = new List<Shift>();
             foreach (var importShift in shiftsToImport)
             {
-                //We aren't duplicating duties here, they're scheduled closer to the date. 
                 var shift = Db.DetachedClone(importShift);
                 shift.Id = 0;
                 shift.Duties = new List<Duty>();
@@ -145,6 +145,22 @@ namespace SS.Api.services.scheduling
         }
 
         #region Helpers
+
+        private string ConflictingSheriffAndSchedule(Sheriff conflictingSheriff, Shift conflictingShift)
+            => $"Conflict - {nameof(Sheriff)}: {conflictingSheriff.LastName}, {conflictingSheriff.FirstName} - Shift already exists: {conflictingShift.StartDate} -> {conflictingShift.EndDate} @ {conflictingShift.Location.Name}";
+
+        public async Task<string> CheckForConflict(DateTimeOffset start, DateTimeOffset end, Guid sheriffId)
+        {
+            var conflictingShift = await Db.Shift.AsNoTracking().AsSingleQuery()
+                .Include(s=> s.Location)
+                .FirstOrDefaultAsync(s => !(s.StartDate > end || start > s.EndDate)
+                                          && s.ExpiryDate == null &&
+                                          s.SheriffId == sheriffId);
+
+            if (conflictingShift == null) return null;
+            var conflictingSheriff = await Db.Sheriff.AsNoTracking().FirstAsync(s => s.Id == sheriffId);
+            return ConflictingSheriffAndSchedule(conflictingSheriff, conflictingShift);
+        }
 
         public ZonedDateTime TranslateDateIfDaylightSavings(DateTimeOffset date, string timezone, int daysToShift)
         {

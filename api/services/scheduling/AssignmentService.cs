@@ -45,7 +45,6 @@ namespace SS.Api.services.scheduling
             await Db.SaveChangesAsync();
             return savedAssignment;
         }
-
         public async Task RemoveAssignment(int id, string expiryReason)
         {
             var savedAssignment = await Db.Assignment.FindAsync(id);
@@ -53,6 +52,5 @@ namespace SS.Api.services.scheduling
             savedAssignment.ExpiryReason = expiryReason;
             await Db.SaveChangesAsync();
         }
-
     }
 }

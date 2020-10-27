@@ -24,6 +24,7 @@ namespace SS.Db.models.scheduling
         public int NumberOfSheriffs { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string ExpiryReason { get; set; }
+        //ManageType association?
 
         public bool IsAvailableOnDate(DateTimeOffset utcDate)
         {
@@ -42,7 +43,7 @@ namespace SS.Db.models.scheduling
 
         public bool IsAvailableInRange(DateTimeOffset utcDateStart, DateTimeOffset utcDateEnd)
         {
-            for (var dt = utcDateStart.UtcDateTime.Date; dt < utcDateEnd.UtcDateTime.Date; dt = dt.AddDays(1.0))
+            for (var dt = utcDateStart.UtcDateTime.Date; dt < utcDateEnd.UtcDateTime.Date; )
             {
                 switch (dt.DayOfWeek)
                 {

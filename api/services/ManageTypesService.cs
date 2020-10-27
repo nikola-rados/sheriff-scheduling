@@ -36,17 +36,13 @@ namespace SS.Api.services
         }
 
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
-        {
-            return await Db.LookupCode.AsNoTracking().Where(lc =>
-                    (codeType == null || lc.Type == codeType) && 
-                    (locationId == null || lc.LocationId == locationId))
+        =>
+            await Db.LookupCode.AsNoTracking()
+                .Where(lc =>
+                    (codeType == null || lc.Type == codeType) && (locationId == null || lc.LocationId == locationId))
                 .ToListAsync();
-        }
 
-        public async ValueTask<LookupCode> Find(int id)
-        {
-            return await Db.LookupCode.FindAsync(id);
-        }
+        public async ValueTask<LookupCode> Find(int id) => await Db.LookupCode.FindAsync(id);
 
         public async Task<LookupCode> Expire(int id)
         {

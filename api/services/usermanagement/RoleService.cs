@@ -19,16 +19,13 @@ namespace SS.Api.services.usermanagement
             Db = dbContext;
         }
 
-        public async Task<List<Role>> Roles()
-        {
-            return await Db.Role.AsNoTracking().ToListAsync();
-        }
+        public async Task<List<Role>> Roles() => await Db.Role.AsNoTracking().ToListAsync();
 
-        public async Task<Role> Role(int id)
-        {
-            return await Db.Role.AsNoTracking().AsSingleQuery().Include(r => r.RolePermissions)
+        public async Task<Role> Role(int id) =>
+            await Db.Role.AsNoTracking()
+                .AsSingleQuery()
+                .Include(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission).SingleOrDefaultAsync(r => r.Id == id);
-        }
 
         public async Task<Role> AddRole(Role role, List<int> permissionIds)
         {
