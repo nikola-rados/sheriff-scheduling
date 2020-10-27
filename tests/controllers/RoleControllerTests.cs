@@ -20,7 +20,7 @@ namespace tests.controllers
         private readonly RoleController _controller;
         public RoleControllerTests() : base(false)
         {
-            _controller = new RoleController(new RoleService(_dbContext))
+            _controller = new RoleController(new RoleService(Db))
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -84,7 +84,7 @@ namespace tests.controllers
             Assert.Equal(role.Description, response.Description);
             Assert.Equal(role.Id, response.Id);
 
-            var dbRole = await _dbContext.Role.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Id == role.Id);
+            var dbRole = await Db.Role.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Id == role.Id);
             Assert.NotEmpty(dbRole.RolePermissions);
 
             Detach();
@@ -102,7 +102,7 @@ namespace tests.controllers
             Assert.Equal(role.Description, response.Description);
             Assert.Equal(role.Id, response.Id);
 
-            dbRole = await _dbContext.Role.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Id == role.Id);
+            dbRole = await Db.Role.Include(r => r.RolePermissions).FirstOrDefaultAsync(r => r.Id == role.Id);
             Assert.Empty(dbRole.RolePermissions);
         }
 
@@ -114,22 +114,22 @@ namespace tests.controllers
             var controllerResult = await _controller.RemoveRole(role.Id);
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
-            Assert.Null((await _dbContext.Role.FindAsync(role.Id)));
+            Assert.Null((await Db.Role.FindAsync(role.Id)));
         }
 
         private async Task<Permission> CreatePermission()
         {
             var permission = new Permission {Name = "Good Perm", Description = "hello"};
-            await _dbContext.Permission.AddAsync(permission);
-            await _dbContext.SaveChangesAsync();
+            await Db.Permission.AddAsync(permission);
+            await Db.SaveChangesAsync();
             return permission;
         }
 
         private async Task<Role> CreateRole()
         {
             var role = new Role {Name = "Super Role"};
-            await _dbContext.Role.AddAsync(role);
-            await _dbContext.SaveChangesAsync();
+            await Db.Role.AddAsync(role);
+            await Db.SaveChangesAsync();
             return role;
         }
     }

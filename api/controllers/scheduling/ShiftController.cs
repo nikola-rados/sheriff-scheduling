@@ -32,9 +32,9 @@ namespace SS.Api.controllers.scheduling
         [HttpGet]
         [PermissionClaimAuthorize(AuthorizeOperation.And, Permission.ViewAllShifts, Permission.ViewMyShifts,
             Permission.ViewAllShiftsAtMyLocation)]
-        public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId)
+        public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
-            var shifts = await ShiftService.GetShifts(locationId);
+            var shifts = await ShiftService.GetShifts(locationId, start, end);
             return Ok(shifts.Adapt<List<ShiftDto>>());
         }
 
@@ -57,10 +57,10 @@ namespace SS.Api.controllers.scheduling
         [HttpPut]
         [Route("assign")]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
-        public async Task<ActionResult<ShiftDto>> AssignToShift(List<int> id, Guid sheriff, bool overrideShift = false)
+        public async Task<ActionResult<ShiftDto>> AssignToShifts(List<int> id, Guid sheriff, bool overrideShift = false)
         {
-            var shift = await ShiftService.AssignToShift(id, sheriff, overrideShift);
-            return Ok(shift.Adapt<ShiftDto>());
+            await ShiftService.AssignToShifts(id, sheriff, overrideShift);
+            return NoContent();
         }
 
         [HttpDelete]
@@ -76,7 +76,7 @@ namespace SS.Api.controllers.scheduling
         [PermissionClaimAuthorize(perm: Permission.ImportShifts)]
         public async Task<ActionResult<ShiftDto>> ImportShifts(int locationId, bool includeSheriffs, DateTimeOffset start, DateTimeOffset end)
         {
-            await ShiftService.ImportShifts(locationId, includeSheriffs, start, end);
+            await ShiftService.ImportWeeklyShifts(locationId, includeSheriffs);
             return NoContent();
         }
         #endregion

@@ -15,6 +15,7 @@ namespace SS.Api.models.dto.generated
         public Guid? SheriffId { get; set; }
         public ICollection<DutyDto> Duties { get; set; }
         public AssignmentDto AnticipatedAssignment { get; set; }
+        public int? AnticipatedAssignmentId { get; set; }
         public LocationDto Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }

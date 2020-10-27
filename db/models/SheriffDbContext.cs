@@ -45,6 +45,8 @@ namespace SS.Db.models
 
         #region Scheduling
         public virtual DbSet<Shift> Shift { get; set; }
+        public virtual DbSet<Assignment> Assignment { get; set; }
+        public virtual DbSet<Duty> Duty { get; set; }
         #endregion Scheduling
 
         // This maps to the table that stores keys.
@@ -102,6 +104,8 @@ namespace SS.Db.models
                 }
             }
         }
+        public TEntity DetachedClone<TEntity>(TEntity entity) where TEntity : class
+            => Entry(entity).CurrentValues.Clone().ToObject() as TEntity;
 
         private Guid? GetUserId(string claimValue)
         {

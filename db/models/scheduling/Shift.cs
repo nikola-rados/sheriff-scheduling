@@ -20,6 +20,7 @@ namespace SS.Db.models.scheduling
         public Guid? SheriffId { get; set; }
         public ICollection<Duty> Duties { get; set; } = new List<Duty>();
         public Assignment AnticipatedAssignment { get; set; }
+        public int? AnticipatedAssignmentId { get; set; }
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
