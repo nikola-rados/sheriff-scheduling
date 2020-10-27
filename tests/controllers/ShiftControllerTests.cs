@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NodaTime;
 using SS.Api.controllers.scheduling;
 using SS.Api.controllers.usermanagement;
+using SS.Api.helpers.extensions;
 using SS.Api.Models.DB;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
@@ -134,20 +135,37 @@ namespace tests.controllers
         [Fact]
         public async Task ImportWeeklyShifts()
         {
+            var sheriffId = Guid.NewGuid();
+            var shiftDto = await CreateShift();
+            await Db.Sheriff.AddAsync(new Sheriff {Id = sheriffId});
+            shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6);
+            shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5);
+            shiftDto.SheriffId = sheriffId;
 
+            var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
+
+
+            var res = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
+                await ShiftController.ImportWeeklyShifts(1, true));
         }
 
         [Fact]
         public async Task GetAvailability()
         {
+            var edmontonTz = DateTimeZoneProviders.Tzdb["America/Edmonton"];
+            var startDateNowEdmonton = SystemClock.Instance.GetCurrentInstant().InZone(edmontonTz);
+            var endDateNowEdmonton = SystemClock.Instance.GetCurrentInstant().InZone(edmontonTz).PlusHours(24 * 5);
+            await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz" });
+            await Db.SaveChangesAsync();
 
+            //await ShiftController.GetAvailability(startDateNowEdmonton, endDateNowEdmonton, )
         }
 
 
         private async Task<ShiftDto> CreateShift()
         {
             var sheriffId = Guid.NewGuid();
-            await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz" });
+            await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz", Timezone = "America/Vancouver"});
             await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId });
             await Db.SaveChangesAsync();
 

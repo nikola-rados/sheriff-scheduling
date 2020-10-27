@@ -110,13 +110,13 @@ namespace SS.Api.services.scheduling
             var timezone = location?.Timezone;
             timezone.ThrowBusinessExceptionIfNull("Timezone was null.");
 
-            var copyStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (int)DayOfWeek.Monday);
+            var copyStart = DateTime.Today.AddDays(-(int) DateTime.Now.DayOfWeek - 6);
             var copyEnd = copyStart.AddDays(7);
             var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone!];
 
             //We need to adjust to their start of the week, because it can differ depending on the TZ! 
             var startOfWeekInTz = Instant.FromDateTimeOffset(copyStart).InZone(locationTimeZone);
-            var endOfWeekInTz = Instant.FromDateTimeOffset(copyStart).InZone(locationTimeZone);
+            var endOfWeekInTz = Instant.FromDateTimeOffset(copyEnd).InZone(locationTimeZone);
 
             var targetStartDate = startOfWeekInTz.ToDateTimeOffset();
             var targetEndDate = endOfWeekInTz.ToDateTimeOffset();
@@ -125,20 +125,23 @@ namespace SS.Api.services.scheduling
                 .Include(s=> s.Location).AsNoTracking().Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
                                 !(s.StartDate > targetEndDate || targetStartDate > s.EndDate));
 
+            var importedShifts = new List<Shift>();
             foreach (var importShift in shiftsToImport)
             {
                 //We aren't duplicating duties here, they're scheduled closer to the date. 
                 var shift = Db.DetachedClone(importShift);
+                shift.Id = 0;
                 shift.Duties = new List<Duty>();
-                shift.Sheriff = null;
                 shift.SheriffId = includeSheriffs ? shift.SheriffId : null;
-                shift.StartDate = TranslateDateIfDaylightSavings(shift.StartDate, shift.Location.Timezone, 7).ToDateTimeOffset();
-                shift.EndDate = TranslateDateIfDaylightSavings(shift.StartDate, shift.Location.Timezone, 7).ToDateTimeOffset();
+                shift.LocationId = importShift.LocationId;
+                shift.StartDate = TranslateDateIfDaylightSavings(shift.StartDate, importShift.Location.Timezone, 7).ToDateTimeOffset();
+                shift.EndDate = TranslateDateIfDaylightSavings(shift.StartDate, importShift.Location.Timezone, 7).ToDateTimeOffset();
                 await Db.Shift.AddAsync(shift);
+                importedShifts.Add(shift);
             }
 
             await Db.SaveChangesAsync();
-            return new List<Shift>();
+            return importedShifts;
         }
 
         #region Helpers
