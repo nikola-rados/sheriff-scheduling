@@ -48,9 +48,9 @@ namespace SS.Api.services
 
         public async Task<List<Sheriff>> GetSheriffs()
         {
-            var fiveDaysFromNow = DateTimeOffset.UtcNow.AddDays(7).Date;
-            var now = DateTimeOffset.UtcNow.Date;
-
+            var now = DateTimeOffset.UtcNow;
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
+            
             var sheriffQuery = _db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
 
@@ -59,15 +59,15 @@ namespace SS.Api.services
                 //Include AwayLocation/Training/Leave that is within 7 days. 
                 //TODO write an extension method that makes this generic. 
                 .Include(s => s.AwayLocation.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    !(al.StartDate > sevenDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)
                 .Include(s => s.Training.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    !(al.StartDate > sevenDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(t => t.TrainingType)
                 .Include(s => s.Leave.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
+                    !(al.StartDate > sevenDaysFromNow || now > al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
                 .Include(s => s.HomeLocation)
