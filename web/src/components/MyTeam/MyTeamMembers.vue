@@ -156,18 +156,18 @@
     import * as _ from 'underscore';
     import PageHeader from "@components/common/PageHeader.vue";    
     import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
-    import {teamMemberInfoType, roleOptionInfoType} from '../../types/MyTeam';
-    import {teamMemberJsonType} from '../../types/MyTeam/jsonTypes';
-    import ExpireSheriffProfile from './Tabs/ExpireSheriffProfile.vue'
-    import RoleAssignmentTab from './Tabs/RoleAssignmentTab.vue'
-    import IdentificationTab from './Tabs/IdentificationTab.vue'
+    import {teamMemberInfoType} from '../../types/MyTeam';
+    import ExpireSheriffProfile from './Tabs/ExpireSheriffProfile.vue';
+    import RoleAssignmentTab from './Tabs/RoleAssignmentTab.vue';
+    import IdentificationTab from './Tabs/IdentificationTab.vue';
     import UserSummaryTemplate from "./Tabs/UserSummaryTemplate.vue";
     import LocationTab from './Tabs/LocationTab.vue';
     import LeaveTab from './Tabs/LeaveTab.vue';
     import UserLocationSummary from './Tabs/UserLocationSummary.vue';
     import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
     import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
-    import TrainingTab from './Tabs/TrainingTab.vue'
+    import TrainingTab from './Tabs/TrainingTab.vue';
+import { teamMemberJsonType } from '../../types/MyTeam/jsonTypes';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 
@@ -218,7 +218,7 @@
         maxRank = 1000;
 
         itemsPerRow = 4;//Define
-        rowsPerPage = 1;//Define
+        rowsPerPage = 13;//Define
         currentPage = 1;
         itemsPerPage = 1;// itemsPerRow*rowsPerPage
 
@@ -228,7 +228,7 @@
         createMode = false;
         sectionHeader = '';
         photokey = 0;
-        userAllRoles: any[] = [];
+        // userAllRoles: any[] = [];
 
         searchPhrase = '';
 
@@ -286,8 +286,9 @@
             Vue.nextTick().then(()=>{this.firstNavigation = true;});
         }
 
-        public extractMyTeamFromSheriffs(data: any) {    
-            this.allMyTeamData = [];            
+        public extractMyTeamFromSheriffs(data: teamMemberJsonType[]) {    
+            this.allMyTeamData = [];
+            // let myteaminfo:             
             for(const myteaminfo of data)
             {                
                 const myteam = {} as teamMemberInfoType;
