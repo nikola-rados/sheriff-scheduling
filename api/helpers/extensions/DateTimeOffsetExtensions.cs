@@ -21,5 +21,12 @@ namespace SS.Api.helpers.extensions
             return movedZoned.ToDateTimeOffset();
         }
 
+        public static DateTimeOffset ConvertToTimezone(this DateTimeOffset date, string timezone)
+        {
+            var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone];
+            var instant = Instant.FromDateTimeOffset(date);
+            var zoned = instant.InZone(locationTimeZone);
+            return zoned.ToDateTimeOffset();
+        }
     }
 }

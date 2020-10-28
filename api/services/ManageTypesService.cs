@@ -4,12 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
-using JCCommon.Clients.LocationServices;
 using Mapster;
 using SS.Api.helpers.extensions;
-using SS.Api.Models.DB;
 using SS.Api.models.dto;
-using SS.Api.models.dto.generated;
 using ss.db.models;
 using SS.Db.models;
 using SS.Db.models.lookupcodes;
@@ -51,6 +48,7 @@ namespace SS.Api.services
 
         public async Task<LookupCode> Update(LookupCode lookupCode)
         {
+            lookupCode.SortOrderForLocation.ThrowBusinessExceptionIfNull("SortOrderForLocation cannot be null");
             var savedLookup = await Db.LookupCode.Include(lc => lc.SortOrder.Where(so =>
                     so.LookupCodeId == lookupCode.Id &&
                     so.LocationId == lookupCode.SortOrderForLocation.LocationId))
