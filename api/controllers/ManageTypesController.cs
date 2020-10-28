@@ -4,6 +4,7 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
+using SS.Api.models.dto;
 using SS.Api.models.dto.generated;
 using SS.Api.services;
 using ss.db.models;
@@ -44,13 +45,12 @@ namespace SS.Api.controllers
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.EditTypes)]
-        public async Task<ActionResult<LookupCodeDto>> Add(LookupCodeDto lookupCodeDto)
+        public async Task<ActionResult<LookupCodeDto>> Add(AddLookupCodeDto lookupCodeDto)
         {
             if (lookupCodeDto == null)
                 throw new BadRequestException("Invalid lookupCode.");
 
-            var entity = lookupCodeDto.Adapt<LookupCode>();
-            var lookupCode = await ManageTypesService.Add(entity);
+            var lookupCode = await ManageTypesService.Add(lookupCodeDto);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
@@ -76,7 +76,6 @@ namespace SS.Api.controllers
         {
             if (lookupCodeDto == null)
                 throw new BadRequestException("Invalid lookupCode.");
-
             var entity = lookupCodeDto.Adapt<LookupCode>();
             var lookupCode = await ManageTypesService.Update(entity);
             return Ok(lookupCode.Adapt<LookupCodeDto>());

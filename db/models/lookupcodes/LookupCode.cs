@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
@@ -8,7 +11,7 @@ using SS.Db.models.lookupcodes;
 namespace ss.db.models
 {
     [AdaptTo("[name]Dto")]
-    public partial class LookupCode : BaseEntity
+    public class LookupCode : BaseEntity
     {
         [Key]
         public int Id { get; set; }
@@ -18,8 +21,11 @@ namespace ss.db.models
         public string Description { get; set; }
         public DateTimeOffset? EffectiveDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
-        public int? SortOrder { get; set; }
         public virtual Location Location { get; set; }
         public int? LocationId { get; set; }
+        [AdaptIgnore]
+        public List<LookupSortOrder> SortOrder { get; set; }
+        [NotMapped] 
+        public LookupSortOrder SortOrderForLocation;
     }
 }

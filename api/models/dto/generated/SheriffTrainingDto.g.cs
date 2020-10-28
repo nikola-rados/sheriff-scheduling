@@ -15,6 +15,7 @@ namespace SS.Api.models.dto.generated
         public string ExpiryReason { get; set; }
         public Guid SheriffId { get; set; }
         public string Comment { get; set; }
+        public string Timezone { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
