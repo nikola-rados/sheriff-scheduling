@@ -51,6 +51,7 @@ namespace SS.Api.services
 
         public async Task<LookupCode> Update(LookupCode lookupCode)
         {
+            lookupCode.SortOrderForLocation.ThrowBusinessExceptionIfNull("SortOrderForLocation cannot be null");
             var savedLookup = await Db.LookupCode.Include(lc => lc.SortOrder.Where(so =>
                     so.LookupCodeId == lookupCode.Id &&
                     so.LocationId == lookupCode.SortOrderForLocation.LocationId))
