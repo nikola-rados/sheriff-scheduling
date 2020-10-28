@@ -332,30 +332,29 @@ namespace SS.Api.services.usermanagement
                 (!updateOnlyId.HasValue ||
                  updateOnlyId.HasValue && sal.Id != updateOnlyId));
 
-            if (entity != null)
-            {
+            if (entity == null)
+                return;
 
-                var startDateString = "";
-                var endDateString = "";
-                switch (data)
-                {
-                    case SheriffAwayLocation sheriffAwayLocation:
-                        //Calculate the start and end date for the location.
-                        var awayLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffAwayLocation.LocationId)?.Timezone;
-                        startDateString = entity.StartDate.UTCToTimezoned(awayLocationTimezone).ToString();
-                        endDateString = entity.EndDate.UTCToTimezoned(awayLocationTimezone).ToString();
-                        break;
-                    default:
-                        //Calculate the start and end date for the user's home location id. 
-                        var sheriffId = Db.Sheriff.AsNoTracking().FirstOrDefault(s => s.Id == data.SheriffId)?.HomeLocationId;
-                        var homeLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffId.Value)?.Timezone;
-                        startDateString = entity.StartDate.UTCToTimezoned(homeLocationTimezone).ToString();
-                        endDateString = entity.EndDate.UTCToTimezoned(homeLocationTimezone).ToString();
-                        break;
-                }
-                throw new BusinessLayerException(
-                    $"Overlaps with existing {typeof(T).Name.ConvertCamelCaseToMultiWord()}: {startDateString} to {endDateString}");
+            string startDateString;
+            string endDateString;
+            switch (data)
+            {
+                case SheriffAwayLocation sheriffAwayLocation:
+                    //Calculate the start and end date for the away location.
+                    var awayLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffAwayLocation.LocationId)?.Timezone;
+                    startDateString = entity.StartDate.ConvertToTimezone(awayLocationTimezone).ToString();
+                    endDateString = entity.EndDate.ConvertToTimezone(awayLocationTimezone).ToString();
+                    break;
+                default:
+                    //Calculate the start and end date for the user's home location id. 
+                    var sheriffId = Db.Sheriff.AsNoTracking().FirstOrDefault(s => s.Id == data.SheriffId)?.HomeLocationId;
+                    var homeLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffId.Value)?.Timezone;
+                    startDateString = entity.StartDate.ConvertToTimezone(homeLocationTimezone).ToString();
+                    endDateString = entity.EndDate.ConvertToTimezone(homeLocationTimezone).ToString();
+                    break;
             }
+            throw new BusinessLayerException(
+                $"Overlaps with existing {typeof(T).Name.ConvertCamelCaseToMultiWord()}: {startDateString} to {endDateString}");
         }
 
         
