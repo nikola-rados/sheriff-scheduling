@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SS.Api.Helpers.Extensions;
+using SS.Api.helpers.extensions;
 using SS.Api.models.ches;
 
 namespace SS.Api.services
@@ -17,7 +17,7 @@ namespace SS.Api.services
     public class ChesEmailService
     {
         private readonly ChesEmailOptions _chesEmailOptions;
-        private readonly ILogger<ChesEmailService> _logger;
+        private ILogger<ChesEmailService> Logger { get; }
         private HttpClient HttpClient { get; }
 
         public ChesEmailService(IOptionsSnapshot<ChesEmailOptions> chesEmailOptions, IHttpClientFactory httpClientFactory, ILogger<ChesEmailService> logger)
@@ -26,7 +26,7 @@ namespace SS.Api.services
             _chesEmailOptions = chesEmailOptions?.Value;
             _chesEmailOptions.ThrowConfigurationExceptionIfNull($"{ChesEmailOptions.Position}");
             _chesEmailOptions.ValidateOptions();
-            _logger = logger;
+            Logger = logger;
         }
 
         public async Task<string> GetEmailServiceToken()
@@ -45,12 +45,12 @@ namespace SS.Api.services
 
                 var contents = await response.Content.ReadAsStringAsync();
                 var accessToken = JObject.Parse(contents)["access_token"]?.ToString();
-                _logger.LogDebug("Received access token successfully.");
+                Logger.LogDebug("Received access token successfully.");
                 return accessToken;
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error happened while trying to get EmailServiceToken.");
+                Logger.LogError(e, "Error happened while trying to get EmailServiceToken.");
             }
             return null;
         }
@@ -68,7 +68,7 @@ namespace SS.Api.services
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, _chesEmailOptions.EmailUrl);
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", emailServiceToken);
 
-            _logger.LogDebug($"Attempting to Send email to {recipientEmail}.");
+            Logger.LogDebug($"Attempting to Send email to {recipientEmail}.");
             try
             {
                 //https://ches-master-9f0fbe-prod.pathfinder.gov.bc.ca/api/v1/docs#operation/postEmail
@@ -95,11 +95,11 @@ namespace SS.Api.services
                 if (!response.IsSuccessStatusCode)
                     throw new Exception($"While sending email - Received status code: {response.StatusCode} : {contents}");
 
-                _logger.LogInformation($"Email sent to {recipientEmail} successfully.");
+                Logger.LogInformation($"Email sent to {recipientEmail} successfully.");
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Error happened while trying to send email.");
+                Logger.LogError(e, "Error happened while trying to send email.");
             }
         }
     }

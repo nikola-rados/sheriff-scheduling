@@ -5,7 +5,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using SS.Api.Helpers.Extensions;
+using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Db.models.auth;
 using Xunit;

@@ -14,17 +14,17 @@ namespace tests.api.helpers
         private readonly TransactionScope _scope;
         public bool CommitTxn { get; set; }
 
-        protected readonly SheriffDbContext _dbContext;
+        protected SheriffDbContext Db { get; }
 
         public WrapInTransactionScope(bool useMemoryDatabase)
         {
-            _dbContext = new SheriffDbContext(EnvironmentBuilder.SetupDbOptions(useMemoryDatabase: useMemoryDatabase));
+            Db = new SheriffDbContext(EnvironmentBuilder.SetupDbOptions(useMemoryDatabase: useMemoryDatabase));
             _scope = new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
         }
         
         protected void Detach()
         {
-            foreach (var entity in _dbContext.ChangeTracker.Entries())
+            foreach (var entity in Db.ChangeTracker.Entries())
                 entity.State = EntityState.Detached;
         }
 

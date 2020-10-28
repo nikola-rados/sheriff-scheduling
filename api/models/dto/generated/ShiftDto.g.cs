@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Db.models.scheduling;
 
-namespace SS.Api.Models.Dto
+namespace SS.Api.models.dto.generated
 {
     public partial class ShiftDto
     {
@@ -11,10 +11,13 @@ namespace SS.Api.Models.Dto
         public ShiftType Type { get; set; }
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        public ICollection<ShiftSheriffDto> AssignedSheriffs { get; set; }
-        public int Slots { get; set; }
-        public int LocationId { get; set; }
+        public SheriffDto Sheriff { get; set; }
+        public Guid? SheriffId { get; set; }
+        public ICollection<DutyDto> Duties { get; set; }
+        public AssignmentDto AnticipatedAssignment { get; set; }
+        public int? AnticipatedAssignmentId { get; set; }
         public LocationDto Location { get; set; }
+        public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public uint ConcurrencyToken { get; set; }
     }

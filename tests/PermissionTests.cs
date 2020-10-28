@@ -136,7 +136,10 @@ namespace tests
                 new Claim(CustomClaimTypes.Permission, Permission.ViewProfilesInAllLocation)
             });
 
-            var sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user).ToListAsync();
+            var start = DateTimeOffset.UtcNow.Date;
+            var end = start.AddDays(7);
+
+            var sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end).ToListAsync();
 
             Assert.True(sheriffs.Count == 5);
 
@@ -146,7 +149,7 @@ namespace tests
                 new Claim(CustomClaimTypes.Permission, Permission.ViewProfilesInOwnLocation),
             });
 
-            sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user).ToListAsync();
+            sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end).ToListAsync();
 
             Assert.True(sheriffs.Count == 2);
 
@@ -156,13 +159,13 @@ namespace tests
                 new Claim(CustomClaimTypes.Permission, Permission.ViewOwnProfile),
             });
 
-            sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user).ToListAsync();
+            sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end).ToListAsync();
 
             Assert.True(sheriffs.Count == 1);
 
             user = SetupClaim();
 
-            sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user).ToListAsync();
+            sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end).ToListAsync();
 
             Assert.Empty(sheriffs);
             await db.Database.EnsureDeletedAsync();

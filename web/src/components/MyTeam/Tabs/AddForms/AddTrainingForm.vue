@@ -40,29 +40,40 @@
                     </b-td>
                     <b-td>
                         <label class="h6 m-0 p-0"> From: </label>
-                        <b-form-datepicker
-                            class="mb-1"
-                            size="sm"
-                            :disabled="!editable"
-                            v-model="selectedStartDate"
-                            placeholder="Start Date*"
-                            :state = "startDateState?null:false"
-                            :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                            locale="en-US">
-                        </b-form-datepicker>
-                        <b-input-group style="width: 4.2rem">
-                            <b-form-input
-                                v-model="selectedStartTime"
-                                size="sm" 
+                        <b-input-group  style="padding 0; margin:0 ;width: 10rem">  
+                            <b-form-datepicker
+                                class="mb-1"
+                                size="sm"
                                 :disabled="!editable"
-                                type="text"
-                                autocomplete="off"
-                                @paste.prevent
-                                :formatter="timeFormat"
-                                placeholder="HH:MM"
-                                :state = "startTimeState?null:false"
-                            ></b-form-input>
-                        </b-input-group>                       
+                                v-model="selectedStartDate"
+                                placeholder="Start Date*"
+                                :state = "startDateState?null:false"
+                                :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+                                @context="startTimePicked"
+                                locale="en-US">
+                            </b-form-datepicker>
+                        </b-input-group>
+                        <b-row  style="padding 0; margin:0; height: 1.95rem; width: 10rem">
+                            <b-input-group  style="padding 0; margin:0 ;width: 5.4rem">
+                                <b-form-checkbox v-model="addTime" @change="addTimeCheckBoxChanged" size="sm" class="mt-1 mx-0">
+                                    <span class="h6 mx-0 px-0">Add Time</span>                                
+                                </b-form-checkbox>
+                            </b-input-group>                        
+                            <b-input-group  style="width: 4.2rem; margin-left: auto;">
+                                <b-form-input v-if="addTime"
+                                    v-model="selectedStartTime"
+                                    @click="startTimeState=true"
+                                    size="sm" 
+                                    :disabled="!editable"
+                                    type="text"
+                                    autocomplete="off"
+                                    @paste.prevent
+                                    :formatter="timeFormat"
+                                    placeholder="HH:MM"
+                                    :state = "startTimeState?null:false"
+                                ></b-form-input>
+                            </b-input-group>
+                        </b-row>                       
                     </b-td>
                     <b-td>
                         <label class="h6 m-0 p-0"> To: </label>
@@ -76,9 +87,10 @@
                             :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
                             locale="en-US">
                         </b-form-datepicker>
-                        <b-input-group style="width: 4.2rem">
+                        <b-input-group v-if="addTime" style="width: 4.2rem; margin-left: auto;">
                             <b-form-input
                                 v-model="selectedEndTime"
+                                @click="endTimeState=true"
                                 size="sm"
                                 type="text"
                                 :disabled="!editable"
@@ -211,6 +223,8 @@
         originalEndTime = ''
         originalExpiryDate = ''
 
+        addTime = false;
+
         formDataId = 0;
         showCancelWarning = false;
         showSaveWarning = false;
@@ -233,7 +247,8 @@
             this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
             this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
             
-            const displayTime = Vue.filter('isDateFullday')(this.formData.startDate,this.formData.endDate)           
+            const displayTime = Vue.filter('isDateFullday')(this.formData.startDate,this.formData.endDate);
+            this.addTime = !displayTime;           
             this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,16)            
             this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,16)
         }
@@ -379,6 +394,24 @@
             this.startTimeState = true;
             this.endTimeState   = true;
             this.expiryDateState = true;            
+        }
+
+        public addTimeCheckBoxChanged() {
+            Vue.nextTick(()=>{                
+                if(this.addTime){
+                    this.selectedEndDate = this.selectedStartDate;
+                }
+                else{
+                    this.selectedStartTime = '';
+                    this.selectedEndTime = '';
+                }            
+            })
+        }
+
+        public startTimePicked(){
+            this.startDateState = true;
+            this.endDateState = true;
+            this.selectedEndDate = this.selectedStartDate;
         }
 
         get isFullDay(){    

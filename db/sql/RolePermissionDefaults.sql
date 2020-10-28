@@ -63,6 +63,10 @@ BEGIN
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ImportShifts')),
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewRegion')),
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewProvince')),
-	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ExpireLocation'));
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ExpireLocation')),
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewAssignments')),
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'CreateAssignments')),
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'EditAssignments')),
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ExpireAssignments'));
 end;
 $$;

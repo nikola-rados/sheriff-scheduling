@@ -2,10 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using SS.Api.Helpers.Exceptions;
 using SS.Api.infrastructure.exceptions;
 
-namespace SS.Api.Helpers.Extensions
+namespace SS.Api.helpers.extensions
 {
     /// <summary>
     /// ExceptionExtensions static class, provides extension methods for exceptions.
@@ -77,6 +76,11 @@ namespace SS.Api.Helpers.Extensions
         public static T ThrowBusinessExceptionIfEmpty<T>(this T value, string message) where T : class
         {
             return value is List<T> val && !val.Any() ? throw new BusinessLayerException(message) : value;
+        }
+
+        public static T ThrowBusinessExceptionIfNotEmpty<T>(this T value, string message) where T : class
+        {
+            return value is List<T> val && val.Any() ? throw new BusinessLayerException(message) : value;
         }
 
     }

@@ -5,9 +5,9 @@ using Mapster;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SS.Api.Helpers.Extensions;
+using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Db.models;
 using SS.Db.models.auth;
 
@@ -21,18 +21,18 @@ namespace SS.Api.controllers
     [ApiController]
     public class LocationController : ControllerBase
     {
-        private readonly SheriffDbContext _db;
+        private SheriffDbContext Db { get; }
 
         public LocationController(SheriffDbContext dbContext)
         {
-            _db = dbContext;
+            Db = dbContext;
         }
 
         [HttpGet]
         [PermissionClaimAuthorize(perm: Permission.Login)]
         public async Task<ActionResult<List<LocationDto>>> Locations()
         {
-            var locations = await _db.Location.ApplyPermissionFilters(User,_db).ToListAsync();
+            var locations = await Db.Location.ApplyPermissionFilters(User,Db).ToListAsync();
             return Ok(locations.Adapt<List<LocationDto>>());
         }
 
@@ -41,7 +41,7 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.Login)]
         public async Task<ActionResult<List<LocationDto>>> AllLocations()
         {
-            var locations = await _db.Location.ToListAsync();
+            var locations = await Db.Location.ToListAsync();
             return Ok(locations.Adapt<List<LocationDto>>());
         }
 
@@ -50,10 +50,10 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.ExpireLocation)]
         public async Task<ActionResult> EnableLocation(int id)
         {
-            var location = await _db.Location.FindAsync(id);
+            var location = await Db.Location.FindAsync(id);
             location.ThrowBusinessExceptionIfNull($"Couldn't find location with id {id}");
             location.ExpiryDate = null;
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
             return NoContent();
         }
 
@@ -62,10 +62,10 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.ExpireLocation)]
         public async Task<ActionResult> DisableLocation(int id)
         {
-            var location = await _db.Location.FindAsync(id);
+            var location = await Db.Location.FindAsync(id);
             location.ThrowBusinessExceptionIfNull($"Couldn't find location with id {id}");
             location.ExpiryDate = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
             return NoContent();
         }
     }
