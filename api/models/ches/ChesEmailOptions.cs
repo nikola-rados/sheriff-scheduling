@@ -1,4 +1,4 @@
-﻿using SS.Api.Helpers.Extensions;
+﻿using SS.Api.helpers.extensions;
 
 namespace SS.Api.models.ches
 {

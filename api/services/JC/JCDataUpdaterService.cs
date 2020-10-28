@@ -1,48 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using JCCommon.Clients.LocationServices;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using SS.Api.Helpers;
-using SS.Api.Helpers.Exceptions;
-using SS.Api.Helpers.Extensions;
+using SS.Api.helpers;
+using SS.Api.helpers.extensions;
+using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
 using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.lookupcodes;
 using Region = db.models.Region;
 
-namespace SS.Api.services.JC
+namespace SS.Api.services.jc
 {
     public class JCDataUpdaterService
     {
-        private readonly ILogger _logger;
-        private readonly LocationServicesClient _locationClient;
-        private readonly SheriffDbContext _db;
+        private ILogger Logger { get; }
+        private LocationServicesClient LocationClient { get; }
+        private SheriffDbContext Db { get; }
         private IConfiguration Configuration { get; }
         private bool Expire { get; }
         private bool AssociateUsersWithNoLocationToVictoria { get; }
 
         public JCDataUpdaterService(SheriffDbContext dbContext, LocationServicesClient locationClient, IConfiguration configuration, ILogger<JCDataUpdaterService> logger)
         {
-            _locationClient = locationClient;
-            _db = dbContext;
+            LocationClient = locationClient;
+            Db = dbContext;
             Configuration = configuration;
             Expire = Configuration.GetNonEmptyValue("JCSynchronization:Expire").Equals("true");
             AssociateUsersWithNoLocationToVictoria = Configuration.GetNonEmptyValue("JCSynchronization:AssociateUsersWithNoLocationToVictoria").Equals("true");
-            _logger = logger;
+            Logger = logger;
         }
 
         public async Task SyncRegions()
         {
-            var regionsDb = (await _locationClient.RegionsAsync()).SelectToList(r => new Region { JustinId = r.RegionId, Name = r.RegionName, CreatedById = User.SystemUser });
-            await _db.Region.UpsertRange(regionsDb)
+            var regionsDb = (await LocationClient.RegionsAsync()).SelectToList(r => new Region { JustinId = r.RegionId, Name = r.RegionName, CreatedById = User.SystemUser });
+            await Db.Region.UpsertRange(regionsDb)
                             .On(v => v.JustinId)
                             .WhenMatched((r, rnew) => new Region
                             {
@@ -55,15 +53,15 @@ namespace SS.Api.services.JC
             //Any regions that aren't on this list expire/disable for now. This is for regions that may have been deleted. 
             if (Expire)
             {
-                var disableRegions = _db.Region.WhereToList(r => r.ExpiryDate == null && regionsDb.All(rdb => rdb.JustinId != r.JustinId));
+                var disableRegions = Db.Region.WhereToList(r => r.ExpiryDate == null && regionsDb.All(rdb => rdb.JustinId != r.JustinId));
                 foreach (var disableRegion in disableRegions)
                 {
-                    _logger.LogDebug($"Expiring Region {disableRegion.Id}: {disableRegion.Name}");
+                    Logger.LogDebug($"Expiring Region {disableRegion.Id}: {disableRegion.Name}");
                     disableRegion.ExpiryDate = DateTime.UtcNow;
                     disableRegion.UpdatedOn = DateTime.UtcNow;
                     disableRegion.UpdatedById = User.SystemUser;
                 }
-                await _db.SaveChangesAsync();
+                await Db.SaveChangesAsync();
             }
         }
 
@@ -71,7 +69,7 @@ namespace SS.Api.services.JC
         {
             var locationsDb = await GenerateLocationsAndLinkToRegions();
 
-            await _db.Location.UpsertRange(locationsDb)
+            await Db.Location.UpsertRange(locationsDb)
                                .On(v => v.AgencyId)
                                .WhenMatched((l, lnew) => new Location
                                {
@@ -85,37 +83,37 @@ namespace SS.Api.services.JC
             //Any Locations that aren't on this list expire/disable for now.  This is for locations that may have been deleted. 
             if (Expire)
             {
-                var disableLocations = _db.Location.WhereToList(l => l.ExpiryDate == null && locationsDb.All(rdb => rdb.AgencyId != l.AgencyId ));
+                var disableLocations = Db.Location.WhereToList(l => l.ExpiryDate == null && locationsDb.All(rdb => rdb.AgencyId != l.AgencyId ));
                 foreach (var disableLocation in disableLocations)
                 {
-                    _logger.LogDebug($"Expiring Location {disableLocation.Id}: {disableLocation.Name}");
+                    Logger.LogDebug($"Expiring Location {disableLocation.Id}: {disableLocation.Name}");
                     disableLocation.ExpiryDate = DateTime.UtcNow;
                     disableLocation.UpdatedOn = DateTime.UtcNow;
                     disableLocation.UpdatedById = User.SystemUser;
                 }
-                await _db.SaveChangesAsync();
+                await Db.SaveChangesAsync();
             }
 
             if (AssociateUsersWithNoLocationToVictoria)
             {
-                var sheriffsWithNoHomeLocation = _db.Sheriff.Where(s => !s.HomeLocationId.HasValue);
-                var victoriaLocation = _db.Location.AsNoTracking().FirstOrDefault(l => l.Name == "Victoria Law Courts");
+                var sheriffsWithNoHomeLocation = Db.Sheriff.Where(s => !s.HomeLocationId.HasValue);
+                var victoriaLocation = Db.Location.AsNoTracking().FirstOrDefault(l => l.Name == "Victoria Law Courts");
                 if (victoriaLocation == null)
                     return;
                 foreach (var sheriff in sheriffsWithNoHomeLocation)
                 {
-                    _logger.LogDebug($"Setting ${sheriff.LastName}, ${sheriff.FirstName} - HomeLocation to ${victoriaLocation.Id}");
+                    Logger.LogDebug($"Setting ${sheriff.LastName}, ${sheriff.FirstName} - HomeLocation to ${victoriaLocation.Id}");
                     sheriff.HomeLocationId = victoriaLocation.Id;
                 }
-                await _db.SaveChangesAsync();
+                await Db.SaveChangesAsync();
             }
         }
 
         public async Task SyncCourtRooms()
         {
-            var courtRoomsLookups = await _locationClient.LocationsRoomsAsync();
+            var courtRoomsLookups = await LocationClient.LocationsRoomsAsync();
             //To list so we don't need to re-query on each select.
-            var locations = _db.Location.ToList();
+            var locations = Db.Location.ToList();
             var courtRooms = courtRoomsLookups.SelectToList(cr =>
                 new ss.db.models.LookupCode
                 {
@@ -128,10 +126,10 @@ namespace SS.Api.services.JC
 
             //Some court rooms, don't have a location. This should probably be fixed in the JC-Interface
             var courtRoomNoLocation = courtRoomsLookups.WhereToList(crl => locations.All(l => l.JustinCode != crl.Flex));
-            _logger.LogDebug("Court rooms without a location: ");
-            _logger.LogDebug(JsonConvert.SerializeObject(courtRoomNoLocation));
+            Logger.LogDebug("Court rooms without a location: ");
+            Logger.LogDebug(JsonConvert.SerializeObject(courtRoomNoLocation));
 
-            await _db.LookupCode.UpsertRange(courtRooms)
+            await Db.LookupCode.UpsertRange(courtRooms)
                  .On(v => new { v.Type, v.Code, v.LocationId })
                  .WhenMatched((cr, crNew) => new ss.db.models.LookupCode
                  {
@@ -144,19 +142,19 @@ namespace SS.Api.services.JC
             //Any court rooms that aren't from this list, expire/disable for now. This is for CourtRooms that may have been deleted. 
             if (Expire)
             {
-                var disableCourtRooms = _db.LookupCode.WhereToList(lc =>
+                var disableCourtRooms = Db.LookupCode.WhereToList(lc =>
                     lc.ExpiryDate == null &&
                     lc.Type == LookupTypes.CourtRoom &&
                     !courtRooms.Any(cr => cr.Type == lc.Type && cr.Code == lc.Code && cr.LocationId == lc.LocationId));
 
                 foreach (var disableCourtRoom in disableCourtRooms)
                 {
-                    _logger.LogDebug($"Expiring CourtRoom {disableCourtRoom.Id}: {disableCourtRoom.Code}");
+                    Logger.LogDebug($"Expiring CourtRoom {disableCourtRoom.Id}: {disableCourtRoom.Code}");
                     disableCourtRoom.ExpiryDate = DateTime.UtcNow;
                     disableCourtRoom.UpdatedOn = DateTime.UtcNow;
                     disableCourtRoom.UpdatedById = User.SystemUser;
                 }
-                await _db.SaveChangesAsync();
+                await Db.SaveChangesAsync();
             }
         }
 
@@ -165,8 +163,8 @@ namespace SS.Api.services.JC
         {
             var regionDictionary = new Dictionary<int, ICollection<int>>();
             //RegionsRegionIdLocationsCodesAsync returns a LIST of locationIds.
-            foreach (var region in _db.Region)
-                regionDictionary[region.Id] = await _locationClient.RegionsRegionIdLocationsCodesAsync(region.JustinId.ToString());
+            foreach (var region in Db.Region)
+                regionDictionary[region.Id] = await LocationClient.RegionsRegionIdLocationsCodesAsync(region.JustinId.ToString());
 
             //Reverse the dictionary and flatten.
             var locationToRegion = new Dictionary<string, int>();
@@ -174,7 +172,7 @@ namespace SS.Api.services.JC
                 locationToRegion[locationId.ToString()] = region.Key;
 
             var locationWithoutRegion = new List<Location>();
-            var locations = await _locationClient.LocationsAsync(null, true, false);
+            var locations = await LocationClient.LocationsAsync(null, true, false);
             var locationsDb = locations.SelectToList(loc =>
             {
                 var regionId = locationToRegion.ContainsKey(loc.ShortDesc) ? locationToRegion[loc.ShortDesc] : null as int?;
@@ -188,8 +186,8 @@ namespace SS.Api.services.JC
 
             locationsDb = AssociateLocationToTimezone(locationsDb);
 
-            _logger.LogDebug("Locations without a region: ");
-            _logger.LogDebug(JsonConvert.SerializeObject(locationWithoutRegion));
+            Logger.LogDebug("Locations without a region: ");
+            Logger.LogDebug(JsonConvert.SerializeObject(locationWithoutRegion));
             return locationsDb;
         }
 

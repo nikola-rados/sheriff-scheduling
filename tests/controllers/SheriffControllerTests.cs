@@ -1,29 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using SS.Api.controllers.usermanagement;
-using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto;
 using SS.Api.services;
 using ss.db.models;
-using SS.Db.models;
-using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
-using SS.Api.Helpers.Extensions;
 using SS.Api.models.dto.generated;
+using SS.Api.services.usermanagement;
 
 namespace tests.controllers
 {
@@ -38,7 +28,7 @@ namespace tests.controllers
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
             var httpContextAccessor = new HttpContextAccessor {HttpContext = HttpResponseTest.SetupHttpContext()};
-            _controller = new SheriffController(new SheriffService(_dbContext, httpContextAccessor), new UserService(_dbContext), environment.Configuration)
+            _controller = new SheriffController(new SheriffService(Db, httpContextAccessor), new UserService(Db), environment.Configuration)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -62,10 +52,10 @@ namespace tests.controllers
             var sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
-            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddSheriff(sheriffDto));
             var sheriffResponse = response.Adapt<Sheriff>();
 
-            Assert.NotNull(await _dbContext.Sheriff.FindAsync(sheriffResponse.Id));
+            Assert.NotNull(await Db.Sheriff.FindAsync(sheriffResponse.Id));
         }
 
         [Fact]
@@ -86,10 +76,10 @@ namespace tests.controllers
             var sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
-            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.CreateSheriff(sheriffDto));
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddSheriff(sheriffDto));
             var sheriffResponse = response.Adapt<Sheriff>();
 
-            Assert.NotNull(await _dbContext.Sheriff.FindAsync(sheriffResponse.Id));
+            Assert.NotNull(await Db.Sheriff.FindAsync(sheriffResponse.Id));
 
             newSheriff.BadgeNumber = "554";
             sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
@@ -99,7 +89,7 @@ namespace tests.controllers
             try
             {
                 response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
-                    await _controller.CreateSheriff(sheriffDto));
+                    await _controller.AddSheriff(sheriffDto));
                 sheriffResponse = response.Adapt<Sheriff>();
             }
             catch (Exception e)
@@ -117,7 +107,7 @@ namespace tests.controllers
         {
             var sheriffObject = await CreateSheriffUsingDbContext();
 
-            var controllerResult = await _controller.FindSheriff(sheriffObject.Id);
+            var controllerResult = await _controller.GetSheriffForTeam(sheriffObject.Id);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             var sheriffResponse = response.Adapt<Sheriff>();
 
@@ -135,10 +125,10 @@ namespace tests.controllers
             var sheriffObject = await CreateSheriffUsingDbContext();
 
             var newLocation = new Location { Name = "5", Id = 5 , AgencyId = "645646464646464"};
-            await _dbContext.Location.AddAsync(newLocation);
+            await Db.Location.AddAsync(newLocation);
             var newLocation2 = new Location { Name = "6", Id = 6, AgencyId = "6456456464" };
-            await _dbContext.Location.AddAsync(newLocation2);
-            await _dbContext.SaveChangesAsync();
+            await Db.Location.AddAsync(newLocation2);
+            await Db.SaveChangesAsync();
 
             Detach();
 
@@ -182,7 +172,7 @@ namespace tests.controllers
 
             Detach();
 
-            var controllerResult2 = await _controller.FindSheriff(sheriffResponse.Id);
+            var controllerResult2 = await _controller.GetSheriffForTeam(sheriffResponse.Id);
             var response2 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.NotNull(response2.HomeLocation);
             Assert.Equal(6, response.HomeLocation.Id);
@@ -197,10 +187,10 @@ namespace tests.controllers
             var sheriffObject = await CreateSheriffUsingDbContext();
 
             var newLocation = new Location { Name = "New PLace", AgencyId = "545325345353"};
-            await _dbContext.Location.AddAsync(newLocation);
+            await Db.Location.AddAsync(newLocation);
             var newLocation2 = new Location { Name = "New PLace", AgencyId = "g435346346363"};
-            await _dbContext.Location.AddAsync(newLocation2);
-            await _dbContext.SaveChangesAsync();
+            await Db.Location.AddAsync(newLocation2);
+            await Db.SaveChangesAsync();
 
             var sheriffAwayLocation = new SheriffAwayLocationDto
             {
@@ -221,7 +211,7 @@ namespace tests.controllers
 
             Detach();
 
-            var controllerResult2 = await _controller.FindSheriff(sheriffObject.Id);
+            var controllerResult2 = await _controller.GetSheriffForTeam(sheriffObject.Id);
             var response2 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult2);
 
             Assert.True(response2.AwayLocation.Count == 1);
@@ -248,7 +238,7 @@ namespace tests.controllers
             var controllerResult4 = await _controller.RemoveSheriffAwayLocation(response.Id, "hello");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
-            var controllerResult6 = await _controller.FindSheriff(sheriffObject.Id);
+            var controllerResult6 = await _controller.GetSheriffForTeam(sheriffObject.Id);
             var response6 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult6);
             Assert.Empty(response6.AwayLocation);
         }
@@ -258,9 +248,9 @@ namespace tests.controllers
         {
             var sheriffObject = await CreateSheriffUsingDbContext();
             var newLocation = new Location { Name = "New PLace", AgencyId = "gfgdf43535345"};
-            await _dbContext.Location.AddAsync(newLocation);
+            await Db.Location.AddAsync(newLocation);
 
-            await _dbContext.SaveChangesAsync();
+            await Db.SaveChangesAsync();
 
             var lookupCode = new LookupCode
             {
@@ -268,7 +258,7 @@ namespace tests.controllers
                 Description = "gg",
                 LocationId = newLocation.Id
             };
-            await _dbContext.LookupCode.AddAsync(lookupCode);
+            await Db.LookupCode.AddAsync(lookupCode);
 
             var lookupCode2 = new LookupCode
             {
@@ -277,9 +267,9 @@ namespace tests.controllers
                 LocationId = newLocation.Id
             };
 
-            await _dbContext.LookupCode.AddAsync(lookupCode2);
+            await Db.LookupCode.AddAsync(lookupCode2);
 
-            await _dbContext.SaveChangesAsync();
+            await Db.SaveChangesAsync();
 
 
             var entity = new SheriffLeaveDto
@@ -299,7 +289,7 @@ namespace tests.controllers
             Assert.Equal(entity.StartDate, response.StartDate);
             Assert.Equal(entity.EndDate, response.EndDate);
 
-            var controllerResult2 = await _controller.FindSheriff(sheriffObject.Id);
+            var controllerResult2 = await _controller.GetSheriffForTeam(sheriffObject.Id);
             var response2 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult2);
 
             Assert.True(response2.Leave.Count == 1);
@@ -328,7 +318,7 @@ namespace tests.controllers
             var controllerResult4 = await _controller.RemoveSheriffLeave(updateSheriffLeave.Id, "expired");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
-            var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
+            var controllerResult5 = await _controller.GetSheriffForTeam(sheriffObject.Id);
             var response5 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult5);
             Assert.Empty(response5.Leave);
         }
@@ -339,9 +329,9 @@ namespace tests.controllers
             var sheriffObject = await CreateSheriffUsingDbContext();
 
             var newLocation = new Location { Name = "New PLace", AgencyId = "zfddf2342"};
-            await _dbContext.Location.AddAsync(newLocation);
+            await Db.Location.AddAsync(newLocation);
 
-            await _dbContext.SaveChangesAsync();
+            await Db.SaveChangesAsync();
 
             var lookupCode = new LookupCode
             {
@@ -349,7 +339,7 @@ namespace tests.controllers
                 Description = "gg",
                 LocationId = newLocation.Id
             };
-            await _dbContext.LookupCode.AddAsync(lookupCode);
+            await Db.LookupCode.AddAsync(lookupCode);
 
             var lookupCode2 = new LookupCode
             {
@@ -358,9 +348,9 @@ namespace tests.controllers
                 LocationId = newLocation.Id
             };
 
-            await _dbContext.LookupCode.AddAsync(lookupCode2);
+            await Db.LookupCode.AddAsync(lookupCode2);
 
-            await _dbContext.SaveChangesAsync();
+            await Db.SaveChangesAsync();
 
 
             var entity = new SheriffTrainingDto
@@ -397,7 +387,7 @@ namespace tests.controllers
             var controllerResult4 = await _controller.RemoveSheriffTraining(updateSheriffTraining.Id, "expired");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
-            var controllerResult5 = await _controller.FindSheriff(sheriffObject.Id);
+            var controllerResult5 = await _controller.GetSheriffForTeam(sheriffObject.Id);
             var response5 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult5);
             Assert.Empty(response5.Training);
         }
@@ -419,8 +409,8 @@ namespace tests.controllers
                 HomeLocation =  new Location { Name = "Teds Place", AgencyId = "5555555435353535353535353"},
             };
 
-            await _dbContext.Sheriff.AddAsync(newSheriff);
-            await _dbContext.SaveChangesAsync();
+            await Db.Sheriff.AddAsync(newSheriff);
+            await Db.SaveChangesAsync();
 
             Detach();
             
@@ -433,8 +423,8 @@ namespace tests.controllers
             var sheriffObject = await CreateSheriffUsingDbContext();
 
             var newLocation = new Location { Name = "New PLace" };
-            await _dbContext.Location.AddAsync(newLocation);
-            await _dbContext.SaveChangesAsync();
+            await Db.Location.AddAsync(newLocation);
+            await Db.SaveChangesAsync();
 
             Detach();
 
@@ -446,8 +436,8 @@ namespace tests.controllers
                 EndDate = DateTime.UtcNow.AddHours(3)
             };
 
-            await _dbContext.SheriffAwayLocation.AddAsync(sheriffAwayLocation);
-            await _dbContext.SaveChangesAsync();
+            await Db.SheriffAwayLocation.AddAsync(sheriffAwayLocation);
+            await Db.SaveChangesAsync();
 
             Detach();
 

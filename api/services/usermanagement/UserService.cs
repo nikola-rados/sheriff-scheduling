@@ -3,42 +3,37 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
-using SS.Api.Helpers.Extensions;
-using SS.Api.infrastructure.exceptions;
-using SS.Api.models.dto;
-using SS.Api.Models.Dto;
+using SS.Api.helpers.extensions;
 using SS.Db.models;
 using SS.Db.models.auth;
-using SS.Db.models.sheriff;
 
-namespace SS.Api.services
+namespace SS.Api.services.usermanagement
 {
     public class UserService
     {
-        private readonly SheriffDbContext _db;
+        private SheriffDbContext Db { get; }
         public UserService(SheriffDbContext sheriffDbContext)
         {
-            _db = sheriffDbContext;
+            Db = sheriffDbContext;
         }
         
         public async Task<User> DisableUser(Guid id)
         {
-            var user = await _db.User.FindAsync(id);
+            var user = await Db.User.FindAsync(id);
             user.ThrowBusinessExceptionIfNull($"User with the id: {id} could not be found. ");
 
             user.IsEnabled = false;
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
             return user;
         }
 
         public async Task<User> EnableUser(Guid id)
         {
-            var user = await _db.User.FindAsync(id);
+            var user = await Db.User.FindAsync(id);
             user.ThrowBusinessExceptionIfNull($"User with the id: {id} could not be found. ");
 
             user.IsEnabled = true;
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
             return user;
         }
 
@@ -46,10 +41,10 @@ namespace SS.Api.services
         {
             foreach (var assignRole in assignRoles)
             {
-                var user = await _db.User.FindAsync(assignRole.UserId);
+                var user = await Db.User.FindAsync(assignRole.UserId);
                 user.ThrowBusinessExceptionIfNull($"User with id {assignRole.UserId} does not exist.");
 
-                var role = await _db.Role.AsSingleQuery().Include(r => r.UserRoles).FirstOrDefaultAsync(r => r.Id == assignRole.RoleId);
+                var role = await Db.Role.AsSingleQuery().Include(r => r.UserRoles).FirstOrDefaultAsync(r => r.Id == assignRole.RoleId);
                 role.ThrowBusinessExceptionIfNull($"Role with id {assignRole.RoleId} does not exist.");
 
                 var savedUserRole = user.UserRoles.FirstOrDefault(ur =>
@@ -76,14 +71,14 @@ namespace SS.Api.services
                     });
                 }
             }
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
         }
 
         public async Task UnassignRoleFromUser(List<UserRole> unassignRoles)
         {
             foreach (var unassignRole in unassignRoles)
             {
-                var user = await _db.User.AsSingleQuery().Include(r => r.UserRoles).FirstOrDefaultAsync(u => u.Id == unassignRole.UserId);
+                var user = await Db.User.AsSingleQuery().Include(r => r.UserRoles).FirstOrDefaultAsync(u => u.Id == unassignRole.UserId);
                 user.ThrowBusinessExceptionIfNull($"User with id {unassignRole.UserId} does not exist.");
 
                 var userRole = user.UserRoles.FirstOrDefault(r => r.UserId == unassignRole.UserId && r.RoleId == unassignRole.RoleId);
@@ -93,7 +88,7 @@ namespace SS.Api.services
                     userRole.ExpiryReason = unassignRole.ExpiryReason;
                 }
             }
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
         }
     }
 }

@@ -1,13 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SS.Api.Models.Dto;
-using SS.Api.services;
+﻿using SS.Api.services;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using JCCommon.Clients.LocationServices;
 using SS.Api.controllers;
 using SS.Api.Models.DB;
-using SS.Db.models;
+using SS.Api.models.dto.generated;
 using SS.Db.models.lookupcodes;
 using tests.api.helpers;
 using tests.api.Helpers;
@@ -27,7 +24,7 @@ namespace tests.controllers
         public ManageTypesControllerTests() : base(true)
         {
             var locationServices = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            _controller = new ManageTypesController(new ManageTypesService(_dbContext, new LocationServicesClient(locationServices.HttpClient)))
+            _controller = new ManageTypesController(new ManageTypesService(Db, new LocationServicesClient(locationServices.HttpClient)))
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -62,8 +59,8 @@ namespace tests.controllers
         public async Task UpdateLookupCode()
         {
             var newLocation = new Location { Name = "6", Id = 6 };
-            await _dbContext.Location.AddAsync(newLocation);
-            await _dbContext.SaveChangesAsync();
+            await Db.Location.AddAsync(newLocation);
+            await Db.SaveChangesAsync();
 
             Detach();
 
@@ -112,8 +109,8 @@ namespace tests.controllers
         public async Task LocationTest()
         {
             var newLocation = new Location { Name = "5", Id = 5 };
-            await _dbContext.Location.AddAsync(newLocation);
-            await _dbContext.SaveChangesAsync();
+            await Db.Location.AddAsync(newLocation);
+            await Db.SaveChangesAsync();
 
             Detach();
 

@@ -9,28 +9,31 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using SS.Api.Helpers;
+using SS.Api.helpers;
 using SS.Api.helpers.extensions;
-using SS.Api.Helpers.Extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.services;
+using SS.Db.models;
 
 namespace SS.Api.Controllers
 {
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly bool _isImpersonated;
-        private readonly ChesEmailService _emailService;
+        private bool IsImpersonated { get; }
+        private ChesEmailService ChesEmailService { get; }
         private IConfiguration Configuration { get; }
-        public AuthController(IWebHostEnvironment env, IConfiguration configuration, ChesEmailService emailService)
+        private SheriffDbContext Db { get; }
+        public AuthController(IWebHostEnvironment env, IConfiguration configuration, ChesEmailService chesEmailService, SheriffDbContext db)
         {
             Configuration = configuration;
-            _emailService = emailService;
-            _isImpersonated = env.IsDevelopment() &&
+            ChesEmailService = chesEmailService;
+            IsImpersonated = env.IsDevelopment() &&
                               configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
+            Db = db;
         }
         /// <summary>
         /// This cannot be called from AJAX or SWAGGER. It must be loaded in the browser location, because it brings the user to the SSO page. 
@@ -39,8 +42,18 @@ namespace SS.Api.Controllers
         /// <returns></returns>
         [Authorize(AuthenticationSchemes = OpenIdConnectDefaults.AuthenticationScheme)]
         [HttpGet("login")]
-        public IActionResult Login(string redirectUri = "/api")
+        public async Task<IActionResult> Login(string redirectUri = "/api")
         {
+            //This was moved from claims, because it is only hit once (versus multiple times for GenerateClaims).
+            var idirId = User.Claims.GetIdirId();
+            var idirName = User.Claims.GetIdirUserName();
+            var user = await Db.User.FirstOrDefaultAsync(u => u.IdirId == idirId || !u.IdirId.HasValue && u.IdirName == idirName);
+            if (user == null) 
+                return Redirect(redirectUri);
+            user.IdirId ??= idirId;
+            user.KeyCloakId = User.Claims.GetKeyCloakId();
+            user.LastLogin = DateTimeOffset.UtcNow;
+            await Db.SaveChangesAsync();
             return Redirect(redirectUri);
         }
 
@@ -64,7 +77,7 @@ namespace SS.Api.Controllers
 
             var requestAccessEmailAddress = Configuration.GetNonEmptyValue("RequestAccessEmailAddress");
 
-            await _emailService.SendEmail(emailString,
+            await ChesEmailService.SendEmail(emailString,
                 "Access Request", requestAccessEmailAddress);
             return NoContent();
         }
@@ -95,7 +108,7 @@ namespace SS.Api.Controllers
             var permissions = HttpContext.User.FindAll(CustomClaimTypes.Permission).SelectToList(r => r.Value);
             var userId = HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value;
             var homeLocationId = HttpContext.User.FindFirst(CustomClaimTypes.HomeLocationId)?.Value;
-            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, IsImpersonated = _isImpersonated, DateTime.UtcNow });
+            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, IsImpersonated = IsImpersonated, DateTime.UtcNow });
         }
     }
 }

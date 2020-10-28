@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SS.Api.Helpers.Extensions
+namespace SS.Api.helpers.extensions
 {
     public static class ListExtensions
     {
@@ -16,5 +16,6 @@ namespace SS.Api.Helpers.Extensions
             return target.Where(lambda).ToList();
         }
 
+        public static string ListToStringWithPipes(this List<string> contents) => string.Join("||", contents);
     }
 }

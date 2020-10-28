@@ -2,16 +2,13 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http;
-using SS.Api.Helpers;
-using SS.Api.Helpers.Extensions;
-using SS.Api.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.InMemory;
 using Microsoft.Extensions.Options;
 using Moq;
-using SS.Api.models;
-using SS.Api.Models.DB;
+using SS.Api.helpers;
+using SS.Api.helpers.extensions;
 using SS.Db.models;
+using BasicAuthenticationHeaderValue = SS.Api.helpers.BasicAuthenticationHeaderValue;
 
 namespace tests.api.Helpers
 {
@@ -37,7 +34,7 @@ namespace tests.api.Helpers
 
             if (usernameKey != null && passwordKey != null && urlKey != null)
             {
-                HttpClient.DefaultRequestHeaders.Authorization = new SS.Api.models.BasicAuthenticationHeaderValue(
+                HttpClient.DefaultRequestHeaders.Authorization = new BasicAuthenticationHeaderValue(
                     Configuration.GetNonEmptyValue(usernameKey),
                     Configuration.GetNonEmptyValue(passwordKey));
 

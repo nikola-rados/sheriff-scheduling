@@ -7,14 +7,15 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SS.Api.Helpers;
-using SS.Api.Helpers.Extensions;
+using SS.Api.helpers;
+using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.Models;
 using SS.Api.models.ches;
 using SS.Api.services;
-using SS.Api.services.JC;
-using BasicAuthenticationHeaderValue = SS.Api.models.BasicAuthenticationHeaderValue;
+using SS.Api.services.jc;
+using SS.Api.services.scheduling;
+using SS.Api.services.usermanagement;
+using BasicAuthenticationHeaderValue = SS.Api.helpers.BasicAuthenticationHeaderValue;
 
 namespace SS.Api.infrastructure
 {
@@ -56,9 +57,9 @@ namespace SS.Api.infrastructure
             services.AddScoped<RoleService>();
             services.AddScoped<UserService>();
             services.AddScoped<SheriffService>();
-            services.AddScoped<ScheduleService>();
+            services.AddScoped<ShiftService>();
+            services.AddScoped<AssignmentService>();
             services.AddScoped<JCDataUpdaterService>();
-      
 
             services.AddHostedService<TimedDataUpdaterService>();
 

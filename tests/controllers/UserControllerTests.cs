@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using SS.Api.controllers.usermanagement;
 using SS.Api.models.dto;
 using SS.Api.services;
+using SS.Api.services.usermanagement;
 using SS.Db.models.auth;
 using tests.api.helpers;
 using tests.api.Helpers;
@@ -27,7 +28,7 @@ namespace tests.controllers
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
             var httpContextAccessor = new HttpContextAccessor { HttpContext = HttpResponseTest.SetupHttpContext() };
-            _controller = new SheriffController(new SheriffService(_dbContext, httpContextAccessor), new UserService(_dbContext), environment.Configuration)
+            _controller = new SheriffController(new SheriffService(Db, httpContextAccessor), new UserService(Db), environment.Configuration)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -42,13 +43,13 @@ namespace tests.controllers
             var controllerResult = await _controller.AssignRoles(new List<AssignRoleDto> {new AssignRoleDto { UserId = user.Id, RoleId = role.Id, EffectiveDate = DateTimeOffset.UtcNow }});
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
-            var entity = await _dbContext.User.FindAsync(user.Id);
+            var entity = await Db.User.FindAsync(user.Id);
             Assert.True(entity.UserRoles.Count > 0);
 
             controllerResult = await _controller.UnassignRoles(new List<UnassignRoleDto> { new UnassignRoleDto { UserId = user.Id, RoleId = role.Id } });
             HttpResponseTest.CheckForNoContentResponse(controllerResult);
 
-            entity = await _dbContext.User.FindAsync(user.Id);
+            entity = await Db.User.FindAsync(user.Id);
             Assert.True(entity.UserRoles.Count > 0);
             Assert.NotNull(entity.UserRoles.FirstOrDefault().ExpiryDate);
         }
@@ -63,7 +64,7 @@ namespace tests.controllers
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
 
-            var dbSheriff = await _dbContext.User.FindAsync(userObject.Id);
+            var dbSheriff = await Db.User.FindAsync(userObject.Id);
             Assert.NotNull(dbSheriff);
             Assert.True(dbSheriff.IsEnabled);
         }
@@ -76,7 +77,7 @@ namespace tests.controllers
             var controllerResult = await _controller.DisableUser(userObject.Id);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
-            var dbSheriff = await _dbContext.User.FindAsync(response.Id);
+            var dbSheriff = await Db.User.FindAsync(response.Id);
             Assert.NotNull(dbSheriff);
             Assert.False(dbSheriff.IsEnabled);
         }
@@ -88,8 +89,8 @@ namespace tests.controllers
                 Description = "The big boss",
                 Name = "BigBoss"
             };
-            await _dbContext.Role.AddAsync(newRole);
-            await _dbContext.SaveChangesAsync();
+            await Db.Role.AddAsync(newRole);
+            await Db.SaveChangesAsync();
             return newRole;
         }
 
@@ -104,8 +105,8 @@ namespace tests.controllers
                 IdirName = "ted@fakeidir"
             };
 
-            await _dbContext.User.AddAsync(newUser);
-            await _dbContext.SaveChangesAsync();
+            await Db.User.AddAsync(newUser);
+            await Db.SaveChangesAsync();
             return newUser;
         }
 
