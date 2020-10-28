@@ -13,9 +13,9 @@ namespace SS.Api.models.dto.generated
         public string Description { get; set; }
         public DateTimeOffset? EffectiveDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
-        public int? SortOrder { get; set; }
         public LocationDto Location { get; set; }
         public int? LocationId { get; set; }
         public uint ConcurrencyToken { get; set; }
+        public LookupSortOrderDto SortOrderForLocation { get; set; }
     }
 }

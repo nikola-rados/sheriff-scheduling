@@ -79,25 +79,11 @@ namespace SS.Api.services.scheduling
 
             if (savedShifts.Count() != shiftIds.Count)
                 throw new BusinessLayerException("Couldn't find all shift ids provided.");
-          
-            //Multiple shift overlap checking
 
+            //Check they don't overlap with themselves.
+            //Check they don't overlap with other shifts. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-            foreach (var savedShift in savedShifts)
-                savedShift.Sheriff = savedSheriff;
-
+            await savedShifts.ForEachAsync(s => s.Sheriff = savedSheriff);
             await Db.SaveChangesAsync();
         }
 
@@ -129,15 +115,15 @@ namespace SS.Api.services.scheduling
             var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone!];
 
             //We need to adjust to their start of the week, because it can differ depending on the TZ! 
-            var startOfWeekInTz = Instant.FromDateTimeOffset(copyLastMondayStart).InZone(locationTimeZone);
-            var endOfWeekInTz = Instant.FromDateTimeOffset(copyThisMondayEnd).InZone(locationTimeZone);
-
-            var targetStartDate = startOfWeekInTz.ToDateTimeOffset();
-            var targetEndDate = endOfWeekInTz.ToDateTimeOffset();
+            var targetStartDate = Instant.FromDateTimeOffset(copyLastMondayStart).InZone(locationTimeZone).ToDateTimeOffset();
+            var targetEndDate = Instant.FromDateTimeOffset(copyThisMondayEnd).InZone(locationTimeZone).ToDateTimeOffset();
 
             var shiftsToImport = Db.Shift
-                .Include(s=> s.Location).AsNoTracking().Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
-                                !(s.StartDate > targetEndDate || targetStartDate > s.EndDate));
+                .Include(s => s.Location)
+                .AsNoTracking()
+                .Where(s => s.LocationId == locationId &&
+                            s.ExpiryDate == null &&
+                            !(s.StartDate > targetEndDate || targetStartDate > s.EndDate));
 
             var importedShifts = new List<Shift>();
             foreach (var importShift in shiftsToImport)
@@ -147,8 +133,8 @@ namespace SS.Api.services.scheduling
                 shift.Duties = new List<Duty>();
                 shift.SheriffId = includeSheriffs ? shift.SheriffId : null;
                 shift.LocationId = importShift.LocationId;
-                shift.StartDate = TranslateDateIfDaylightSavings(shift.StartDate, timezone, 7).ToDateTimeOffset();
-                shift.EndDate = TranslateDateIfDaylightSavings(shift.StartDate, timezone, 7).ToDateTimeOffset();
+                shift.StartDate = shift.StartDate.TranslateDateIfDaylightSavings(timezone, 7);
+                shift.EndDate = shift.EndDate.TranslateDateIfDaylightSavings(timezone, 7);
                 await Db.Shift.AddAsync(shift);
                 importedShifts.Add(shift);
             }
@@ -164,33 +150,23 @@ namespace SS.Api.services.scheduling
 
         public async Task<string> CheckForConflictForSingleShift(DateTimeOffset start, DateTimeOffset end, Guid sheriffId)
         {
-            var conflictingShift = await Db.Shift.AsNoTracking().AsSingleQuery()
-                .Include(s=> s.Location)
-                .FirstOrDefaultAsync(s => !(s.StartDate > end || start > s.EndDate)
-                                          && s.ExpiryDate == null &&
+            var conflictingShift = await Db.Shift.AsNoTracking()
+                .AsSingleQuery()
+                .Include(s => s.Location)
+                .FirstOrDefaultAsync(s => !(s.StartDate > end || start > s.EndDate) &&
+                                          s.ExpiryDate == null &&
                                           s.SheriffId == sheriffId);
 
-            if (conflictingShift == null) return null;
-            var conflictingSheriff = await Db.Sheriff.AsNoTracking().FirstAsync(s => s.Id == sheriffId);
+            if (conflictingShift == null)
+                return null;
+
+            var conflictingSheriff = await Db.Sheriff.AsNoTracking()
+                .AsSingleQuery()
+                .FirstAsync(s => s.Id == sheriffId);
+
             return ConflictingSheriffAndSchedule(conflictingSheriff, conflictingShift);
         }
 
-        public ZonedDateTime TranslateDateIfDaylightSavings(DateTimeOffset date, string timezone, int daysToShift)
-        {
-            var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone];
-
-            var instant = Instant.FromDateTimeOffset(date);
-            var zoned = instant.InZone(locationTimeZone);
-            var movedZoned = zoned.Plus(Duration.FromDays(daysToShift));
-
-            if (movedZoned.Offset > zoned.Offset)
-                movedZoned =
-                    movedZoned.PlusHours(zoned.Offset.ToTimeSpan().Hours - movedZoned.Offset.ToTimeSpan().Hours);
-            else if (movedZoned.Offset < zoned.Offset)
-                movedZoned =
-                    movedZoned.PlusHours(movedZoned.Offset.ToTimeSpan().Hours - zoned.Offset.ToTimeSpan().Hours);
-            return movedZoned;
-        }
 
         #endregion
     }

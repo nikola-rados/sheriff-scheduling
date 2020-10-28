@@ -20,5 +20,6 @@ namespace SS.Db.models.scheduling
         public int? AssignmentId { get; set; }
         public Shift Shift { get; set; }
         public int ShiftId { get; set; }
+        public string Timezone { get; set; }
     }
 }

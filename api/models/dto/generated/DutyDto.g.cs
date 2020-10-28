@@ -15,6 +15,7 @@ namespace SS.Api.models.dto.generated
         public int? AssignmentId { get; set; }
         public ShiftDto Shift { get; set; }
         public int ShiftId { get; set; }
+        public string Timezone { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
