@@ -12,10 +12,11 @@ namespace SS.Db.configuration
             builder.HasOne(b => b.Location).WithMany().HasForeignKey(m => m.LocationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasOne(b => b.LookupCode).WithMany().HasForeignKey(m => m.LookupCodeId)
-                .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(b => b.LookupCode).WithMany(a => a.SortOrder).OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasIndex(b => b.LookupType);
+            builder.HasIndex(lc => new { lc.LookupCodeId, lc.LocationId }).IsUnique();
+
+            builder.HasIndex(b => b.LookupCodeId);
 
             base.Configure(builder);
         }

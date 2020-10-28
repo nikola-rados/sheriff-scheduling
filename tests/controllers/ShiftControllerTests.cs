@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NodaTime;
 using SS.Api.controllers.scheduling;
 using SS.Api.controllers.usermanagement;
 using SS.Api.helpers.extensions;
+using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
@@ -71,7 +73,7 @@ namespace tests.controllers
         {
             var shiftDto = await CreateShift();
             var sheriffId = Guid.NewGuid();
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId });
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There"});
             await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = 1 });
             await Db.SaveChangesAsync();
 
@@ -96,7 +98,14 @@ namespace tests.controllers
             Assert.Equal(5, updatedShift.AnticipatedAssignmentId);
             Assert.Equal(sheriffId, updatedShift.SheriffId);
 
-            //TODO check for conflicts.
+            //Create the same shift, without sheriff, should conflict.
+            shiftDto.SheriffId = null;
+            shiftDto.StartDate = DateTimeOffset.UtcNow.AddDays(5);
+            shiftDto.EndDate = DateTimeOffset.UtcNow.AddDays(6);
+            shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
+
+            shift.SheriffId = sheriffId;
+            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShift(shift));
         }
 
         [Fact]
@@ -107,7 +116,7 @@ namespace tests.controllers
             await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz" });
             await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId });
 
-            //Two shifts.
+            //Two shifts no conflicts.
             await Db.Shift.AddAsync(new Shift { Id = 1, StartDate = DateTimeOffset.UtcNow, EndDate = DateTimeOffset.UtcNow.AddHours(2), LocationId = 1 });
             await Db.Shift.AddAsync(new Shift { Id = 2, StartDate = DateTimeOffset.UtcNow.AddHours(1), EndDate = DateTimeOffset.UtcNow.AddHours(2), LocationId = 1 });
             await Db.SaveChangesAsync();
@@ -117,7 +126,15 @@ namespace tests.controllers
             HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
                 await ShiftController.AssignToShifts(shifts, sheriffId, false));
 
-            //TODO check for conflicts.
+            //Two new shifts, should conflict now. 
+            shifts = new List<int> { 3, 4 };
+
+            await Db.Shift.AddAsync(new Shift { Id = 3, StartDate = DateTimeOffset.UtcNow, EndDate = DateTimeOffset.UtcNow.AddHours(2), LocationId = 1 });
+            await Db.Shift.AddAsync(new Shift { Id = 4, StartDate = DateTimeOffset.UtcNow.AddHours(1), EndDate = DateTimeOffset.UtcNow.AddHours(2), LocationId = 1 });
+            await Db.SaveChangesAsync();
+
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
+                await ShiftController.AssignToShifts(shifts, sheriffId, false));
         }
 
         [Fact]
@@ -138,15 +155,20 @@ namespace tests.controllers
             var sheriffId = Guid.NewGuid();
             var shiftDto = await CreateShift();
             await Db.Sheriff.AddAsync(new Sheriff {Id = sheriffId});
-            shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6);
-            shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5);
+            shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6); //Last week monday
+            shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5); //Last week tuesday
             shiftDto.SheriffId = sheriffId;
 
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
 
-
-            var res = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
+            var importedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
                 await ShiftController.ImportWeeklyShifts(1, true));
+
+            Assert.NotNull(importedShifts);
+            var importedShift = importedShifts.First();
+            Assert.Equal(shiftDto.StartDate.AddDays(7),importedShift.StartDate); //This week monday
+            Assert.Equal(shiftDto.EndDate.AddDays(7), importedShift.EndDate); //This week monday
+            Assert.Equal(shiftDto.SheriffId, importedShift.SheriffId);
         }
 
         [Fact]
@@ -166,7 +188,7 @@ namespace tests.controllers
         {
             var sheriffId = Guid.NewGuid();
             await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz", Timezone = "America/Vancouver"});
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId });
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "First", LastName = "Sheriff"});
             await Db.SaveChangesAsync();
 
             var shiftDto = new ShiftDto

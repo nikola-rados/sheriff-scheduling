@@ -18,5 +18,6 @@ namespace SS.Db.models
         [AdaptIgnore]
         public virtual Sheriff Sheriff { get; set; }
         public string Comment { get; set; }
+        public string Timezone { get; set; }
     }
 }

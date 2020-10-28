@@ -70,7 +70,7 @@ namespace SS.Api.helpers.extensions
         /// <exception type="BusinessLayerException">message</exception>
         public static T ThrowBusinessExceptionIfNotNull<T>(this T value, string message) where T : class
         {
-            return value ?? throw new BusinessLayerException(message);
+            return value != null ? throw new BusinessLayerException(message) : (T) null;
         }
 
         public static T ThrowBusinessExceptionIfEmpty<T>(this T value, string message) where T : class

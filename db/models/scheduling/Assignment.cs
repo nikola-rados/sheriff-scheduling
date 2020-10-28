@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
 using ss.db.models;
+using SS.Db.models.lookupcodes;
 
 namespace SS.Db.models.scheduling
 {
@@ -13,9 +13,13 @@ namespace SS.Db.models.scheduling
     {
         [Key]
         public int Id { get; set; }
+        public LookupTypes AssignmentType { get; set; }
+        public LookupCode LookupCode { get; set; } 
+        public int? LookupCodeId { get; set; }
+        public DateTimeOffset? StartDate { get; set; }
+        public DateTimeOffset? EndDate { get; set; }
+        public string Timezone { get; set; }
         public string Name { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
         public bool Monday { get; set; }
         public bool Tuesday { get; set; }
         public bool Wednesday { get; set; }
@@ -25,7 +29,6 @@ namespace SS.Db.models.scheduling
         public bool Sunday { get; set; }
         public Location Location { get; set; }
         public int LocationId { get; set; }
-        public int NumberOfSheriffs { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string ExpiryReason { get; set; }
 

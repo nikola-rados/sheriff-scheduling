@@ -21,6 +21,8 @@ namespace SS.Api.services.scheduling
         {
             //Order by managed types?
             return await Db.Assignment.Where(a => a.LocationId == locationId && a.ExpiryDate == null).ToListAsync();
+
+            //Order by Courtrooms, SubOrder, CourtRoles, SubOrder, JailRoles, SubOrder, EscortRuns, SubOrder, OtherAssignments
         }
 
         public async Task<Assignment> CreateAssignment(Assignment assignment)

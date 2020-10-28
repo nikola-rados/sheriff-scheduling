@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SS.DB.Configuration;
 using ss.db.models;
@@ -20,6 +17,9 @@ namespace SS.Db.configuration
 
             builder.HasOne(b => b.Location).WithMany().HasForeignKey(lc => lc.LocationId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasMany(b => b.SortOrder).WithOne(a=> a.LookupCode).HasForeignKey(lc => lc.LookupCodeId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasData(
                 new LookupCode { CreatedById = User.SystemUser, Id = 1, Code = "Chief Sheriff", Description = "Chief Sheriff", Type = LookupTypes.SheriffRank },
