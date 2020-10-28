@@ -12,7 +12,7 @@ const sortAssignmentType: DirectiveOptions = {
             sort: true,
 
             onEnd: function(evt: any) {
-                store.commit('ManageTypesInformation/setSortingInfo',{prvIndex: evt.oldIndex, newIndex: evt.newIndex} );
+                store.commit('ManageTypesInformation/setSortingAssignmentInfo',{prvIndex: evt.oldIndex, newIndex: evt.newIndex} );
             }
         })
     }

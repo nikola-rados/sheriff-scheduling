@@ -101,7 +101,7 @@
     import PageHeader from "@components/common/PageHeader.vue"; 
     import AddAssignmentForm from "../ManageTypes/AddAssignmentForm.vue"
     import {locationInfoType} from '../../types/common'; 
-    import {assignmentTypeInfoType}  from '../../types/Assignment/index'
+    import {assignmentTypeInfoType}  from '../../types/ManageTypes/index'
     import * as _ from 'underscore';
     import sortAssignmentType from './utils/sortAssignmentType';
     
@@ -257,7 +257,8 @@
         }
 
         public saveAssignment(body, iscreate){
-            this.assignmentError = false; 
+            this.assignmentError = false;
+            console.log(body) 
             // body['sheriffId']= this.userToEdit.id;
             // const method = iscreate? 'post' :'put';            
             // const url = 'api/sheriff/training'  

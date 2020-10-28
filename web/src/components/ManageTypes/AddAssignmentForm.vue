@@ -20,16 +20,8 @@
                             <label class="h6 ml-1 mb-0 pb-0" > Location specification: </label> 
                             <b-form-select
                                 size = "sm"
-                                v-model="selectedLocationScope">
-                                <b-form-select-option
-                                    value="{}">
-                                    Province
-                                </b-form-select-option>
-                                <b-form-select-option
-                                    value="location">
-                                    {{location.name}}
-                                </b-form-select-option>
-
+                                v-model="selectedLocationScope"
+                                :options ="locationSpecifics">
                             </b-form-select>
                         </b-form-group>                                            
                     </b-td>
@@ -73,7 +65,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {assignmentTypeInfoType}  from '../../types/Assignment/index';
+    import {assignmentTypeInfoType}  from '../../types/ManageTypes/index';
     import {locationInfoType} from '../../types/common'; 
     
     import { namespace } from 'vuex-class';
@@ -99,16 +91,24 @@
         selectedAssignment = '';
         assignmentState = true;
 
-        originalLocationScope = {};
-        selectedLocationScope = {};  
+        originalLocationScope = -1;
+        selectedLocationScope = -1;  
         
 
         formDataId = 0;
         showCancelWarning = false;
+
+        locationSpecifics = [
+            {value: -1, text: 'Province'}
+        ]
         
         mounted()
         { 
             this.clearSelections();
+
+            this.locationSpecifics = [{value: -1, text: 'Province'}]
+            this.locationSpecifics.push({value:this.location.id, text:this.location.name})
+            this.selectedLocationScope = this.location.id;
 
             console.log(this.formData)
             if(this.formData.id) {
@@ -119,31 +119,28 @@
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
             this.originalAssignment = this.selectedAssignment = this.formData.code            
-            this.originalLocationScope = this.selectedLocationScope =  (this.formData.locationId == this.location.id) ? this.location : {};
+            this.originalLocationScope = this.selectedLocationScope =  (this.formData.locationId == this.location.id) ? this.location.id : -1;
 
             console.log(this.formDataId)
             console.log(this.originalAssignment)
             console.log(this.originalLocationScope)
         }
 
-       
+        public saveForm(){                
+            this.assignmentState   = true;
 
-        public saveForm(){
-                
-                this.assignmentState   = true;
+            if(!this.selectedAssignment ){
+                this.assignmentState  = false;
+            }else{
+                this.assignmentState  = true;
 
-                if(!this.selectedAssignment ){
-                    this.assignmentState  = false;
-                }else{
-                    this.assignmentState  = true;
-
-                    const body = {
-                        code: this.selectedAssignment,
-                        locationId: this.selectedLocationScope,
-                        id: this.formDataId
-                    } 
-                    this.$emit('submit', body, this.isCreate);                  
-                }
+                const body = {
+                    code: this.selectedAssignment,
+                    locationId: this.selectedLocationScope == -1 ? null: this.selectedLocationScope,
+                    id: this.formDataId
+                } 
+                this.$emit('submit', body, this.isCreate);                  
+            }
         }
 
         public closeForm(){
@@ -156,7 +153,7 @@
         public isChanged(){
             if(this.isCreate){
                 if( this.selectedAssignment ||
-                    this.selectedLocationScope) return true;
+                    this.selectedLocationScope == -1) return true;
                 return false;
             }else{
                 if( (this.originalAssignment != this.selectedAssignment)|| 
@@ -172,7 +169,7 @@
 
         public clearSelections(){
             this.selectedAssignment = '';
-            this.selectedLocationScope = '';
+            this.selectedLocationScope = -1;
             this.assignmentState = true;            
         }
 
