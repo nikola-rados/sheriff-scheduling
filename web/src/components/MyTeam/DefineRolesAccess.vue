@@ -9,17 +9,8 @@
             </b-col>
         </b-row>
 
-        <b-card bg-variant="light" v-if= "!isRolesDataMounted" >
-            <b-overlay :show= "true"> 
-                <b-card  style="min-height: 100px;"/>                   
-                <template v-slot:overlay>               
-                <div> 
-                    <loading-spinner/> 
-                    <p id="loading-label">Loading ...</p>
-                </div>                
-                </template> 
-            </b-overlay> 
-        </b-card>
+        <loading-spinner v-if= "!isRolesDataMounted" />
+            
         <b-card v-else bg-variant="light">
 
             <b-card no-body border-variant="white" bg-variant="white" v-if="!roleData.length">

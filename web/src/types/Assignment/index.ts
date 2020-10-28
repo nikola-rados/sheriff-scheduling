@@ -10,3 +10,12 @@ export interface placeHolderInfoType {
     "Index": number
 }
 
+export interface assignmentTypeInfoType {
+    code: string;
+    concurrencyToken?: number;
+    id: number;
+    locationId: number;
+    type: string;
+    sortOrder: number;
+}
+

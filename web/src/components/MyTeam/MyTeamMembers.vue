@@ -37,17 +37,7 @@
             </b-col>
         </b-row>
 
-        <b-card bg-variant="light" v-if= "!isMyTeamDataMounted" >
-            <b-overlay :show= "true"> 
-                <b-card  style="min-height: 100px;"/>                   
-                <template v-slot:overlay>               
-                <div> 
-                    <loading-spinner/> 
-                    <p id="loading-label">Loading ...</p>
-                </div>                
-                </template> 
-            </b-overlay> 
-        </b-card>        
+        <loading-spinner v-if= "!isMyTeamDataMounted" />
 
         <div v-else class="container mb-5" style="float: left;" id="app">
             <div class="row" :key="photokey">
