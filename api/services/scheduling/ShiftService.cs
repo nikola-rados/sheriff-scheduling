@@ -80,8 +80,8 @@ namespace SS.Api.services.scheduling
             if (savedShifts.Count() != shiftIds.Count)
                 throw new BusinessLayerException("Couldn't find all shift ids provided.");
 
-            //Check they don't overlap with themselves.
-            //Check they don't overlap with other shifts. 
+            //Ensure the shifts don't overlap with themselves.
+            //Ensure the shifts don't overlap with other shifts. 
 
             await savedShifts.ForEachAsync(s => s.Sheriff = savedSheriff);
             await Db.SaveChangesAsync();
@@ -110,13 +110,11 @@ namespace SS.Api.services.scheduling
             var timezone = location?.Timezone;
             timezone.ThrowBusinessExceptionIfNull("Timezone was null.");
 
-            var copyLastMondayStart = DateTime.Today.AddDays(-(int) DateTime.Now.DayOfWeek - 6);
-            var copyThisMondayEnd = copyLastMondayStart.AddDays(7);
-            var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone!];
+            var lastMondayStart = new DateTimeOffset(DateTime.Today.AddDays(-(int) DateTime.Now.DayOfWeek - 6), TimeSpan.Zero);
 
             //We need to adjust to their start of the week, because it can differ depending on the TZ! 
-            var targetStartDate = Instant.FromDateTimeOffset(copyLastMondayStart).InZone(locationTimeZone).ToDateTimeOffset();
-            var targetEndDate = Instant.FromDateTimeOffset(copyThisMondayEnd).InZone(locationTimeZone).ToDateTimeOffset();
+            var targetStartDate = lastMondayStart.ConvertToTimezone(timezone);
+            var targetEndDate = lastMondayStart.TranslateDateIfDaylightSavings(timezone, 7);
 
             var shiftsToImport = Db.Shift
                 .Include(s => s.Location)
@@ -153,7 +151,7 @@ namespace SS.Api.services.scheduling
             var conflictingShift = await Db.Shift.AsNoTracking()
                 .AsSingleQuery()
                 .Include(s => s.Location)
-                .FirstOrDefaultAsync(s => !(s.StartDate > end || start > s.EndDate) &&
+                .FirstOrDefaultAsync(s => (s.StartDate < end && start < s.EndDate) &&
                                           s.ExpiryDate == null &&
                                           s.SheriffId == sheriffId);
 
