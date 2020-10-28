@@ -27,13 +27,16 @@
             <b-card id="AssignmentError" no-body>
                 <h2 v-if="assignmentError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="assignmentErrorMsgDesc"  variant="danger"> {{assignmentErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="assignmentError = false" /></b-badge></h2>
             </b-card>
-            <b-card  v-if="!addNewAssignmentForm">                
-                <b-button size="sm" variant="success" @click="addNewAssignment"> <b-icon icon="plus" /> Add </b-button>
-            </b-card>
 
-            <b-card v-if="addNewAssignmentForm" id="addAssignmentForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
-                <add-assignment-form :type="selectedAssignmentType.label" :formData="{}" :isCreate="true" v-on:submit="saveAssignment" v-on:cancel="closeAssignmentForm" />              
-            </b-card>
+            <div v-if="selectedAssignmentType.name != 'CourtRoom'">
+                <b-card  v-if="!addNewAssignmentForm">                
+                    <b-button size="sm" variant="success" @click="addNewAssignment"> <b-icon icon="plus" /> Add </b-button>
+                </b-card>
+
+                <b-card v-else id="addAssignmentForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
+                    <add-assignment-form :type="selectedAssignmentType.label" :formData="{}" :isCreate="true" v-on:submit="saveAssignment" v-on:cancel="closeAssignmentForm" />              
+                </b-card>
+            </div>
 
             <div>
                 <b-card no-body border-variant="white" bg-variant="white" v-if="!assignmentList.length" style="width: 50rem; margin: 0 auto 8rem auto">
@@ -73,7 +76,7 @@
 
                             <template v-slot:cell(edit)="data" >                                       
                                 <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDelete(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="selectedAssignmentType.name != 'CourtRoom'" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -134,6 +137,8 @@
         addNewAssignmentForm = false;
         addFormColor = 'dark';
         updateTable =0;
+
+        sortIndex = 0;
 
         assignmentList: assignmentTypeInfoType[] = [];
         selectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
@@ -199,7 +204,7 @@
         public extractAssignments(assignmentsJson) {
 
             this.assignmentList = [];
-            let sortIndex = assignmentsJson.length? assignmentsJson.length : 0;
+            this.sortIndex = assignmentsJson.length? assignmentsJson.length : 0;
             for(const assignmentJson of assignmentsJson)
             {
                 if(assignmentJson.locationId == this.location.id)
@@ -208,11 +213,13 @@
                     assignment.id = assignmentJson.id;
                     assignment.code = assignmentJson.code;
                     assignment.locationId = assignmentJson.locationId;
-                    assignment.sortOrder = assignmentJson.sortOrder?assignmentJson.sortOrder:(sortIndex++);
+                    assignment.sortOrder = assignmentJson.sortOrder?assignmentJson.sortOrder:(this.sortIndex++);
                     assignment.type = assignmentJson.type;
                     this.assignmentList.push(assignment)
                 }
             }
+
+            console.log(this.assignmentList)
             this.refineSortOrders();
         }
 
@@ -236,6 +243,7 @@
 
         public confirmDelete(assignment){
             console.log("deleting")
+            console.log(this.sortIndex)
         }
 
         public editAssignment(assignment){
@@ -259,26 +267,28 @@
         public saveAssignment(body, iscreate){
             this.assignmentError = false;
             console.log(body) 
-            // body['sheriffId']= this.userToEdit.id;
-            // const method = iscreate? 'post' :'put';            
-            // const url = 'api/sheriff/training'  
-            // const options = { method: method, url:url, data:body}
+            body['type']= this.selectedAssignmentType.name;
+
+            body['sortOrderForLocation'] = {locationId: body.locationId, sortOrder: this.sortIndex}
+            const method = iscreate? 'post' :'put';            
+            const url = 'api/managetypes'  
+            const options = { method: method, url:url, data:body}
             
-            // this.$http(options)
-            //     .then(response => {
-            //         if(iscreate) 
-            //             this.addToAssignedTrainingList(response.data);
-            //         else
-            //             this.modifyAssignedTrainingList(response.data);
+            this.$http(options)
+                .then(response => {
+                    // if(iscreate) 
+                    //     this.addToAssignedTrainingList(response.data);
+                    // else
+                    //     this.modifyAssignedTrainingList(response.data);
                     
-            //         this.closeTrainingForm();
-            //     }, err=>{
-            //         const errMsg = err.response.data.error;
-            //         this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-            //         this.trainingErrorMsgDesc = errMsg;
-            //         this.trainingError = true;
-            //         location.href = '#TrainingError'
-            //     });                
+                    this.closeAssignmentForm();
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.assignmentErrorMsgDesc = errMsg;
+                    this.assignmentError = true;
+                    location.href = '#AssignmentError'
+                });                
         }
 
         public closeAssignmentForm() {                     
