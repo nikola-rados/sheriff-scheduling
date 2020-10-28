@@ -2,7 +2,7 @@
 using System.Net.Http.Headers;
 using System.Text;
 
-namespace SS.Api.models
+namespace SS.Api.helpers
 {
     // From here; https://github.com/IdentityModel/Thinktecture.IdentityModel.Web/blob/master/Thinktecture.IdentityModel.Web/BasicAuthenticationHeaderValue.cs
     public class BasicAuthenticationHeaderValue : AuthenticationHeaderValue

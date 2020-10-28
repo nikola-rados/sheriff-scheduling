@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using db.models;
 using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.Models.DB;
-using SS.Db.configuration;
-using SS.DB.Configuration;
 using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
@@ -45,7 +42,12 @@ namespace SS.Db.models
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<Permission> Permission { get; set; }
         public virtual DbSet<Role> Role { get; set; }
+
+        #region Scheduling
         public virtual DbSet<Shift> Shift { get; set; }
+        public virtual DbSet<Assignment> Assignment { get; set; }
+        public virtual DbSet<Duty> Duty { get; set; }
+        #endregion Scheduling
 
         // This maps to the table that stores keys.
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
@@ -102,6 +104,8 @@ namespace SS.Db.models
                 }
             }
         }
+        public TEntity DetachedClone<TEntity>(TEntity entity) where TEntity : class
+            => Entry(entity).CurrentValues.Clone().ToObject() as TEntity;
 
         private Guid? GetUserId(string claimValue)
         {

@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using SS.Api.Helpers.Extensions;
+using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
+using SS.Api.Models.DB;
 using SS.Db.models;
 using SS.Db.models.sheriff;
 
-namespace SS.Api.services
+namespace SS.Api.services.usermanagement
 {
     /// <summary>
     /// Since the Sheriff is a derived class of User, this should handle the Sheriff side of things. 
@@ -20,16 +20,16 @@ namespace SS.Api.services
     public class SheriffService
     {
         private ClaimsPrincipal User { get; }
-        private readonly SheriffDbContext _db;
+        private SheriffDbContext Db { get; }
         public SheriffService(SheriffDbContext db, IHttpContextAccessor httpContextAccessor = null)
         {
-            _db = db;
+            Db = db;
             User = httpContextAccessor?.HttpContext.User;
         }
 
         #region Sheriff
 
-        public async Task<Sheriff> CreateSheriff(Sheriff sheriff)
+        public async Task<Sheriff> AddSheriff(Sheriff sheriff)
         {
             await CheckForBlankOrDuplicateIdirName(sheriff.IdirName);
             await CheckForBlankOrDuplicateBadgeNumber(sheriff.BadgeNumber);
@@ -38,52 +38,51 @@ namespace SS.Api.services
             sheriff.AwayLocation = null;
             sheriff.Training = null;
             sheriff.Leave = null;
-            sheriff.HomeLocation = await _db.Location.FindAsync(sheriff.HomeLocationId);
+            sheriff.HomeLocation = await Db.Location.FindAsync(sheriff.HomeLocationId);
             sheriff.IsEnabled = true;
-            await _db.Sheriff.AddAsync(sheriff);
-            await _db.SaveChangesAsync();
+            await Db.Sheriff.AddAsync(sheriff);
+            await Db.SaveChangesAsync();
             return sheriff;
         }
 
-
-        public async Task<List<Sheriff>> GetSheriffs()
+        //Used for the Shift scheduling screen.
+        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset startDateUtc, DateTimeOffset endDateUtc)
         {
-            var fiveDaysFromNow = DateTimeOffset.UtcNow.AddDays(7).Date;
-            var now = DateTimeOffset.UtcNow.Date;
+            var startDate = startDateUtc.UtcDateTime;
+            var endDate = endDateUtc.UtcDateTime;
 
-            var sheriffQuery = _db.Sheriff.AsNoTracking()
+            var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
+                .Where(s =>
+                    s.HomeLocationId == locationId ||
+                    s.AwayLocation.Any(al =>
+                        al.LocationId == locationId && !(al.StartDate > endDate || startDate > al.EndDate)
+                                                    && al.ExpiryDate == null))
+                .IncludeSheriffEventsBetweenDates(startDate, endDate);
 
-                //Apply permission filters.
-                .ApplyPermissionFilters(User)
-                //Include AwayLocation/Training/Leave that is within 7 days. 
-                //TODO write an extension method that makes this generic. 
-                .Include(s => s.AwayLocation.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
-                    && al.ExpiryDate == null))
-                .ThenInclude(al => al.Location)
-                .Include(s => s.Training.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
-                    && al.ExpiryDate == null))
-                .ThenInclude(t => t.TrainingType)
-                .Include(s => s.Leave.Where(al =>
-                    !(al.StartDate > fiveDaysFromNow || now > al.EndDate)
-                    && al.ExpiryDate == null))
-                .ThenInclude(l => l.LeaveType)
-                .Include(s => s.HomeLocation)
-                .Include(s => s.UserRoles)
-                .ThenInclude(ur => ur.Role);
-
-            var sheriffs = await sheriffQuery.ToListAsync();
-
-            return sheriffs;
+            return await sheriffQuery.ToListAsync();
         }
 
-        public async Task<Sheriff> GetSheriff(Guid id)
+        public async Task<List<Sheriff>> GetSheriffsForTeams()
         {
-            var today = DateTimeOffset.UtcNow.Date;
-            return await _db.Sheriff.AsNoTracking().AsSingleQuery()
-                .ApplyPermissionFilters(User)
+            var today = DateTimeOffset.UtcNow;
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
+
+            var sheriffQuery = Db.Sheriff.AsNoTracking()
+                .AsSplitQuery()
+                .ApplyPermissionFilters(User, today, sevenDaysFromNow)
+                .IncludeSheriffEventsBetweenDates(today, sevenDaysFromNow);
+         
+            return await sheriffQuery.ToListAsync();
+        }
+
+        public async Task<Sheriff> GetSheriffForTeams(Guid id)
+        {
+            var today = DateTimeOffset.UtcNow;
+            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
+
+            return await Db.Sheriff.AsNoTracking().AsSingleQuery()
+                .ApplyPermissionFilters(User, today, sevenDaysFromNow)
                 .Include(s=> s.HomeLocation)
                 .Include(s => s.AwayLocation.Where (al => al.EndDate >= today && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)
@@ -98,49 +97,50 @@ namespace SS.Api.services
 
         public async Task<Sheriff> UpdateSheriff(Sheriff sheriff)
         {
-            var savedSheriff = await _db.Sheriff.FindAsync(sheriff.Id);
-            savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {sheriff.Id} could not be found. ");
+            var savedSheriff = await Db.Sheriff.FindAsync(sheriff.Id);
+            savedSheriff.ThrowBusinessExceptionIfNull($"{nameof(Sheriff)} with the id: {sheriff.Id} could not be found. ");
 
             if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
                 await CheckForBlankOrDuplicateBadgeNumber(sheriff.BadgeNumber);
 
-            _db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
+            Db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
 
-            _db.Entry(savedSheriff).Property(x => x.HomeLocationId).IsModified = false;
-            _db.Entry(savedSheriff).Property(x => x.IsEnabled).IsModified = false;
-            _db.Entry(savedSheriff).Property(x => x.Photo).IsModified = false;
-            _db.Entry(savedSheriff).Property(x => x.KeyCloakId).IsModified = false;
-            _db.Entry(savedSheriff).Property(x => x.IdirId).IsModified = false;
-            _db.Entry(savedSheriff).Property(x => x.IdirName).IsModified = false;
-            _db.Entry(savedSheriff).Property(x => x.LastLogin).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.HomeLocationId).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.IsEnabled).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.Photo).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.KeyCloakId).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.IdirId).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.IdirName).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.LastLogin).IsModified = false;
 
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
             return sheriff;
         }
 
         public async Task<byte[]> GetPhoto(Guid id)
         {
-            var savedSheriff = await _db.Sheriff.FindAsync(id);
-            savedSheriff.ThrowBusinessExceptionIfNull($"No sheriff with Id: {id}");
+            var savedSheriff = await Db.Sheriff.FindAsync(id);
+            savedSheriff.ThrowBusinessExceptionIfNull($"No {nameof(Sheriff)} with Id: {id}");
             return savedSheriff.Photo;
         }
 
         public async Task<Sheriff> UpdateSheriffPhoto(Guid? id, string badgeNumber, byte[] photoData)
         {
-            var savedSheriff = await _db.Sheriff.FirstOrDefaultAsync(s => (id.HasValue && s.Id == id) || (!id.HasValue && s.BadgeNumber == badgeNumber));
-            savedSheriff.ThrowBusinessExceptionIfNull($"No sheriff with Badge: {badgeNumber} or Id: {id}");
+            var savedSheriff = await Db.Sheriff.FirstOrDefaultAsync(s => (id.HasValue && s.Id == id) || (!id.HasValue && s.BadgeNumber == badgeNumber));
+            savedSheriff.ThrowBusinessExceptionIfNull($"No {nameof(Sheriff)} with Badge: {badgeNumber} or Id: {id}");
             savedSheriff.Photo = photoData;
-            await _db.SaveChangesAsync();
+            savedSheriff.LastPhotoUpdate = DateTime.UtcNow;
+            await Db.SaveChangesAsync();
             return savedSheriff;
         }
 
         public async Task UpdateSheriffHomeLocation(Guid id, int locationId)
         {
-            var savedSheriff = await _db.Sheriff.FindAsync(id);
-            savedSheriff.ThrowBusinessExceptionIfNull($"Sheriff with the id: {id} could not be found. ");
-            savedSheriff.HomeLocation = await _db.Location.FindAsync(locationId);
-            savedSheriff.HomeLocation.ThrowBusinessExceptionIfNull($"Location with the id: {locationId} could not be found. ");
-            await _db.SaveChangesAsync();
+            var savedSheriff = await Db.Sheriff.FindAsync(id);
+            savedSheriff.ThrowBusinessExceptionIfNull($"{nameof(Sheriff)} with the id: {id} could not be found. ");
+            savedSheriff.HomeLocation = await Db.Location.FindAsync(locationId);
+            savedSheriff.HomeLocation.ThrowBusinessExceptionIfNull($"{nameof(Location)} with the id: {locationId} could not be found. ");
+            await Db.SaveChangesAsync();
         }
 
         #endregion
@@ -153,10 +153,10 @@ namespace SS.Api.services
             await ValidateSheriffExists(awayLocation.SheriffId);
             await ValidateNoOverlapAsync(awayLocation);
 
-            awayLocation.Location = await _db.Location.FindAsync(awayLocation.LocationId);
-            awayLocation.Sheriff = await _db.Sheriff.FindAsync(awayLocation.SheriffId);
-            await _db.SheriffAwayLocation.AddAsync(awayLocation);
-            await _db.SaveChangesAsync();
+            awayLocation.Location = await Db.Location.FindAsync(awayLocation.LocationId);
+            awayLocation.Sheriff = await Db.Sheriff.FindAsync(awayLocation.SheriffId);
+            await Db.SheriffAwayLocation.AddAsync(awayLocation);
+            await Db.SaveChangesAsync();
             return awayLocation;
         }
 
@@ -165,29 +165,29 @@ namespace SS.Api.services
             ValidateStartAndEndDates(awayLocation.StartDate, awayLocation.EndDate);
             await ValidateSheriffExists(awayLocation.SheriffId);
             
-            var savedAwayLocation = await _db.SheriffAwayLocation.FindAsync(awayLocation.Id);
-            savedAwayLocation.ThrowBusinessExceptionIfNull($"{nameof(awayLocation)} with the id: {awayLocation.Id} could not be found. ");
+            var savedAwayLocation = await Db.SheriffAwayLocation.FindAsync(awayLocation.Id);
+            savedAwayLocation.ThrowBusinessExceptionIfNull($"{nameof(SheriffAwayLocation)} with the id: {awayLocation.Id} could not be found. ");
 
             if (savedAwayLocation.ExpiryDate.HasValue)
-                throw new BusinessLayerException($"{nameof(awayLocation)} with the id: {awayLocation.Id} has been expired");
+                throw new BusinessLayerException($"{nameof(SheriffAwayLocation)} with the id: {awayLocation.Id} has been expired");
 
             await ValidateNoOverlapAsync(awayLocation, awayLocation.Id);
 
-            _db.Entry(savedAwayLocation).Property(x => x.ExpiryDate).IsModified = false;
-            _db.Entry(savedAwayLocation).Property(x => x.ExpiryReason).IsModified = false;
-            _db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
-            await _db.SaveChangesAsync();
+            Db.Entry(savedAwayLocation).Property(x => x.ExpiryDate).IsModified = false;
+            Db.Entry(savedAwayLocation).Property(x => x.ExpiryReason).IsModified = false;
+            Db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
+            await Db.SaveChangesAsync();
             return awayLocation;
         }
 
         public async Task RemoveSheriffAwayLocation(int id, string expiryReason)
         {
-            var sheriffAwayLocation = await _db.SheriffAwayLocation.FindAsync(id);
+            var sheriffAwayLocation = await Db.SheriffAwayLocation.FindAsync(id);
             sheriffAwayLocation.ThrowBusinessExceptionIfNull(
-                $"SheriffAwayLocation with the id: {id} could not be found. ");
+                $"{nameof(SheriffAwayLocation)} with the id: {id} could not be found. ");
             sheriffAwayLocation.ExpiryDate = DateTimeOffset.UtcNow;
             sheriffAwayLocation.ExpiryReason = expiryReason;
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
         }
 
         #endregion
@@ -200,10 +200,10 @@ namespace SS.Api.services
             await ValidateSheriffExists(sheriffLeave.SheriffId);
             await ValidateNoOverlapAsync(sheriffLeave);
 
-            sheriffLeave.LeaveType = await _db.LookupCode.FindAsync(sheriffLeave.LeaveTypeId);
-            sheriffLeave.Sheriff = await _db.Sheriff.FindAsync(sheriffLeave.SheriffId);
-            await _db.SheriffLeave.AddAsync(sheriffLeave);
-            await _db.SaveChangesAsync();
+            sheriffLeave.LeaveType = await Db.LookupCode.FindAsync(sheriffLeave.LeaveTypeId);
+            sheriffLeave.Sheriff = await Db.Sheriff.FindAsync(sheriffLeave.SheriffId);
+            await Db.SheriffLeave.AddAsync(sheriffLeave);
+            await Db.SaveChangesAsync();
             return sheriffLeave;
         }
 
@@ -212,30 +212,30 @@ namespace SS.Api.services
             ValidateStartAndEndDates(sheriffLeave.StartDate, sheriffLeave.EndDate);
             await ValidateSheriffExists(sheriffLeave.SheriffId);
 
-            var savedLeave = await _db.SheriffLeave.FindAsync(sheriffLeave.Id);
+            var savedLeave = await Db.SheriffLeave.FindAsync(sheriffLeave.Id);
             savedLeave.ThrowBusinessExceptionIfNull(
-                $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
+                $"{nameof(SheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
 
             if (savedLeave.ExpiryDate.HasValue)
-                throw new BusinessLayerException($"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} has been expired");
+                throw new BusinessLayerException($"{nameof(SheriffLeave)} with the id: {sheriffLeave.Id} has been expired");
 
             await ValidateNoOverlapAsync(sheriffLeave, sheriffLeave.Id);
 
-            _db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
-            _db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
-            _db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
-            await _db.SaveChangesAsync();
+            Db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
+            Db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
+            Db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
+            await Db.SaveChangesAsync();
             return sheriffLeave;
         }
 
         public async Task RemoveSheriffLeave(int id, string expiryReason)
         {
-            var sheriffLeave = await _db.SheriffLeave.FindAsync(id);
+            var sheriffLeave = await Db.SheriffLeave.FindAsync(id);
             sheriffLeave.ThrowBusinessExceptionIfNull(
-                $"{nameof(sheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
+                $"{nameof(SheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
             sheriffLeave.ExpiryDate = DateTimeOffset.UtcNow;
             sheriffLeave.ExpiryReason = expiryReason;
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
         }
 
         #endregion
@@ -248,10 +248,10 @@ namespace SS.Api.services
             await ValidateSheriffExists(sheriffTraining.SheriffId);
             await ValidateNoOverlapAsync(sheriffTraining);
 
-            sheriffTraining.Sheriff = await _db.Sheriff.FindAsync(sheriffTraining.SheriffId);
-            sheriffTraining.TrainingType = await _db.LookupCode.FindAsync(sheriffTraining.TrainingTypeId);
-            await _db.SheriffTraining.AddAsync(sheriffTraining);
-            await _db.SaveChangesAsync();
+            sheriffTraining.Sheriff = await Db.Sheriff.FindAsync(sheriffTraining.SheriffId);
+            sheriffTraining.TrainingType = await Db.LookupCode.FindAsync(sheriffTraining.TrainingTypeId);
+            await Db.SheriffTraining.AddAsync(sheriffTraining);
+            await Db.SaveChangesAsync();
             return sheriffTraining;
         }
 
@@ -260,30 +260,30 @@ namespace SS.Api.services
             ValidateStartAndEndDates(sheriffTraining.StartDate, sheriffTraining.EndDate);
             await ValidateSheriffExists(sheriffTraining.SheriffId);
             
-            var savedTraining = await _db.SheriffTraining.FindAsync(sheriffTraining.Id);
+            var savedTraining = await Db.SheriffTraining.FindAsync(sheriffTraining.Id);
             savedTraining.ThrowBusinessExceptionIfNull(
-                $"{nameof(savedTraining)} with the id: {sheriffTraining.Id} could not be found. ");
+                $"{nameof(SheriffTraining)} with the id: {sheriffTraining.Id} could not be found. ");
 
             if (savedTraining.ExpiryDate.HasValue)
-                throw new BusinessLayerException($"{nameof(savedTraining)} with the id: {sheriffTraining.Id} has been expired");
+                throw new BusinessLayerException($"{nameof(SheriffTraining)} with the id: {sheriffTraining.Id} has been expired");
 
             await ValidateNoOverlapAsync(sheriffTraining, sheriffTraining.Id);
 
-            _db.Entry(savedTraining).Property(x => x.ExpiryDate).IsModified = false;
-            _db.Entry(savedTraining).Property(x => x.ExpiryReason).IsModified = false;
-            _db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
-            await _db.SaveChangesAsync();
+            Db.Entry(savedTraining).Property(x => x.ExpiryDate).IsModified = false;
+            Db.Entry(savedTraining).Property(x => x.ExpiryReason).IsModified = false;
+            Db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
+            await Db.SaveChangesAsync();
             return sheriffTraining;
         }
 
         public async Task RemoveSheriffTraining(int id, string expiryReason)
         {
-            var sheriffTraining = await _db.SheriffTraining.FindAsync(id);
+            var sheriffTraining = await Db.SheriffTraining.FindAsync(id);
             sheriffTraining.ThrowBusinessExceptionIfNull(
-                $"{nameof(sheriffTraining)} with the id: {id} could not be found. ");
+                $"{nameof(SheriffTraining)} with the id: {id} could not be found. ");
             sheriffTraining.ExpiryDate = DateTimeOffset.UtcNow;
             sheriffTraining.ExpiryReason = expiryReason;
-            await _db.SaveChangesAsync();
+            await Db.SaveChangesAsync();
         }
 
         #endregion
@@ -296,7 +296,7 @@ namespace SS.Api.services
             if (string.IsNullOrEmpty(idirName))
                 throw new BusinessLayerException($"Missing {nameof(idirName)}.");
 
-            var existingSheriffWithIdir = await _db.Sheriff.FirstOrDefaultAsync(s => s.IdirName.ToLower() == idirName.ToLower());
+            var existingSheriffWithIdir = await Db.Sheriff.FirstOrDefaultAsync(s => s.IdirName.ToLower() == idirName.ToLower());
             if (existingSheriffWithIdir != null)
                 throw new BusinessLayerException(
                     $"Sheriff {existingSheriffWithIdir.LastName}, {existingSheriffWithIdir.FirstName} has IDIR name: {existingSheriffWithIdir.IdirName}");
@@ -307,7 +307,7 @@ namespace SS.Api.services
             if (string.IsNullOrEmpty(badgeNumber))
                 throw new BusinessLayerException($"Missing {nameof(badgeNumber)}.");
 
-            var existingSheriffWithBadge = await _db.Sheriff.FirstOrDefaultAsync(s => s.BadgeNumber == badgeNumber);
+            var existingSheriffWithBadge = await Db.Sheriff.FirstOrDefaultAsync(s => s.BadgeNumber == badgeNumber);
             if (existingSheriffWithBadge != null)
                 throw new BusinessLayerException(
                     $"Sheriff {existingSheriffWithBadge.LastName}, {existingSheriffWithBadge.FirstName} already has badge number: {badgeNumber}");
@@ -320,13 +320,13 @@ namespace SS.Api.services
 
         private async Task ValidateSheriffExists(Guid sheriffId)
         {
-            if (!await _db.Sheriff.AsNoTracking().AnyAsync(s => s.Id == sheriffId))
+            if (!await Db.Sheriff.AsNoTracking().AnyAsync(s => s.Id == sheriffId))
                 throw new BusinessLayerException($"Sheriff with id: {sheriffId} does not exist.");
         }
 
         private async Task ValidateNoOverlapAsync<T>(T data, int? updateOnlyId = null) where T : SheriffEvent
         {
-            var entity = await _db.Set<T>().FirstOrDefaultAsync(sal =>
+            var entity = await Db.Set<T>().FirstOrDefaultAsync(sal =>
                 sal.SheriffId == data.SheriffId && !(sal.StartDate > data.EndDate || data.StartDate > sal.EndDate) &&
                 sal.ExpiryDate == null && 
                 (!updateOnlyId.HasValue ||
@@ -335,7 +335,7 @@ namespace SS.Api.services
             if (entity != null)
             {
                 throw new BusinessLayerException(
-                    $"Overlaps with existing {Regex.Replace(typeof(T).Name, "([A-Z])", " $1").Trim().ToLower()} with date range: {entity.StartDate.UtcDateTime.Date.ToString("dd MMM yyyy")} to {entity.EndDate.UtcDateTime.Date.ToString("dd MMM yyyy")}");
+                    $"Overlaps with existing {typeof(T).Name.ConvertCamelCaseToMultiWord()} with date range: {entity.StartDate.UtcDateTime.Date:dd MMM yyyy} to {entity.EndDate.UtcDateTime.Date:dd MMM yyyy}");
             }
         }
 

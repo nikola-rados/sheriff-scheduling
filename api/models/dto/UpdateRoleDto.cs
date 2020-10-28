@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using SS.Api.Models.Dto;
+﻿using System.Collections.Generic;
+using SS.Api.models.dto.generated;
 
 namespace SS.Api.models.dto
 {

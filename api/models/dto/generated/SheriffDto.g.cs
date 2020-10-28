@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Db.models.sheriff;
 
-namespace SS.Api.Models.Dto
+namespace SS.Api.models.dto.generated
 {
     public partial class SheriffDto
     {
@@ -14,6 +14,7 @@ namespace SS.Api.Models.Dto
         public List<SheriffLeaveDto> Leave { get; set; }
         public List<SheriffTrainingDto> Training { get; set; }
         public string PhotoUrl { get; set; }
+        public DateTimeOffset LastPhotoUpdate { get; set; }
         public Guid Id { get; set; }
         public bool IsEnabled { get; set; }
         public string FirstName { get; set; }

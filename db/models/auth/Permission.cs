@@ -38,6 +38,11 @@ namespace SS.Db.models.auth
         public const string ViewRegion = nameof(ViewRegion);
         public const string ViewProvince = nameof(ViewProvince);
         public const string ExpireLocation = nameof(ExpireLocation);
+        public const string ViewAssignments = nameof(ViewAssignments);
+        public const string CreateAssignments = nameof(CreateAssignments);
+        public const string EditAssignments = nameof(EditAssignments);
+        public const string ExpireAssignments = nameof(ExpireAssignments);
+
 
         [Key]
         public int Id { get; set; }
