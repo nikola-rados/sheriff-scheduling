@@ -8,9 +8,6 @@ namespace SS.Db.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "ShiftSheriff");
-
             migrationBuilder.DropColumn(
                 name: "Slots",
                 table: "Shift");
