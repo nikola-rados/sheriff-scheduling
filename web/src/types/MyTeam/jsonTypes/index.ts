@@ -9,7 +9,7 @@ export interface teamMemberJsonType {
     "awayLocation": awayLocationsJsontype[],
     "leave": leaveJsontype[],
     "training": trainingJsontype[],
-    "photo": string,
+    "photoUrl": string,
     "id": string,
     "idirName": string,
     "isEnabled": boolean,

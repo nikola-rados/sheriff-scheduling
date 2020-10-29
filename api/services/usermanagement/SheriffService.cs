@@ -316,7 +316,7 @@ namespace SS.Api.services.usermanagement
 
         private void ValidateStartAndEndDates(DateTimeOffset startDate, DateTimeOffset endDate)
         {
-            if (startDate >= endDate) throw new BusinessLayerException("The start datetime cannot be on or after the end datetime. ");
+            if (startDate >= endDate) throw new BusinessLayerException("The from cannot be on or after the to. ");
         }
 
         private async Task ValidateSheriffExists(Guid sheriffId)
