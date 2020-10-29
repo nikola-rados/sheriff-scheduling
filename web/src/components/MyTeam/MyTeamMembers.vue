@@ -384,8 +384,7 @@ import { teamMemberJsonType } from '../../types/MyTeam/jsonTypes';
         }
 
         public closeMemberDetailWindow(){            
-            this.showMemberDetails = false;
-            this.resetProfileWindowState();            
+            this.showMemberDetails = false;           
         }
 
         public resetProfileWindowState(){
@@ -407,6 +406,7 @@ import { teamMemberJsonType } from '../../types/MyTeam/jsonTypes';
         }
 
         public loadUserDetails(userId): void {
+            this.resetProfileWindowState();  
             this.editMode = true;            
             const url = 'api/sheriff/' + userId;
             this.$http.get(url)

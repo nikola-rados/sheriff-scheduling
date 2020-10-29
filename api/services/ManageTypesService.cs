@@ -33,7 +33,8 @@ namespace SS.Api.services
             lookupCd.Location = await Db.Location.FindAsync(addLookupCode.LocationId);
             lookupCd.SortOrder = null;
 
-            if (Db.LookupCode.AsNoTracking().Any(lc => lc.Code == addLookupCode.Code && lc.LocationId == addLookupCode.LocationId))
+            if (Db.LookupCode.AsNoTracking()
+                .Any(lc => lc.Code == addLookupCode.Code && lc.LocationId == addLookupCode.LocationId))
                 throw new BusinessLayerException("Attempted to create a duplicate entry.");
 
             await Db.LookupCode.AddAsync(lookupCd);
@@ -60,6 +61,12 @@ namespace SS.Api.services
                 .AsSingleQuery()
                 .FirstOrDefaultAsync(lc => lc.Id == lookupCode.Id);
             savedLookup.ThrowBusinessExceptionIfNull($"Couldn't find lookup code with id: {lookupCode.Id}");
+
+            if (savedLookup.Code != lookupCode.Code &&
+                Db.LookupCode.AsNoTracking()
+                    .Any(lc => lc.Code == lookupCode.Code && lc.LocationId == lookupCode.LocationId))
+                throw new BusinessLayerException("An entry already exists with this value and location.");
+
             savedLookup.Location = await Db.Location.FindAsync(lookupCode.LocationId);
 
             Db.Entry(savedLookup).CurrentValues.SetValues(lookupCode);
