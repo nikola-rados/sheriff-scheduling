@@ -41,7 +41,7 @@
 
             <div>
                 <b-card no-body border-variant="white" bg-variant="white" v-if="!assignmentList.length" style="width: 50rem; margin: 0 auto 8rem auto">
-                    <span class="text-muted ml-4 my-5">No {{selectedAssignmentType.name}} assignment exist.</span>
+                    <span class="text-muted ml-4 my-5">No {{selectedAssignmentType.label}} exists.</span>
                 </b-card>
 
                 <b-card v-else  no-body border-variant="light" bg-variant="white" style="width: 50rem; margin: 0 auto 8rem auto">
@@ -150,7 +150,7 @@
             {name:'CourtRole', label:'Court Assignment'},
             {name:'JailRole', label:'Jail Assignment'},
             {name:'EscortRun', label:'Escort Assignment'},
-            {name:'OtherAssignment', label:'Other Assignments'},
+            {name:'OtherAssignment', label:'Other Assignment'},
         ]
 
         fields =  

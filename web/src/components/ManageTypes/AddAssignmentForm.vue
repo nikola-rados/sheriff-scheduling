@@ -63,10 +63,10 @@
 
         <b-modal v-model="showScopeWarning" id="bv-modal-scope-change-warning" header-class="bg-warning text-light m-0 pt-3 pb-0">            
             <template v-slot:modal-title>                                
-                <h3 class="m-0 p-0 text-light"> <b-icon variant="danger" class="mr-2" icon="exclamation-triangle"/>Changes to Location Specification  </h3>                                 
+                <h3 class="m-0 p-0 text-light"> <b-icon variant="danger" class="mr-2" icon="exclamation-triangle"/> Changes to Assignment Type </h3>                                 
             </template>
-            <h3> Are you sure you want to change the location specification? </h3>
-            <p>This will cause changes to this assignment type in other locations</p>
+            <h3 class="text-justify"> Are you sure you want to make changes to this assignment type? </h3>
+            <p class="h5 font-weight-normal">This may cause changes to this assignment type in other locations.</p>
             <template v-slot:modal-footer>
                 <b-button variant="secondary" @click="$bvModal.hide('bv-modal-scope-change-warning')"                   
                 >Cancel</b-button>
@@ -149,15 +149,12 @@
         }
 
         public saveForm(){
-            if(this.isCreate) this.confirmedSaveForm();
-            else{
-                if(this.originalLocationScope != this.selectedLocationScope){
-                    this.showScopeWarning = true;
-                }else {
-                    this.confirmedSaveForm();
-                }
-            }
+            if(!this.isCreate && this.isChanged())
+                this.showScopeWarning = true;
+            else 
+                this.confirmedSaveForm();               
         }
+
         public confirmedSaveForm(){                
             this.assignmentState   = true;
 
