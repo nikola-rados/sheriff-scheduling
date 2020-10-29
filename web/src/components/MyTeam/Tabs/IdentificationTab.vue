@@ -193,11 +193,9 @@ export default class IdentificationTab extends Vue {
         
         if(this.createMode && this.isEmpty(this.user)){
             this.$emit('closeMemberDetails');
-            this.resetProfileWindowState();
         } 
         else if(this.editMode && !this.changesMade()){
             this.$emit('closeMemberDetails');
-            this.resetProfileWindowState();
         }    
         else
         {
@@ -211,7 +209,6 @@ export default class IdentificationTab extends Vue {
         if(this.cancelMessage == 'cancel' && changingTab)
         { 
             this.$emit('closeMemberDetails');
-            this.resetProfileWindowState();            
         }
         else{
             this.$emit('changeTab', changingTab);
