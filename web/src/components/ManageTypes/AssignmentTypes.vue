@@ -52,7 +52,7 @@
                         sort-icon-left
                         head-row-variant="primary"
                         striped
-                        border
+                        borderless
                         small
                         v-sortAssignmentType 
                         id="mytable"
