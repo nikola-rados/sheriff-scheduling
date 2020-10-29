@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Transactions;
 using Mapster;
 using SS.Api.helpers.extensions;
+using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto;
 using ss.db.models;
 using SS.Db.models;
@@ -31,6 +32,10 @@ namespace SS.Api.services
             using TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
             lookupCd.Location = await Db.Location.FindAsync(addLookupCode.LocationId);
             lookupCd.SortOrder = null;
+
+            if (Db.LookupCode.AsNoTracking().Any(lc => lc.Code == addLookupCode.Code && lc.LocationId == addLookupCode.LocationId))
+                throw new BusinessLayerException("Attempted to create a duplicate entry.");
+
             await Db.LookupCode.AddAsync(lookupCd);
             await Db.SaveChangesAsync();
             var lookupSortOrder = new LookupSortOrder
