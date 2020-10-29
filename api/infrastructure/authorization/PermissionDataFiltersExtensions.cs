@@ -4,16 +4,17 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
 using SS.Api.Models.DB;
+using SS.Db.Migrations;
 using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 
 namespace SS.Api.infrastructure.authorization
 {
-    public static class PermissionFiltersExtensions
+    public static class PermissionDataFiltersExtensions
     {
         #region Sheriff
-        public static IQueryable<Sheriff> ApplyPermissionFilters(this IQueryable<Sheriff> query, ClaimsPrincipal currentUser)
+        public static IQueryable<Sheriff> ApplyPermissionFilters(this IQueryable<Sheriff> query, ClaimsPrincipal currentUser, DateTimeOffset start, DateTimeOffset end)
         {
             var currentUserId = currentUser.CurrentUserId();
             var currentUserHomeLocationId = currentUser.HomeLocationId();
@@ -22,20 +23,17 @@ namespace SS.Api.infrastructure.authorization
                 return query;
 
             if (currentUser.HasPermission(Permission.ViewProfilesInOwnLocation))
-                return query.FilterUsersInHomeLocationAndLoanedWithin5Days(currentUserHomeLocationId);
+                return query.FilterUsersInHomeLocationAndLoanedWithinDays(currentUserHomeLocationId, start, end);
 
             return currentUser.HasPermission(Permission.ViewOwnProfile) ? query.Where(s => s.Id == currentUserId) : query.Where(s => false);
         }
 
-        private static IQueryable<Sheriff> FilterUsersInHomeLocationAndLoanedWithin5Days(this IQueryable<Sheriff> query, int homeLocationId)
+        private static IQueryable<Sheriff> FilterUsersInHomeLocationAndLoanedWithinDays(this IQueryable<Sheriff> query, int homeLocationId, DateTimeOffset start, DateTimeOffset end)
         {
-            var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
-            var now = DateTimeOffset.UtcNow;
-
             return query.Where(s => s.HomeLocationId == homeLocationId ||
                              s.AwayLocation.Any(al =>
                                  al.LocationId == homeLocationId &&
-                                 !(al.StartDate > sevenDaysFromNow || now > al.EndDate) &&
+                                 !(al.StartDate > end || start > al.EndDate) &&
                                  al.ExpiryDate == null));
         }
         #endregion
@@ -64,5 +62,18 @@ namespace SS.Api.infrastructure.authorization
                 (viewHomeLocation && loc.Id == currentUserHomeLocationId));
         }
         #endregion Location
+
+        #region Shift
+
+        public static IQueryable<Shift> ApplyPermissionFilters(this IQueryable<Shift> query,
+            ClaimsPrincipal currentUser, SheriffDbContext db)
+        {
+            var currentUserId = currentUser.CurrentUserId();
+            var currentUserHomeLocationId = currentUser.HomeLocationId();
+            //TODO FINISH THIS.
+            return query;
+        }
+
+        #endregion
     }
 }

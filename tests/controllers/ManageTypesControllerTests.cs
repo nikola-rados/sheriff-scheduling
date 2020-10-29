@@ -1,13 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SS.Api.Models.Dto;
-using SS.Api.services;
+﻿using SS.Api.services;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using JCCommon.Clients.LocationServices;
 using SS.Api.controllers;
 using SS.Api.Models.DB;
-using SS.Db.models;
+using SS.Api.models.dto;
+using SS.Api.models.dto.generated;
 using SS.Db.models.lookupcodes;
 using tests.api.helpers;
 using tests.api.Helpers;
@@ -27,7 +25,7 @@ namespace tests.controllers
         public ManageTypesControllerTests() : base(true)
         {
             var locationServices = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            _controller = new ManageTypesController(new ManageTypesService(_dbContext, new LocationServicesClient(locationServices.HttpClient)))
+            _controller = new ManageTypesController(new ManageTypesService(Db))
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -36,7 +34,7 @@ namespace tests.controllers
         [Fact]
         public async Task AddLookup()
         {
-            var courtRole = new LookupCodeDto
+            var courtRole = new AddLookupCodeDto
             {
                 Type = LookupTypes.CourtRole
             };
@@ -62,8 +60,8 @@ namespace tests.controllers
         public async Task UpdateLookupCode()
         {
             var newLocation = new Location { Name = "6", Id = 6 };
-            await _dbContext.Location.AddAsync(newLocation);
-            await _dbContext.SaveChangesAsync();
+            await Db.Location.AddAsync(newLocation);
+            await Db.SaveChangesAsync();
 
             Detach();
 
@@ -77,7 +75,6 @@ namespace tests.controllers
             result.Code = "gg";
             result.SubCode = "gg2";
             result.ExpiryDate = DateTime.Now;
-            result.SortOrder = 5;
             result.Type = LookupTypes.JailRole;
             result.LocationId = 6;
 
@@ -89,7 +86,6 @@ namespace tests.controllers
             Assert.Equal("test", result.Description);
             Assert.Equal(DateTimeOffset.Now.DateTime, result.EffectiveDate.Value.DateTime, TimeSpan.FromSeconds(10));
             Assert.Equal(DateTimeOffset.Now.DateTime, result.ExpiryDate.Value.DateTime, TimeSpan.FromSeconds(10));
-            Assert.Equal(5, result.SortOrder);
             Assert.Equal(LookupTypes.JailRole, result.Type);
             Assert.Equal("gg", result.Code);
             Assert.Equal("gg2", result.SubCode);
@@ -97,27 +93,15 @@ namespace tests.controllers
         }
 
         [Fact]
-        public async Task RemoveLookupCode()
-        {
-            var id = await AddCourtRole();
-
-            var controllerResult2 = await _controller.Remove(id);
-            HttpResponseTest.CheckForNoContentResponse(controllerResult2);
-
-            var controllerResult3 = await _controller.Find(id);
-            HttpResponseTest.CheckForNotFound(controllerResult3);
-        }
-
-        [Fact]
         public async Task LocationTest()
         {
             var newLocation = new Location { Name = "5", Id = 5 };
-            await _dbContext.Location.AddAsync(newLocation);
-            await _dbContext.SaveChangesAsync();
+            await Db.Location.AddAsync(newLocation);
+            await Db.SaveChangesAsync();
 
             Detach();
 
-            var courtRole = new LookupCodeDto
+            var courtRole = new AddLookupCodeDto()
             {
                 Type = LookupTypes.CourtRole,
                 LocationId = 66
@@ -132,7 +116,7 @@ namespace tests.controllers
             Assert.Null(response.Location);
 
 
-            courtRole = new LookupCodeDto
+            courtRole = new AddLookupCodeDto
             {
                 Type = LookupTypes.CourtRole,
                 LocationId = 5
@@ -166,7 +150,7 @@ namespace tests.controllers
         #region Helpers
         private async Task<int> AddCourtRole()
         {
-            var courtRole = new LookupCodeDto
+            var courtRole = new AddLookupCodeDto
             {
                 Description = "test",
                 Type = LookupTypes.CourtRole,

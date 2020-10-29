@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
-using SS.Api.Helpers;
+using SS.Api.helpers;
 using SS.Api.models.ches;
 using SS.Api.services;
 using tests.api.Helpers;

@@ -1,19 +1,18 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using SS.Api.Helpers.Exceptions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using SS.Api.infrastructure.exceptions;
 
-namespace SS.Api.Helpers.Middleware
+namespace SS.Api.infrastructure.middleware
 {
     /// <summary>
     /// ErrorHandlingMiddleware class, provides a way to catch and handle unhandled errors in a generic way.

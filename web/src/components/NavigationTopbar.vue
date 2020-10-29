@@ -28,7 +28,6 @@
           </b-nav-item-dropdown>
           <b-nav-item-dropdown text="My Team" dropdown >
             <b-dropdown-item to="/team-members">My Team Members</b-dropdown-item>
-            <b-dropdown-item to="/find-manage-users">Find/Manage Users</b-dropdown-item>
             <b-dropdown-item to="/define-roles-access">Define Roles & Access</b-dropdown-item>
           </b-nav-item-dropdown>
           <b-nav-item-dropdown text="Manage Types" dropdown >

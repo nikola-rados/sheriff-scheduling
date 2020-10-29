@@ -2,9 +2,10 @@
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using SS.Api.Helpers.Exceptions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.Models.Dto;
+using SS.Api.infrastructure.exceptions;
+using SS.Api.models.dto;
+using SS.Api.models.dto.generated;
 using SS.Api.services;
 using ss.db.models;
 using SS.Db.models.auth;
@@ -16,15 +17,11 @@ namespace SS.Api.controllers
     [ApiController]
     public class ManageTypesController : ControllerBase
     {
-        #region Variables
+        private ManageTypesService ManageTypesService { get; }
 
-        private readonly ManageTypesService _service;
-
-        #endregion
-
-        public ManageTypesController(ManageTypesService service)
+        public ManageTypesController(ManageTypesService manageTypesService)
         {
-            _service = service;
+            ManageTypesService = manageTypesService;
         }
         
         [HttpGet]
@@ -32,7 +29,7 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.ViewManageTypes)]
         public async Task<ActionResult<LookupCodeDto>> Find(int id)
         {
-            var entity = await _service.Find(id);
+            var entity = await ManageTypesService.Find(id);
             if (entity == null)
                 return NotFound();
             return Ok(entity.Adapt<LookupCodeDto>());
@@ -42,35 +39,34 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.ViewManageTypes)]
         public async Task<ActionResult<List<LookupCodeDto>>> GetAll(LookupTypes? codeType, int? locationId)
         {
-            var lookupCodesDtos = (await _service.GetAll(codeType, locationId)).Adapt<List<LookupCodeDto>>();
+            var lookupCodesDtos = (await ManageTypesService.GetAll(codeType, locationId)).Adapt<List<LookupCodeDto>>();
             return Ok(lookupCodesDtos);
         }
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.EditTypes)]
-        public async Task<ActionResult<LookupCodeDto>> Add(LookupCodeDto lookupCodeDto)
+        public async Task<ActionResult<LookupCodeDto>> Add(AddLookupCodeDto lookupCodeDto)
         {
             if (lookupCodeDto == null)
                 throw new BadRequestException("Invalid lookupCode.");
 
-            var entity = lookupCodeDto.Adapt<LookupCode>();
-            var lookupCode = await _service.Add(entity);
+            var lookupCode = await ManageTypesService.Add(lookupCodeDto);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
-        [HttpPost("{id}/expire")]
+        [HttpPut("{id}/expire")]
         [PermissionClaimAuthorize(perm: Permission.ExpireTypes)]
         public async Task<ActionResult<LookupCodeDto>> Expire(int id)
         {
-            var lookupCode = await _service.Expire(id);
+            var lookupCode = await ManageTypesService.Expire(id);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
-        [HttpPost("{id}/unexpire")]
+        [HttpPut("{id}/unexpire")]
         [PermissionClaimAuthorize(perm: Permission.ExpireTypes)]
         public async Task<ActionResult<LookupCodeDto>> UnExpire(int id)
         {
-            var lookupCode = await _service.Unexpire(id);
+            var lookupCode = await ManageTypesService.Unexpire(id);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
@@ -80,18 +76,20 @@ namespace SS.Api.controllers
         {
             if (lookupCodeDto == null)
                 throw new BadRequestException("Invalid lookupCode.");
-
             var entity = lookupCodeDto.Adapt<LookupCode>();
-            var lookupCode = await _service.Update(entity);
+            var lookupCode = await ManageTypesService.Update(entity);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
-        [HttpDelete]
+        [HttpPut("updateSort")]
         [PermissionClaimAuthorize(perm: Permission.EditTypes)]
-        public async Task<ActionResult<string>> Remove(int id)
+        public async Task<ActionResult> UpdateSortOrders(SortOrdersDto sortOrdersDto)
         {
-            await _service.Remove(id);
+            if (sortOrdersDto == null)
+                throw new BadRequestException("Invalid lookupCode.");
+            await ManageTypesService.UpdateSortOrders(sortOrdersDto);
             return NoContent();
         }
+
     }
 }
