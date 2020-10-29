@@ -1,7 +1,7 @@
 <template>
     <b-card bg-variant="white" class="home">    
         <b-row class="bg-white">
-            <b-col cols="9">
+            <b-col cols="8">
                 <page-header :pageHeaderText="location.name+' '+sectionHeader"></page-header>                
             </b-col>
             <b-col cols="2">
@@ -19,6 +19,13 @@
                     </b-form-select>
                 </b-form-group>
             </b-col>
+            <b-col cols="2" >
+                <div :class="expiredViewChecked?'bg-warning':''" style="width: 15.25rem; margin: .75rem 1rem 0 .5rem;">
+                    <b-form-checkbox class="ml-2" v-model="expiredViewChecked"  @change="getAssignments()" size="lg"  switch>
+                        {{viewStatus}}
+                    </b-form-checkbox>
+                </div>
+            </b-col>
         </b-row>
 
         <loading-spinner v-if= "!isAssignmentDataMounted" />
@@ -28,7 +35,7 @@
                 <h2 v-if="assignmentError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="assignmentErrorMsgDesc"  variant="danger"> {{assignmentErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="assignmentError = false" /></b-badge></h2>
             </b-card>
 
-            <div v-if="selectedAssignmentType.name != 'CourtRoom'">
+            <div v-if="selectedAssignmentType.name != 'CourtRoom' && userIsAdmin">
                 <b-card  v-if="!addNewAssignmentForm">                
                     <b-button size="sm" variant="success" @click="addNewAssignment"> <b-icon icon="plus" /> Add </b-button>
                 </b-card>
@@ -76,8 +83,8 @@
                             </template>
 
                             <template v-slot:cell(edit)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDelete(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button v-if="selectedAssignmentType.name != 'CourtRoom'" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="userIsAdmin" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteAssignment(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="userIsAdmin && selectedAssignmentType.name != 'CourtRoom'" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -86,9 +93,24 @@
                                 </b-card>
                             </template>
                     </b-table>
-                </b-card> 
+                </b-card>                 
             </div>                                     
         </b-card>
+
+        <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Confirm Delete Assignment</h2>                    
+            </template>
+            <h4>Are you sure you want to delete the "{{assignmentToDelete.type?assignmentToDelete.type:''}} {{assignmentToDelete.code?assignmentToDelete.code:''}}"  Assignment?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteAssignment()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                >&times;</b-button>
+            </template>
+        </b-modal>    
 
     </b-card>
 </template>
@@ -104,7 +126,7 @@
 
     import PageHeader from "@components/common/PageHeader.vue"; 
     import AddAssignmentForm from "../ManageTypes/AddAssignmentForm.vue"
-    import {locationInfoType} from '../../types/common'; 
+    import {locationInfoType, userInfoType} from '../../types/common'; 
     import {assignmentTypeInfoType}  from '../../types/ManageTypes/index'
     import * as _ from 'underscore';
     import sortAssignmentType from './utils/sortAssignmentType';
@@ -123,8 +145,13 @@
         @commonState.State
         public location!: locationInfoType;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
         @manageTypesState.State
         public sortingAssignmentInfo!: {prvIndex: number; newIndex: number};
+
+        userIsAdmin = false;
 
         sectionHeader = 'Assignments';
         isAssignmentDataMounted = false;
@@ -140,6 +167,10 @@
         updateTable =0;
 
         sortIndex = 0;
+        expiredViewChecked = false
+
+        confirmDelete = false;
+        assignmentToDelete = {} as assignmentTypeInfoType;
 
         assignmentList: assignmentTypeInfoType[] = [];
         selectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
@@ -185,7 +216,7 @@
 
         mounted () 
         {  
-            console.log('assignment type')
+            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
             this.getAssignments()       
         }
 
@@ -258,24 +289,39 @@
                     this.assignmentErrorMsgDesc = errMsg;
                     this.assignmentError = true;
                     location.href = '#AssignmentError'
-                });  
-
+                });
         }
     
         public addNewAssignment(){
             if(this.isEditOpen){
                 location.href = '#Assignment-'+this.latestEditData.item.code
                 this.addFormColor = 'danger'
-            }else
-            {
+            }else{
                 this.addNewAssignmentForm = true;
                 this.$nextTick(()=>{location.href = '#addAssignmentForm';})
             }
         }
 
-        public confirmDelete(assignment){
-            console.log("deleting")
-            console.log(this.sortIndex)
+        public confirmDeleteAssignment(assignment){
+            this.assignmentToDelete = assignment;           
+            this.confirmDelete = true; 
+            console.log(assignment)
+        }
+
+        public deleteAssignment(){
+            this.confirmDelete = false; 
+            const url = 'api/managetypes/'+this.assignmentToDelete.id+'/expire';
+            this.$http.put(url)
+                .then(response => {
+                    console.log(response);
+                    this.getAssignments();
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.assignmentErrorMsgDesc = errMsg;
+                    this.assignmentError = true;
+                    location.href = '#AssignmentError'
+                });
         }
 
         public editAssignment(assignment){
@@ -348,7 +394,7 @@
             this.saveSortOrders();
         }
 
-         public modifyAssignmentList(modifiedAssignmentJson){            
+        public modifyAssignmentList(modifiedAssignmentJson){            
 
             const index = this.assignmentList.findIndex(assignment =>{ if(assignment.id == modifiedAssignmentJson.id) return true})
             if(index>=0){
@@ -361,6 +407,10 @@
             }
             this.refineSortOrders();
             this.saveSortOrders(); 
+        }
+
+        get viewStatus() {
+            if(this.expiredViewChecked) return 'All Assignments';else return 'Active Assignments'
         }
 
     
