@@ -87,7 +87,8 @@ namespace SS.Api.services
             var locationId = sortOrders.SortOrderLocationId;
             foreach (var sortOrder in sortOrders.SortOrders)
             {
-                var existingSortOrder = await Db.LookupSortOrder.FirstOrDefaultAsync(lso => lso.LocationId == locationId && lso.LookupCodeId == sortOrder.LookupCodeId);
+                var existingSortOrder = await Db.LookupSortOrder.FirstOrDefaultAsync(lso =>
+                    lso.LocationId == locationId && lso.LookupCodeId == sortOrder.LookupCodeId);
                 if (existingSortOrder == null)
                 {
                     var lookupSortOrder = new LookupSortOrder
@@ -106,14 +107,14 @@ namespace SS.Api.services
             await Db.SaveChangesAsync();
         }
 
-        public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
+        public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId, bool showExpired = false)
         {
             var lookupCodes = await Db.LookupCode.AsNoTracking()
                 .Include(lc => lc.SortOrder.Where(so => locationId != null && so.LocationId == locationId))
                 .Where(lc =>
                     (codeType == null || lc.Type == codeType) &&
                     (locationId == null || lc.LocationId == null || lc.LocationId == locationId) &&
-                    lc.ExpiryDate == null)
+                    (showExpired || lc.ExpiryDate == null))
                 .ToListAsync();
 
             if (locationId.HasValue)
@@ -143,12 +144,6 @@ namespace SS.Api.services
             entity.ExpiryDate = null;
             await Db.SaveChangesAsync();
             return entity;
-        }
-
-        public async Task Remove(int id)
-        {
-            Db.LookupCode.Remove(Db.LookupCode.Single(crc => crc.Id == id));
-            await Db.SaveChangesAsync();
         }
     }
 }

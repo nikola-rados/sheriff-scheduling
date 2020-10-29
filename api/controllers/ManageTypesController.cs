@@ -37,9 +37,9 @@ namespace SS.Api.controllers
 
         [HttpGet]
         [PermissionClaimAuthorize(perm: Permission.ViewManageTypes)]
-        public async Task<ActionResult<List<LookupCodeDto>>> GetAll(LookupTypes? codeType, int? locationId)
+        public async Task<ActionResult<List<LookupCodeDto>>> GetAll(LookupTypes? codeType, int? locationId, bool showExpired = false)
         {
-            var lookupCodesDtos = (await ManageTypesService.GetAll(codeType, locationId)).Adapt<List<LookupCodeDto>>();
+            var lookupCodesDtos = (await ManageTypesService.GetAll(codeType, locationId, showExpired)).Adapt<List<LookupCodeDto>>();
             return Ok(lookupCodesDtos);
         }
 
