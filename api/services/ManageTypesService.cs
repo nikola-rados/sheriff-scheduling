@@ -82,6 +82,30 @@ namespace SS.Api.services
             return lookupCode;
         }
 
+        public async Task UpdateSortOrders(SortOrdersDto sortOrders)
+        {
+            var locationId = sortOrders.SortOrderLocationId;
+            foreach (var sortOrder in sortOrders.SortOrders)
+            {
+                var existingSortOrder = await Db.LookupSortOrder.FirstOrDefaultAsync(lso => lso.LocationId == locationId && lso.LookupCodeId == sortOrder.LookupCodeId);
+                if (existingSortOrder == null)
+                {
+                    var lookupSortOrder = new LookupSortOrder
+                    {
+                        LocationId = locationId,
+                        LookupCodeId = sortOrder.LookupCodeId,
+                        SortOrder = sortOrder.SortOrder
+                    };
+                    await Db.LookupSortOrder.AddAsync(lookupSortOrder);
+                }
+                else
+                {
+                    existingSortOrder.SortOrder = sortOrder.SortOrder;
+                }
+            }
+            await Db.SaveChangesAsync();
+        }
+
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
         {
             var lookupCodes = await Db.LookupCode.AsNoTracking()

@@ -13,7 +13,7 @@ namespace SS.Db.models.lookupcodes
         public int Id { get; set; }
         [AdaptIgnore]
         public virtual LookupCode LookupCode { get; set; }
-        public int? LookupCodeId { get; set; }
+        public int LookupCodeId { get; set; }
         [AdaptIgnore]
         public virtual Location Location { get; set; }
         public int? LocationId { get; set; }
