@@ -54,7 +54,7 @@ namespace SS.Api.controllers
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
-        [HttpPost("{id}/expire")]
+        [HttpPut("{id}/expire")]
         [PermissionClaimAuthorize(perm: Permission.ExpireTypes)]
         public async Task<ActionResult<LookupCodeDto>> Expire(int id)
         {
@@ -62,7 +62,7 @@ namespace SS.Api.controllers
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
-        [HttpPost("{id}/unexpire")]
+        [HttpPut("{id}/unexpire")]
         [PermissionClaimAuthorize(perm: Permission.ExpireTypes)]
         public async Task<ActionResult<LookupCodeDto>> UnExpire(int id)
         {
@@ -81,12 +81,15 @@ namespace SS.Api.controllers
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
 
-        [HttpDelete]
+        [HttpPut("updateSort")]
         [PermissionClaimAuthorize(perm: Permission.EditTypes)]
-        public async Task<ActionResult<string>> Remove(int id)
+        public async Task<ActionResult> UpdateSortOrders(SortOrdersDto sortOrdersDto)
         {
-            await ManageTypesService.Remove(id);
+            if (sortOrdersDto == null)
+                throw new BadRequestException("Invalid lookupCode.");
+            await ManageTypesService.UpdateSortOrders(sortOrdersDto);
             return NoContent();
         }
+
     }
 }

@@ -93,18 +93,6 @@ namespace tests.controllers
         }
 
         [Fact]
-        public async Task RemoveLookupCode()
-        {
-            var id = await AddCourtRole();
-
-            var controllerResult2 = await _controller.Remove(id);
-            HttpResponseTest.CheckForNoContentResponse(controllerResult2);
-
-            var controllerResult3 = await _controller.Find(id);
-            HttpResponseTest.CheckForNotFound(controllerResult3);
-        }
-
-        [Fact]
         public async Task LocationTest()
         {
             var newLocation = new Location { Name = "5", Id = 5 };

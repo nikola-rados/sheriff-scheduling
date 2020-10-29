@@ -4,12 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Transactions;
-using JCCommon.Clients.LocationServices;
 using Mapster;
 using SS.Api.helpers.extensions;
-using SS.Api.Models.DB;
 using SS.Api.models.dto;
-using SS.Api.models.dto.generated;
 using ss.db.models;
 using SS.Db.models;
 using SS.Db.models.lookupcodes;
@@ -51,6 +48,7 @@ namespace SS.Api.services
 
         public async Task<LookupCode> Update(LookupCode lookupCode)
         {
+            lookupCode.SortOrderForLocation.ThrowBusinessExceptionIfNull("SortOrderForLocation cannot be null");
             var savedLookup = await Db.LookupCode.Include(lc => lc.SortOrder.Where(so =>
                     so.LookupCodeId == lookupCode.Id &&
                     so.LocationId == lookupCode.SortOrderForLocation.LocationId))
@@ -82,6 +80,30 @@ namespace SS.Api.services
                 lookupCode.SortOrderForLocation = lookupSortOrder;
             }
             return lookupCode;
+        }
+
+        public async Task UpdateSortOrders(SortOrdersDto sortOrders)
+        {
+            var locationId = sortOrders.SortOrderLocationId;
+            foreach (var sortOrder in sortOrders.SortOrders)
+            {
+                var existingSortOrder = await Db.LookupSortOrder.FirstOrDefaultAsync(lso => lso.LocationId == locationId && lso.LookupCodeId == sortOrder.LookupCodeId);
+                if (existingSortOrder == null)
+                {
+                    var lookupSortOrder = new LookupSortOrder
+                    {
+                        LocationId = locationId,
+                        LookupCodeId = sortOrder.LookupCodeId,
+                        SortOrder = sortOrder.SortOrder
+                    };
+                    await Db.LookupSortOrder.AddAsync(lookupSortOrder);
+                }
+                else
+                {
+                    existingSortOrder.SortOrder = sortOrder.SortOrder;
+                }
+            }
+            await Db.SaveChangesAsync();
         }
 
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
