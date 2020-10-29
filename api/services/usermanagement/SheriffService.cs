@@ -108,6 +108,7 @@ namespace SS.Api.services.usermanagement
             Db.Entry(savedSheriff).Property(x => x.HomeLocationId).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.IsEnabled).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.Photo).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.LastPhotoUpdate).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.KeyCloakId).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.IdirId).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.IdirName).IsModified = false;
