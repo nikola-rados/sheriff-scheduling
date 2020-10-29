@@ -263,7 +263,8 @@
                         startDate: startDate,
                         endDate: endDate,                      
                         isFullDay: isFullDay,
-                        id: this.formDataId
+                        id: this.formDataId,
+                        timezone: this.selectedLocation.timezone
                     } 
                     this.$emit('submit', body, this.isCreate);                  
                 }

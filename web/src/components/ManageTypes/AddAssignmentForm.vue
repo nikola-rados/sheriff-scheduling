@@ -80,6 +80,9 @@
 
         @Prop({required: true})
         type!: string;
+
+        @Prop({required: true})
+        sortOrder!: number;
        
         @Prop({required: true})
         formData!: assignmentTypeInfoType;
@@ -137,7 +140,8 @@
                 const body = {
                     code: this.selectedAssignment,
                     locationId: this.selectedLocationScope == -1 ? null: this.selectedLocationScope,
-                    id: this.formDataId
+                    id: this.formDataId,
+                    sortOrderForLocation : {locationId: this.location.id, sortOrder: this.sortOrder}
                 } 
                 this.$emit('submit', body, this.isCreate);                  
             }
