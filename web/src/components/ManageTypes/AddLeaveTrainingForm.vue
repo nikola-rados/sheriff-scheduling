@@ -14,17 +14,7 @@
                                 :state = "leaveTrainingState?null:false">                                           
                             </b-form-input>
                         </b-form-group>           
-                    </b-td>
-                    <!-- <b-td>
-                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 18rem">
-                            <label class="h6 ml-1 mb-0 pb-0" > Location specification: </label> 
-                            <b-form-select
-                                size = "sm"
-                                v-model="selectedLocationScope"
-                                :options ="locationSpecifics">
-                            </b-form-select>
-                        </b-form-group>                                            
-                    </b-td> -->
+                    </b-td>                    
                     <b-td >
                         <b-button                                    
                             style="margin: 1.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
@@ -57,6 +47,23 @@
             </template>            
             <template v-slot:modal-header-close>                 
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-leaveTraining-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal> 
+
+        <b-modal v-model="showSaveWarning" id="bv-modal-save-change-warning" header-class="bg-warning text-light m-0 pt-3 pb-0">            
+            <template v-slot:modal-title>                                
+                <h3 class="m-0 p-0 text-light"> <b-icon variant="danger" class="mr-2" icon="exclamation-triangle"/> Changes to Assignment Type </h3>                                 
+            </template>
+            <h3 class="text-justify"> Are you sure you want to make changes to this {{type}} type? </h3>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-save-change-warning')"                   
+                >Cancel</b-button>
+                <b-button variant="success" @click="confirmedSaveForm()"
+                >Confirm</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-save-change-warning')"
                  >&times;</b-button>
             </template>
         </b-modal>             
@@ -94,23 +101,21 @@
         selectedLeaveTraining = '';
         leaveTrainingState = true;
 
-        // originalLocationScope = -1;
-        // selectedLocationScope = -1;  
-        
-
         formDataId = 0;
         showCancelWarning = false;
 
-        locationSpecifics = [
-            {value: -1, text: 'Province'}
-        ]
+        showSaveWarning = false;
+
+        // locationSpecifics = [
+        //     {value: -1, text: 'Province'}
+        // ]
         
         mounted()
         { 
             this.clearSelections();
 
-            this.locationSpecifics = [{value: -1, text: 'Province'}]
-            this.locationSpecifics.push({value:this.location.id, text:this.location.name})
+            // this.locationSpecifics = [{value: -1, text: 'Province'}]
+            // this.locationSpecifics.push({value:this.location.id, text:this.location.name})
             // this.selectedLocationScope = this.location.id;
 
             console.log(this.formData)
@@ -129,7 +134,14 @@
             // console.log(this.originalLocationScope)
         }
 
-        public saveForm(){                
+        public saveForm(){
+            if(!this.isCreate && this.isChanged())
+                this.showSaveWarning = true;
+            else 
+                this.confirmedSaveForm();               
+        }              
+
+        public confirmedSaveForm(){                
             this.leaveTrainingState   = true;
 
             if(!this.selectedLeaveTraining ){
@@ -141,7 +153,7 @@
                     code: this.selectedLeaveTraining,
                     locationId: null,
                     id: this.formDataId,
-                    sortOrderForLocation : {locationId: this.location.id, sortOrder: this.sortOrder}
+                    sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
                 }
                 this.$emit('submit', body, this.isCreate);                  
             }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
@@ -8,10 +7,8 @@ using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
-using SS.Api.services.usermanagement;
 using SS.Db.models.auth;
 using SS.Db.models.scheduling;
-using SS.Db.models.scheduling.notmapped;
 
 namespace SS.Api.controllers.scheduling
 {
@@ -20,12 +17,10 @@ namespace SS.Api.controllers.scheduling
     public class ShiftController : ControllerBase
     {
         private ShiftService ShiftService { get; }
-        private SheriffService SheriffService { get; }
 
-        public ShiftController(ShiftService shiftService, SheriffService sheriffService)
+        public ShiftController(ShiftService shiftService)
         {
             ShiftService = shiftService;
-            SheriffService = sheriffService;
         }
 
         #region Shift
@@ -65,9 +60,9 @@ namespace SS.Api.controllers.scheduling
 
         [HttpDelete]
         [PermissionClaimAuthorize(perm: Permission.ExpireShifts)]
-        public async Task<ActionResult<ShiftDto>> RemoveShift(int id)
+        public async Task<ActionResult<ShiftDto>> ExpireShift(int id)
         {
-            await ShiftService.RemoveShift(id);
+            await ShiftService.ExpireShift(id);
             return NoContent();
         }
 
@@ -84,29 +79,15 @@ namespace SS.Api.controllers.scheduling
         [HttpGet]
         [Route("shiftAvailability")]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
-        public async Task<ActionResult<ShiftAvailability>> GetAvailability(DateTimeOffset startDate, DateTimeOffset endDate, int locationId)
+        public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
-            if (startDate >= endDate)
+            if (start >= end)
                 throw new BusinessLayerException("Start date was on or after end date.");
-            if (endDate.UtcDateTime.Subtract(startDate.UtcDateTime).TotalDays > 30)
+            if (end.UtcDateTime.Subtract(start.UtcDateTime).TotalDays > 30)
                 throw new BusinessLayerException("End date and start date are more than 30 days apart.");
-       
-            var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, startDate, endDate);
-            var existingShifts = await ShiftService.GetShiftsForSheriffs(sheriffs.Select(s => s.Id), startDate, endDate);
 
-            var sheriffShiftAvailability = sheriffs.Select(s => new ShiftAvailability
-            {
-                StartDate = startDate,
-                EndDate = endDate,
-                Sheriff = s,
-                SheriffId = s.Id,
-                /*ShiftConflict = Enumerable.Range(0, 1 + endDate.Subtract(startDate).Days)
-                    .Select(offset => startDate.AddDays(offset))
-                    .Select(d => new SheriffShiftConflict { Date = d }).ToList()*/
-            });
-
-            throw new NotImplementedException();
-            return new ShiftAvailability();
+            var shiftAvailability = await ShiftService.GetShiftAvailability(locationId, start, end);
+            return shiftAvailability.Adapt<List<ShiftAvailabilityDto>>();
         }
     }
 }

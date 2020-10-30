@@ -8,7 +8,7 @@
                 <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem"> 
                     <b-form-select
                         size = "lg"
-                        @change="getLeaveTraining"
+                        @change="changeLeaveTraining"
                         v-model="selectedLeaveTrainingType">                            
                             <b-form-select-option
                                 v-for="leaveTrainingType in leaveTrainingTypeTabs" 
@@ -28,7 +28,7 @@
                 <h2 v-if="leaveTrainingError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveTrainingErrorMsgDesc"  variant="danger"> {{leaveTrainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveTrainingError = false" /></b-badge></h2>
             </b-card>
 
-            <div v-if="selectedLeaveTrainingType.name != 'CourtRoom'">
+            <div>
                 <b-card  v-if="!addNewLeaveTrainingForm">                
                     <b-button size="sm" variant="success" @click="addNewLeaveTraining"> <b-icon icon="plus" /> Add </b-button>
                 </b-card>
@@ -53,8 +53,7 @@
                         striped
                         border
                         small
-                        v-sortLeaveTrainingType 
-                        id="mytable"
+                        v-sortLeaveTrainingType
                         responsive="sm"> 
 
                             <template v-slot:table-colgroup>
@@ -135,6 +134,7 @@
 
         leaveTrainingList: leaveTrainingTypeInfoType[] = [];
         selectedLeaveTrainingType = {name:'LeaveType', label:'Leave'};
+        previousSelectedLeaveTrainingType = {name:'LeaveType', label:'Leave'};
         
         leaveTrainingTypeTabs = 
         [
@@ -159,6 +159,7 @@
                     else
                         this.leaveTrainingList[listIndex].sortOrder *=2;
                 this.refineSortOrders();
+                this.saveSortOrders();
             }         
         } 
         
@@ -177,7 +178,7 @@
 
         public getLeaveTraining() {            
             this.isLeaveTrainingDataMounted = false;
-            const url = 'api/managetypes?codeType='+this.selectedLeaveTrainingType.name;
+            const url = 'api/managetypes?codeType='+this.selectedLeaveTrainingType.name+'&showExpired=false';
             console.log(url)
             this.$http.get(url)
                 .then(response => {
@@ -192,13 +193,13 @@
         public extractLeaveTrainings(leaveTrainingsJson) {
 
             this.leaveTrainingList = [];
-            this.sortIndex = leaveTrainingsJson.length? leaveTrainingsJson.length : 0;
+            this.sortIndex = leaveTrainingsJson.length? 10000+leaveTrainingsJson.length : 0;
             for(const leaveTrainingJson of leaveTrainingsJson)
             {                
                 const leaveTraining = {} as leaveTrainingTypeInfoType;
                 leaveTraining.id = leaveTrainingJson.id;
                 leaveTraining.code = leaveTrainingJson.code;
-                leaveTraining.sortOrder = leaveTrainingJson.sortOrder?leaveTrainingJson.sortOrder:(this.sortIndex++);
+                leaveTraining.sortOrder = leaveTrainingJson.sortOrderForLocation?leaveTrainingJson.sortOrderForLocation.sortOrder:(this.sortIndex++);
                 leaveTraining.type = leaveTrainingJson.type;
                 this.leaveTrainingList.push(leaveTraining)                
             }
@@ -212,6 +213,34 @@
             for(const listIndex in this.leaveTrainingList)
                 this.leaveTrainingList[listIndex].sortOrder = Number(listIndex);
             this.updateTable++;
+        }
+
+        public saveSortOrders(){
+            const sortOrders: {lookupCodeId: number ; sortOrder: number}[] = [];
+
+            for(const leaveTraining of this.leaveTrainingList )
+               sortOrders.push({lookupCodeId: leaveTraining.id , sortOrder: leaveTraining.sortOrder})
+                
+            const body = {
+                sortOrderLocationId: null,
+                sortOrders: sortOrders
+            }
+
+            console.log(sortOrders)
+            console.log(body)
+            const url = 'api/managetypes/updatesort' 
+
+            this.$http.put(url, body)
+                .then(response => {
+                    console.log(response)
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.leaveTrainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.leaveTrainingErrorMsgDesc = errMsg;
+                    this.leaveTrainingError = true;
+                    location.href = '#LeaveTrainingError'
+                });  
+
         }
     
         public addNewLeaveTraining(){
@@ -250,7 +279,8 @@
 
         public saveLeaveTraining(body, iscreate){
             this.leaveTrainingError = false;
-            console.log(body) 
+            console.log(body)
+
             body['type']= this.selectedLeaveTrainingType.name;
 
             // body['sortOrderForLocation'] = {locationId: body.locationId, sortOrder: this.sortIndex}
@@ -260,10 +290,10 @@
             
             this.$http(options)
                 .then(response => {
-                    // if(iscreate) 
-                    //     this.addToAssignedTrainingList(response.data);
-                    // else
-                    //     this.modifyAssignedTrainingList(response.data);
+                    if(iscreate) 
+                        this.addLeaveTrainingToList(response.data);
+                    else
+                        this.modifyLeaveTrainingList(response.data);
                     
                     this.closeLeaveTrainingForm();
                 }, err=>{
@@ -284,6 +314,49 @@
             } 
         }
 
+        public addLeaveTrainingToList(leaveTrainingJson){
+
+            console.log(leaveTrainingJson)
+            this.sortIndex++;
+            const leaveTraining = {} as leaveTrainingTypeInfoType;
+            leaveTraining.id = leaveTrainingJson.id;
+            leaveTraining.code = leaveTrainingJson.code;
+            leaveTraining.sortOrder = leaveTrainingJson.sortOrderForLocation? leaveTrainingJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
+            leaveTraining.type = leaveTrainingJson.type; 
+            this.leaveTrainingList.push(leaveTraining);
+            this.refineSortOrders();
+            this.saveSortOrders(); 
+        }
+
+        public modifyLeaveTrainingList(modifiedLeaveTrainingJson){            
+
+            const index = this.leaveTrainingList.findIndex(leaveTraining =>{ if(leaveTraining.id == modifiedLeaveTrainingJson.id) return true})
+            if(index>=0){
+                this.leaveTrainingList[index].id =  modifiedLeaveTrainingJson.id;                
+                this.leaveTrainingList[index].code = modifiedLeaveTrainingJson.code;
+                this.leaveTrainingList[index].sortOrder = modifiedLeaveTrainingJson.sortOrderForLocation? modifiedLeaveTrainingJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
+                this.leaveTrainingList[index].type = modifiedLeaveTrainingJson.type;                
+            }
+            this.refineSortOrders();
+            this.saveSortOrders(); 
+        }
+
+        public changeLeaveTraining(){
+            console.log(this.selectedLeaveTrainingType)
+            console.log(this.previousSelectedLeaveTrainingType)
+            if(this.addNewLeaveTrainingForm){
+                location.href = '#addLeaveTrainingForm'
+                this.addFormColor = 'danger';
+                this.selectedLeaveTrainingType = this.previousSelectedLeaveTrainingType;
+            }else if(this.isEditOpen){
+                location.href = '#LeaveTraining-'+this.latestEditData.item.code
+                this.addFormColor = 'danger'
+                this.selectedLeaveTrainingType =  this.previousSelectedLeaveTrainingType;              
+            }else{
+                this.previousSelectedLeaveTrainingType = this.selectedLeaveTrainingType;
+                this.getLeaveTraining();
+            }
+        }
     
 }
 </script>
