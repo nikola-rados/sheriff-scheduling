@@ -1,30 +1,374 @@
 <template>
     <b-card bg-variant="white" class="home">    
-      
-        <b-card  align="left" >
-            
-            <b-card >
-                <b-card-title class="h2"> Temporary AssignmentTypes page </b-card-title>
-            </b-card>   
+        <b-row class="bg-white">
+            <b-col cols="9">
+                <page-header :pageHeaderText="location.name+' '+sectionHeader"></page-header>                
+            </b-col>
+            <b-col cols="2">
+                <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem"> 
+                    <b-form-select
+                        size = "lg"
+                        @change="getAssignments"
+                        v-model="selectedAssignmentType">                            
+                            <b-form-select-option
+                                v-for="assignmentType in assignmentTypeTabs" 
+                                :key="assignmentType.name"                                
+                                :value="assignmentType">
+                                    {{assignmentType.label}}
+                            </b-form-select-option>     
+                    </b-form-select>
+                </b-form-group>
+            </b-col>
+        </b-row>
 
+        <loading-spinner v-if= "!isAssignmentDataMounted" />
+
+        <b-card v-else no-body style="width: 50rem; margin: 0 auto 8rem auto">                                        
+            <b-card id="AssignmentError" no-body>
+                <h2 v-if="assignmentError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="assignmentErrorMsgDesc"  variant="danger"> {{assignmentErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="assignmentError = false" /></b-badge></h2>
+            </b-card>
+
+            <div v-if="selectedAssignmentType.name != 'CourtRoom'">
+                <b-card  v-if="!addNewAssignmentForm">                
+                    <b-button size="sm" variant="success" @click="addNewAssignment"> <b-icon icon="plus" /> Add </b-button>
+                </b-card>
+
+                <b-card v-else id="addAssignmentForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
+                    <add-assignment-form :type="selectedAssignmentType.label" :sortOrder="sortIndex" :formData="{}" :isCreate="true" v-on:submit="saveAssignment" v-on:cancel="closeAssignmentForm" />              
+                </b-card>
+            </div>
+            <b-card v-else class="my-3"/>
+
+            <div>
+                <b-card no-body border-variant="white" bg-variant="white" v-if="!assignmentList.length" style="width: 50rem; margin: 0 auto 8rem auto">
+                    <span class="text-muted ml-4 my-5">No {{selectedAssignmentType.label}} exists.</span>
+                </b-card>
+
+                <b-card v-else  no-body border-variant="light" bg-variant="white" style="width: 50rem; margin: 0 auto 8rem auto">
+                    <b-table
+                        :key="updateTable"
+                        :items="assignmentList"
+                        :fields="fields"                        
+                        sort-icon-left
+                        head-row-variant="primary"
+                        striped
+                        borderless
+                        small
+                        v-sortAssignmentType 
+                        id="mytable"
+                        responsive="sm"> 
+
+                            <template v-slot:table-colgroup>
+                                <col style="width:4rem">
+                            </template>
+                                              
+                            <template v-slot:head(code) >
+                                <span>{{selectedAssignmentType.label}}</span> 
+                            </template>
+
+                            <template v-slot:head(scope) = "data" >
+                                <span v-if="selectedAssignmentType.name != 'CourtRoom'">{{data.label}}</span> 
+                                <span v-else></span>
+                            </template>
+
+                            <template v-slot:cell(sortOrder) >
+                                <span><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
+                            </template>
+
+                            <template v-slot:cell(edit)="data" >                                       
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDelete(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="selectedAssignmentType.name != 'CourtRoom'" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            </template>
+
+                            <template v-slot:row-details="data">
+                                <b-card :id="'#Assignment-'+data.item.code" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
+                                    <add-assignment-form :type="selectedAssignmentType.label" :sortOrder="data.item.sortOrder" :formData="data.item" :isCreate="false" v-on:submit="saveAssignment" v-on:cancel="closeAssignmentForm" />
+                                </b-card>
+                            </template>
+                    </b-table>
+                </b-card> 
+            </div>                                     
         </b-card>
+
     </b-card>
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class'
+    import { Component, Vue, Watch } from 'vue-property-decorator';
+    import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
 
-    @Component
+    import "@store/modules/ManageTypesInformation";
+    const manageTypesState = namespace("ManageTypesInformation");
+
+    import PageHeader from "@components/common/PageHeader.vue"; 
+    import AddAssignmentForm from "../ManageTypes/AddAssignmentForm.vue"
+    import {locationInfoType} from '../../types/common'; 
+    import {assignmentTypeInfoType}  from '../../types/ManageTypes/index'
+    import * as _ from 'underscore';
+    import sortAssignmentType from './utils/sortAssignmentType';
+    
+    @Component({
+        components: {
+            PageHeader,
+            AddAssignmentForm
+        },
+        directives: {     
+            sortAssignmentType
+        }
+    })
     export default class AssignmentTypes extends Vue {
 
-    }
+        @commonState.State
+        public location!: locationInfoType;
+
+        @manageTypesState.State
+        public sortingAssignmentInfo!: {prvIndex: number; newIndex: number};
+
+        sectionHeader = 'Assignments';
+        isAssignmentDataMounted = false;
+        isEditOpen = false;
+        latestEditData;
+
+        assignmentError = false;
+        assignmentErrorMsg = '';
+        assignmentErrorMsgDesc = '';
+
+        addNewAssignmentForm = false;
+        addFormColor = 'dark';
+        updateTable =0;
+
+        sortIndex = 0;
+
+        assignmentList: assignmentTypeInfoType[] = [];
+        selectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
+        
+        assignmentTypeTabs = 
+        [
+            {name:'CourtRoom', label:'Court Room'},
+            {name:'CourtRole', label:'Court Assignment'},
+            {name:'JailRole', label:'Jail Assignment'},
+            {name:'EscortRun', label:'Escort Assignment'},
+            {name:'OtherAssignment', label:'Other Assignment'},
+        ]
+
+        fields =  
+        [     
+            {key:'sortOrder', label:'', sortable:false, tdClass: 'border-top' },       
+            {key:'code', label:'', sortable:false, tdClass: 'border-top'  },
+            {key:'scope',   label:'Location Specification',  sortable:false, tdClass: 'border-top', thClass:'',},  
+            {key:'edit', label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
+        ];
+
+        @Watch('sortingAssignmentInfo', { immediate: true })
+        sortingAssignmentInfoChange()
+        {
+            if (this.isAssignmentDataMounted) {
+                for(const listIndex in this.assignmentList)
+                    if(Number(listIndex) == this.sortingAssignmentInfo.prvIndex)
+                        this.assignmentList[listIndex].sortOrder = this.sortingAssignmentInfo.newIndex*2 + Math.sign(this.sortingAssignmentInfo.newIndex-this.sortingAssignmentInfo.prvIndex)
+                    else
+                        this.assignmentList[listIndex].sortOrder *=2;
+                this.refineSortOrders();
+                this.saveSortOrders();
+            }         
+        } 
+        
+        @Watch('location.id', { immediate: true })
+        locationChange()
+        {
+            if (this.isAssignmentDataMounted) {
+                this.getAssignments()
+            }            
+        } 
+
+        mounted () 
+        {  
+            console.log('assignment type')
+            this.getAssignments()       
+        }
+
+        public getAssignments() {            
+            this.isAssignmentDataMounted = false;
+            const url = 'api/managetypes?codeType='+this.selectedAssignmentType.name +'&locationId='+this.location.id;
+            console.log(url)
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)
+                        this.extractAssignments(response.data);                        
+                    }
+                    this.isAssignmentDataMounted = true;
+                })        
+        }
+
+        public extractAssignments(assignmentsJson) {
+
+            this.assignmentList = [];
+            this.sortIndex = assignmentsJson.length? 10000+assignmentsJson.length : 0;
+            console.log(this.sortIndex)
+            for(const assignmentJson of assignmentsJson) {
+
+                const assignment = {} as assignmentTypeInfoType;
+                assignment.id = assignmentJson.id;
+                assignment.code = assignmentJson.code;
+                assignment.locationId = assignmentJson.locationId;
+                if(this.selectedAssignmentType.name != 'CourtRoom') assignment['scope'] = assignmentJson.locationId? this.location.name : 'Province' 
+                assignment['hasSortOrder'] = assignmentJson.sortOrderForLocation? true : false;
+                assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
+                console.log(assignment.code+' '+assignment.sortOrder)
+                assignment.type = assignmentJson.type; 
+                this.assignmentList.push(assignment)                
+            }
+
+            console.log(this.assignmentList)
+            this.refineSortOrders();
+        }
+
+        public refineSortOrders(){
+            this.assignmentList = _.sortBy(this.assignmentList,'sortOrder');
+            for(const listIndex in this.assignmentList)
+                this.assignmentList[listIndex].sortOrder = Number(listIndex);
+            this.updateTable++;
+            console.log(this.assignmentList)            
+        }
+
+        public saveSortOrders(){
+            const sortOrders: {lookupCodeId: number ; sortOrder: number}[] = [];
+
+            for(const assignment of this.assignmentList )
+               sortOrders.push({lookupCodeId: assignment.id , sortOrder: assignment.sortOrder})
+                
+            const body = {
+                sortOrderLocationId: this.location.id,
+                sortOrders: sortOrders
+            }
+
+            console.log(sortOrders)
+            console.log(body)
+            const url = 'api/managetypes/updatesort' 
+
+            this.$http.put(url, body)
+                .then(response => {
+                    console.log(response)
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.assignmentErrorMsgDesc = errMsg;
+                    this.assignmentError = true;
+                    location.href = '#AssignmentError'
+                });  
+
+        }
+    
+        public addNewAssignment(){
+            if(this.isEditOpen){
+                location.href = '#Assignment-'+this.latestEditData.item.code
+                this.addFormColor = 'danger'
+            }else
+            {
+                this.addNewAssignmentForm = true;
+                this.$nextTick(()=>{location.href = '#addAssignmentForm';})
+            }
+        }
+
+        public confirmDelete(assignment){
+            console.log("deleting")
+            console.log(this.sortIndex)
+        }
+
+        public editAssignment(assignment){
+            console.log(assignment)
+            if(this.addNewAssignmentForm){
+                location.href = '#addAssignmentForm'
+                this.addFormColor = 'danger'
+            }else if(this.isEditOpen){
+                location.href = '#Assignment-'+this.latestEditData.item.code
+                this.addFormColor = 'danger'               
+            }else if(!this.isEditOpen && !assignment.detailsShowing){
+                assignment.toggleDetails();
+                this.isEditOpen = true;
+                this.latestEditData = assignment
+                Vue.nextTick().then(()=>{
+                    location.href = '#Assignment-'+this.latestEditData.item.code
+                });
+            }  
+        }
+
+        public saveAssignment(body, iscreate){
+            this.assignmentError = false;
+            console.log(body) 
+            body['type']= this.selectedAssignmentType.name;
+            
+            const method = iscreate? 'post' :'put';            
+            const url = 'api/managetypes'  
+            const options = { method: method, url:url, data:body}
+            
+            this.$http(options)
+                .then(response => {
+                    if(iscreate) 
+                        this.addAssignmentToList(response.data);
+                    else
+                        this.modifyAssignmentList(response.data);
+                    
+                    this.closeAssignmentForm();
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.assignmentErrorMsgDesc = errMsg;
+                    this.assignmentError = true;
+                    location.href = '#AssignmentError'
+                });                
+        }
+
+        public closeAssignmentForm() {                     
+            this.addNewAssignmentForm = false; 
+            this.addFormColor = 'secondary'
+            if(this.isEditOpen){
+                this.latestEditData.toggleDetails();
+                this.isEditOpen = false;
+            } 
+        }
+
+        public addAssignmentToList(assignmentJson){
+
+            console.log(assignmentJson)
+
+            this.sortIndex++;
+            const assignment = {} as assignmentTypeInfoType;
+            assignment.id = assignmentJson.id;
+            assignment.code = assignmentJson.code;
+            assignment.locationId = assignmentJson.locationId;
+            assignment['scope'] = assignmentJson.locationId? this.location.name : 'Province' 
+            assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
+            assignment.type = assignmentJson.type; 
+            this.assignmentList.push(assignment);
+            this.refineSortOrders();
+            this.saveSortOrders();
+        }
+
+         public modifyAssignmentList(modifiedAssignmentJson){            
+
+            const index = this.assignmentList.findIndex(assignment =>{ if(assignment.id == modifiedAssignmentJson.id) return true})
+            if(index>=0){
+                this.assignmentList[index].id =  modifiedAssignmentJson.id;                
+                this.assignmentList[index].code = modifiedAssignmentJson.code;                                
+                this.assignmentList[index].locationId = modifiedAssignmentJson.locationId;
+                this.assignmentList[index]['scope'] = modifiedAssignmentJson.locationId? this.location.name : 'Province';
+                this.assignmentList[index].sortOrder = modifiedAssignmentJson.sortOrderForLocation? modifiedAssignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
+                this.assignmentList[index].type = modifiedAssignmentJson.type;                
+            }
+            this.refineSortOrders();
+            this.saveSortOrders(); 
+        }
+
+    
+}
 </script>
 
 <style scoped>   
-
     .card {
         border: white;
     }
-
 </style>

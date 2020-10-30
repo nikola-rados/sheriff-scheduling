@@ -2,11 +2,12 @@
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
-using SS.Api.Helpers.Extensions;
+using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.models.dto;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Api.services;
+using SS.Api.services.usermanagement;
 using SS.Db.models.auth;
 
 namespace SS.Api.controllers.usermanagement
@@ -18,17 +19,14 @@ namespace SS.Api.controllers.usermanagement
     [ApiController]
     public class RoleController : ControllerBase
     {
-        private readonly RoleService _service;
-        public RoleController(RoleService service)
-        {
-            _service = service;
-        }
+        private RoleService RoleService { get; }
+        public RoleController(RoleService roleService)  {  RoleService = roleService; }
 
         [HttpGet]
         [PermissionClaimAuthorize(perm: Permission.ViewRoles)]
         public async Task<ActionResult<List<RoleDto>>> Roles()
         {
-            var roles = await _service.Roles();
+            var roles = await RoleService.Roles();
             return Ok(roles.Adapt<List<RoleDto>>());
         }
 
@@ -37,7 +35,7 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.ViewRoles)]
         public async Task<ActionResult<RoleDto>> GetRole(int id)
         {
-            var roles = await _service.Role(id);
+            var roles = await RoleService.Role(id);
             return Ok(roles.Adapt<RoleDto>());
         }
 
@@ -50,7 +48,7 @@ namespace SS.Api.controllers.usermanagement
             addRole.PermissionIds.ThrowBusinessExceptionIfEmpty("Permission Ids was empty");
             
             var entity = addRole.Role.Adapt<Role>();
-            var createdRole = await _service.AddRole(entity, addRole.PermissionIds);
+            var createdRole = await RoleService.AddRole(entity, addRole.PermissionIds);
             return Ok(createdRole.Adapt<RoleDto>());
         }
 
@@ -62,7 +60,7 @@ namespace SS.Api.controllers.usermanagement
             updateRole.Role.ThrowBusinessExceptionIfNull("Role was null");
 
             var entity = updateRole.Role.Adapt<Role>();
-            var updatedRole = await _service.UpdateRole(entity, updateRole.PermissionIds);
+            var updatedRole = await RoleService.UpdateRole(entity, updateRole.PermissionIds);
             return Ok(updatedRole.Adapt<RoleDto>());
         }
 
@@ -70,7 +68,7 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditRoles)]
         public async Task<ActionResult> RemoveRole(int id)
         {
-            await _service.RemoveRole(id);
+            await RoleService.RemoveRole(id);
             return NoContent();
         }
     }

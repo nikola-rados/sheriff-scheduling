@@ -1,10 +1,6 @@
 ﻿using SS.DB.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using SS.Api.Models.DB;
 using SS.Db.models.scheduling;
 
 namespace SS.Db.configuration
@@ -18,8 +14,12 @@ namespace SS.Db.configuration
             builder.HasOne(b => b.Location).WithMany().HasForeignKey(m => m.LocationId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            builder.HasMany(b => b.AssignedSheriffs).WithOne(s => s.Shift).HasForeignKey(m => m.ShiftId)
+            builder.HasMany(s => s.Duties).WithOne(s => s.Shift).HasForeignKey(s => s.ShiftId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(d => d.AnticipatedAssignment).WithOne().OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasOne(d => d.Sheriff).WithOne().OnDelete(DeleteBehavior.SetNull);
 
             base.Configure(builder);
         }

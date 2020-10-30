@@ -90,7 +90,7 @@
                 </b-form-select>
             </b-form-group>
             <template v-slot:modal-footer>
-                <b-button variant="danger" @click="deleteLocation()" :disabled="locationDeleteReason.length == 0">Delete</b-button>
+                <b-button variant="danger" @click="deleteLocation()" :disabled="locationDeleteReason.length == 0">Confirm</b-button>
                 <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
@@ -102,7 +102,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Prop } from 'vue-property-decorator';
+    import { Component, Vue} from 'vue-property-decorator';
     import moment from 'moment-timezone';
     import {teamMemberInfoType, awayLocationInfoType} from '../../../types/MyTeam';
     import {locationInfoType} from '../../../types/common';

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SS.Api.Helpers.Exceptions
+namespace SS.Api.infrastructure.exceptions
 {
     /// <summary>
     /// ConfigurationException class, provides a way to throw an exception when a configuration is invalid.

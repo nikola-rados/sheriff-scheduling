@@ -1,8 +1,8 @@
 using System;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 using SS.Db.models.lookupcodes;
 
-namespace SS.Api.Models.Dto
+namespace SS.Api.models.dto.generated
 {
     public partial class LookupCodeDto
     {
@@ -13,9 +13,9 @@ namespace SS.Api.Models.Dto
         public string Description { get; set; }
         public DateTimeOffset? EffectiveDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
-        public int? SortOrder { get; set; }
         public LocationDto Location { get; set; }
         public int? LocationId { get; set; }
         public uint ConcurrencyToken { get; set; }
+        public LookupSortOrderDto SortOrderForLocation { get; set; }
     }
 }

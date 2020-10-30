@@ -1,7 +1,7 @@
 using System;
-using SS.Api.Models.Dto;
+using SS.Api.models.dto.generated;
 
-namespace SS.Api.Models.Dto
+namespace SS.Api.models.dto.generated
 {
     public partial class SheriffAwayLocationDto
     {
@@ -14,6 +14,7 @@ namespace SS.Api.Models.Dto
         public string ExpiryReason { get; set; }
         public Guid SheriffId { get; set; }
         public string Comment { get; set; }
+        public string Timezone { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace SS.Api.Models.Dto
+namespace SS.Api.models.dto.generated
 {
     public partial class RegionDto
     {
