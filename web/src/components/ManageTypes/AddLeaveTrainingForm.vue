@@ -53,7 +53,7 @@
 
         <b-modal v-model="showSaveWarning" id="bv-modal-save-change-warning" header-class="bg-warning text-light m-0 pt-3 pb-0">            
             <template v-slot:modal-title>                                
-                <h3 class="m-0 p-0 text-light"> <b-icon variant="danger" class="mr-2" icon="exclamation-triangle"/> Changes to Assignment Type </h3>                                 
+                <h3 class="m-0 p-0 text-light"> <b-icon variant="danger" class="mr-2" icon="exclamation-triangle"/> Changes to {{type}} Type </h3>                                 
             </template>
             <h3 class="text-justify"> Are you sure you want to make changes to this {{type}} type? </h3>
             <template v-slot:modal-footer>

@@ -105,8 +105,8 @@
                     <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Delete Assignment</h2>
                     <h2 v-else class="mb-0 text-light">Confirm Unexpire Assignment</h2>                     
             </template>
-            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{assignmentToDelete.type?assignmentToDelete.type:''}} {{assignmentToDelete.code?assignmentToDelete.code:''}}"  Assignment?</h4>
-            <h4 v-else>Are you sure you want to Unexpire the "{{assignmentToDelete.type?assignmentToDelete.type:''}} {{assignmentToDelete.code?assignmentToDelete.code:''}}"  Assignment?</h4>
+            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{selectedAssignmentType.label}}: {{assignmentToDelete.code?assignmentToDelete.code:''}}"  assignment type?</h4>
+            <h4 v-else>Are you sure you want to Unexpire the "{{selectedAssignmentType.label}}: {{assignmentToDelete.code?assignmentToDelete.code:''}}"  assignment type?</h4>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="deleteAssignment()">Confirm</b-button>
                 <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>

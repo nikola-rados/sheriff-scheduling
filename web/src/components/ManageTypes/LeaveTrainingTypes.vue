@@ -20,7 +20,7 @@
                 </b-form-group>
             </b-col>
             <b-col cols="2" >
-                <div :class="expiredViewChecked?'bg-warning':''" :style="(expiredViewChecked?'width: 13.25rem;':'width: 15.25rem;')+'margin: .75rem 1rem 0 .5rem;'">
+                <div :class="expiredViewChecked?'bg-warning':''" :style="(expiredViewChecked?'width: 10.75rem;':'width: 12.75rem;')+'margin: .75rem 1rem 0 .5rem;'">
                     <b-form-checkbox class="ml-2" v-model="expiredViewChecked"  @change="getLeaveTraining()" size="lg"  switch>
                         {{viewStatus}}
                     </b-form-checkbox>
@@ -95,11 +95,11 @@
 
         <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
             <template v-slot:modal-title>
-                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Delete {{selectedLeaveTrainingType.name}}</h2>
-                    <h2 v-else class="mb-0 text-light">Confirm Unexpire {{selectedLeaveTrainingType.name}}</h2>                     
+                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Delete {{selectedLeaveTrainingType.label}}</h2>
+                    <h2 v-else class="mb-0 text-light">Confirm Unexpire {{selectedLeaveTrainingType.label}}</h2>                     
             </template>
-            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{leaveTrainingToDelete.type?leaveTrainingToDelete.type:''}} {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}" ?</h4>
-            <h4 v-else>Are you sure you want to Unexpire the "{{leaveTrainingToDelete.type?leaveTrainingToDelete.type:''}} {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}" ?</h4>
+            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{selectedLeaveTrainingType.label}}: {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}"?</h4>
+            <h4 v-else>Are you sure you want to Unexpire the "{{selectedLeaveTrainingType.label}}: {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}"?</h4>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="deleteLeaveTraining()">Confirm</b-button>
                 <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
