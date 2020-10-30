@@ -9,15 +9,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SS.Api.services.usermanagement;
+using SS.Db.models.scheduling.notmapped;
 
 namespace SS.Api.services.scheduling
 {
     public class ShiftService
     {
         private SheriffDbContext Db { get; }
-        public ShiftService(SheriffDbContext db)
+        private SheriffService SheriffService { get; }
+        public ShiftService(SheriffDbContext db, SheriffService sheriffService)
         {
             Db = db;
+            SheriffService = sheriffService;
         }
 
         public async Task<List<Shift>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
@@ -114,7 +118,7 @@ namespace SS.Api.services.scheduling
             return await savedShifts.ToListAsync();
         }
 
-        public async Task RemoveShift(int id)
+        public async Task ExpireShift(int id)
         {
             var entity = await Db.Shift.FirstOrDefaultAsync(s => s.Id == id);
             entity.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
@@ -166,6 +170,26 @@ namespace SS.Api.services.scheduling
 
             await Db.SaveChangesAsync();
             return importedShifts;
+        }
+
+        public async Task<List<ShiftAvailability>> GetShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
+        {
+            var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, start, end);
+            var shiftsForSheriffs = await GetShiftsForSheriffs(sheriffs.Select(s => s.Id), start, end);
+            return new List<ShiftAvailability>();
+            /*var shiftConflicts = 
+
+            var ShiftAvailability = sheriffs.Select(s => new ShiftAvailability
+            {
+                Start = start,
+                End = end,
+                Sheriff = s,
+                SheriffId = s.Id,
+                ShiftConflict = shiftConflicts.Where(sc => sc.)
+            });
+            */
+
+            //return Task.CompletedTask;
         }
 
         #region Helpers
