@@ -33,13 +33,14 @@ namespace SS.Api.services.scheduling
 
         public async Task<Shift> AddShift(Shift entity)
         {
+            entity.Location.ThrowBusinessExceptionIfNull(
+                $"{nameof(Location)} with id: {entity.LocationId} does not exist.");
+            entity.Timezone.ThrowBusinessExceptionIfNullOrEmpty($"{nameof(entity.Timezone)} is a required field.");
             entity.Duties = null;
             entity.ExpiryDate = null;
             entity.Sheriff = await Db.Sheriff.FindAsync(entity.SheriffId);
             entity.AnticipatedAssignment = await Db.Assignment.FindAsync(entity.AnticipatedAssignmentId);
             entity.Location = await Db.Location.FindAsync(entity.LocationId);
-            entity.Location.ThrowBusinessExceptionIfNull(
-                $"{nameof(Location)} with id: {entity.LocationId} does not exist.");
             await Db.Shift.AddAsync(entity);
             await Db.SaveChangesAsync();
             return entity;
@@ -49,6 +50,7 @@ namespace SS.Api.services.scheduling
         {
             var savedShift = await Db.Shift.FindAsync(entity.Id);
             savedShift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with the id: {entity.Id} could not be found.");
+            entity.Timezone.ThrowBusinessExceptionIfNullOrEmpty($"{nameof(entity.Timezone)} is a required field.");
 
             if (entity.SheriffId.HasValue && entity.SheriffId != savedShift.SheriffId)
             {

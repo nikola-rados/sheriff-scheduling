@@ -64,7 +64,9 @@ namespace SS.Api.services
                 .FirstOrDefaultAsync(lc => lc.Id == lookupCode.Id);
             savedLookup.ThrowBusinessExceptionIfNull($"Couldn't find lookup code with id: {lookupCode.Id}");
 
-            if (savedLookup.Code != lookupCode.Code &&
+            if ((savedLookup.Code != lookupCode.Code ||
+                 savedLookup.LocationId != lookupCode.LocationId)
+                &&
                 Db.LookupCode.AsNoTracking()
                     .Any(lc => lc.Code == lookupCode.Code && lc.LocationId == lookupCode.LocationId))
                 throw new BusinessLayerException("An entry already exists with this value and location.");
@@ -105,13 +107,12 @@ namespace SS.Api.services
                     lso.LocationId == locationId && lso.LookupCodeId == sortOrder.LookupCodeId);
                 if (existingSortOrder == null)
                 {
-                    var lookupSortOrder = new LookupSortOrder
+                    await Db.LookupSortOrder.AddAsync(new LookupSortOrder
                     {
                         LocationId = locationId,
                         LookupCodeId = sortOrder.LookupCodeId,
                         SortOrder = sortOrder.SortOrder
-                    };
-                    await Db.LookupSortOrder.AddAsync(lookupSortOrder);
+                    });
                 }
                 else
                 {

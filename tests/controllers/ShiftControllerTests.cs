@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using SS.Api.controllers.scheduling;
+using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
 using SS.Api.models.dto.generated;
@@ -119,11 +120,152 @@ namespace tests.controllers
         [Fact]
         public async Task GetAvailability()
         {
-            await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz" });
+            await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz", Name = "Location 1" });
+            await Db.Location.AddAsync(new Location { Id = 2, AgencyId = "5555", Name = "Location 2" });
             await Db.SaveChangesAsync();
-            //await ShiftController.GetAvailability(startDateNowEdmonton, endDateNowEdmonton, )
+
+            var startDate = DateTimeOffset.UtcNow.ConvertToTimezone("America/Edmonton");
+            var endDate = DateTimeOffset.UtcNow.TranslateDateIfDaylightSavings("America/Edmonton", 7);
+
+            //On awayLocation.
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = Guid.NewGuid(),
+                IsEnabled = true,
+                AwayLocation = new List<SheriffAwayLocation>
+                {
+                    new SheriffAwayLocation
+                    {
+                        StartDate = startDate,
+                        EndDate = startDate.AddDays(1),
+                        LocationId = 2
+                    }
+                }
+            });
+
+            //On training.
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = Guid.NewGuid(),
+                IsEnabled = true,
+                Training = new List<SheriffTraining>
+                {
+                    new SheriffTraining
+                    {
+                        StartDate = startDate.AddDays(1),
+                        EndDate = startDate.AddDays(2)
+                    }
+                }
+            });
+
+            //On leave.
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = Guid.NewGuid(),
+                IsEnabled = true,
+                Leave = new List<SheriffLeave>
+                {
+                    new SheriffLeave
+                    {
+                        StartDate = startDate.AddDays(1),
+                        EndDate = startDate.AddDays(2)
+                    }
+                }
+            });
+
+            //Already scheduled.
+            var scheduledSheriff = Guid.NewGuid();
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = scheduledSheriff,
+                IsEnabled = true
+            });
+
+            await Db.Shift.AddAsync(new Shift
+            {
+                Id = 1,
+                StartDate = startDate.AddDays(2),
+                EndDate = startDate.AddDays(3),
+                LocationId = 1,
+                Timezone = "America/Vancouver"
+            });
 
 
+            //Already scheduled different location.
+            var scheduledSheriff2 = Guid.NewGuid();
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = scheduledSheriff2,
+                IsEnabled = true
+            });
+
+            await Db.Shift.AddAsync(new Shift
+            {
+                Id = 2,
+                StartDate = startDate.AddDays(2),
+                EndDate = startDate.AddDays(3),
+                LocationId = 2,
+                Timezone = "America/Vancouver"
+            });
+
+            var expiredShiftSheriffId = Guid.NewGuid();
+            //Expired Leave, Expired Training, Expired Away Location, Expired Shift
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = expiredShiftSheriffId,
+                IsEnabled = true,
+                Leave = new List<SheriffLeave>
+                {
+                    new SheriffLeave
+                    {
+                        StartDate = startDate.AddDays(1),
+                        EndDate = startDate.AddDays(2),
+                        ExpiryDate = DateTimeOffset.UtcNow
+                    }
+                },
+                Training = new List<SheriffTraining>
+                {
+                    new SheriffTraining
+                    {
+                        StartDate = startDate.AddDays(1),
+                        EndDate = startDate.AddDays(2),
+                        ExpiryDate = DateTimeOffset.UtcNow
+                    }
+                },
+                AwayLocation = new List<SheriffAwayLocation>
+                {
+                    new SheriffAwayLocation
+                    {
+                        StartDate = startDate,
+                        EndDate = startDate.AddDays(1),
+                        LocationId = 2,
+                        ExpiryDate = DateTimeOffset.UtcNow
+                    }
+                }
+            });
+
+            await Db.Shift.AddAsync(new Shift
+            {
+                Id = 3,
+                StartDate = startDate.AddDays(2),
+                EndDate = startDate.AddDays(3),
+                LocationId = 2,
+                SheriffId = expiredShiftSheriffId,
+                Timezone = "America/Vancouver",
+                ExpiryDate = DateTimeOffset.UtcNow
+            });
+
+            //Expired Sheriff
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = Guid.NewGuid(),
+                FirstName = "Expired",
+                LastName = "Expired Sheriff",
+                IsEnabled = false
+            });
+
+            await Db.SaveChangesAsync();
+            await ShiftController.GetAvailability(startDate, endDate, 1);
         }
 
         [Fact]
