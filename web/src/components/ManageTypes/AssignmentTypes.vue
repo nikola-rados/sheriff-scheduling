@@ -84,7 +84,7 @@
                             <template v-slot:cell(edit)="data" >                                  
                                 <b-button v-if="userIsAdmin && !data.item['_rowVariant']" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteAssignment(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button v-if="userIsAdmin && data.item['_rowVariant']" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireAssignment(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button v-if="userIsAdmin && selectedAssignmentType.name != 'CourtRoom'" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="userIsAdmin && selectedAssignmentType.name != 'CourtRoom'" :disabled="data.item['_rowVariant']?true:false" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -225,6 +225,7 @@
         }
 
         public getAssignments() {
+            this.closeAssignmentForm()
             Vue.nextTick(()=>{            
                 this.isAssignmentDataMounted = false;
                 const url = 'api/managetypes?codeType='+this.selectedAssignmentType.name +'&locationId='+this.location.id+'&showExpired='+this.expiredViewChecked;
