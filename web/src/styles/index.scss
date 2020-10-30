@@ -8,6 +8,14 @@ $bcgov-font-path: "../../node_modules/@bcgov/bootstrap-theme/dist/fonts/";
 @import '~bootstrap-vue/dist/bootstrap-vue.css';
 @import "~bootstrap-vue/src/index.scss";
 
+.modal-open {
+  padding-right: 0px !important;
+}
+
+footer {
+  padding-right: 0px !important;
+}
+
 .breadcrumb {
   margin-bottom: 0;
 }
