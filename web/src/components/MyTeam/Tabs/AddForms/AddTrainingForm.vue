@@ -341,7 +341,8 @@
                 endDate: endDate,                      
                 trainingCertificationExpiry: this.selectedExpiryDate,
                 comment: this.selectedTrainingTypeComment,
-                id: this.formDataId
+                id: this.formDataId,
+                timezone: timezone
             } 
             this.$emit('submit', body, this.isCreate);                  
                 

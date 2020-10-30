@@ -59,7 +59,25 @@
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-assignment-cancel-warning')"
                  >&times;</b-button>
             </template>
-        </b-modal>             
+        </b-modal> 
+
+        <b-modal v-model="showScopeWarning" id="bv-modal-scope-change-warning" header-class="bg-warning text-light m-0 pt-3 pb-0">            
+            <template v-slot:modal-title>                                
+                <h3 class="m-0 p-0 text-light"> <b-icon variant="danger" class="mr-2" icon="exclamation-triangle"/>Changes to Location Specification  </h3>                                 
+            </template>
+            <h3> Are you sure you want to change the location specification? </h3>
+            <p>This will cause changes to this assignment type in other locations</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-scope-change-warning')"                   
+                >Cancel</b-button>
+                <b-button variant="success" @click="confirmedSaveForm()"
+                >Confirm</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-scope-change-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>            
     </div>
 </template>
 
@@ -80,6 +98,9 @@
 
         @Prop({required: true})
         type!: string;
+
+        @Prop({required: true})
+        sortOrder!: number;
        
         @Prop({required: true})
         formData!: assignmentTypeInfoType;
@@ -97,6 +118,7 @@
 
         formDataId = 0;
         showCancelWarning = false;
+        showScopeWarning = false;
 
         locationSpecifics = [
             {value: -1, text: 'Province'}
@@ -126,7 +148,17 @@
             console.log(this.originalLocationScope)
         }
 
-        public saveForm(){                
+        public saveForm(){
+            if(this.isCreate) this.confirmedSaveForm();
+            else{
+                if(this.originalLocationScope != this.selectedLocationScope){
+                    this.showScopeWarning = true;
+                }else {
+                    this.confirmedSaveForm();
+                }
+            }
+        }
+        public confirmedSaveForm(){                
             this.assignmentState   = true;
 
             if(!this.selectedAssignment ){
@@ -137,7 +169,8 @@
                 const body = {
                     code: this.selectedAssignment,
                     locationId: this.selectedLocationScope == -1 ? null: this.selectedLocationScope,
-                    id: this.formDataId
+                    id: this.formDataId,
+                    sortOrderForLocation : {locationId: this.location.id, sortOrder: this.sortOrder}
                 } 
                 this.$emit('submit', body, this.isCreate);                  
             }

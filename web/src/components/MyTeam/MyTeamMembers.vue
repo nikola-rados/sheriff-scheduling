@@ -84,7 +84,7 @@
                                         :editMode="editMode" />
                                 </b-tab>
 
-                                <b-tab v-if="editMode" title="Locations" class="p-0"> 
+                                <b-tab v-if="editMode" title="Locations"> 
                                     <location-tab 
                                         v-on:change="getSheriffs()"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>                                   

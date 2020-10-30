@@ -80,5 +80,16 @@ namespace SS.Api.controllers
             var lookupCode = await ManageTypesService.Update(entity);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
+
+        [HttpPut("updateSort")]
+        [PermissionClaimAuthorize(perm: Permission.EditTypes)]
+        public async Task<ActionResult> UpdateSortOrders(SortOrdersDto sortOrdersDto)
+        {
+            if (sortOrdersDto == null)
+                throw new BadRequestException("Invalid lookupCode.");
+            await ManageTypesService.UpdateSortOrders(sortOrdersDto);
+            return NoContent();
+        }
+
     }
 }
