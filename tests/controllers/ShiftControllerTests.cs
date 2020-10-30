@@ -24,7 +24,7 @@ namespace tests.controllers
         private ShiftController ShiftController { get; }
         public ShiftControllerTests() : base(false)
         {
-            ShiftController = new ShiftController(new ShiftService(Db), new SheriffService(Db))
+            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db)))
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -265,7 +265,7 @@ namespace tests.controllers
             });
 
             await Db.SaveChangesAsync();
-            await ShiftController.GetAvailability(startDate, endDate, 1);
+            await ShiftController.GetAvailability(1, startDate, endDate);
         }
 
         [Fact]
@@ -365,7 +365,7 @@ namespace tests.controllers
             var shiftDto = await CreateShift();
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
 
-            HttpResponseTest.CheckForNoContentResponse(await ShiftController.RemoveShift(shift.Id));
+            HttpResponseTest.CheckForNoContentResponse(await ShiftController.ExpireShift(shift.Id));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.GetShifts(1, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(5)));
             Assert.Empty(response);
