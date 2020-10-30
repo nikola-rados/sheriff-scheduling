@@ -92,7 +92,8 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> GetToken()
         {
             var accessToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "access_token");
-            return Ok(new { access_token = accessToken });
+            var expiresAt = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "expires_at");
+            return Ok(new { access_token = accessToken, expires_at = expiresAt });
         }
 
         /// <summary>

@@ -10,8 +10,10 @@ const refreshAuthLogic = failedRequest => axios.get('api/auth/token').then(token
         location.replace('/api/auth/login?redirectUri=/');
         return Promise.resolve();
     }
-	store.commit('CommonInformation/setToken',tokenRefreshResponse.data.access_token);
-    failedRequest.response.config.headers['Authorization'] = 'Bearer ' + tokenRefreshResponse.data.access_token;
+    store.commit('CommonInformation/setToken',tokenRefreshResponse.data.access_token);
+    store.commit('CommonInformation/setTokenExpiry',tokenRefreshResponse.data.expires_at);
+    if (failedRequest != null)
+        failedRequest.response.config.headers['Authorization'] = 'Bearer ' + tokenRefreshResponse.data.access_token;
     return Promise.resolve();
 }).catch((error) => {
     location.replace('/api/auth/login?redirectUri=/');
@@ -24,12 +26,17 @@ const options: AxiosAuthRefreshOptions = {
 function configureInstance(){
     createAuthRefreshInterceptor(axios, refreshAuthLogic, options);    
     
-    axios.interceptors.request.use(function (config) {
+    axios.interceptors.request.use(async config => {
+        if (config.url != 'api/auth/token' && new Date() > new Date(store.state.CommonInformation.tokenExpiry))
+        {
+            console.log("Refreshing token, without 401.");
+            await refreshAuthLogic(null);
+        }
         const token = store.state.CommonInformation.token;
         config.headers['Authorization'] = 'Bearer ' +  token;    
         return config;
     });
-    return axios
+    return axios;
 }
 
 const httpInstance = configureInstance();
