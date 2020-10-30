@@ -28,7 +28,7 @@
                 <h2 v-if="leaveTrainingError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveTrainingErrorMsgDesc"  variant="danger"> {{leaveTrainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveTrainingError = false" /></b-badge></h2>
             </b-card>
 
-            <div v-if="selectedLeaveTrainingType.name != 'CourtRoom'">
+            <div>
                 <b-card  v-if="!addNewLeaveTrainingForm">                
                     <b-button size="sm" variant="success" @click="addNewLeaveTraining"> <b-icon icon="plus" /> Add </b-button>
                 </b-card>
@@ -250,7 +250,8 @@
 
         public saveLeaveTraining(body, iscreate){
             this.leaveTrainingError = false;
-            console.log(body) 
+            console.log(body)
+
             body['type']= this.selectedLeaveTrainingType.name;
 
             // body['sortOrderForLocation'] = {locationId: body.locationId, sortOrder: this.sortIndex}

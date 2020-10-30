@@ -14,17 +14,7 @@
                                 :state = "leaveTrainingState?null:false">                                           
                             </b-form-input>
                         </b-form-group>           
-                    </b-td>
-                    <!-- <b-td>
-                        <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 18rem">
-                            <label class="h6 ml-1 mb-0 pb-0" > Location specification: </label> 
-                            <b-form-select
-                                size = "sm"
-                                v-model="selectedLocationScope"
-                                :options ="locationSpecifics">
-                            </b-form-select>
-                        </b-form-group>                                            
-                    </b-td> -->
+                    </b-td>                    
                     <b-td >
                         <b-button                                    
                             style="margin: 1.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
@@ -94,23 +84,19 @@
         selectedLeaveTraining = '';
         leaveTrainingState = true;
 
-        // originalLocationScope = -1;
-        // selectedLocationScope = -1;  
-        
-
         formDataId = 0;
         showCancelWarning = false;
 
-        locationSpecifics = [
-            {value: -1, text: 'Province'}
-        ]
+        // locationSpecifics = [
+        //     {value: -1, text: 'Province'}
+        // ]
         
         mounted()
         { 
             this.clearSelections();
 
-            this.locationSpecifics = [{value: -1, text: 'Province'}]
-            this.locationSpecifics.push({value:this.location.id, text:this.location.name})
+            // this.locationSpecifics = [{value: -1, text: 'Province'}]
+            // this.locationSpecifics.push({value:this.location.id, text:this.location.name})
             // this.selectedLocationScope = this.location.id;
 
             console.log(this.formData)
@@ -140,8 +126,7 @@
                 const body = {
                     code: this.selectedLeaveTraining,
                     locationId: null,
-                    id: this.formDataId,
-                    sortOrderForLocation : {locationId: this.location.id, sortOrder: this.sortOrder}
+                    sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
                 }
                 this.$emit('submit', body, this.isCreate);                  
             }
