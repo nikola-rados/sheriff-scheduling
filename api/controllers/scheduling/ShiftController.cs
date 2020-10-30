@@ -96,8 +96,8 @@ namespace SS.Api.controllers.scheduling
 
             var sheriffShiftAvailability = sheriffs.Select(s => new ShiftAvailability
             {
-                StartDate = startDate,
-                EndDate = endDate,
+                Start = startDate,
+                End = endDate,
                 Sheriff = s,
                 SheriffId = s.Id,
                 /*ShiftConflict = Enumerable.Range(0, 1 + endDate.Subtract(startDate).Days)

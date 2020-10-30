@@ -20,14 +20,28 @@ $bcgov-font-path: "../../node_modules/@bcgov/bootstrap-theme/dist/fonts/";
   padding-bottom: 15px !important;
 }
 
+a.dropdown-item.active, a.dropdown-item:active {
+    color: #fff;
+    text-decoration: none;
+    background-color: #38598a;
+}
+
+.dropdown-item:focus {
+    color: black;
+}
+
+.dropdown-item:focus, .dropdown-item:hover {
+    color: black;
+    text-decoration: none;
+    background-color: #f8f9fa;
+}
 // used in survey markup (currently)
 // .card-header {
 //   border-bottom: 0;
 // }
-
 // FIXME replace with bootstrap 4 classes
 .mrgn-tp-sm {
-  margin-top: 8px;
+    margin-top: 8px;
 }
 .mrgn-tp-md {
   margin-top: 1.5rem;

@@ -109,7 +109,7 @@ namespace tests.controllers
 
             Detach();
 
-            var courtRole = new AddLookupCodeDto()
+            var courtRole = new AddLookupCodeDto
             {
                 Type = LookupTypes.CourtRole,
                 LocationId = 66
