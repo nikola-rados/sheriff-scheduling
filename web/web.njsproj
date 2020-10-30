@@ -57,6 +57,7 @@
     <Folder Include="src\components\common\" />
     <Folder Include="src\components\DutyRoster\" />
     <Folder Include="src\components\ManageTypes\" />
+    <Folder Include="src\components\ManageTypes\utils\" />
     <Folder Include="src\components\MyTeam\" />
     <Folder Include="src\components\MyTeam\Tabs\" />
     <Folder Include="src\components\MyTeam\Tabs\AddForms\" />

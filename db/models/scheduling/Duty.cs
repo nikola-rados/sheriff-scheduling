@@ -18,6 +18,8 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset? ExpiryDate { get; set; }
         public Assignment Assignment { get; set; }
         public int? AssignmentId { get; set; }
+        //May not need this. This provides us a historic value.
+        //public string AssignmentValue { get; set; }
         public Shift Shift { get; set; }
         public int ShiftId { get; set; }
         public string Timezone { get; set; }

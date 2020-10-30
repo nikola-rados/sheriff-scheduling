@@ -33,20 +33,24 @@ namespace SS.Api.services
             lookupCd.Location = await Db.Location.FindAsync(addLookupCode.LocationId);
             lookupCd.SortOrder = null;
 
-            if (Db.LookupCode.AsNoTracking().Any(lc => lc.Code == addLookupCode.Code && lc.LocationId == addLookupCode.LocationId))
+            if (Db.LookupCode.AsNoTracking()
+                .Any(lc => lc.Code == addLookupCode.Code && lc.LocationId == addLookupCode.LocationId))
                 throw new BusinessLayerException("Attempted to create a duplicate entry.");
 
             await Db.LookupCode.AddAsync(lookupCd);
             await Db.SaveChangesAsync();
-            var lookupSortOrder = new LookupSortOrder
+            if (addLookupCode.SortOrderForLocation != null)
             {
-                LookupCodeId = lookupCd.Id, 
-                LocationId = addLookupCode.SortOrderForLocation.LocationId,
-                SortOrder =  addLookupCode.SortOrderForLocation.SortOrder
-            };
-            await Db.LookupSortOrder.AddAsync(lookupSortOrder);
-            await Db.SaveChangesAsync();
-            lookupCd.SortOrderForLocation = lookupSortOrder;
+                var lookupSortOrder = new LookupSortOrder
+                {
+                    LookupCodeId = lookupCd.Id,
+                    LocationId = addLookupCode.SortOrderForLocation.LocationId,
+                    SortOrder = addLookupCode.SortOrderForLocation.SortOrder
+                };
+                await Db.LookupSortOrder.AddAsync(lookupSortOrder);
+                await Db.SaveChangesAsync();
+                lookupCd.SortOrderForLocation = lookupSortOrder;
+            }
             scope.Complete();
             return lookupCd;
         }
@@ -57,9 +61,16 @@ namespace SS.Api.services
             var savedLookup = await Db.LookupCode.Include(lc => lc.SortOrder.Where(so =>
                     so.LookupCodeId == lookupCode.Id &&
                     so.LocationId == lookupCode.SortOrderForLocation.LocationId))
-                .AsSingleQuery()
                 .FirstOrDefaultAsync(lc => lc.Id == lookupCode.Id);
             savedLookup.ThrowBusinessExceptionIfNull($"Couldn't find lookup code with id: {lookupCode.Id}");
+
+            if ((savedLookup.Code != lookupCode.Code ||
+                 savedLookup.LocationId != lookupCode.LocationId)
+                &&
+                Db.LookupCode.AsNoTracking()
+                    .Any(lc => lc.Code == lookupCode.Code && lc.LocationId == lookupCode.LocationId))
+                throw new BusinessLayerException("An entry already exists with this value and location.");
+
             savedLookup.Location = await Db.Location.FindAsync(lookupCode.LocationId);
 
             Db.Entry(savedLookup).CurrentValues.SetValues(lookupCode);
@@ -92,16 +103,16 @@ namespace SS.Api.services
             var locationId = sortOrders.SortOrderLocationId;
             foreach (var sortOrder in sortOrders.SortOrders)
             {
-                var existingSortOrder = await Db.LookupSortOrder.FirstOrDefaultAsync(lso => lso.LocationId == locationId && lso.LookupCodeId == sortOrder.LookupCodeId);
+                var existingSortOrder = await Db.LookupSortOrder.FirstOrDefaultAsync(lso =>
+                    lso.LocationId == locationId && lso.LookupCodeId == sortOrder.LookupCodeId);
                 if (existingSortOrder == null)
                 {
-                    var lookupSortOrder = new LookupSortOrder
+                    await Db.LookupSortOrder.AddAsync(new LookupSortOrder
                     {
                         LocationId = locationId,
                         LookupCodeId = sortOrder.LookupCodeId,
                         SortOrder = sortOrder.SortOrder
-                    };
-                    await Db.LookupSortOrder.AddAsync(lookupSortOrder);
+                    });
                 }
                 else
                 {
@@ -111,14 +122,14 @@ namespace SS.Api.services
             await Db.SaveChangesAsync();
         }
 
-        public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId)
+        public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId, bool showExpired = false)
         {
             var lookupCodes = await Db.LookupCode.AsNoTracking()
                 .Include(lc => lc.SortOrder.Where(so => locationId != null && so.LocationId == locationId))
                 .Where(lc =>
                     (codeType == null || lc.Type == codeType) &&
                     (locationId == null || lc.LocationId == null || lc.LocationId == locationId) &&
-                    lc.ExpiryDate == null)
+                    (showExpired || lc.ExpiryDate == null))
                 .ToListAsync();
 
             if (locationId.HasValue)
@@ -132,7 +143,6 @@ namespace SS.Api.services
         public async Task<LookupCode> Expire(int id)
         {
             var entity = await Db.LookupCode.Include(lc => lc.SortOrder)
-                .AsSingleQuery()
                 .FirstOrDefaultAsync(lc => lc.Id == id);
             entity.ThrowBusinessExceptionIfNull($"Couldn't find lookup code with id: {id}");
             entity.ExpiryDate = DateTime.UtcNow;
@@ -148,12 +158,6 @@ namespace SS.Api.services
             entity.ExpiryDate = null;
             await Db.SaveChangesAsync();
             return entity;
-        }
-
-        public async Task Remove(int id)
-        {
-            Db.LookupCode.Remove(Db.LookupCode.Single(crc => crc.Id == id));
-            await Db.SaveChangesAsync();
         }
     }
 }

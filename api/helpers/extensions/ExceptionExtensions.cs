@@ -53,6 +53,17 @@ namespace SS.Api.helpers.extensions
         /// Throw an ArgumentNullException if the value is null.
         /// </summary>
         /// <param name="value"></param>
+        /// <param name="paramName"></param>
+        /// <exception type="ArgumentNullException">The argument value cannot be null.</exception>
+        public static string ThrowBusinessExceptionIfNullOrEmpty(this string value, string paramName)
+        {
+            return string.IsNullOrEmpty(value) ? throw new BusinessLayerException(paramName) : value;
+        }
+
+        /// <summary>
+        /// Throw an ArgumentNullException if the value is null.
+        /// </summary>
+        /// <param name="value"></param>
         /// <param name="message">message to include in the exception.</param>
         /// <typeparam name="T"></typeparam>
         /// <exception type="BusinessLayerException">message</exception>

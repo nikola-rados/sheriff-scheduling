@@ -5,17 +5,17 @@
                 <b-tr>
                     <b-td>
                         <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 18rem">
-                            <label class="h6 ml-1 mb-0 pb-0" > Assignment: </label> 
+                            <label class="h6 ml-1 mb-0 pb-0" > {{type}}: </label> 
                             <b-form-input
                                 size = "sm"
-                                v-model="selectedAssignment"
+                                v-model="selectedLeaveTraining"
                                 type="text"
                                 :placeholder="'Enter '+ type"
-                                :state = "assignmentState?null:false">                                           
+                                :state = "leaveTrainingState?null:false">                                           
                             </b-form-input>
                         </b-form-group>           
                     </b-td>
-                    <b-td>
+                    <!-- <b-td>
                         <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 18rem">
                             <label class="h6 ml-1 mb-0 pb-0" > Location specification: </label> 
                             <b-form-select
@@ -24,7 +24,7 @@
                                 :options ="locationSpecifics">
                             </b-form-select>
                         </b-form-group>                                            
-                    </b-td>
+                    </b-td> -->
                     <b-td >
                         <b-button                                    
                             style="margin: 1.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
@@ -43,47 +43,29 @@
             </b-tbody>
         </b-table-simple>  
 
-        <b-modal v-model="showCancelWarning" id="bv-modal-assignment-cancel-warning" header-class="bg-warning text-light">            
+        <b-modal v-model="showCancelWarning" id="bv-modal-leaveTraining-cancel-warning" header-class="bg-warning text-light">            
             <template v-slot:modal-title>
-                <h2 v-if="isCreate" class="mb-0 text-light"> Unsaved New Assignment </h2>                
-                <h2 v-else class="mb-0 text-light"> Unsaved Assignment Changes </h2>                                 
+                <h2 v-if="isCreate" class="mb-0 text-light"> Unsaved New {{type}} </h2>                
+                <h2 v-else class="mb-0 text-light"> Unsaved {{type}} Changes </h2>                                 
             </template>
             <p>Are you sure you want to cancel without saving your changes?</p>
             <template v-slot:modal-footer>
-                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-assignment-cancel-warning')"                   
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-leaveTraining-cancel-warning')"                   
                 >No</b-button>
                 <b-button variant="success" @click="confirmedCloseForm()"
                 >Yes</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
-                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-assignment-cancel-warning')"
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-leaveTraining-cancel-warning')"
                  >&times;</b-button>
             </template>
-        </b-modal> 
-
-        <b-modal v-model="showScopeWarning" id="bv-modal-scope-change-warning" header-class="bg-warning text-light m-0 pt-3 pb-0">            
-            <template v-slot:modal-title>                                
-                <h3 class="m-0 p-0 text-light"> <b-icon variant="danger" class="mr-2" icon="exclamation-triangle"/> Changes to Assignment Type </h3>                                 
-            </template>
-            <h3 class="text-justify"> Are you sure you want to make changes to this assignment type? </h3>
-            <p class="h5 font-weight-normal">This may cause changes to this assignment type in other locations.</p>
-            <template v-slot:modal-footer>
-                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-scope-change-warning')"                   
-                >Cancel</b-button>
-                <b-button variant="success" @click="confirmedSaveForm()"
-                >Confirm</b-button>
-            </template>            
-            <template v-slot:modal-header-close>                 
-                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-scope-change-warning')"
-                 >&times;</b-button>
-            </template>
-        </b-modal>            
+        </b-modal>             
     </div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {assignmentTypeInfoType}  from '../../types/ManageTypes/index';
+    import {leaveTrainingTypeInfoType}  from '../../types/ManageTypes/index';
     import {locationInfoType} from '../../types/common'; 
     
     import { namespace } from 'vuex-class';
@@ -91,34 +73,33 @@
     const commonState = namespace("CommonInformation");
 
     @Component
-    export default class AddAssignmentForm extends Vue {        
+    export default class AddLeaveTrainingForm extends Vue {        
 
         @commonState.State
         public location!: locationInfoType;
 
         @Prop({required: true})
         type!: string;
-
-        @Prop({required: true})
-        sortOrder!: number;
        
         @Prop({required: true})
-        formData!: assignmentTypeInfoType;
+        formData!: leaveTrainingTypeInfoType;
 
         @Prop({required: true})
         isCreate!: boolean;
 
-        originalAssignment = '';
-        selectedAssignment = '';
-        assignmentState = true;
+        @Prop({required: true})
+        sortOrder!: number;
 
-        originalLocationScope = -1;
-        selectedLocationScope = -1;  
+        originalLeaveTraining = '';
+        selectedLeaveTraining = '';
+        leaveTrainingState = true;
+
+        // originalLocationScope = -1;
+        // selectedLocationScope = -1;  
         
 
         formDataId = 0;
         showCancelWarning = false;
-        showScopeWarning = false;
 
         locationSpecifics = [
             {value: -1, text: 'Province'}
@@ -130,7 +111,7 @@
 
             this.locationSpecifics = [{value: -1, text: 'Province'}]
             this.locationSpecifics.push({value:this.location.id, text:this.location.name})
-            this.selectedLocationScope = this.location.id;
+            // this.selectedLocationScope = this.location.id;
 
             console.log(this.formData)
             if(this.formData.id) {
@@ -140,35 +121,28 @@
 
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
-            this.originalAssignment = this.selectedAssignment = this.formData.code            
-            this.originalLocationScope = this.selectedLocationScope =  (this.formData.locationId == this.location.id) ? this.location.id : -1;
+            this.originalLeaveTraining = this.selectedLeaveTraining = this.formData.code            
+            // this.originalLocationScope = this.selectedLocationScope =  (this.formData.locationId == this.location.id) ? this.location.id : -1;
 
             console.log(this.formDataId)
-            console.log(this.originalAssignment)
-            console.log(this.originalLocationScope)
+            console.log(this.originalLeaveTraining)
+            // console.log(this.originalLocationScope)
         }
 
-        public saveForm(){
-            if(!this.isCreate && this.isChanged())
-                this.showScopeWarning = true;
-            else 
-                this.confirmedSaveForm();               
-        }
+        public saveForm(){                
+            this.leaveTrainingState   = true;
 
-        public confirmedSaveForm(){                
-            this.assignmentState   = true;
-
-            if(!this.selectedAssignment ){
-                this.assignmentState  = false;
+            if(!this.selectedLeaveTraining ){
+                this.leaveTrainingState  = false;
             }else{
-                this.assignmentState  = true;
-
+                this.leaveTrainingState  = true;
+                
                 const body = {
-                    code: this.selectedAssignment,
-                    locationId: this.selectedLocationScope == -1 ? null: this.selectedLocationScope,
+                    code: this.selectedLeaveTraining,
+                    locationId: null,
                     id: this.formDataId,
                     sortOrderForLocation : {locationId: this.location.id, sortOrder: this.sortOrder}
-                } 
+                }
                 this.$emit('submit', body, this.isCreate);                  
             }
         }
@@ -182,12 +156,10 @@
 
         public isChanged(){
             if(this.isCreate){
-                if( this.selectedAssignment ||
-                    this.selectedLocationScope == -1) return true;
+                if( this.selectedLeaveTraining) return true;
                 return false;
             }else{
-                if( (this.originalAssignment != this.selectedAssignment)|| 
-                    (this.originalLocationScope != this.selectedLocationScope)) return true;
+                if(this.originalLeaveTraining != this.selectedLeaveTraining) return true;
                 return false;
             }
         }
@@ -198,9 +170,9 @@
         }
 
         public clearSelections(){
-            this.selectedAssignment = '';
-            this.selectedLocationScope = -1;
-            this.assignmentState = true;            
+            this.selectedLeaveTraining = '';
+            // this.selectedLocationScope = -1;
+            this.leaveTrainingState = true;            
         }
 
     }
