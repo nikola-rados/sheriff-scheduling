@@ -20,7 +20,7 @@
                 </b-form-group>
             </b-col>
             <b-col cols="2" >
-                <div :class="expiredViewChecked?'bg-warning':''" style="width: 15.25rem; margin: .75rem 1rem 0 .5rem;">
+                <div :class="expiredViewChecked?'bg-warning':''" :style="(expiredViewChecked?'width: 13.25rem;':'width: 15.25rem;')+'margin: .75rem 1rem 0 .5rem;'">
                     <b-form-checkbox class="ml-2" v-model="expiredViewChecked"  @change="getAssignments()" size="lg"  switch>
                         {{viewStatus}}
                     </b-form-checkbox>
@@ -58,7 +58,7 @@
                         :fields="fields"                        
                         sort-icon-left
                         head-row-variant="primary"
-                        striped
+                        :striped="!expiredViewChecked"
                         borderless
                         small
                         v-sortAssignmentType 
@@ -78,12 +78,13 @@
                                 <span v-else></span>
                             </template>
 
-                            <template v-slot:cell(sortOrder) >
-                                <span><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
+                            <template v-slot:cell(sortOrder)= "data" >                                
+                                <span v-if="!data.item['_rowVariant']"><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
                             </template>
 
-                            <template v-slot:cell(edit)="data" >                                       
-                                <b-button v-if="userIsAdmin" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteAssignment(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                            <template v-slot:cell(edit)="data" >                                  
+                                <b-button v-if="userIsAdmin && !data.item['_rowVariant']" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteAssignment(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="userIsAdmin && data.item['_rowVariant']" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireAssignment(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button v-if="userIsAdmin && selectedAssignmentType.name != 'CourtRoom'" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
@@ -99,9 +100,11 @@
 
         <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
             <template v-slot:modal-title>
-                    <h2 class="mb-0 text-light">Confirm Delete Assignment</h2>                    
+                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Delete Assignment</h2>
+                    <h2 v-else class="mb-0 text-light">Confirm Unexpire Assignment</h2>                     
             </template>
-            <h4>Are you sure you want to delete the "{{assignmentToDelete.type?assignmentToDelete.type:''}} {{assignmentToDelete.code?assignmentToDelete.code:''}}"  Assignment?</h4>
+            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{assignmentToDelete.type?assignmentToDelete.type:''}} {{assignmentToDelete.code?assignmentToDelete.code:''}}"  Assignment?</h4>
+            <h4 v-else>Are you sure you want to Unexpire the "{{assignmentToDelete.type?assignmentToDelete.type:''}} {{assignmentToDelete.code?assignmentToDelete.code:''}}"  Assignment?</h4>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="deleteAssignment()">Confirm</b-button>
                 <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
@@ -170,6 +173,7 @@
         expiredViewChecked = false
 
         confirmDelete = false;
+        deleteType = 'expire'; // 'unexpire'
         assignmentToDelete = {} as assignmentTypeInfoType;
 
         assignmentList: assignmentTypeInfoType[] = [];
@@ -220,18 +224,20 @@
             this.getAssignments()       
         }
 
-        public getAssignments() {            
-            this.isAssignmentDataMounted = false;
-            const url = 'api/managetypes?codeType='+this.selectedAssignmentType.name +'&locationId='+this.location.id;
-            console.log(url)
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)
-                        this.extractAssignments(response.data);                        
-                    }
-                    this.isAssignmentDataMounted = true;
-                })        
+        public getAssignments() {
+            Vue.nextTick(()=>{            
+                this.isAssignmentDataMounted = false;
+                const url = 'api/managetypes?codeType='+this.selectedAssignmentType.name +'&locationId='+this.location.id+'&showExpired='+this.expiredViewChecked;
+                //console.log(url)
+                this.$http.get(url)
+                    .then(response => {
+                        if(response.data){
+                            console.log(response.data)
+                            this.extractAssignments(response.data);                        
+                        }
+                        this.isAssignmentDataMounted = true;
+                    }) 
+            });       
         }
 
         public extractAssignments(assignmentsJson) {
@@ -246,14 +252,20 @@
                 assignment.code = assignmentJson.code;
                 assignment.locationId = assignmentJson.locationId;
                 if(this.selectedAssignmentType.name != 'CourtRoom') assignment['scope'] = assignmentJson.locationId? this.location.name : 'Province' 
-                assignment['hasSortOrder'] = assignmentJson.sortOrderForLocation? true : false;
-                assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
-                console.log(assignment.code+' '+assignment.sortOrder)
+                assignment['_rowVariant'] = '';
+                let sortOrderOffset = 0;
+                if(assignmentJson.expiryDate)
+                {
+                    assignment['_rowVariant'] = 'info';
+                    sortOrderOffset = 5000;
+                }
+                assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(sortOrderOffset+this.sortIndex++);
+                //console.log(assignment.code+' '+assignment.sortOrder)
                 assignment.type = assignmentJson.type; 
                 this.assignmentList.push(assignment)                
             }
 
-            console.log(this.assignmentList)
+            //console.log(this.assignmentList)
             this.refineSortOrders();
         }
 
@@ -262,22 +274,24 @@
             for(const listIndex in this.assignmentList)
                 this.assignmentList[listIndex].sortOrder = Number(listIndex);
             this.updateTable++;
-            console.log(this.assignmentList)            
+            //console.log(this.assignmentList)            
         }
 
         public saveSortOrders(){
             const sortOrders: {lookupCodeId: number ; sortOrder: number}[] = [];
 
-            for(const assignment of this.assignmentList )
-               sortOrders.push({lookupCodeId: assignment.id , sortOrder: assignment.sortOrder})
+            for(const assignment of this.assignmentList ){
+                if(!assignment['_rowVariant'])
+                    sortOrders.push({lookupCodeId: assignment.id , sortOrder: assignment.sortOrder})
+            }
                 
             const body = {
                 sortOrderLocationId: this.location.id,
                 sortOrders: sortOrders
             }
 
-            console.log(sortOrders)
-            console.log(body)
+            //console.log(sortOrders)
+            //console.log(body)
             const url = 'api/managetypes/updatesort' 
 
             this.$http.put(url, body)
@@ -302,19 +316,28 @@
             }
         }
 
-        public confirmDeleteAssignment(assignment){
+        public confirmUnexpireAssignment(assignment){
             this.assignmentToDelete = assignment;           
+            this.deleteType = 'unexpire';           
             this.confirmDelete = true; 
-            console.log(assignment)
+            //console.log(assignment)
+        }
+
+        public confirmDeleteAssignment(assignment){
+            this.assignmentToDelete = assignment;
+            this.deleteType = 'expire';           
+            this.confirmDelete = true; 
+            //console.log(assignment)
         }
 
         public deleteAssignment(){
             this.confirmDelete = false; 
-            const url = 'api/managetypes/'+this.assignmentToDelete.id+'/expire';
+            const url = 'api/managetypes/'+this.assignmentToDelete.id+'/'+this.deleteType;
             this.$http.put(url)
                 .then(response => {
                     console.log(response);
                     this.getAssignments();
+                    this.saveSortOrders();
                 }, err=>{
                     const errMsg = err.response.data.error;
                     this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
@@ -325,7 +348,7 @@
         }
 
         public editAssignment(assignment){
-            console.log(assignment)
+            //console.log(assignment)
             if(this.addNewAssignmentForm){
                 location.href = '#addAssignmentForm'
                 this.addFormColor = 'danger'
@@ -379,7 +402,7 @@
 
         public addAssignmentToList(assignmentJson){
 
-            console.log(assignmentJson)
+            //console.log(assignmentJson)
 
             this.sortIndex++;
             const assignment = {} as assignmentTypeInfoType;
