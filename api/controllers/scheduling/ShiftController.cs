@@ -57,10 +57,10 @@ namespace SS.Api.controllers.scheduling
         [HttpPut]
         [Route("assign")]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
-        public async Task<ActionResult<ShiftDto>> AssignToShifts(List<int> id, Guid sheriff, bool overrideShift = false)
+        public async Task<ActionResult<List<ShiftDto>>> AssignToShifts(List<int> id, Guid sheriff, bool overrideShift = false)
         {
-            await ShiftService.AssignToShifts(id, sheriff, overrideShift);
-            return NoContent();
+            var assignToShifts = await ShiftService.AssignToShifts(id, sheriff, overrideShift);
+            return Ok(assignToShifts.Adapt<List<ShiftDto>>());
         }
 
         [HttpDelete]

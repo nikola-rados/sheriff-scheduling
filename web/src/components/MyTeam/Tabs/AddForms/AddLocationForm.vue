@@ -263,7 +263,8 @@
                         startDate: startDate,
                         endDate: endDate,                      
                         isFullDay: isFullDay,
-                        id: this.formDataId
+                        id: this.formDataId,
+                        timezone: this.selectedLocation.timezone
                     } 
                     this.$emit('submit', body, this.isCreate);                  
                 }
@@ -272,7 +273,7 @@
         public addTimeCheckBoxChanged() {
             Vue.nextTick(()=>{                
                 if(this.addTime){
-                    this.selectedEndDate = this.selectedStartDate;
+                    if(this.isCreate) this.selectedEndDate = this.selectedStartDate;
                 }
                 else{
                     this.selectedStartTime = '';
@@ -284,7 +285,7 @@
         public startTimePicked(){
             this.startDateState = true;
             this.endDateState = true;
-            this.selectedEndDate = this.selectedStartDate;
+            if(this.isCreate) this.selectedEndDate = this.selectedStartDate;
         }
 
 

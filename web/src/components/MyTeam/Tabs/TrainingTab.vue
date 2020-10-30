@@ -104,7 +104,7 @@
                         </b-form-select>
                     </b-form-group>
                     <template v-slot:modal-footer>
-                        <b-button variant="danger" @click="deleteTraining()" :disabled="trainingDeleteReason.length == 0">Delete</b-button>
+                        <b-button variant="danger" @click="deleteTraining()" :disabled="trainingDeleteReason.length == 0">Confirm</b-button>
                         <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
                     </template>            
                     <template v-slot:modal-header-close>                 
