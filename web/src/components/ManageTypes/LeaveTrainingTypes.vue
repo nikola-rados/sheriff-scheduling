@@ -8,7 +8,7 @@
                 <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem"> 
                     <b-form-select
                         size = "lg"
-                        @change="getLeaveTraining"
+                        @change="changeLeaveTraining"
                         v-model="selectedLeaveTrainingType">                            
                             <b-form-select-option
                                 v-for="leaveTrainingType in leaveTrainingTypeTabs" 
@@ -134,6 +134,7 @@
 
         leaveTrainingList: leaveTrainingTypeInfoType[] = [];
         selectedLeaveTrainingType = {name:'LeaveType', label:'Leave'};
+        previousSelectedLeaveTrainingType = {name:'LeaveType', label:'Leave'};
         
         leaveTrainingTypeTabs = 
         [
@@ -198,7 +199,7 @@
                 const leaveTraining = {} as leaveTrainingTypeInfoType;
                 leaveTraining.id = leaveTrainingJson.id;
                 leaveTraining.code = leaveTrainingJson.code;
-                leaveTraining.sortOrder = leaveTrainingJson.sortOrder?leaveTrainingJson.sortOrder:(this.sortIndex++);
+                leaveTraining.sortOrder = leaveTrainingJson.sortOrderForLocation?leaveTrainingJson.sortOrderForLocation.sortOrder:(this.sortIndex++);
                 leaveTraining.type = leaveTrainingJson.type;
                 this.leaveTrainingList.push(leaveTraining)                
             }
@@ -327,7 +328,7 @@
             this.saveSortOrders(); 
         }
 
-         public modifyLeaveTrainingList(modifiedLeaveTrainingJson){            
+        public modifyLeaveTrainingList(modifiedLeaveTrainingJson){            
 
             const index = this.leaveTrainingList.findIndex(leaveTraining =>{ if(leaveTraining.id == modifiedLeaveTrainingJson.id) return true})
             if(index>=0){
@@ -338,6 +339,23 @@
             }
             this.refineSortOrders();
             this.saveSortOrders(); 
+        }
+
+        public changeLeaveTraining(){
+            console.log(this.selectedLeaveTrainingType)
+            console.log(this.previousSelectedLeaveTrainingType)
+            if(this.addNewLeaveTrainingForm){
+                location.href = '#addLeaveTrainingForm'
+                this.addFormColor = 'danger';
+                this.selectedLeaveTrainingType = this.previousSelectedLeaveTrainingType;
+            }else if(this.isEditOpen){
+                location.href = '#LeaveTraining-'+this.latestEditData.item.code
+                this.addFormColor = 'danger'
+                this.selectedLeaveTrainingType =  this.previousSelectedLeaveTrainingType;              
+            }else{
+                this.previousSelectedLeaveTrainingType = this.selectedLeaveTrainingType;
+                this.getLeaveTraining();
+            }
         }
     
 }

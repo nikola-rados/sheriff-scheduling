@@ -8,7 +8,7 @@
                 <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem"> 
                     <b-form-select
                         size = "lg"
-                        @change="getAssignments"
+                        @change="changeAssignment"
                         v-model="selectedAssignmentType">                            
                             <b-form-select-option
                                 v-for="assignmentType in assignmentTypeTabs" 
@@ -142,6 +142,7 @@
 
         assignmentList: assignmentTypeInfoType[] = [];
         selectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
+        previousSelectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
         
         assignmentTypeTabs = 
         [
@@ -347,7 +348,7 @@
             this.saveSortOrders();
         }
 
-         public modifyAssignmentList(modifiedAssignmentJson){            
+        public modifyAssignmentList(modifiedAssignmentJson){            
 
             const index = this.assignmentList.findIndex(assignment =>{ if(assignment.id == modifiedAssignmentJson.id) return true})
             if(index>=0){
@@ -360,6 +361,23 @@
             }
             this.refineSortOrders();
             this.saveSortOrders(); 
+        }
+
+        public changeAssignment(){
+            console.log(this.selectedAssignmentType)
+            console.log(this.previousSelectedAssignmentType)
+            if(this.addNewAssignmentForm){
+                location.href = '#addAssignmentForm'
+                this.addFormColor = 'danger';
+                this.selectedAssignmentType = this.previousSelectedAssignmentType;
+            }else if(this.isEditOpen){
+                location.href = '#Assignment-'+this.latestEditData.item.code
+                this.addFormColor = 'danger'
+                this.selectedAssignmentType =  this.previousSelectedAssignmentType;              
+            }else{
+                this.previousSelectedAssignmentType = this.selectedAssignmentType;
+                this.getAssignments();
+            }
         }
 
     

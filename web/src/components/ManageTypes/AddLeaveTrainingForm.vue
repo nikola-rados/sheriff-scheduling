@@ -49,6 +49,23 @@
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-leaveTraining-cancel-warning')"
                  >&times;</b-button>
             </template>
+        </b-modal> 
+
+        <b-modal v-model="showSaveWarning" id="bv-modal-save-change-warning" header-class="bg-warning text-light m-0 pt-3 pb-0">            
+            <template v-slot:modal-title>                                
+                <h3 class="m-0 p-0 text-light"> <b-icon variant="danger" class="mr-2" icon="exclamation-triangle"/> Changes to Assignment Type </h3>                                 
+            </template>
+            <h3 class="text-justify"> Are you sure you want to make changes to this {{type}} type? </h3>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-save-change-warning')"                   
+                >Cancel</b-button>
+                <b-button variant="success" @click="confirmedSaveForm()"
+                >Confirm</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-save-change-warning')"
+                 >&times;</b-button>
+            </template>
         </b-modal>             
     </div>
 </template>
@@ -87,6 +104,8 @@
         formDataId = 0;
         showCancelWarning = false;
 
+        showSaveWarning = false;
+
         // locationSpecifics = [
         //     {value: -1, text: 'Province'}
         // ]
@@ -115,7 +134,14 @@
             // console.log(this.originalLocationScope)
         }
 
-        public saveForm(){                
+        public saveForm(){
+            if(!this.isCreate && this.isChanged())
+                this.showSaveWarning = true;
+            else 
+                this.confirmedSaveForm();               
+        }              
+
+        public confirmedSaveForm(){                
             this.leaveTrainingState   = true;
 
             if(!this.selectedLeaveTraining ){
@@ -126,6 +152,7 @@
                 const body = {
                     code: this.selectedLeaveTraining,
                     locationId: null,
+                    id: this.formDataId,
                     sortOrderForLocation : {locationId: null, sortOrder: this.sortOrder}
                 }
                 this.$emit('submit', body, this.isCreate);                  
