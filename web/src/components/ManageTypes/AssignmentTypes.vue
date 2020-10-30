@@ -54,8 +54,7 @@
                         striped
                         borderless
                         small
-                        v-sortAssignmentType 
-                        id="mytable"
+                        v-sortAssignmentType
                         responsive="sm"> 
 
                             <template v-slot:table-colgroup>
