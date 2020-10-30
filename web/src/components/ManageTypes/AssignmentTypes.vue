@@ -66,6 +66,9 @@
 
                             <template v-slot:table-colgroup>
                                 <col style="width:4rem">
+                                <col>
+                                <col>
+                                <col style="width:6rem">
                             </template>
                                               
                             <template v-slot:head(code) >
@@ -175,6 +178,8 @@
         deleteType = 'expire'; // 'unexpire'
         assignmentToDelete = {} as assignmentTypeInfoType;
 
+        saveOrderFlag = false;
+
         assignmentList: assignmentTypeInfoType[] = [];
         selectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
         previousSelectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
@@ -204,9 +209,10 @@
                     if(Number(listIndex) == this.sortingAssignmentInfo.prvIndex)
                         this.assignmentList[listIndex].sortOrder = this.sortingAssignmentInfo.newIndex*2 + Math.sign(this.sortingAssignmentInfo.newIndex-this.sortingAssignmentInfo.prvIndex)
                     else
-                        this.assignmentList[listIndex].sortOrder *=2;
+                        this.assignmentList[listIndex].sortOrder *=2
+                this.saveOrderFlag = true;
                 this.refineSortOrders();
-                this.saveSortOrders();
+                
             }         
         } 
         
@@ -233,7 +239,7 @@
                 this.$http.get(url)
                     .then(response => {
                         if(response.data){
-                            console.log(response.data)
+                            //console.log(response.data)
                             this.extractAssignments(response.data);                        
                         }
                         this.isAssignmentDataMounted = true;
@@ -244,8 +250,8 @@
         public extractAssignments(assignmentsJson) {
 
             this.assignmentList = [];
-            this.sortIndex = assignmentsJson.length? 10000+assignmentsJson.length : 0;
-            console.log(this.sortIndex)
+            this.sortIndex = assignmentsJson.length? 5000+assignmentsJson.length : 0;
+            //console.log(this.sortIndex)
             for(const assignmentJson of assignmentsJson) {
 
                 const assignment = {} as assignmentTypeInfoType;
@@ -255,10 +261,9 @@
                 if(this.selectedAssignmentType.name != 'CourtRoom') assignment['scope'] = assignmentJson.locationId? this.location.name : 'Province' 
                 assignment['_rowVariant'] = '';
                 let sortOrderOffset = 0;
-                if(assignmentJson.expiryDate)
-                {
+                if(assignmentJson.expiryDate){
                     assignment['_rowVariant'] = 'info';
-                    sortOrderOffset = 5000;
+                    sortOrderOffset = 10000;
                 }
                 assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(sortOrderOffset+this.sortIndex++);
                 //console.log(assignment.code+' '+assignment.sortOrder)
@@ -272,13 +277,18 @@
 
         public refineSortOrders(){
             this.assignmentList = _.sortBy(this.assignmentList,'sortOrder');
-            for(const listIndex in this.assignmentList)
-                this.assignmentList[listIndex].sortOrder = Number(listIndex);
+            for(const listIndex in this.assignmentList){
+                if(!this.assignmentList[listIndex]['_rowVariant'])
+                    this.assignmentList[listIndex].sortOrder = Number(listIndex);
+            }
+                
             this.updateTable++;
-            //console.log(this.assignmentList)            
+            //console.log(this.assignmentList)
+            if(this.saveOrderFlag) this.saveSortOrders();           
         }
 
         public saveSortOrders(){
+            this.saveOrderFlag = false;
             const sortOrders: {lookupCodeId: number ; sortOrder: number}[] = [];
 
             for(const assignment of this.assignmentList ){
@@ -336,9 +346,10 @@
             const url = 'api/managetypes/'+this.assignmentToDelete.id+'/'+this.deleteType;
             this.$http.put(url)
                 .then(response => {
-                    console.log(response);
+                    //console.log(response);
+                    this.saveOrderFlag = true;
                     this.getAssignments();
-                    this.saveSortOrders();
+                    
                 }, err=>{
                     const errMsg = err.response.data.error;
                     this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
@@ -368,7 +379,7 @@
 
         public saveAssignment(body, iscreate){
             this.assignmentError = false;
-            console.log(body) 
+            //console.log(body) 
             body['type']= this.selectedAssignmentType.name;
             
             const method = iscreate? 'post' :'put';            
@@ -414,8 +425,8 @@
             assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
             assignment.type = assignmentJson.type; 
             this.assignmentList.push(assignment);
+            this.saveOrderFlag = true;
             this.refineSortOrders();
-            this.saveSortOrders();
         }
 
         public modifyAssignmentList(modifiedAssignmentJson){            
@@ -429,8 +440,8 @@
                 this.assignmentList[index].sortOrder = modifiedAssignmentJson.sortOrderForLocation? modifiedAssignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
                 this.assignmentList[index].type = modifiedAssignmentJson.type;                
             }
-            this.refineSortOrders();
-            this.saveSortOrders(); 
+            this.saveOrderFlag = true;
+            this.refineSortOrders();            
         }
 
         get viewStatus() {
@@ -438,8 +449,8 @@
         }
         
         public changeAssignment(){
-            console.log(this.selectedAssignmentType)
-            console.log(this.previousSelectedAssignmentType)
+            //console.log(this.selectedAssignmentType)
+            //console.log(this.previousSelectedAssignmentType)
             if(this.addNewAssignmentForm){
                 location.href = '#addAssignmentForm'
                 this.addFormColor = 'danger';

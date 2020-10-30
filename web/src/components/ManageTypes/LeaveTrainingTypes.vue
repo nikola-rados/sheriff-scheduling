@@ -1,7 +1,7 @@
 <template>
     <b-card bg-variant="white" class="home">    
         <b-row class="bg-white">
-            <b-col cols="9">
+            <b-col cols="8">
                 <page-header :pageHeaderText="selectedLeaveTrainingType.label + 's'"></page-header>                
             </b-col>
             <b-col cols="2">
@@ -18,6 +18,13 @@
                             </b-form-select-option>     
                     </b-form-select>
                 </b-form-group>
+            </b-col>
+            <b-col cols="2" >
+                <div :class="expiredViewChecked?'bg-warning':''" :style="(expiredViewChecked?'width: 13.25rem;':'width: 15.25rem;')+'margin: .75rem 1rem 0 .5rem;'">
+                    <b-form-checkbox class="ml-2" v-model="expiredViewChecked"  @change="getLeaveTraining()" size="lg"  switch>
+                        {{viewStatus}}
+                    </b-form-checkbox>
+                </div>
             </b-col>
         </b-row>
 
@@ -50,14 +57,16 @@
                         :fields="fields"                        
                         sort-icon-left
                         head-row-variant="primary"
-                        striped
-                        border
+                        :striped="!expiredViewChecked"
+                        borderless
                         small
                         v-sortLeaveTrainingType
                         responsive="sm"> 
 
                             <template v-slot:table-colgroup>
                                 <col style="width:4rem">
+                                <col>
+                                <col style="width:6rem">
                             </template>
                                               
                             <template v-slot:head(code) >
@@ -65,12 +74,13 @@
                             </template>
 
                             <template v-slot:cell(sortOrder)= "data" >
-                                <span><b-icon class="handle mr-3" icon="arrows-expand"/>{{data.value}}</span> 
+                                <span v-if="!data.item['_rowVariant']"><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
                             </template>
 
                             <template v-slot:cell(edit)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDelete(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLeaveTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="userIsAdmin && !data.item['_rowVariant']" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeaveTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="userIsAdmin && data.item['_rowVariant']" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireLeaveTraining(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="userIsAdmin" :disabled="data.item['_rowVariant']?true:false" class="my-0 py-0" size="sm" variant="transparent" @click="editLeaveTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -82,6 +92,23 @@
                 </b-card> 
             </div>                                     
         </b-card>
+
+        <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Delete {{selectedLeaveTrainingType.name}}</h2>
+                    <h2 v-else class="mb-0 text-light">Confirm Unexpire {{selectedLeaveTrainingType.name}}</h2>                     
+            </template>
+            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{leaveTrainingToDelete.type?leaveTrainingToDelete.type:''}} {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}" ?</h4>
+            <h4 v-else>Are you sure you want to Unexpire the "{{leaveTrainingToDelete.type?leaveTrainingToDelete.type:''}} {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}" ?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteLeaveTraining()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                >&times;</b-button>
+            </template>
+        </b-modal>    
 
     </b-card>
 </template>
@@ -95,7 +122,7 @@
     const manageTypesState = namespace("ManageTypesInformation");
     import PageHeader from "@components/common/PageHeader.vue"; 
     import AddLeaveTrainingForm from "../ManageTypes/AddLeaveTrainingForm.vue"
-    import {locationInfoType} from '../../types/common'; 
+    import {locationInfoType, userInfoType} from '../../types/common'; 
     import {leaveTrainingTypeInfoType}  from '../../types/ManageTypes/index'
     import * as _ from 'underscore';
     import sortLeaveTrainingType from './utils/sortLeaveTrainingType';
@@ -114,9 +141,14 @@
         @commonState.State
         public location!: locationInfoType;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
         @manageTypesState.State
         public sortingLeaveTrainingInfo!: {prvIndex: number; newIndex: number};
 
+
+        userIsAdmin = false;
         // sectionHeader = 'Leave/Training';
         isLeaveTrainingDataMounted = false;
         isEditOpen = false;
@@ -131,6 +163,13 @@
         updateTable =0;
 
         sortIndex = 0;
+        expiredViewChecked = false;
+
+        saveOrderFlag = false;
+
+        confirmDelete = false;
+        deleteType = 'expire'; // 'unexpire'
+        leaveTrainingToDelete = {} as leaveTrainingTypeInfoType;
 
         leaveTrainingList: leaveTrainingTypeInfoType[] = [];
         selectedLeaveTrainingType = {name:'LeaveType', label:'Leave'};
@@ -158,8 +197,9 @@
                         this.leaveTrainingList[listIndex].sortOrder = this.sortingLeaveTrainingInfo.newIndex*2 + Math.sign(this.sortingLeaveTrainingInfo.newIndex-this.sortingLeaveTrainingInfo.prvIndex)
                     else
                         this.leaveTrainingList[listIndex].sortOrder *=2;
+                this.saveOrderFlag = true;
                 this.refineSortOrders();
-                this.saveSortOrders();
+                
             }         
         } 
         
@@ -172,34 +212,45 @@
         } 
 
         mounted () 
-        {            
+        {        
+            this.userIsAdmin = this.userDetails.roles.includes("Administrator");     
             this.getLeaveTraining()       
         }
 
-        public getLeaveTraining() {            
-            this.isLeaveTrainingDataMounted = false;
-            const url = 'api/managetypes?codeType='+this.selectedLeaveTrainingType.name+'&showExpired=false';
-            console.log(url)
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)
-                        this.extractLeaveTrainings(response.data);                        
-                    }
-                    this.isLeaveTrainingDataMounted = true;
-                })        
+        public getLeaveTraining() { 
+            this.closeLeaveTrainingForm(); 
+            Vue.nextTick(()=>{         
+                this.isLeaveTrainingDataMounted = false;
+                const url = 'api/managetypes?codeType='+this.selectedLeaveTrainingType.name+'&showExpired='+this.expiredViewChecked;
+                //console.log(url)
+                this.$http.get(url)
+                    .then(response => {
+                        if(response.data){
+                            console.log(response.data)
+                            this.extractLeaveTrainings(response.data);                        
+                        }
+                        this.isLeaveTrainingDataMounted = true;
+                    }) 
+            });       
         }
 
         public extractLeaveTrainings(leaveTrainingsJson) {
 
             this.leaveTrainingList = [];
-            this.sortIndex = leaveTrainingsJson.length? 10000+leaveTrainingsJson.length : 0;
+            this.sortIndex = leaveTrainingsJson.length? 5000+leaveTrainingsJson.length : 0;
             for(const leaveTrainingJson of leaveTrainingsJson)
             {                
                 const leaveTraining = {} as leaveTrainingTypeInfoType;
                 leaveTraining.id = leaveTrainingJson.id;
                 leaveTraining.code = leaveTrainingJson.code;
-                leaveTraining.sortOrder = leaveTrainingJson.sortOrderForLocation?leaveTrainingJson.sortOrderForLocation.sortOrder:(this.sortIndex++);
+                
+                leaveTraining['_rowVariant'] = '';
+                let sortOrderOffset = 0;
+                if(leaveTrainingJson.expiryDate){
+                    leaveTraining['_rowVariant'] = 'info';
+                    sortOrderOffset = 10000;
+                }
+                leaveTraining.sortOrder = leaveTrainingJson.sortOrderForLocation?leaveTrainingJson.sortOrderForLocation.sortOrder:(sortOrderOffset+this.sortIndex++);
                 leaveTraining.type = leaveTrainingJson.type;
                 this.leaveTrainingList.push(leaveTraining)                
             }
@@ -210,24 +261,30 @@
 
         public refineSortOrders(){
             this.leaveTrainingList = _.sortBy(this.leaveTrainingList,'sortOrder');
-            for(const listIndex in this.leaveTrainingList)
-                this.leaveTrainingList[listIndex].sortOrder = Number(listIndex);
+            for(const listIndex in this.leaveTrainingList){
+                if(!this.leaveTrainingList[listIndex]['_rowVariant'])
+                    this.leaveTrainingList[listIndex].sortOrder = Number(listIndex);
+            }
+                
             this.updateTable++;
+            if(this.saveOrderFlag) this.saveSortOrders();
         }
 
         public saveSortOrders(){
             const sortOrders: {lookupCodeId: number ; sortOrder: number}[] = [];
 
-            for(const leaveTraining of this.leaveTrainingList )
-               sortOrders.push({lookupCodeId: leaveTraining.id , sortOrder: leaveTraining.sortOrder})
-                
+            for(const leaveTraining of this.leaveTrainingList ){
+                if(!leaveTraining['_rowVariant'])
+                    sortOrders.push({lookupCodeId: leaveTraining.id , sortOrder: leaveTraining.sortOrder})
+            }
+
             const body = {
                 sortOrderLocationId: null,
                 sortOrders: sortOrders
             }
 
-            console.log(sortOrders)
-            console.log(body)
+            //console.log(sortOrders)
+            //console.log(body)
             const url = 'api/managetypes/updatesort' 
 
             this.$http.put(url, body)
@@ -254,13 +311,37 @@
             }
         }
 
-        public confirmDelete(leaveTraining){
-            console.log("deleting" + leaveTraining)
-            console.log(this.sortIndex)
+        public confirmUnexpireLeaveTraining(leaveTraining){
+            this.leaveTrainingToDelete = leaveTraining;           
+            this.deleteType = 'unexpire';           
+            this.confirmDelete = true;
+        }
+
+        public confirmDeleteLeaveTraining(leaveTraining){
+            this.leaveTrainingToDelete = leaveTraining;
+            this.deleteType = 'expire';           
+            this.confirmDelete = true;
+        }
+
+        public deleteLeaveTraining(){
+            this.confirmDelete = false; 
+            const url = 'api/managetypes/'+this.leaveTrainingToDelete.id+'/'+this.deleteType;
+            this.$http.put(url)
+                .then(response => {
+                    //console.log(response);
+                    this.saveOrderFlag = true;
+                    this.getLeaveTraining();
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.leaveTrainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.leaveTrainingErrorMsgDesc = errMsg;
+                    this.leaveTrainingError = true;
+                    location.href = '#LeaveTrainingError'
+                });
         }
 
         public editLeaveTraining(leaveTraining){
-            console.log(leaveTraining)
+            //console.log(leaveTraining)
             if(this.addNewLeaveTrainingForm){
                 location.href = '#addLeaveTrainingForm'
                 this.addFormColor = 'danger'
@@ -279,11 +360,8 @@
 
         public saveLeaveTraining(body, iscreate){
             this.leaveTrainingError = false;
-            console.log(body)
-
+            //console.log(body)
             body['type']= this.selectedLeaveTrainingType.name;
-
-            // body['sortOrderForLocation'] = {locationId: body.locationId, sortOrder: this.sortIndex}
             const method = iscreate? 'post' :'put';            
             const url = 'api/managetypes'  
             const options = { method: method, url:url, data:body}
@@ -324,8 +402,8 @@
             leaveTraining.sortOrder = leaveTrainingJson.sortOrderForLocation? leaveTrainingJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
             leaveTraining.type = leaveTrainingJson.type; 
             this.leaveTrainingList.push(leaveTraining);
+            this.saveOrderFlag = true;
             this.refineSortOrders();
-            this.saveSortOrders(); 
         }
 
         public modifyLeaveTrainingList(modifiedLeaveTrainingJson){            
@@ -337,13 +415,17 @@
                 this.leaveTrainingList[index].sortOrder = modifiedLeaveTrainingJson.sortOrderForLocation? modifiedLeaveTrainingJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
                 this.leaveTrainingList[index].type = modifiedLeaveTrainingJson.type;                
             }
+            this.saveOrderFlag = true;
             this.refineSortOrders();
-            this.saveSortOrders(); 
+        }
+
+        get viewStatus() {
+            if(this.expiredViewChecked) return 'All '+this.selectedLeaveTrainingType.label+'s';else return 'Active '+this.selectedLeaveTrainingType.label+'s';
         }
 
         public changeLeaveTraining(){
-            console.log(this.selectedLeaveTrainingType)
-            console.log(this.previousSelectedLeaveTrainingType)
+            //console.log(this.selectedLeaveTrainingType)
+            //console.log(this.previousSelectedLeaveTrainingType)
             if(this.addNewLeaveTrainingForm){
                 location.href = '#addLeaveTrainingForm'
                 this.addFormColor = 'danger';

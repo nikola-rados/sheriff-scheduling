@@ -105,20 +105,10 @@
         showCancelWarning = false;
 
         showSaveWarning = false;
-
-        // locationSpecifics = [
-        //     {value: -1, text: 'Province'}
-        // ]
         
         mounted()
         { 
             this.clearSelections();
-
-            // this.locationSpecifics = [{value: -1, text: 'Province'}]
-            // this.locationSpecifics.push({value:this.location.id, text:this.location.name})
-            // this.selectedLocationScope = this.location.id;
-
-            console.log(this.formData)
             if(this.formData.id) {
                 this.extractFormInfo();
             }               
@@ -127,10 +117,8 @@
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
             this.originalLeaveTraining = this.selectedLeaveTraining = this.formData.code            
-            // this.originalLocationScope = this.selectedLocationScope =  (this.formData.locationId == this.location.id) ? this.location.id : -1;
-
-            console.log(this.formDataId)
-            console.log(this.originalLeaveTraining)
+            //console.log(this.formDataId)
+            //console.log(this.originalLeaveTraining)
             // console.log(this.originalLocationScope)
         }
 
@@ -183,7 +171,6 @@
 
         public clearSelections(){
             this.selectedLeaveTraining = '';
-            // this.selectedLocationScope = -1;
             this.leaveTrainingState = true;            
         }
 
