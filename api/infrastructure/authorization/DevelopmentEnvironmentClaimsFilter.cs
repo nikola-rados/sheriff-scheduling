@@ -4,9 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -45,6 +43,8 @@ namespace SS.Api.infrastructure.authorization
             claims.Add(new Claim(CustomClaimTypes.HomeLocationId, homeLocationId));
             claims.Add(new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString()));
             ((ClaimsIdentity) context.HttpContext.User.Identity).AddClaims(claims);
+
+            //Had to put the section below, so when token is called, it returns a value back for the user. 
             var tokens = new List<AuthenticationToken>
             {
                 new AuthenticationToken {Name = OpenIdConnectParameterNames.AccessToken, Value = "IMPERSONATED"},
