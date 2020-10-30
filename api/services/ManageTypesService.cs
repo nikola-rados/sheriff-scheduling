@@ -39,15 +39,18 @@ namespace SS.Api.services
 
             await Db.LookupCode.AddAsync(lookupCd);
             await Db.SaveChangesAsync();
-            var lookupSortOrder = new LookupSortOrder
+            if (addLookupCode.SortOrderForLocation != null)
             {
-                LookupCodeId = lookupCd.Id, 
-                LocationId = addLookupCode.SortOrderForLocation.LocationId,
-                SortOrder =  addLookupCode.SortOrderForLocation.SortOrder
-            };
-            await Db.LookupSortOrder.AddAsync(lookupSortOrder);
-            await Db.SaveChangesAsync();
-            lookupCd.SortOrderForLocation = lookupSortOrder;
+                var lookupSortOrder = new LookupSortOrder
+                {
+                    LookupCodeId = lookupCd.Id,
+                    LocationId = addLookupCode.SortOrderForLocation.LocationId,
+                    SortOrder = addLookupCode.SortOrderForLocation.SortOrder
+                };
+                await Db.LookupSortOrder.AddAsync(lookupSortOrder);
+                await Db.SaveChangesAsync();
+                lookupCd.SortOrderForLocation = lookupSortOrder;
+            }
             scope.Complete();
             return lookupCd;
         }
@@ -58,7 +61,6 @@ namespace SS.Api.services
             var savedLookup = await Db.LookupCode.Include(lc => lc.SortOrder.Where(so =>
                     so.LookupCodeId == lookupCode.Id &&
                     so.LocationId == lookupCode.SortOrderForLocation.LocationId))
-                .AsSingleQuery()
                 .FirstOrDefaultAsync(lc => lc.Id == lookupCode.Id);
             savedLookup.ThrowBusinessExceptionIfNull($"Couldn't find lookup code with id: {lookupCode.Id}");
 
@@ -140,7 +142,6 @@ namespace SS.Api.services
         public async Task<LookupCode> Expire(int id)
         {
             var entity = await Db.LookupCode.Include(lc => lc.SortOrder)
-                .AsSingleQuery()
                 .FirstOrDefaultAsync(lc => lc.Id == id);
             entity.ThrowBusinessExceptionIfNull($"Couldn't find lookup code with id: {id}");
             entity.ExpiryDate = DateTime.UtcNow;

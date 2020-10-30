@@ -34,18 +34,21 @@ namespace tests.controllers
         [Fact]
         public async Task AddLookup()
         {
+            await Db.Database.EnsureDeletedAsync();
             var courtRole = new AddLookupCodeDto
             {
-                Type = LookupTypes.CourtRole
+                Type = LookupTypes.CourtRole,
             };
             var controllerResult = await _controller.Add(courtRole);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.True(response.Id > 0);
+            await Db.Database.EnsureDeletedAsync();
         }
 
         [Fact]
         public async Task GetLookupCodes()
         {
+            await Db.Database.EnsureDeletedAsync();
             await AddCourtRole();
             var controllerResult = await _controller.GetAll(LookupTypes.CourtRole, 5);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
@@ -59,6 +62,7 @@ namespace tests.controllers
         [Fact]
         public async Task UpdateLookupCode()
         {
+            await Db.Database.EnsureDeletedAsync();
             var newLocation = new Location { Name = "6", Id = 6 };
             await Db.Location.AddAsync(newLocation);
             await Db.SaveChangesAsync();
@@ -74,9 +78,13 @@ namespace tests.controllers
             result.EffectiveDate = DateTime.Now;
             result.Code = "gg";
             result.SubCode = "gg2";
-            result.ExpiryDate = DateTime.Now;
             result.Type = LookupTypes.JailRole;
             result.LocationId = 6;
+            result.SortOrderForLocation = new LookupSortOrderDto
+            {
+                LocationId = 6,
+                LookupCodeId = 6
+            };
 
             var controllerResult = await _controller.Update(result);
             HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
@@ -85,7 +93,6 @@ namespace tests.controllers
 
             Assert.Equal("test", result.Description);
             Assert.Equal(DateTimeOffset.Now.DateTime, result.EffectiveDate.Value.DateTime, TimeSpan.FromSeconds(10));
-            Assert.Equal(DateTimeOffset.Now.DateTime, result.ExpiryDate.Value.DateTime, TimeSpan.FromSeconds(10));
             Assert.Equal(LookupTypes.JailRole, result.Type);
             Assert.Equal("gg", result.Code);
             Assert.Equal("gg2", result.SubCode);
@@ -95,6 +102,7 @@ namespace tests.controllers
         [Fact]
         public async Task LocationTest()
         {
+            await Db.Database.EnsureDeletedAsync();
             var newLocation = new Location { Name = "5", Id = 5 };
             await Db.Location.AddAsync(newLocation);
             await Db.SaveChangesAsync();
@@ -135,6 +143,7 @@ namespace tests.controllers
         [Fact]
         public async Task ExpireAndUnExpireLookup()
         {
+            await Db.Database.EnsureDeletedAsync();
             var id = await AddCourtRole();
             var controllerResult = await _controller.Expire(id);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
@@ -145,6 +154,7 @@ namespace tests.controllers
             response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
             Assert.Null(response.ExpiryDate);
+
         }
 
         #region Helpers

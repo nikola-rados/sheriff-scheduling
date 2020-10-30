@@ -44,12 +44,16 @@ namespace SS.Api.Controllers
         [HttpGet("login")]
         public async Task<IActionResult> Login(string redirectUri = "/api")
         {
+            if (IsImpersonated)
+                return Redirect(redirectUri);
+
             //This was moved from claims, because it is only hit once (versus multiple times for GenerateClaims).
             var idirId = User.Claims.GetIdirId();
             var idirName = User.Claims.GetIdirUserName();
             var user = await Db.User.FirstOrDefaultAsync(u => u.IdirId == idirId || !u.IdirId.HasValue && u.IdirName == idirName);
             if (user == null) 
                 return Redirect(redirectUri);
+            
             user.IdirId ??= idirId;
             user.KeyCloakId = User.Claims.GetKeyCloakId();
             user.LastLogin = DateTimeOffset.UtcNow;

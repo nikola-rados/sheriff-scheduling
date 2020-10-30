@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NodaTime;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
@@ -70,21 +69,47 @@ namespace SS.Api.services.scheduling
             return savedShift;
         }
 
-        public async Task AssignToShifts(List<int> shiftIds, Guid sheriffId, bool overrideShift = false)
+        public async Task<List<Shift>> AssignToShifts(List<int> shiftIds, Guid sheriffId, bool overrideShift = false)
         {
             var savedSheriff = await Db.Sheriff.AsNoTracking().FirstOrDefaultAsync(s => s.Id == sheriffId);
             savedSheriff.ThrowBusinessExceptionIfNull($"{nameof(Sheriff)} with the id: {sheriffId} could not be found.");
 
-            var savedShifts = Db.Shift.Where(s => shiftIds.Contains(s.Id) && s.ExpiryDate == null);
+            var savedShifts = Db.Shift.Where(s => shiftIds.Contains(s.Id));
+            if (savedShifts.Any(ss => ss.ExpiryDate != null))
+                throw new BusinessLayerException("Shift(s) attempting to be scheduled have been expired.");
 
-            if (savedShifts.Count() != shiftIds.Count)
-                throw new BusinessLayerException("Couldn't find all shift ids provided.");
+            var locationId = savedShifts.First().LocationId;
 
-            //Ensure the shifts don't overlap with themselves.
-            //Ensure the shifts don't overlap with other shifts. 
+            if (savedShifts.Any(a =>
+                savedShifts.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate)))
+                throw new BusinessLayerException("Shifts provided overlap with themselves.");
 
-            await savedShifts.ForEachAsync(s => s.Sheriff = savedSheriff);
+
+            var overlappingShifts = Db.Shift.AsNoTracking()
+                .Where(a =>
+                    a.ExpiryDate == null &&
+                    a.LocationId == locationId &&
+                    a.SheriffId == sheriffId &&
+                    savedShifts.Any(b =>
+                        b.ExpiryDate == null && a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate));
+
+            if (overrideShift)
+            {
+                await overlappingShifts.ForEachAsync(s => s.SheriffId = null);
+                overlappingShifts = Enumerable.Empty<Shift>().AsQueryable();
+            }
+
+            if (overlappingShifts.Any())
+            {
+                var message = overlappingShifts.Select(ol => ConflictingSheriffAndSchedule(savedSheriff, ol)).ToList()
+                    .ListToStringWithPipes();
+                throw new BusinessLayerException(message);
+            }
+
+            await savedShifts.ForEachAsync(s => s.SheriffId = sheriffId);
             await Db.SaveChangesAsync();
+
+            return await savedShifts.ToListAsync();
         }
 
         public async Task RemoveShift(int id)
@@ -110,12 +135,13 @@ namespace SS.Api.services.scheduling
             var timezone = location?.Timezone;
             timezone.ThrowBusinessExceptionIfNull("Timezone was null.");
 
-            var lastMondayStart = new DateTimeOffset(DateTime.Today.AddDays(-(int) DateTime.Now.DayOfWeek - 6), TimeSpan.Zero);
+            var lastMondayStart = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-(int) DateTime.Now.DayOfWeek - 6));
 
             //We need to adjust to their start of the week, because it can differ depending on the TZ! 
             var targetStartDate = lastMondayStart.ConvertToTimezone(timezone);
             var targetEndDate = lastMondayStart.TranslateDateIfDaylightSavings(timezone, 7);
 
+            //may need to refine this date query
             var shiftsToImport = Db.Shift
                 .Include(s => s.Location)
                 .AsNoTracking()
@@ -128,7 +154,6 @@ namespace SS.Api.services.scheduling
             {
                 var shift = Db.DetachedClone(importShift);
                 shift.Id = 0;
-                shift.Duties = new List<Duty>();
                 shift.SheriffId = includeSheriffs ? shift.SheriffId : null;
                 shift.LocationId = importShift.LocationId;
                 shift.StartDate = shift.StartDate.TranslateDateIfDaylightSavings(timezone, 7);
@@ -143,10 +168,10 @@ namespace SS.Api.services.scheduling
 
         #region Helpers
 
-        private string ConflictingSheriffAndSchedule(Sheriff conflictingSheriff, Shift conflictingShift)
-            => $"Conflict - {nameof(Sheriff)}: {conflictingSheriff.LastName}, {conflictingSheriff.FirstName} - Shift already exists: {conflictingShift.StartDate} -> {conflictingShift.EndDate} @ {conflictingShift.Location.Name}";
+        private static string ConflictingSheriffAndSchedule(Sheriff sheriff, Shift shift)
+            => $"Conflict - {nameof(Sheriff)}: {sheriff.LastName}, {sheriff.FirstName} - Existing Shift conflicts: {shift.StartDate.ConvertToTimezone(shift.Timezone)} -> {shift.EndDate.ConvertToTimezone(shift.Timezone)}";
 
-        public async Task<string> CheckForConflictForSingleShift(DateTimeOffset start, DateTimeOffset end, Guid sheriffId)
+        private async Task<string> CheckForConflictForSingleShift(DateTimeOffset start, DateTimeOffset end, Guid sheriffId)
         {
             var conflictingShift = await Db.Shift.AsNoTracking()
                 .AsSingleQuery()
