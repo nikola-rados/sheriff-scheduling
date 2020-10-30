@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SS.Api.services.usermanagement;
 using SS.Db.models.scheduling.notmapped;
+using SheriffEvent = SS.Db.models.SheriffEvent;
 
 namespace SS.Api.services.scheduling
 {
@@ -176,20 +177,38 @@ namespace SS.Api.services.scheduling
         {
             var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, start, end);
             var shiftsForSheriffs = await GetShiftsForSheriffs(sheriffs.Select(s => s.Id), start, end);
-            return new List<ShiftAvailability>();
-            /*var shiftConflicts = 
 
-            var ShiftAvailability = sheriffs.Select(s => new ShiftAvailability
+            var sheriffEventConflicts = new List<ShiftConflict>();
+            sheriffs.ForEach(sheriff =>
+            {
+                sheriffEventConflicts.AddRange(sheriff.AwayLocation.Select(s => new ShiftConflict
+                {
+                    Conflict = ShiftConflictType.AwayLocation, SheriffId = sheriff.Id, Start = s.StartDate,
+                    End = s.EndDate, LocationId = s.LocationId
+                }));
+                sheriffEventConflicts.AddRange(sheriff.Leave.Select(s => new ShiftConflict
+                {
+                    Conflict = ShiftConflictType.Leave, SheriffId = sheriff.Id, Start = s.StartDate, End = s.EndDate
+                }));
+                sheriffEventConflicts.AddRange(sheriff.Training.Select(s => new ShiftConflict
+                {
+                    Conflict = ShiftConflictType.Training, SheriffId = sheriff.Id, Start = s.StartDate, End = s.EndDate
+                }));
+            });
+
+            var existingShiftConflicts = shiftsForSheriffs.Select(s => new ShiftConflict
+                {Conflict = ShiftConflictType.Scheduled, SheriffId = s.SheriffId, LocationId = s.LocationId, Start = s.StartDate, End = s.EndDate});
+
+            var allShiftConflicts = sheriffEventConflicts.Concat(existingShiftConflicts).ToList();
+            
+            return sheriffs.SelectToList(s => new ShiftAvailability
             {
                 Start = start,
                 End = end,
                 Sheriff = s,
                 SheriffId = s.Id,
-                ShiftConflict = shiftConflicts.Where(sc => sc.)
-            });
-            */
-
-            //return Task.CompletedTask;
+                Conflicts = allShiftConflicts.WhereToList(asc => asc.SheriffId == s.Id)
+            }).ToList();
         }
 
         #region Helpers

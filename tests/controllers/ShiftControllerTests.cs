@@ -12,6 +12,7 @@ using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using SS.Api.services.usermanagement;
 using SS.Db.models.scheduling;
+using SS.Db.models.scheduling.notmapped;
 using SS.Db.models.sheriff;
 using tests.api.helpers;
 using tests.api.Helpers;
@@ -128,9 +129,11 @@ namespace tests.controllers
             var endDate = DateTimeOffset.UtcNow.TranslateDateIfDaylightSavings("America/Edmonton", 7);
 
             //On awayLocation.
+            var awayLocationSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                Id = Guid.NewGuid(),
+                HomeLocationId = 1,
+                Id = awayLocationSheriff,
                 IsEnabled = true,
                 AwayLocation = new List<SheriffAwayLocation>
                 {
@@ -144,9 +147,11 @@ namespace tests.controllers
             });
 
             //On training.
+            var trainingSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                Id = Guid.NewGuid(),
+                HomeLocationId = 1,
+                Id = trainingSheriff,
                 IsEnabled = true,
                 Training = new List<SheriffTraining>
                 {
@@ -159,9 +164,11 @@ namespace tests.controllers
             });
 
             //On leave.
+            var leaveSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                Id = Guid.NewGuid(),
+                HomeLocationId = 1,
+                Id = leaveSheriff,
                 IsEnabled = true,
                 Leave = new List<SheriffLeave>
                 {
@@ -177,6 +184,7 @@ namespace tests.controllers
             var scheduledSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
+                HomeLocationId = 1,
                 Id = scheduledSheriff,
                 IsEnabled = true
             });
@@ -187,15 +195,17 @@ namespace tests.controllers
                 StartDate = startDate.AddDays(2),
                 EndDate = startDate.AddDays(3),
                 LocationId = 1,
+                SheriffId = scheduledSheriff,
                 Timezone = "America/Vancouver"
             });
 
 
             //Already scheduled different location.
-            var scheduledSheriff2 = Guid.NewGuid();
+            var scheduledDifferentLocationSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                Id = scheduledSheriff2,
+                HomeLocationId = 1,
+                Id = scheduledDifferentLocationSheriff,
                 IsEnabled = true
             });
 
@@ -205,14 +215,16 @@ namespace tests.controllers
                 StartDate = startDate.AddDays(2),
                 EndDate = startDate.AddDays(3),
                 LocationId = 2,
+                SheriffId = scheduledDifferentLocationSheriff,
                 Timezone = "America/Vancouver"
             });
 
-            var expiredShiftSheriffId = Guid.NewGuid();
-            //Expired Leave, Expired Training, Expired Away Location, Expired Shift
+            //Expired Leave, Expired Training, Expired Away Location, Expired Shift.
+            var expiredEventsAndShiftSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                Id = expiredShiftSheriffId,
+                HomeLocationId = 1,
+                Id = expiredEventsAndShiftSheriff,
                 IsEnabled = true,
                 Leave = new List<SheriffLeave>
                 {
@@ -250,22 +262,84 @@ namespace tests.controllers
                 StartDate = startDate.AddDays(2),
                 EndDate = startDate.AddDays(3),
                 LocationId = 2,
-                SheriffId = expiredShiftSheriffId,
+                SheriffId = expiredEventsAndShiftSheriff,
                 Timezone = "America/Vancouver",
                 ExpiryDate = DateTimeOffset.UtcNow
             });
 
-            //Expired Sheriff
+            //Expired Sheriff.
+            var expiredSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                Id = Guid.NewGuid(),
+                HomeLocationId = 1,
+                Id = expiredSheriff,
                 FirstName = "Expired",
                 LastName = "Expired Sheriff",
                 IsEnabled = false
             });
 
             await Db.SaveChangesAsync();
-            await ShiftController.GetAvailability(1, startDate, endDate);
+
+            //Loaned in.
+            var loanedInSheriff = Guid.NewGuid();
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                HomeLocationId = 2,
+                FirstName = "Loaned In",
+                LastName = "Loaned In",
+                Id = loanedInSheriff,
+                IsEnabled = true,
+                AwayLocation = new List<SheriffAwayLocation>
+                {
+                    new SheriffAwayLocation
+                    {
+                        StartDate = startDate,
+                        EndDate = startDate.AddDays(1),
+                        LocationId = 1
+                    }
+                }
+            });
+
+            await Db.SaveChangesAsync();
+
+            var shiftConflicts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
+                await ShiftController.GetAvailability(1, startDate, endDate));
+
+            //Postgres stores ticks as 1/1,000,000 vs .NET uses 1/10,000,000
+            var awayLocationsSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == awayLocationSheriff);
+            Assert.NotNull(awayLocationsSheriffConflicts); Assert.Contains(awayLocationsSheriffConflicts.Conflicts, c =>
+                c.Conflict == ShiftConflictType.AwayLocation && c.LocationId == 2 && (startDate - c.Start).TotalSeconds <= 1 && (startDate.AddDays(1) - c.End).TotalSeconds <= 1);
+
+            var trainingSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == trainingSheriff);
+            Assert.NotNull(trainingSheriffConflicts);
+            Assert.Contains(trainingSheriffConflicts.Conflicts, c =>
+                c.Conflict == ShiftConflictType.Training);
+
+            var leaveSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == leaveSheriff);
+            Assert.NotNull(leaveSheriffConflicts);
+            Assert.Contains(leaveSheriffConflicts.Conflicts, c =>
+                c.Conflict == ShiftConflictType.Leave);
+
+            var scheduledSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == scheduledSheriff);
+            Assert.NotNull(scheduledSheriffConflicts);
+            Assert.Contains(scheduledSheriffConflicts.Conflicts, c =>
+                c.Conflict == ShiftConflictType.Scheduled && (startDate.AddDays(2) - c.Start).TotalSeconds <= 1 && (startDate.AddDays(3) - c.End).TotalSeconds <= 1  && c.LocationId == 1);
+
+            var scheduledDifferentLocationSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == scheduledDifferentLocationSheriff);
+            Assert.NotNull(scheduledDifferentLocationSheriffConflicts);
+            Assert.Contains(scheduledDifferentLocationSheriffConflicts.Conflicts, c =>
+                c.Conflict == ShiftConflictType.Scheduled && (startDate.AddDays(2) - c.Start).TotalSeconds <= 1 && (startDate.AddDays(3) - c.End).TotalSeconds <= 1 && c.LocationId == 2);
+
+            var expiredEventsAndShiftSheriffConflict = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == expiredEventsAndShiftSheriff);
+            Assert.NotNull(expiredEventsAndShiftSheriffConflict);
+            Assert.Empty(expiredEventsAndShiftSheriffConflict.Conflicts);
+
+            Assert.True(shiftConflicts.All(sc => sc.SheriffId != expiredSheriff));
+
+            var loanedInSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == loanedInSheriff);
+            Assert.NotNull(loanedInSheriffConflicts);
+            Assert.Contains(loanedInSheriffConflicts.Conflicts, c =>
+                c.Conflict == ShiftConflictType.AwayLocation && c.LocationId == 1 && (startDate - c.Start).TotalSeconds <= 1 && (startDate.AddDays(1) - c.End).TotalSeconds <= 1);
         }
 
         [Fact]
