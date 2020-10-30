@@ -125,15 +125,14 @@ namespace SS.Api.services
         public async Task<List<LookupCode>> GetAll(LookupTypes? codeType, int? locationId, bool showExpired = false)
         {
             var lookupCodes = await Db.LookupCode.AsNoTracking()
-                .Include(lc => lc.SortOrder.Where(so => locationId != null && so.LocationId == locationId))
+                .Include(lc => lc.SortOrder.Where(so => so.LocationId == locationId))
                 .Where(lc =>
                     (codeType == null || lc.Type == codeType) &&
                     (locationId == null || lc.LocationId == null || lc.LocationId == locationId) &&
                     (showExpired || lc.ExpiryDate == null))
                 .ToListAsync();
 
-            if (locationId.HasValue)
-                lookupCodes.ForEach(lc => lc.SortOrderForLocation = lc.SortOrder.FirstOrDefault());
+            lookupCodes.ForEach(lc => lc.SortOrderForLocation = lc.SortOrder.FirstOrDefault());
 
             return lookupCodes;
         }
