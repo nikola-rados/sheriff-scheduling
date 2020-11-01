@@ -6,7 +6,7 @@
             </b-col>
             <b-col class="m-0 p-0" cols="11" style="overflow: auto;  background-color: yellow;">
 
-                <schedule-header v-if="isDataReady"/>
+                <schedule-header />
 
                 <b-table
                     :items="shiftSchedules" 
@@ -38,11 +38,13 @@
     import { weekShiftInfoType } from '../../types/ShiftSchedule/index'
     import ScheduleCard from './components/ScheduleCard.vue'
     import TeamMemberCard from './components/TeamMemberCard.vue'
+    import ScheduleHeader from './components/ScheduleHeader.vue'
 
     @Component({
         components: {
             ScheduleCard,
-            TeamMemberCard
+            TeamMemberCard,
+            ScheduleHeader
         }
     })
     export default class ManageSchedule extends Vue {

@@ -21,5 +21,7 @@ export interface weekShiftInfoType {
     Sat: shiftInfoType | {};    
 }
 
-
-
+export interface shiftRangeInfoType {
+    startDate: string;
+    endDate: string
+}
