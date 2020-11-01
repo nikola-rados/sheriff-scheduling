@@ -1,30 +1,28 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>    
-        <b-row cols="1" >            
-            <b-col md="1" cols="2" style="overflow: auto;">
-                <schedule-side-panel v-if="isDataReady"/> 
+        <b-row class="m-0 p-0" cols="2" >            
+            <b-col class="pl-1 " cols="1" style="overflow: auto;">
+                <team-member-card v-for="member in teamMembers" :key="member.badgeNumber" :badgeNumber="member.badgeNumber"/>
             </b-col>
-            <b-col col md="11" cols="11" style="overflow: auto;">
+            <b-col class="m-0 p-0" cols="11" style="overflow: auto;  background-color: yellow;">
 
                 <schedule-header v-if="isDataReady"/>
 
                 <b-table
                     :items="shiftSchedules" 
-                    :fields="fields"   
+                    :fields="fields"
+                    head-row-variant="primary"   
                     bordered
                     fixed>
-
-                        <template v-slot:head(dateSA) = "data" >  
-                            {{data}}
+                        <template v-slot:cell(Sun) = "data" >  
+                            <ScheduleCard :shiftInfo="data.item.Sun"/>
                         </template>
 
-                        <template v-slot:cell(dateSU) = "data" >  
-                            <ScheduleCard :startTime="data.item.timeStartSU" :timeDuration="data.item.timeDurationSU" color="info"/>
+                        <template v-slot:cell(Mon) = "data" >  
+                            <ScheduleCard :shiftInfo="data.item.Mon"/>
                         </template>
 
-                        <template v-slot:cell(dateMO) = "data" >  
-                            <ScheduleCard :startTime="data.item.timeStartMO" :timeDuration="data.item.timeDurationMO" color="warning"/>
-                        </template>
+                       
 
                 </b-table>
 
@@ -37,33 +35,59 @@
 
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
-    import { namespace } from 'vuex-class'
+    import { weekShiftInfoType } from '../../types/ShiftSchedule/index'
     import ScheduleCard from './components/ScheduleCard.vue'
+    import TeamMemberCard from './components/TeamMemberCard.vue'
 
     @Component({
         components: {
-            ScheduleCard
+            ScheduleCard,
+            TeamMemberCard
         }
     })
     export default class ManageSchedule extends Vue {
 
         isDataReady = false;
-        fields=[
-            {key:'dateSU', tdClass:'px-0 mx-0'},
-            {key:'dateMO', tdClass:'px-0 mx-0'},
-            {key:'dateTU', tdClass:'px-0 mx-0'},
-            {key:'dateWE', tdClass:'px-0 mx-0'},
-            {key:'dateTH', tdClass:'px-0 mx-0'},
-            {key:'dateFR', tdClass:'px-0 mx-0'},
-            {key:'dateSA', tdClass:'px-0 mx-0'}
+
+        teamMembers = [
+            {badgeNumber:1231},
+            {badgeNumber:4561},
+            {badgeNumber:7891},
+            {badgeNumber:9991},
         ]
 
-        shiftSchedules =[
-            {dateSU:'2020-1-1', timeStartSU:60 ,timeDurationSU: 33,
-            dateMO:'2020-1-1', timeStartMO:5 ,timeDurationMO: 25,},
-            {dateSU:'2020-1-1', timeStartSU:10 ,timeDurationSU: 33,
-            dateMO:'2020-1-1', timeStartMO:5 ,timeDurationMO: 25,},
+        fields=[
+            {key:'Sun', label:'', tdClass:'px-0 mx-0'},
+            {key:'Mon', label:'', tdClass:'px-0 mx-0'},
+            {key:'Tue', label:'', tdClass:'px-0 mx-0'},
+            {key:'Wed', label:'', tdClass:'px-0 mx-0'},
+            {key:'Thu', label:'', tdClass:'px-0 mx-0'},
+            {key:'Fri', label:'', tdClass:'px-0 mx-0'},
+            {key:'Sat', label:'', tdClass:'px-0 mx-0'}
         ]
+
+        shiftSchedules: weekShiftInfoType[] =[
+            {
+                Sun:{date:'2020-1-1', startTime:60 ,timeDuration: 20, type: 'Court', subType:'', color: 'info', timeStamp: '08:00 - 16:00', assignee:''},
+                Mon:{},
+                Tue:{},
+                Wed:{},
+                Thu:{},
+                Fri:{},
+                Sat:{},
+            },           
+        ]
+
+        mounted()
+        {
+            const currentdate = this.startOfWeek(new Date());
+            this.fields[0].label = this.fields[0].key +' ' + Vue.filter('beautify-date')(currentdate.toISOString());
+        }
+
+        public startOfWeek(date){
+            const diff = date.getDate() - date.getDay();        
+            return new Date(date.setDate(diff));
+        }
 
     }
 </script>
