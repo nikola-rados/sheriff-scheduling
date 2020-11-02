@@ -369,7 +369,8 @@
       return listOfDates;
     }
 
-    public closeShiftWindow(){            
+    public closeShiftWindow(){
+      this.resetShiftWindowState();            
       this.showShiftDetails = false;           
     }
 
