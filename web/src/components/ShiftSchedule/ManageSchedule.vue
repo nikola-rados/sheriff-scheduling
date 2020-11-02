@@ -2,9 +2,15 @@
     <b-card bg-variant="white" class="home" no-body>    
         <b-row class="m-0 p-0" cols="2" >            
             <b-col class="pl-1 " cols="1" style="overflow: auto;">
+                <select multiple> 
+                    <option>Amoos</option>
+                    <option>Jhon</option>
+  <option>Ghori</option>
+                </select>
                 <team-member-card v-for="member in teamMembers" :key="member.badgeNumber" :badgeNumber="member.badgeNumber"/>
+            
             </b-col>
-            <b-col class="m-0 p-0" cols="11" style="overflow: auto;  background-color: yellow;">
+            <b-col class="m-0 p-0" cols="11" style="overflow: auto;">
 
                 <schedule-header />
 
@@ -15,12 +21,12 @@
                     bordered
                     fixed>
                         <template v-slot:cell(Sun) = "data" >  
-                            <ScheduleCard :shiftInfo="data.item.Sun"/>
+                            <schedule-card :shiftInfo="data.item.Sun"/>
                         </template>
 
-                        <template v-slot:cell(Mon) = "data" >  
-                            <ScheduleCard :shiftInfo="data.item.Mon"/>
-                        </template>
+                        <!-- <template v-slot:cell(Mon) = "data" >  
+                            <schedule-card :shiftInfo="data.item.Mon"/>
+                        </template> -->
 
                        
 
@@ -77,7 +83,16 @@
                 Thu:{},
                 Fri:{},
                 Sat:{},
-            },           
+            }, 
+            {
+                Sun:{date:'2020-1-1', startTime:60 ,timeDuration: 20, type: 'Court', subType:'', color: 'info', timeStamp: '08:00 - 16:00', assignee:''},
+                Mon:{},
+                Tue:{},
+                Wed:{},
+                Thu:{},
+                Fri:{},
+                Sat:{},
+            },            
         ]
 
         mounted()

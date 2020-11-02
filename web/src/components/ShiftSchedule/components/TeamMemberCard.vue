@@ -1,24 +1,40 @@
 <template>
     <div>    
         <b-card 
+            :id="badgeNumber"
             style=" width:100%; height:4.5rem;" 
             bg-variant="white"            
             class="mx-0 my-1 p-0" 
-            body-class="m-0 p-0" 
+            body-class="m-0 p-0"
+            :draggable="true" 
+            v-on:dragstart="DragStart"            
             header-class=" h6 m-0 p-0">
-                <b-row style="margin-left:2px;font-size:12px; line-height: 16px;">#{{badgeNumber}}</b-row>
-                <b-row style="margin-left:2px;font-size:10px; line-height: 13px;">Deputy Sheriff</b-row>
+                <b-row style="margin-left:2px;font-size:11px; line-height: 16px;"># {{badgeNumber}}</b-row>
+                <b-row style="margin-left:2px;font-size:10px; line-height: 14px;">Deputy Sheriff</b-row>
                 <b-row style="margin-left:2px;font-size:14px; line-height: 16px; font-weight: bold; text-transform: uppercase;">Cop, Good</b-row>
-                <b-row style="margin-left:0px;font-size:9px;">
-                    <b-badge variant="info" >S</b-badge>
-                    <b-badge variant="white" >M</b-badge>
-                    <b-badge variant="info">T</b-badge>
-                    <b-badge variant="info">W</b-badge>
-                    <b-badge variant="white">T</b-badge>
-                    <b-badge variant="danger"><b-icon font-scale="1.5" icon="x"/></b-badge>
-                    <b-badge variant="info"><b-icon class="m-0 p-0" font-scale="2" icon="x"/></b-badge>
-                </b-row>                              
-                <!-- <b class="h7 m-0 p-0"> {{shiftInfo.assignee}} </b> -->
+                <b-row style="margin-left:0px;font-size:10px;">
+                    <b-badge 
+                        v-for="sch in sheriffSchedules" 
+                        :key="sch.weekday"
+                        :id="'sch'+badgeNumber+'-'+sch.weekday"
+                        :variant="sch.variant" 
+                        :style="sch.style" >
+                            {{sch.text}}
+                            <b-tooltip v-if="sch.tooltip.header"  :target="'sch'+badgeNumber+'-'+sch.weekday" variant="warning" show.sync ="true" triggers="hover" placement="topleft">
+                                <b-card 
+                                    class="m-0 p-0" 
+                                    body-class="m-0 p-0" 
+                                    header-class="h6 my-0 py-0 bg-dark text-white" 
+                                    :header="sch.tooltip.header" >
+                                        <div>{{sch.tooltip.desc}}</div>
+                                        <div>{{sch.tooltip.time}}</div>
+                                </b-card>
+                            </b-tooltip>  
+                    </b-badge>
+
+                    
+                                 
+                </b-row>
         </b-card>
        
     </div>
@@ -27,11 +43,44 @@
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
 
+   
+
     @Component
     export default class TeamMemberCard extends Vue {
 
         @Prop({required: true})
         badgeNumber!: number;
+
+        halfUnavailStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), white);"
+        halfUnavailHalfSchStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), rgb(12, 120, 170));"
+        halfSchStyle="background-image: linear-gradient(to bottom right, rgb(12, 120, 170),rgb(243, 232, 232), white);"
+        WeekDay = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+        sheriffSchedules=[
+            {weekday: 0, text:this.WeekDay[0], variant:'white',  style:'', tooltip:{}},
+            {weekday: 1, text:this.WeekDay[1], variant:'info',   style:'', tooltip:{}},
+            {weekday: 2, text:this.WeekDay[2], variant:'white',  style:this.halfUnavailStyle, tooltip:{header:'Partial Leave', desc:'illness', time:'08:00-09:00'}},
+            {weekday: 3, text:this.WeekDay[3], variant:'danger', style:'', tooltip:{header:'FullDay Training', desc:'computer', time:'08:00-09:00'}},
+            {weekday: 4, text:this.WeekDay[4], variant:'white',  style:'', tooltip:{}},
+            {weekday: 5, text:this.WeekDay[5], variant:'white',  style:this.halfUnavailHalfSchStyle, tooltip:{header:'Partial Loaned To', desc:'Abbostford Court', time:'09:00-11:00'}},
+            {weekday: 6, text:this.WeekDay[6], variant:'white',  style:this.halfSchStyle, tooltip:{}}           
+        ]
+
+        
+        mounted()
+        {
+            //console.log(this.badgeNumber)
+
+        }
+
+        public DragStart(event: any) 
+        { 
+            event.dataTransfer.setData('text', event.target.id);
+        }
+
+        public drag(event: any)
+        {
+            console.log(event)
+        }
 
     }
 </script>
@@ -43,12 +92,13 @@
     }
 
     .badge {
-        width: .75rem;
+        width: 0.75rem;
+        height: 0.9rem;
         margin:0.5rem .04rem 0 .04rem;
-        padding: .0125rem 0 0 0; 
+        padding: 0.15rem 0 0 0;
         border: solid 1px rgb(53, 56, 53); 
         border-radius: 4px;
-        background-image: linear-gradient(to bottom right, rgb(95, 174, 211), rgb(240, 240, 229));
+        /* background-image: linear-gradient(to bottom right, rgb(12, 120, 170),rgb(243, 232, 232), white);*/        
     }
 
 </style>
