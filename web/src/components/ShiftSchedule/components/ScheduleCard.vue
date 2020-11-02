@@ -3,11 +3,13 @@
         
         <b-card 
             :id="'schCard'+shiftInfo.date"
-            :style=" 'position: relative; left:'+ shiftInfo.startTime +'%; width:' + shiftInfo.timeDuration+'%; height:6rem;'" 
-            :bg-variant="!blockDrop?shiftInfo.color:'danger'" 
+            :style=" 'border:1px solid; position: relative; left:'+ shiftInfo.startTime +'%; width:' + shiftInfo.timeDuration+'%; height:6rem;'" 
+            :bg-variant="blockDrop?'danger':selected?'select':''"
+            :border-variant="shiftInfo.type"
             class="m-0 p-0" 
             body-class="m-0 p-0" 
-            header-class=" h6 m-0 p-0"
+            :header-class=" 'h7 text-center text-capitalize m-0 p-0 text-white bg-'+shiftInfo.type"            
+            @mousedown="cardSelected"
             @dragenter="dragEnter"
             @dragleave="dragLeave"  
             @dragover="dragEnter"          
@@ -16,7 +18,7 @@
             :header="shiftInfo.type">
                 <span style="margin-left:2px;font-size:10px; line-height: 12px; display: block;">{{shiftInfo.timeStamp}}</span>                              
                 <!-- <b class="h7 m-0 p-0"> {{shiftInfo.assignee}} </b> --> 
-        
+        <!-- <b-card-img src="https://placekitten.com/480/210" alt="Image" bottom></b-card-img> -->
                    
        </b-card>
     </div>
@@ -34,6 +36,8 @@
         shiftInfo!: shiftInfoType;
 
         blockDrop = false;
+        selected = false;
+       // cardColor =  
 
         public drop(event: any) 
         {
@@ -47,6 +51,12 @@
         }
         public dragLeave(){
             this.blockDrop = false;
+        }
+
+        public cardSelected()
+        {
+            console.log("this.selected")
+            this.selected = !this.selected;
         }
     }
 </script>

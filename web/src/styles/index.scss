@@ -3,7 +3,7 @@
 $bcgov-font-path: "../../node_modules/@bcgov/bootstrap-theme/dist/fonts/";
 @import "~@bcgov/bootstrap-theme/dist/scss/bootstrap-theme";
 
-@import "../assets/_custom.scss";
+@import "_custom.scss";
 @import "~bootstrap/scss/bootstrap.scss";
 @import '~bootstrap-vue/dist/bootstrap-vue.css';
 @import "~bootstrap-vue/src/index.scss";
