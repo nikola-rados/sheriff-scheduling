@@ -221,7 +221,7 @@
      
     mounted() {
       console.log('mounted')
-      this.selectedDate = new Date().toString();
+      this.setSelectedDate(new Date())
     }
 
     public AddShift() {
@@ -264,10 +264,17 @@
       this.isSubTypeDataReady = true;
     }    
 
-    public getStartOfWeek(){
-      const dateSelected = new Date(this.selectedDate)
-      const diff = dateSelected.getDate() - dateSelected.getDay();        
+    public getStartOfWeek(date: string){
+      const dateSelected = new Date(date)
+      const diff = dateSelected.getUTCDate() - dateSelected.getUTCDay();        
           return new Date(dateSelected.setDate(diff));
+    }
+
+    public setSelectedDate(dateSelected: Date) {      
+      const day = String(dateSelected.getUTCDate()). padStart(2, '0');
+      const month = String(dateSelected. getUTCMonth() + 1). padStart(2, '0'); //January is 0!
+      const year = dateSelected.getUTCFullYear();
+      this.selectedDate = year + '-' + month + '-' + day;
     }
 
     public saveShift() {
@@ -329,7 +336,8 @@
             .then(response => {
                 if(response.data){
                     this.resetShiftWindowState();
-                    this.closeShiftWindow;                     
+                    this.closeShiftWindow;
+                    this.$emit('change');                     
                 }
             }, err => {
                 const errMsg = err.response.data.error;                
@@ -348,7 +356,8 @@
       //     .then(response => {
       //         if(response.data){
       //             this.resetShiftWindowState();
-      //             this.closeShiftWindow;                     
+      //             this.closeShiftWindow;
+      //             this.$emit('change');                     
       //         }
       //     }, err => {
       //         const errMsg = err.response.data.error;                
@@ -361,7 +370,7 @@
 
     public getListOfDates(days){      
       const listOfDates = [];
-      const firstDayOfWeek = moment(this.getStartOfWeek())      
+      const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate))      
       for(const day of days) {         
         listOfDates.push(moment(firstDayOfWeek).add(day, 'days'))                
       }
@@ -389,24 +398,28 @@
     }
 
     public dateChanged() {
-      console.log('date changes:')
-      console.log(this.selectedDate)
-      console.log(this.getStartOfWeek())
-      
+      console.log('date changed')
+      this.loadNewDateRange();     
     }
 
     public nextDateRange() {
-      console.log('next range')
-      const firstDayOfWeek = moment(this.getStartOfWeek())      
-      this.selectedDate = moment(firstDayOfWeek).add(7, 'days').toString(); 
-      console.log(this.selectedDate)
+      const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate))
+      this.setSelectedDate(new Date(moment(firstDayOfWeek).add(7, 'days').toString()));
+      this.loadNewDateRange(); 
     }
 
     public previousDateRange() {
       console.log('previous range')
-      const firstDayOfWeek = moment(this.getStartOfWeek())      
-      this.selectedDate = moment(firstDayOfWeek).subtract(7, 'days').toString();
-      console.log(this.selectedDate)
+      const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate))      
+      this.setSelectedDate(new Date(moment(firstDayOfWeek).subtract(7, 'days').toString()));
+      this.loadNewDateRange();
+    }
+
+    public loadNewDateRange() {
+      const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate))
+      const lastDayOfWeek = moment(firstDayOfWeek).add(6, 'days').toString();
+      const dateRange = {startDate: firstDayOfWeek.toString(), endDate: lastDayOfWeek}
+      this.UpdateShiftRangeInfo(dateRange); 
     }
 
     public timeFormat(value , event) {        

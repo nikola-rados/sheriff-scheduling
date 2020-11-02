@@ -5,14 +5,14 @@
                 <select multiple> 
                     <option>Amoos</option>
                     <option>Jhon</option>
-  <option>Ghori</option>
+                    <option>Ghori</option>
                 </select>
                 <team-member-card v-for="member in teamMembers" :key="member.badgeNumber" :badgeNumber="member.badgeNumber"/>
             
             </b-col>
             <b-col class="m-0 p-0" cols="11" style="overflow: auto;">
 
-                <schedule-header />
+                <schedule-header v-on:change="getShifts()" />
 
                 <b-table
                     :items="shiftSchedules" 
@@ -41,10 +41,17 @@
 
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
-    import { weekShiftInfoType } from '../../types/ShiftSchedule/index'
+    import { namespace } from "vuex-class";
     import ScheduleCard from './components/ScheduleCard.vue'
     import TeamMemberCard from './components/TeamMemberCard.vue'
     import ScheduleHeader from './components/ScheduleHeader.vue'
+    import "@store/modules/ShiftScheduleInformation";   
+    const shiftState = namespace("ShiftScheduleInformation");
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
+    import store from '../../store';
+    import { locationInfoType } from '../../types/common';
+    import { shiftRangeInfoType, weekShiftInfoType } from '../../types/ShiftSchedule/index'
 
     @Component({
         components: {
@@ -54,6 +61,12 @@
         }
     })
     export default class ManageSchedule extends Vue {
+
+        @commonState.State
+        public location!: locationInfoType;
+
+        @shiftState.State
+        public shiftRangeInfo!: shiftRangeInfoType;
 
         isDataReady = false;
 
@@ -99,11 +112,33 @@
         {
             const currentdate = this.startOfWeek(new Date());
             this.fields[0].label = this.fields[0].key +' ' + Vue.filter('beautify-date')(currentdate.toISOString());
+            this.loadScheduleInformation();
         }
 
         public startOfWeek(date){
             const diff = date.getDate() - date.getDay();        
             return new Date(date.setDate(diff));
+        }
+
+        public getShifts() {
+            //GET shifts using the /api/shift call
+            console.log('getting shifts')
+        }
+
+        public loadScheduleInformation() {
+
+            const url = '/api/shift/shiftavailability&locationId='+this.location.id+'&showExpired='+this.shiftRangeInfo.startDate;
+            //console.log(url)
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)
+                        // this.extractSubTypes(response.data);                        
+                    }                
+                }) 
+            //GET the availability
+            //Add to store
+            this.getShifts();
         }
 
     }
