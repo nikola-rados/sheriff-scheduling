@@ -21,13 +21,13 @@ namespace SS.Api.services.scheduling
         {
             //Order by managed types?
             return await Db.Assignment.Where(a => a.LocationId == locationId && a.ExpiryDate == null).ToListAsync();
-
             //Order by Courtrooms, SubOrder, CourtRoles, SubOrder, JailRoles, SubOrder, EscortRuns, SubOrder, OtherAssignments
         }
 
         public async Task<Assignment> CreateAssignment(Assignment assignment)
         {
             assignment.Location = await Db.Location.FindAsync(assignment.LocationId);
+            assignment.LookupCode = await Db.LookupCode.FindAsync(assignment.LookupCodeId);
             await Db.Assignment.AddAsync(assignment);
             await Db.SaveChangesAsync();
             return assignment;
@@ -47,7 +47,8 @@ namespace SS.Api.services.scheduling
             await Db.SaveChangesAsync();
             return savedAssignment;
         }
-        public async Task RemoveAssignment(int id, string expiryReason)
+
+        public async Task ExpireAssignment(int id, string expiryReason)
         {
             var savedAssignment = await Db.Assignment.FindAsync(id);
             savedAssignment.ExpiryDate = DateTimeOffset.UtcNow;

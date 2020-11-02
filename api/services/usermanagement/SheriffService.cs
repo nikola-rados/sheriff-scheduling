@@ -46,19 +46,16 @@ namespace SS.Api.services.usermanagement
         }
 
         //Used for the Shift scheduling screen.
-        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset startDateUtc, DateTimeOffset endDateUtc)
+        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
-            var startDate = startDateUtc.UtcDateTime;
-            var endDate = endDateUtc.UtcDateTime;
-
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
                 .Where(s =>
                     s.HomeLocationId == locationId ||
                     s.AwayLocation.Any(al =>
-                        al.LocationId == locationId && !(al.StartDate > endDate || startDate > al.EndDate)
+                        al.LocationId == locationId && !(al.StartDate > end || start > al.EndDate)
                                                     && al.ExpiryDate == null))
-                .IncludeSheriffEventsBetweenDates(startDate, endDate);
+                .IncludeSheriffEventsBetweenDates(start, end);
 
             return await sheriffQuery.ToListAsync();
         }
@@ -108,6 +105,7 @@ namespace SS.Api.services.usermanagement
             Db.Entry(savedSheriff).Property(x => x.HomeLocationId).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.IsEnabled).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.Photo).IsModified = false;
+            Db.Entry(savedSheriff).Property(x => x.LastPhotoUpdate).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.KeyCloakId).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.IdirId).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.IdirName).IsModified = false;

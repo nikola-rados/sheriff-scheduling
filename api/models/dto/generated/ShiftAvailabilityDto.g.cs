@@ -7,10 +7,11 @@ namespace SS.Api.models.dto.generated
 {
     public partial class ShiftAvailabilityDto
     {
-        public DateTimeOffset StartDate { get; set; }
-        public DateTimeOffset EndDate { get; set; }
-        public List<ShiftConflict> ShiftConflict { get; set; }
+        public DateTimeOffset Start { get; set; }
+        public DateTimeOffset End { get; set; }
+        public List<ShiftConflict> Conflicts { get; set; }
         public SheriffDto Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
+        public string Timezone { get; set; }
     }
 }

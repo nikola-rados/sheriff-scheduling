@@ -44,12 +44,16 @@ namespace SS.Api.Controllers
         [HttpGet("login")]
         public async Task<IActionResult> Login(string redirectUri = "/api")
         {
+            if (IsImpersonated)
+                return Redirect(redirectUri);
+
             //This was moved from claims, because it is only hit once (versus multiple times for GenerateClaims).
             var idirId = User.Claims.GetIdirId();
             var idirName = User.Claims.GetIdirUserName();
             var user = await Db.User.FirstOrDefaultAsync(u => u.IdirId == idirId || !u.IdirId.HasValue && u.IdirName == idirName);
             if (user == null) 
                 return Redirect(redirectUri);
+            
             user.IdirId ??= idirId;
             user.KeyCloakId = User.Claims.GetKeyCloakId();
             user.LastLogin = DateTimeOffset.UtcNow;
@@ -92,7 +96,8 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> GetToken()
         {
             var accessToken = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "access_token");
-            return Ok(new { access_token = accessToken });
+            var expiresAt = await HttpContext.GetTokenAsync(CookieAuthenticationDefaults.AuthenticationScheme, "expires_at");
+            return Ok(new { access_token = accessToken, expires_at = expiresAt });
         }
 
         /// <summary>

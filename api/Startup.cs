@@ -40,11 +40,13 @@ namespace SS.Api
     public class Startup
     {
         private IWebHostEnvironment CurrentEnvironment { get; }
-
+        private bool DevelopmentMode { get; }
         public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
             Configuration = configuration;
             CurrentEnvironment = env;
+            DevelopmentMode = CurrentEnvironment.IsDevelopment() &&
+                               Configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
         }
 
         private IConfiguration Configuration { get; }
@@ -75,7 +77,11 @@ namespace SS.Api
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddCookie(options => {
+            .AddCookie(options =>
+            {
+                if (DevelopmentMode)
+                    options.Cookie.Name = "SS.Development";
+
                 options.Cookie.HttpOnly = true;
                 //Important to be None, otherwise a redirect loop will occur.
                 options.Cookie.SameSite = SameSiteMode.None;
@@ -202,7 +208,7 @@ namespace SS.Api
             services.AddControllers((opts) =>
             {
                 //This fills in the claims, that AllowAnonymous wont trigger.
-                if (CurrentEnvironment.IsDevelopment() && Configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true"))
+                if (DevelopmentMode)
                     opts.Filters.Add<DevelopmentEnvironmentClaimsFilter>();
             }).AddNewtonsoftJson(options =>
             {
@@ -293,7 +299,7 @@ namespace SS.Api
             app.UseEndpoints(endpoints =>
             {
                 //Note this will allow access everywhere for local development. 
-                if (env.IsDevelopment() && Configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true"))
+                if (DevelopmentMode)
                     endpoints.MapControllers().WithMetadata(new AllowAnonymousAttribute());
                 else
                     endpoints.MapControllers();
