@@ -1,7 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using db.models;
-using Mapster;
+﻿using Mapster;
 using ss.db.models;
 
 namespace SS.Db.models.sheriff

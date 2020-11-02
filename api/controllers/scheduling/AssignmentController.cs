@@ -49,9 +49,9 @@ namespace SS.Api.controllers.scheduling
 
         [HttpDelete]
         [PermissionClaimAuthorize(perm: Permission.ExpireAssignments)]
-        public async Task<ActionResult> RemoveAssignment(int id, string expiryReason)
+        public async Task<ActionResult> ExpireAssignment(int id, string expiryReason)
         {
-            await AssignmentService.RemoveAssignment(id, expiryReason);
+            await AssignmentService.ExpireAssignment(id, expiryReason);
             return NoContent();
         }
     }

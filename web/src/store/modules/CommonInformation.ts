@@ -16,6 +16,7 @@ class CommonInformation extends VuexModule {
   public userDetails: userInfoType = {roles: [], homeLocationId: 0}
 
   public token = '';
+  public tokenExpiry: Date = new Date();
 
   @Mutation
   public setCommonInfo(commonInfo): void {   
@@ -60,6 +61,11 @@ class CommonInformation extends VuexModule {
   @Mutation
   public setToken(token): void {   
     this.token = token
+  }
+
+  @Mutation
+  public setTokenExpiry(tokenExpiry): void {
+    this.tokenExpiry = tokenExpiry
   }
 
   @Action
