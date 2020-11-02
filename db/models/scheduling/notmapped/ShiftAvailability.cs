@@ -10,23 +10,25 @@ namespace SS.Db.models.scheduling.notmapped
     public class ShiftAvailability
     {
         [NotMapped]
-        public DateTimeOffset StartDate { get; set; }
+        public DateTimeOffset Start { get; set; }
         [NotMapped]
-        public DateTimeOffset EndDate { get; set; }
+        public DateTimeOffset End { get; set; }
         [NotMapped]
-        public List<ShiftConflict> ShiftConflict { get; set; }
+        public List<ShiftConflict> Conflicts { get; set; }
         [NotMapped]
         public Sheriff Sheriff { get; set; }
         [NotMapped]
         public Guid? SheriffId { get; set; }
+        [NotMapped]
+        public string Timezone { get; set; }
     }
 
     public class ShiftConflict
     {
         public DateTimeOffset Date { get; set; }
         public ShiftConflictType Conflict { get; set; }
-        public DateTimeOffset ConflictStart { get; set; }
-        public DateTimeOffset ConflictEnd { get; set; }
+        public DateTimeOffset Start { get; set; }
+        public DateTimeOffset End { get; set; }
     }
 
     public enum ShiftConflictType
@@ -34,6 +36,6 @@ namespace SS.Db.models.scheduling.notmapped
         Training,
         Leave,
         AwayLocation,
-        AlreadyScheduled
+        Scheduled
     }
 }
