@@ -25,3 +25,8 @@ export interface shiftRangeInfoType {
     startDate: string;
     endDate: string
 }
+
+export interface shiftSubTypeInfoType {
+    code: string;
+    id: number;
+}
