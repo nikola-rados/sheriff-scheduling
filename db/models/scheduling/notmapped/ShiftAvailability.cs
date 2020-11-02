@@ -25,10 +25,11 @@ namespace SS.Db.models.scheduling.notmapped
 
     public class ShiftConflict
     {
-        public DateTimeOffset Date { get; set; }
+        public Guid? SheriffId { get; set; }
         public ShiftConflictType Conflict { get; set; }
         public DateTimeOffset Start { get; set; }
         public DateTimeOffset End { get; set; }
+        public int? LocationId { get; set;}
     }
 
     public enum ShiftConflictType

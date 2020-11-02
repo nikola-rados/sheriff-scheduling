@@ -51,6 +51,7 @@ namespace SS.Api.services.usermanagement
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
                 .Where(s =>
+                    s.IsEnabled &&
                     s.HomeLocationId == locationId ||
                     s.AwayLocation.Any(al =>
                         al.LocationId == locationId && !(al.StartDate > end || start > al.EndDate)

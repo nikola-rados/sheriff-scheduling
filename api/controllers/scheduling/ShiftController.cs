@@ -83,11 +83,11 @@ namespace SS.Api.controllers.scheduling
         {
             if (start >= end)
                 throw new BusinessLayerException("Start date was on or after end date.");
-            if (end.UtcDateTime.Subtract(start.UtcDateTime).TotalDays > 30)
+            if (end.Subtract(start).TotalDays > 30)
                 throw new BusinessLayerException("End date and start date are more than 30 days apart.");
 
             var shiftAvailability = await ShiftService.GetShiftAvailability(locationId, start, end);
-            return shiftAvailability.Adapt<List<ShiftAvailabilityDto>>();
+            return Ok(shiftAvailability.Adapt<List<ShiftAvailabilityDto>>());
         }
     }
 }
