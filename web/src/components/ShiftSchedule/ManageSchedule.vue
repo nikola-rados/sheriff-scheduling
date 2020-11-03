@@ -1,9 +1,12 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>
         <!-- <loading-spinner v-if="!isManageScheduleDataMounted" />     -->
-        <b-row  class="m-0 p-0" cols="2" >            
+        <b-row  class="m-0 p-0" cols="2" >
+                      
             <b-col class="pl-1 " cols="1" style="overflow: auto;">
-                <team-member-card v-for="member in sheriffsAvailabilityInfo" :key="member.sheriffId" :sheriffId="member.sheriffId"/>
+                <b-card style="width:113%;" class="bg-dark mb-5" no-body header-class="text-white " header="My Team"> 
+                    <team-member-card v-for="member in sheriffsAvailabilityInfo" :key="member.sheriffId" :sheriffId="member.sheriffId"/>
+                </b-card>
             </b-col>
             <b-col class="m-0 p-0" cols="11" style="overflow: auto;">
                 <schedule-header v-on:change="loadScheduleInformation()" />
@@ -13,6 +16,9 @@
                     head-row-variant="primary"   
                     bordered
                     fixed>
+                        <template v-slot:head() = "data" >
+                            <span class="text-success">{{data.column}}</span> <span> {{data.label}}</span>
+                        </template>
                         <template v-slot:cell(Sun) = "data" >  
                             <schedule-card :shiftInfo="data.item.Sun"/>
                         </template>
@@ -41,6 +47,7 @@
     import { locationInfoType } from '../../types/common';
     import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType } from '../../types/ShiftSchedule/index'
     import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
+    import moment from 'moment-timezone';
 
     @Component({
         components: {
@@ -131,14 +138,8 @@
 
         mounted()
         {
-            const currentdate = this.startOfWeek(new Date());
-            this.fields[0].label = this.fields[0].key +' ' + Vue.filter('beautify-date')(currentdate.toISOString());
+                       
             this.loadScheduleInformation();
-        }
-
-        public startOfWeek(date){
-            const diff = date.getDate() - date.getDay();        
-            return new Date(date.setDate(diff));
         }
 
         public getShifts() {
@@ -150,11 +151,10 @@
         public loadScheduleInformation() {
 
             this.isManageScheduleDataMounted=false;
-            
+
+            this.headerDate();
 
             const url = 'api/shift/shiftavailability?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+this.shiftRangeInfo.endDate;
-            
-            console.log(url)
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
@@ -162,6 +162,15 @@
                         this.extractTeamAvailabilityInfo(response.data);                        
                     }                                   
                 })            
+        }
+
+        public headerDate() {
+            
+            for(let dayOffset=0; dayOffset<7; dayOffset++)
+            {
+                const date= moment(this.shiftRangeInfo.startDate).add(dayOffset,'days').format()
+                this.fields[dayOffset].label = ' ' + Vue.filter('beautify-date')(date);
+            }
         }
 
         public extractTeamAvailabilityInfo(sheriffsAvailabilityJson: sheriffsAvailabilityJsonType[]) {

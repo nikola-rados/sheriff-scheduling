@@ -1,6 +1,7 @@
 <template>
-    <div>    
+    <div >    
         <b-card 
+            v-if="isDataMounted"
             :id="'member'+sheriffId"
             style=" width:100%; height:4.5rem;" 
             bg-variant="white"            
@@ -10,8 +11,13 @@
             v-on:dragstart="DragStart"            
             header-class=" h6 m-0 p-0">
                 <b-row style="margin-left:2px;font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
-                <b-row style="margin-left:2px;font-size:10px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
-                <b-row style="margin-left:2px;font-size:14px; line-height: 16px; font-weight: bold; text-transform: uppercase;">{{sheriffInfo.lastName}}, {{sheriffInfo.firstName}}</b-row>
+                <b-row style="margin-left:2px;font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
+                <b-row 
+                    style="margin-left:2px;font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
+                    v-b-tooltip.hover.topleft                                
+                    :title="sheriffInfo.fullName.length>14?sheriffInfo.fullName:''">
+                        {{sheriffInfo.fullName|truncate(12)}}
+                </b-row>
                 <b-row style="margin-left:0px;font-size:10px;">
                     <b-badge 
                         v-for="sch in sheriffSchedules" 
@@ -44,8 +50,6 @@
     const shiftState = namespace("ShiftScheduleInformation");
     import { sheriffAvailabilityInfoType } from '../../../types/ShiftSchedule';
 
-   
-
     @Component
     export default class TeamMemberCard extends Vue {
 
@@ -55,6 +59,7 @@
         @shiftState.State
         public sheriffsAvailabilityInfo!: sheriffAvailabilityInfoType[];
 
+        isDataMounted = false;
 
         sheriffInfo = {} as sheriffAvailabilityInfoType;
 
@@ -64,19 +69,28 @@
         WeekDay = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         sheriffSchedules=[
             {weekday: 0, text:this.WeekDay[0], variant:'white',  style:'', tooltip:{}},
-            {weekday: 1, text:this.WeekDay[1], variant:'info',   style:'', tooltip:{}},
-            {weekday: 2, text:this.WeekDay[2], variant:'white',  style:this.halfUnavailStyle, tooltip:{header:'Partial Leave', desc:'illness', time:'08:00-09:00'}},
-            {weekday: 3, text:this.WeekDay[3], variant:'danger', style:'', tooltip:{header:'FullDay Training', desc:'computer', time:'08:00-09:00'}},
+            {weekday: 1, text:this.WeekDay[1], variant:'white',  style:'', tooltip:{}},
+            {weekday: 2, text:this.WeekDay[2], variant:'white',  style:'', tooltip:{}},
+            {weekday: 3, text:this.WeekDay[3], variant:'white',  style:'', tooltip:{}},
             {weekday: 4, text:this.WeekDay[4], variant:'white',  style:'', tooltip:{}},
-            {weekday: 5, text:this.WeekDay[5], variant:'white',  style:this.halfUnavailHalfSchStyle, tooltip:{header:'Partial Loaned To', desc:'Abbostford Court', time:'09:00-11:00'}},
-            {weekday: 6, text:this.WeekDay[6], variant:'white',  style:this.halfSchStyle, tooltip:{}}           
+            {weekday: 5, text:this.WeekDay[5], variant:'white',  style:'', tooltip:{}},
+            {weekday: 6, text:this.WeekDay[6], variant:'white',  style:'', tooltip:{}}           
         ]
         
         mounted()
         {
-            //console.log(this.badgeNumber)
             this.sheriffInfo = this.sheriffsAvailabilityInfo.filter(sheriff =>{if(sheriff.sheriffId == this.sheriffId) return true})[0]
+            this.sheriffInfo['fullName'] = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
+            this.extractConflicts();
+            this.isDataMounted = true;
+            console.log(this.sheriffInfo)
         }
+
+        public extractConflicts(){
+            for(const conflict of this.sheriffInfo.conflicts){
+                console.log(conflict)
+            }
+        }         
 
         public DragStart(event: any) 
         { 
@@ -87,6 +101,15 @@
         {
             console.log(event)
         }
+
+        // style:this.halfUnavailStyle, tooltip:{header:'Partial Leave', desc:'illness', time:'08:00-09:00'}
+        //   {weekday: 0, text:this.WeekDay[0], variant:'white',  style:'', tooltip:{}},
+        //     {weekday: 1, text:this.WeekDay[1], variant:'info',   style:'', tooltip:{}},
+        //     {weekday: 2, text:this.WeekDay[2], variant:'white', },
+        //     {weekday: 3, text:this.WeekDay[3], variant:'danger', style:'', tooltip:{header:'FullDay Training', desc:'computer', time:'08:00-09:00'}},
+        //     {weekday: 4, text:this.WeekDay[4], variant:'white',  style:'', tooltip:{}},
+        //     {weekday: 5, text:this.WeekDay[5], variant:'white',  style:this.halfUnavailHalfSchStyle, tooltip:{header:'Partial Loaned To', desc:'Abbostford Court', time:'09:00-11:00'}},
+        //     {weekday: 6, text:this.WeekDay[6], variant:'white',  style:this.halfSchStyle, tooltip:{}}           
 
     }
 </script>
