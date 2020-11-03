@@ -1,7 +1,7 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>
-        <loading-spinner v-if="!isManageScheduleDataMounted" />    
-        <b-row v-else class="m-0 p-0" cols="2" >            
+        <!-- <loading-spinner v-if="!isManageScheduleDataMounted" />     -->
+        <b-row  class="m-0 p-0" cols="2" >            
             <b-col class="pl-1 " cols="1" style="overflow: auto;">
                 <team-member-card v-for="member in sheriffsAvailabilityInfo" :key="member.sheriffId" :sheriffId="member.sheriffId"/>
             </b-col>
@@ -150,8 +150,11 @@
         public loadScheduleInformation() {
 
             this.isManageScheduleDataMounted=false;
+            
 
             const url = 'api/shift/shiftavailability?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+this.shiftRangeInfo.endDate;
+            
+            console.log(url)
             this.$http.get(url)
                 .then(response => {
                     if(response.data){

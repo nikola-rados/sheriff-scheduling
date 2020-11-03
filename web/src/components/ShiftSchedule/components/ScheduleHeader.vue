@@ -241,7 +241,7 @@
 		mounted() {
 			console.log('mounted')
 			this.selectedDate = this.getFormattedDate(new Date())
-      		this.loadNewDateRange();
+			this.loadNewDateRange();
 		}
 
 		public weekdaysChanged(){
@@ -404,8 +404,8 @@
 			//     })
 
 		}
-
-	    public getListOfDates(days){      
+		
+		public getListOfDates(days){
 			const listOfDates: string[] = [];
 			const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate));      
 			for(const day of days) {
@@ -486,30 +486,6 @@
 			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
 			return value
 		}
-
-
-		    
-     
-      
-    }
-
-
-
-   
-
-
-
-
-    
-
-    
-
-
-
-    
-
-
-
 	}
 </script>
 
