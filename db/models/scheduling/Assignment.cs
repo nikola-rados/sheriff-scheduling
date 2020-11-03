@@ -16,8 +16,6 @@ namespace SS.Db.models.scheduling
         public LookupTypes AssignmentType { get; set; }
         public LookupCode LookupCode { get; set; } 
         public int? LookupCodeId { get; set; }
-        //May not need this. This provides us a historic value.
-        //public string LookupCodeValue { get; set; }
         public DateTimeOffset? StartDate { get; set; }
         public DateTimeOffset? EndDate { get; set; }
         public string Timezone { get; set; }

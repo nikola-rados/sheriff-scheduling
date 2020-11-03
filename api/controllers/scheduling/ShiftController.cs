@@ -35,10 +35,10 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
-        public async Task<ActionResult<ShiftDto>> AddShift(ShiftDto shiftDto)
+        public async Task<ActionResult<List<ShiftDto>>> AddShifts(List<ShiftDto> shiftDtos)
         {
-            var shift = await ShiftService.AddShift(shiftDto.Adapt<Shift>());
-            return Ok(shift.Adapt<ShiftDto>());
+            var shift = await ShiftService.AddShifts(shiftDtos.Adapt<List<Shift>>());
+            return Ok(shift.Adapt<List<ShiftDto>>());
         }
 
         [HttpPut]

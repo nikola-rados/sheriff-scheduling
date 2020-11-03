@@ -21,8 +21,6 @@ namespace SS.Db.models.scheduling
         public ICollection<Duty> Duties { get; set; } = new List<Duty>();
         public Assignment AnticipatedAssignment { get; set; }
         public int? AnticipatedAssignmentId { get; set; }
-        //May not need this. This provides us a historic value.
-        //public string AnticipatedAssignmentValue { get; set; }
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
