@@ -223,6 +223,7 @@ namespace SS.Api.services.usermanagement
             Db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
             Db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
+
             await Db.SaveChangesAsync();
             return sheriffLeave;
         }
@@ -271,6 +272,7 @@ namespace SS.Api.services.usermanagement
             Db.Entry(savedTraining).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedTraining).Property(x => x.ExpiryReason).IsModified = false;
             Db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
+
             await Db.SaveChangesAsync();
             return sheriffTraining;
         }

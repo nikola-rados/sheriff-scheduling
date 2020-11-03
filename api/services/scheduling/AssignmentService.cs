@@ -38,11 +38,11 @@ namespace SS.Api.services.scheduling
             var savedAssignment = await Db.Assignment.FindAsync(entity.Id);
             savedAssignment.ThrowBusinessExceptionIfNull($"{nameof(Assignment)} with the id: {entity.Id} could not be found.");
 
-            Db.Entry(savedAssignment).CurrentValues.SetValues(entity);
-
             Db.Entry(savedAssignment).Property(a => a.LocationId).IsModified = false;
             Db.Entry(savedAssignment).Property(a => a.ExpiryDate).IsModified = false;
             Db.Entry(savedAssignment).Property(a => a.ExpiryReason).IsModified = false;
+
+            Db.Entry(savedAssignment).CurrentValues.SetValues(entity);
 
             await Db.SaveChangesAsync();
             return savedAssignment;
