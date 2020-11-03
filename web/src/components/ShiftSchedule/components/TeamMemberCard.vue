@@ -1,7 +1,7 @@
 <template>
     <div>    
         <b-card 
-            :id="badgeNumber"
+            :id="'member'+sheriffId"
             style=" width:100%; height:4.5rem;" 
             bg-variant="white"            
             class="mx-0 my-1 p-0" 
@@ -9,18 +9,18 @@
             :draggable="true" 
             v-on:dragstart="DragStart"            
             header-class=" h6 m-0 p-0">
-                <b-row style="margin-left:2px;font-size:11px; line-height: 16px;"># {{badgeNumber}}</b-row>
-                <b-row style="margin-left:2px;font-size:10px; line-height: 14px;">Deputy Sheriff</b-row>
-                <b-row style="margin-left:2px;font-size:14px; line-height: 16px; font-weight: bold; text-transform: uppercase;">Cop, Good</b-row>
+                <b-row style="margin-left:2px;font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
+                <b-row style="margin-left:2px;font-size:10px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
+                <b-row style="margin-left:2px;font-size:14px; line-height: 16px; font-weight: bold; text-transform: uppercase;">{{sheriffInfo.lastName}}, {{sheriffInfo.firstName}}</b-row>
                 <b-row style="margin-left:0px;font-size:10px;">
                     <b-badge 
                         v-for="sch in sheriffSchedules" 
                         :key="sch.weekday"
-                        :id="'sch'+badgeNumber+'-'+sch.weekday"
+                        :id="'sch'+sheriffId+'-'+sch.weekday"
                         :variant="sch.variant" 
                         :style="sch.style" >
                             {{sch.text}}
-                            <b-tooltip v-if="sch.tooltip.header"  :target="'sch'+badgeNumber+'-'+sch.weekday" variant="warning" show.sync ="true" triggers="hover" placement="topleft">
+                            <b-tooltip v-if="sch.tooltip.header"  :target="'sch'+sheriffId+'-'+sch.weekday" variant="warning" show.sync ="true" triggers="hover" placement="topleft">
                                 <b-card 
                                     class="m-0 p-0" 
                                     body-class="m-0 p-0" 
@@ -30,10 +30,7 @@
                                         <div>{{sch.tooltip.time}}</div>
                                 </b-card>
                             </b-tooltip>  
-                    </b-badge>
-
-                    
-                                 
+                    </b-badge>                                 
                 </b-row>
         </b-card>
        
@@ -42,6 +39,10 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
+    import { namespace } from "vuex-class";
+    import "@store/modules/ShiftScheduleInformation";
+    const shiftState = namespace("ShiftScheduleInformation");
+    import { sheriffAvailabilityInfoType } from '../../../types/ShiftSchedule';
 
    
 
@@ -49,7 +50,13 @@
     export default class TeamMemberCard extends Vue {
 
         @Prop({required: true})
-        badgeNumber!: number;
+        sheriffId!: string;
+
+        @shiftState.State
+        public sheriffsAvailabilityInfo!: sheriffAvailabilityInfoType[];
+
+
+        sheriffInfo = {} as sheriffAvailabilityInfoType;
 
         halfUnavailStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), white);"
         halfUnavailHalfSchStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), rgb(12, 120, 170));"
@@ -64,12 +71,11 @@
             {weekday: 5, text:this.WeekDay[5], variant:'white',  style:this.halfUnavailHalfSchStyle, tooltip:{header:'Partial Loaned To', desc:'Abbostford Court', time:'09:00-11:00'}},
             {weekday: 6, text:this.WeekDay[6], variant:'white',  style:this.halfSchStyle, tooltip:{}}           
         ]
-
         
         mounted()
         {
             //console.log(this.badgeNumber)
-
+            this.sheriffInfo = this.sheriffsAvailabilityInfo.filter(sheriff =>{if(sheriff.sheriffId == this.sheriffId) return true})[0]
         }
 
         public DragStart(event: any) 

@@ -30,3 +30,19 @@ export interface shiftSubTypeInfoType {
     code: string;
     id: number;
 }
+
+export interface sheriffAvailabilityInfoType {
+    sheriffId: string;
+    conflicts: conflictsInfoType[];
+    firstName: string;
+    lastName: string;
+    badgeNumber: string;
+    rank: string;
+}
+
+export interface conflictsInfoType {
+    conflict: string;
+    start: string;
+    end: string;
+    locationId: number
+}

@@ -1,13 +1,12 @@
 <template>
-    <b-card bg-variant="white" class="home" no-body>    
-        <b-row class="m-0 p-0" cols="2" >            
+    <b-card bg-variant="white" class="home" no-body>
+        <loading-spinner v-if="!isManageScheduleDataMounted" />    
+        <b-row v-else class="m-0 p-0" cols="2" >            
             <b-col class="pl-1 " cols="1" style="overflow: auto;">
-                <team-member-card v-for="member in teamMembers" :key="member.badgeNumber" :badgeNumber="member.badgeNumber"/>
+                <team-member-card v-for="member in sheriffsAvailabilityInfo" :key="member.sheriffId" :sheriffId="member.sheriffId"/>
             </b-col>
             <b-col class="m-0 p-0" cols="11" style="overflow: auto;">
-
-                <schedule-header v-on:change="getShifts()" />
-
+                <schedule-header v-on:change="loadScheduleInformation()" />
                 <b-table
                     :items="shiftSchedules" 
                     :fields="fields"
@@ -21,20 +20,15 @@
                         <!-- <template v-slot:cell(Mon) = "data" >  
                             <schedule-card :shiftInfo="data.item.Mon"/>
                         </template> -->
-
-                       
-
                 </b-table>
-
                 <b-card><br></b-card>  
             </b-col>
         </b-row>
-        
     </b-card>
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from "vuex-class";
     import ScheduleCard from './components/ScheduleCard.vue'
     import TeamMemberCard from './components/TeamMemberCard.vue'
@@ -45,7 +39,8 @@
     const commonState = namespace("CommonInformation");
     import store from '../../store';
     import { locationInfoType } from '../../types/common';
-    import { shiftRangeInfoType, weekShiftInfoType } from '../../types/ShiftSchedule/index'
+    import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType } from '../../types/ShiftSchedule/index'
+    import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
 
     @Component({
         components: {
@@ -62,7 +57,13 @@
         @shiftState.State
         public shiftRangeInfo!: shiftRangeInfoType;
 
-        isDataReady = false;
+        @shiftState.State
+        public sheriffsAvailabilityInfo!: sheriffAvailabilityInfoType[];
+
+        @shiftState.Action
+        public UpdateSheriffsAvailabilityInfo!: (newSheriffsAvailabilityInfo: sheriffAvailabilityInfoType[]) => void
+
+        isManageScheduleDataMounted = false;
 
         teamMembers = [
             {badgeNumber:1231},
@@ -120,6 +121,14 @@
             },           
         ]
 
+        @Watch('location.id', { immediate: true })
+        locationChange()
+        {
+            if (this.isManageScheduleDataMounted) {
+                this.loadScheduleInformation()                
+            }            
+        } 
+
         mounted()
         {
             const currentdate = this.startOfWeek(new Date());
@@ -135,21 +144,38 @@
         public getShifts() {
             //GET shifts using the /api/shift call
             console.log('getting shifts')
+            this.isManageScheduleDataMounted = true;
         }
 
         public loadScheduleInformation() {
 
-            const url = '/api/shift/shiftavailability&locationId='+this.location.id+'&showExpired='+this.shiftRangeInfo.startDate;
-            //console.log(url)
+            this.isManageScheduleDataMounted=false;
+
+            const url = 'api/shift/shiftavailability?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+this.shiftRangeInfo.endDate;
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)
-                        // this.extractSubTypes(response.data);                        
-                    }                
-                }) 
-            //GET the availability
-            //Add to store
+                        this.extractTeamAvailabilityInfo(response.data);                        
+                    }                                   
+                })            
+        }
+
+        public extractTeamAvailabilityInfo(sheriffsAvailabilityJson: sheriffsAvailabilityJsonType[]) {
+
+            const sheriffsAvailability: sheriffAvailabilityInfoType[] = [];
+            
+            for(const sheriffAvailabilityJson of sheriffsAvailabilityJson) {
+                const sheriffAvailability = {} as sheriffAvailabilityInfoType;
+                sheriffAvailability.sheriffId = sheriffAvailabilityJson.sheriffId;
+                sheriffAvailability.firstName = sheriffAvailabilityJson.sheriff.firstName;
+                sheriffAvailability.lastName = sheriffAvailabilityJson.sheriff.lastName;
+                sheriffAvailability.badgeNumber = sheriffAvailabilityJson.sheriff.badgeNumber;
+                sheriffAvailability.rank = sheriffAvailabilityJson.sheriff.rank;
+                sheriffAvailability.conflicts = sheriffAvailabilityJson.conflicts;        
+                sheriffsAvailability.push(sheriffAvailability)                
+            }
+            this.UpdateSheriffsAvailabilityInfo(sheriffsAvailability);
             this.getShifts();
         }
 

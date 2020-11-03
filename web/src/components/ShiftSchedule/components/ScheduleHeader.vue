@@ -221,7 +221,9 @@
      
     mounted() {
       console.log('mounted')
-      this.setSelectedDate(new Date())
+      this.selectedDate = this.getFormattedDate(new Date())
+      this.loadNewDateRange();
+      
     }
 
     public AddShift() {
@@ -242,11 +244,9 @@
       Vue.nextTick(()=>{            
         this.isSubTypeDataReady = false;
         const url = 'api/managetypes?codeType='+ type.name +'&locationId='+this.location.id+'&showExpired=false';
-        //console.log(url)
         this.$http.get(url)
             .then(response => {
                 if(response.data){
-                    console.log(response.data)
                     this.extractSubTypes(response.data);                        
                 }                
             }) 
@@ -266,15 +266,15 @@
 
     public getStartOfWeek(date: string){
       const dateSelected = new Date(date)
-      const diff = dateSelected.getUTCDate() - dateSelected.getUTCDay();        
+      const diff = dateSelected.getUTCDate() - dateSelected.getUTCDay();
           return new Date(dateSelected.setDate(diff));
     }
 
-    public setSelectedDate(dateSelected: Date) {      
-      const day = String(dateSelected.getUTCDate()). padStart(2, '0');
-      const month = String(dateSelected. getUTCMonth() + 1). padStart(2, '0'); //January is 0!
-      const year = dateSelected.getUTCFullYear();
-      this.selectedDate = year + '-' + month + '-' + day;
+    public getFormattedDate(dateSelected: Date) {      
+      const day = String(dateSelected.getDate()). padStart(2, '0');
+      const month = String(dateSelected. getMonth() + 1). padStart(2, '0');
+      const year = dateSelected.getFullYear();
+      return year + '-' + month + '-' + day;
     }
 
     public saveShift() {
@@ -329,6 +329,7 @@
 
     public createShift() {
       const shiftDates = this.getListOfDates(this.selectedDays);
+      //TODO: update he body when new API is in place
 
       const body = { }
         const url = 'api/shift';
@@ -369,12 +370,12 @@
     }
 
     public getListOfDates(days){      
-      const listOfDates = [];
-      const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate))      
-      for(const day of days) {         
-        listOfDates.push(moment(firstDayOfWeek).add(day, 'days'))                
+      const listOfDates: string[] = [];
+      const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate));      
+      for(const day of days) {
+        const date = this.getFormattedDate(new Date(moment(firstDayOfWeek).add(day, 'days').toString()))         
+        listOfDates.push(date)                
       }
-      console.log(listOfDates)
       return listOfDates;
     }
 
@@ -404,22 +405,23 @@
 
     public nextDateRange() {
       const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate))
-      this.setSelectedDate(new Date(moment(firstDayOfWeek).add(7, 'days').toString()));
+      this.selectedDate = this.getFormattedDate(new Date(moment(firstDayOfWeek).add(7, 'days').toString()));
       this.loadNewDateRange(); 
     }
 
     public previousDateRange() {
       console.log('previous range')
       const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate))      
-      this.setSelectedDate(new Date(moment(firstDayOfWeek).subtract(7, 'days').toString()));
+      this.selectedDate = this.getFormattedDate(new Date(moment(firstDayOfWeek).subtract(7, 'days').toString()));
       this.loadNewDateRange();
     }
 
     public loadNewDateRange() {
       const firstDayOfWeek = moment(this.getStartOfWeek(this.selectedDate))
       const lastDayOfWeek = moment(firstDayOfWeek).add(6, 'days').toString();
-      const dateRange = {startDate: firstDayOfWeek.toString(), endDate: lastDayOfWeek}
-      this.UpdateShiftRangeInfo(dateRange); 
+      const dateRange = {startDate: this.getFormattedDate(new Date(firstDayOfWeek.toString())), endDate: this.getFormattedDate(new Date(lastDayOfWeek))}
+      this.UpdateShiftRangeInfo(dateRange);
+      this.$emit('change'); 
     }
 
     public timeFormat(value , event) {        
