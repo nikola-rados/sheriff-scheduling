@@ -13,7 +13,6 @@ namespace SS.Db.models.scheduling
     {
         [Key]
         public int Id { get; set;}
-        public ShiftType Type { get; set; }
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
         public Sheriff Sheriff { get; set; }

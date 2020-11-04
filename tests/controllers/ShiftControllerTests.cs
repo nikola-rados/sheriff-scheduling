@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using SS.Api.controllers.scheduling;
@@ -32,87 +33,100 @@ namespace tests.controllers
         }
 
         [Fact]
-        public async Task AssignToShifts()
+        public async Task AddShiftConflicts()
         {
             var sheriffId = Guid.NewGuid();
             await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz" });
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId });
-
-            await Db.Shift.AddAsync(new Shift
-            {
-                Id = 1, StartDate = DateTimeOffset.UtcNow.Date, 
-                EndDate = DateTimeOffset.UtcNow.Date.AddHours(1),
-                LocationId = 1,
-                Timezone = "America/Vancouver"
-            });
-            await Db.Shift.AddAsync(new Shift
-            {
-                Id = 2, StartDate = DateTimeOffset.UtcNow.Date.AddHours(1),
-                EndDate = DateTimeOffset.UtcNow.Date.AddHours(2), 
-                LocationId = 1,
-                Timezone = "America/Vancouver"
-            });
-            await Db.Shift.AddAsync(new Shift
-            {
-                Id = 3, StartDate = DateTimeOffset.UtcNow.Date, EndDate = DateTimeOffset.UtcNow.Date.AddHours(1),
-                LocationId = 1,
-                Timezone = "America/Vancouver"
-            });
-            await Db.Shift.AddAsync(new Shift
-            {
-                Id = 4, StartDate = DateTimeOffset.UtcNow.Date.AddHours(1),
-                EndDate = DateTimeOffset.UtcNow.Date.AddHours(2), LocationId = 1,
-                Timezone = "America/Vancouver"
-            });
-            await Db.Shift.AddAsync(new Shift
-            {
-                Id = 5, StartDate = DateTimeOffset.UtcNow.Date, EndDate = DateTimeOffset.UtcNow.Date.AddHours(2),
-                LocationId = 1,
-                Timezone = "America/Vancouver"
-            });
-            await Db.Shift.AddAsync(new Shift
-            {
-                Id = 6, StartDate = DateTimeOffset.UtcNow.Date.AddHours(2),
-                EndDate = DateTimeOffset.UtcNow.Date.AddHours(1), LocationId = 1,
-                Timezone = "America/Vancouver"
-            });
-            await Db.Shift.AddAsync(new Shift
-            {
-                Id = 7, StartDate = DateTimeOffset.UtcNow.Date.AddHours(-1), EndDate = DateTimeOffset.UtcNow.Date,
-                LocationId = 1,
-                Timezone = "America/Vancouver"
-            });
-
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, IsEnabled = true, HomeLocationId = 1});
             await Db.SaveChangesAsync();
 
             Detach();
 
             //Case where shifts conflict with themselves.
-            var shiftIds = new List<int> { 1, 5 };
-            await Assert.ThrowsAsync<BusinessLayerException>(async () => await ShiftController.AssignToShifts(shiftIds, sheriffId, false));
+            var shiftOne = new Shift
+            {
+                StartDate = DateTimeOffset.UtcNow.Date,
+                EndDate = DateTimeOffset.UtcNow.Date.AddHours(1),
+                LocationId = 1,
+                Timezone = "America/Vancouver",
+                SheriffId = sheriffId
+            }.Adapt<ShiftDto>();
+
+            var shiftTwo = new Shift
+            {
+                StartDate = DateTimeOffset.UtcNow.Date.AddHours(1),
+                EndDate = DateTimeOffset.UtcNow.Date.AddHours(2),
+                LocationId = 1,
+                Timezone = "America/Vancouver",
+                SheriffId = sheriffId
+            }.Adapt<ShiftDto>();
+
+            var shiftThree = new Shift
+            {
+                Id = 3,
+                StartDate = DateTimeOffset.UtcNow.Date,
+                EndDate = DateTimeOffset.UtcNow.Date.AddHours(1),
+                LocationId = 1,
+                Timezone = "America/Vancouver",
+                SheriffId = sheriffId
+            }.Adapt<ShiftDto>();
+
+            var shiftFour = new Shift
+            {
+                Id = 4,
+                StartDate = DateTimeOffset.UtcNow.Date.AddHours(1),
+                EndDate = DateTimeOffset.UtcNow.Date.AddHours(2),
+                LocationId = 1,
+                Timezone = "America/Vancouver",
+                SheriffId = sheriffId
+            }.Adapt<ShiftDto>();
+
+            var shiftFive = new Shift
+            {
+                StartDate = DateTimeOffset.UtcNow.Date,
+                EndDate = DateTimeOffset.UtcNow.Date.AddHours(2),
+                LocationId = 1,
+                Timezone = "America/Vancouver",
+                SheriffId = sheriffId
+            }.Adapt<ShiftDto>();
+
+            var shiftSix = new Shift
+            {
+                Id = 6,
+                StartDate = DateTimeOffset.UtcNow.Date.AddHours(2),
+                EndDate = DateTimeOffset.UtcNow.Date.AddHours(1),
+                LocationId = 1,
+                Timezone = "America/Vancouver",
+                SheriffId = sheriffId
+            }.Adapt<ShiftDto>();
+
+            var shiftSeven = new Shift
+            {
+                Id = 7,
+                StartDate = DateTimeOffset.UtcNow.Date.AddHours(-1),
+                EndDate = DateTimeOffset.UtcNow.Date,
+                LocationId = 1,
+                Timezone = "America/Vancouver",
+                SheriffId = sheriffId
+            }.Adapt<ShiftDto>();
+
+
+            await Assert.ThrowsAsync<BusinessLayerException>(async () => await ShiftController.AddShifts( new List<ShiftDto> { shiftOne, shiftFive } ));
             var sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
             Assert.Empty(sheriffShifts);
 
             //Two shifts no conflicts.
-            shiftIds = new List<int> { 1, 2 };
-            var shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AssignToShifts(shiftIds, sheriffId, false));
+            var shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(new List<ShiftDto> { shiftOne, shiftTwo }));
             sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
             Assert.All(sheriffShifts, s => new List<int> { 1, 2 }.Contains(s.Id));
 
             //Already assigned to two shifts: Two new shifts, should conflict now. 
-            shiftIds = new List<int> { 3, 4 };
-            await Assert.ThrowsAsync<BusinessLayerException>(async () => await ShiftController.AssignToShifts(shiftIds, sheriffId, false));
+            await Assert.ThrowsAsync<BusinessLayerException>(async () => await ShiftController.AddShifts(new List<ShiftDto> { shiftThree, shiftFour }));
             sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
             Assert.All(sheriffShifts, s => new List<int> { 1, 2 }.Contains(s.Id));
 
-            //Override, should remove from existing shifts and place into new shifts - instead of erroring and saying there is a conflict. 
-            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AssignToShifts(shiftIds, sheriffId, true));
-            sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
-            Assert.All(sheriffShifts, s => new List<int> { 3, 4 }.Contains(s.Id));
-
             //Schedule two more shifts, on the outside of 3 and 4. 
-            shiftIds = new List<int> { 6, 7 };
-            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AssignToShifts(shiftIds, sheriffId, true));
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(new List<ShiftDto> { shiftSix, shiftSeven }));
             sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
             Assert.All(sheriffShifts, s => new List<int> { 3, 4, 6, 7 }.Contains(s.Id));
         }
@@ -307,7 +321,8 @@ namespace tests.controllers
 
             //Postgres stores ticks as 1/1,000,000 vs .NET uses 1/10,000,000
             var awayLocationsSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == awayLocationSheriff);
-            Assert.NotNull(awayLocationsSheriffConflicts); Assert.Contains(awayLocationsSheriffConflicts.Conflicts, c =>
+            Assert.NotNull(awayLocationsSheriffConflicts); 
+            Assert.Contains(awayLocationsSheriffConflicts.Conflicts, c =>
                 c.Conflict == ShiftConflictType.AwayLocation && c.LocationId == 2 && (startDate - c.Start).TotalSeconds <= 1 && (startDate.AddDays(1) - c.End).TotalSeconds <= 1);
 
             var trainingSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == trainingSheriff);
@@ -355,7 +370,6 @@ namespace tests.controllers
             await Db.Shift.AddAsync(new Shift
             {
                 Id = 1, 
-                Type = ShiftType.Courts,
                 StartDate = startTimeOffset,
                 EndDate = endTimeOffset,
                 Sheriff = new Sheriff { Id = Guid.NewGuid(), LastName = "hello" },
@@ -380,22 +394,69 @@ namespace tests.controllers
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
         }
 
+
+        [Fact]
+        public async Task AddShiftSheriffEventConflict()
+        {
+            await Db.Location.AddAsync(new Location { Id = 2, AgencyId = "5555", Name = "Location 2" });
+            var shiftDto = await CreateShift();
+            var shiftDtos = new List<ShiftDto> { shiftDto };
+
+            var startDate = shiftDto.StartDate;
+            var sheriffId = Guid.NewGuid();
+            shiftDto.SheriffId = sheriffId;
+
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = sheriffId, HomeLocationId = 1, FirstName = "First", LastName = "Sheriff", IsEnabled = true,
+                Leave = new List<SheriffLeave>
+                {
+                    new SheriffLeave
+                    {
+                        StartDate = startDate,
+                        EndDate = startDate.AddDays(2)
+                    }
+                },
+                Training = new List<SheriffTraining>
+                {
+                    new SheriffTraining
+                    {
+                        StartDate = startDate,
+                        EndDate = startDate.AddDays(2)
+                    }
+                },
+                AwayLocation = new List<SheriffAwayLocation>
+                {
+                    new SheriffAwayLocation
+                    {
+                        StartDate = startDate,
+                        EndDate = startDate.AddDays(1),
+                        LocationId = 2
+                    }
+                }
+            });
+            await Db.SaveChangesAsync();
+
+            //Three conflicts should come back. 
+            await Assert.ThrowsAsync<BusinessLayerException>(async () => await ShiftController.AddShifts(shiftDtos));
+        }
+
+
         [Fact]
         public async Task UpdateShift()
         {
             var shiftDto = await CreateShift();
             var shiftDtos = new List<ShiftDto> {shiftDto};
             var sheriffId = Guid.NewGuid();
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There"});
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There", IsEnabled = true, HomeLocationId = 1});
             await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = 1 });
             await Db.SaveChangesAsync();
 
             var shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
             var shift = shifts.First();
-            shift.Type = ShiftType.Escorts;
             shift.StartDate = DateTimeOffset.UtcNow.AddDays(5).Date;
             shift.EndDate = DateTimeOffset.UtcNow.AddDays(6).Date;
-            shift.LocationId = 5; // This shouldn't change 
+            shift.LocationId = 1; // This shouldn't change 
             shift.ExpiryDate = DateTimeOffset.UtcNow; // this shouldn't change
             shift.SheriffId = sheriffId;
             shift.Sheriff = new SheriffDto(); // shouldn't change
@@ -403,9 +464,8 @@ namespace tests.controllers
             shift.AnticipatedAssignment = new AssignmentDto(); //this shouldn't create new. 
             shift.AnticipatedAssignmentId = 5;
             shift.Location = new LocationDto(); // shouldn't change
-            shift.LocationId = 5555; // shouldn't change
 
-            var updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shifts));
+            var updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShifts(shifts));
             var updatedShift = updatedShifts.First();
 
             Assert.Equal(shiftDto.LocationId,updatedShift.LocationId);
@@ -421,7 +481,7 @@ namespace tests.controllers
             shift = shifts.First();
 
             shift.SheriffId = sheriffId;
-            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShift(shifts));
+            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShifts(shifts));
 
             //Create a shift that sits side by side, without sheriff, shouldn't conflict.
             shiftDto.SheriffId = null;
@@ -431,7 +491,7 @@ namespace tests.controllers
             shift = shifts.First();
 
             shift.SheriffId = sheriffId;
-            updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shifts));
+            updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShifts(shifts));
             updatedShift = updatedShifts.First();
 
             Assert.Equal(shiftDto.StartDate, updatedShift.StartDate);
@@ -459,7 +519,9 @@ namespace tests.controllers
         {
             var sheriffId = Guid.NewGuid();
             var shiftDto = await CreateShift();
-            await Db.Sheriff.AddAsync(new Sheriff {Id = sheriffId});
+            await Db.Sheriff.AddAsync(new Sheriff {Id = sheriffId, IsEnabled = true, HomeLocationId = 1});
+            await Db.SaveChangesAsync();
+            shiftDto.LocationId = 1;
             shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6); //Last week monday
             shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5); //Last week tuesday
             shiftDto.SheriffId = sheriffId;
@@ -482,14 +544,13 @@ namespace tests.controllers
         {
             var sheriffId = Guid.NewGuid();
             await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz", Timezone = "America/Vancouver"});
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "First", LastName = "Sheriff"});
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, HomeLocationId = 1, FirstName = "First", LastName = "Sheriff", IsEnabled = true });
             await Db.SaveChangesAsync();
 
             var shiftDto = new ShiftDto
             {
                 ExpiryDate = DateTimeOffset.UtcNow, // should be null.
                 SheriffId = sheriffId, // should be null.
-                Type = ShiftType.Jail,
                 StartDate = DateTimeOffset.UtcNow,
                 EndDate = DateTimeOffset.UtcNow.AddHours(5),
                 Sheriff = new SheriffDto(),
