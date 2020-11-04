@@ -3,11 +3,11 @@
         <!-- <loading-spinner v-if="!isManageScheduleDataMounted" />     -->
         <b-row  class="m-0 p-0" cols="2" >
                       
-            <b-col class="pl-1 " cols="1" style="overflow: auto;">
+            <!-- <b-col class="pl-1 " cols="1" style="overflow: auto;">
                 <b-card style="width:113%;" class="bg-dark mb-5" no-body header-class="text-white " header="My Team"> 
-                    <team-member-card v-for="member in sheriffsAvailabilityInfo" :key="member.sheriffId" :sheriffId="member.sheriffId"/>
+                    
                 </b-card>
-            </b-col>
+            </b-col> -->
             <b-col class="m-0 p-0" cols="11" style="overflow: auto;">
                 <schedule-header v-on:change="loadScheduleInformation()" />
                 <b-table
@@ -19,13 +19,17 @@
                         <template v-slot:head() = "data" >
                             <span class="text-success">{{data.column}}</span> <span> {{data.label}}</span>
                         </template>
-                        <template v-slot:cell(Sun) = "data" >  
-                            <schedule-card :shiftInfo="data.item.Sun"/>
+                        <template v-slot:head(myteam) = "data" >
+                           
+                            <span> {{data.label}}</span>
                         </template>
-
-                        <!-- <template v-slot:cell(Mon) = "data" >  
-                            <schedule-card :shiftInfo="data.item.Mon"/>
+                        <!-- <template v-slot:cell(Sun) = "data" >  
+                            <schedule-card :shiftInfo="data.item.Sun"/>
                         </template> -->
+
+                        <template v-slot:cell(myteam) = "data" > {{data}}
+                            <team-member-card  :sheriffInfo=data.item.myteam />
+                        </template>
                 </b-table>
                 <b-card><br></b-card>  
             </b-col>
@@ -80,6 +84,7 @@
         ]
 
         fields=[
+            {key:'myteam',label:'My Team', tdClass:'px-0 mx-0'},
             {key:'Sun', label:'', tdClass:'px-0 mx-0'},
             {key:'Mon', label:'', tdClass:'px-0 mx-0'},
             {key:'Tue', label:'', tdClass:'px-0 mx-0'},
@@ -89,44 +94,10 @@
             {key:'Sat', label:'', tdClass:'px-0 mx-0'}
         ]
 
-        shiftSchedules: weekShiftInfoType[] =[
-            {
-                Sun:{date:'2020-1-1', startTime:60 ,timeDuration: 20, type: 'court', subType:'', color: 'info', timeStamp: '08:00 - 16:00', assignee:''},
-                Mon:{},
-                Tue:{},
-                Wed:{},
-                Thu:{},
-                Fri:{},
-                Sat:{},
-            }, 
-            {
-                Sun:{date:'2020-1-1', startTime:60 ,timeDuration: 20, type: 'jail', subType:'', color: 'info', timeStamp: '08:00 - 16:00', assignee:''},
-                Mon:{},
-                Tue:{},
-                Wed:{},
-                Thu:{},
-                Fri:{},
-                Sat:{},
-            },                 
-            {
-                Sun:{date:'2020-1-1', startTime:30 ,timeDuration: 33, type: 'escort', subType:'', color: 'info', timeStamp: '08:00 - 16:00', assignee:''},
-                Mon:{},
-                Tue:{},
-                Wed:{},
-                Thu:{},
-                Fri:{},
-                Sat:{},
-            },            
-            {
-                Sun:{date:'2020-1-1', startTime:60 ,timeDuration: 20, type: 'other', subType:'', color: 'info', timeStamp: '08:00 - 16:00', assignee:''},
-                Mon:{},
-                Tue:{},
-                Wed:{},
-                Thu:{},
-                Fri:{},
-                Sat:{},
-            },           
-        ]
+        shiftSchedules: weekShiftInfoType[] =[]
+        
+        //         Sun:{date:'2020-1-1', startTime:60 ,timeDuration: 20, type: 'court', subType:'', color: 'info', timeStamp: '08:00 - 16:00', assignee:''},
+        
 
         @Watch('location.id', { immediate: true })
         locationChange()
@@ -169,13 +140,14 @@
             for(let dayOffset=0; dayOffset<7; dayOffset++)
             {
                 const date= moment(this.shiftRangeInfo.startDate).add(dayOffset,'days').format()
-                this.fields[dayOffset].label = ' ' + Vue.filter('beautify-date')(date);
+                this.fields[dayOffset+1].label = ' ' + Vue.filter('beautify-date')(date);
             }
         }
 
         public extractTeamAvailabilityInfo(sheriffsAvailabilityJson: sheriffsAvailabilityJsonType[]) {
 
-            const sheriffsAvailability: sheriffAvailabilityInfoType[] = [];
+           // const sheriffsAvailability: sheriffAvailabilityInfoType[] = [];
+            this.shiftSchedules = [];
             
             for(const sheriffAvailabilityJson of sheriffsAvailabilityJson) {
                 const sheriffAvailability = {} as sheriffAvailabilityInfoType;
@@ -185,9 +157,13 @@
                 sheriffAvailability.badgeNumber = sheriffAvailabilityJson.sheriff.badgeNumber;
                 sheriffAvailability.rank = sheriffAvailabilityJson.sheriff.rank;
                 sheriffAvailability.conflicts = sheriffAvailabilityJson.conflicts;        
-                sheriffsAvailability.push(sheriffAvailability)                
+                //sheriffsAvailability.push(sheriffAvailability)
+                console.log(sheriffAvailability)
+                this.shiftSchedules.push({myteam:sheriffAvailability,Sun:{},Mon:{},Tue:{},Wed:{},Thu:{},Fri:{},Sat:{}})
             }
-            this.UpdateSheriffsAvailabilityInfo(sheriffsAvailability);
+            
+            
+            //this.UpdateSheriffsAvailabilityInfo(sheriffsAvailability);
             this.getShifts();
         }
 

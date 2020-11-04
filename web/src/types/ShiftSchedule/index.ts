@@ -12,6 +12,7 @@ export interface shiftInfoType {
 
 export interface weekShiftInfoType {
 
+    myteam:sheriffAvailabilityInfoType;
     Sun: shiftInfoType | {};
     Mon: shiftInfoType | {};
     Tue: shiftInfoType | {};

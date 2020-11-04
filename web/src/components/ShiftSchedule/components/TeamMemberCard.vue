@@ -1,24 +1,20 @@
 <template>
-    <div >    
+    <div v-if="isDataMounted">    
         <b-card 
-            v-if="isDataMounted"
-            :id="'member'+sheriffId"
             style=" width:100%; height:4.5rem;" 
             bg-variant="white"            
             class="mx-0 my-1 p-0" 
             body-class="m-0 p-0"
-            :draggable="true" 
-            v-on:dragstart="DragStart"            
             header-class=" h6 m-0 p-0">
                 <b-row style="margin-left:2px;font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
                 <b-row style="margin-left:2px;font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
                 <b-row 
                     style="margin-left:2px;font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
                     v-b-tooltip.hover.topleft                                
-                    :title="sheriffInfo.fullName.length>14?sheriffInfo.fullName:''">
-                        {{sheriffInfo.fullName|truncate(12)}}
+                    :title="fullName.length>14?fullName:''">
+                        {{fullName|truncate(12)}}
                 </b-row>
-                <b-row style="margin-left:0px;font-size:10px;">
+                <!-- <b-row style="margin-left:0px;font-size:10px;">
                     <b-badge 
                         v-for="sch in sheriffSchedules" 
                         :key="sch.weekday"
@@ -37,7 +33,7 @@
                                 </b-card>
                             </b-tooltip>  
                     </b-badge>                                 
-                </b-row>
+                </b-row> -->
         </b-card>
        
     </div>
@@ -54,18 +50,16 @@
     @Component
     export default class TeamMemberCard extends Vue {
 
-        @Prop({required: true})
-        sheriffId!: string;
-
         @shiftState.State
         public shiftRangeInfo!: shiftRangeInfoType;
 
-        @shiftState.State
-        public sheriffsAvailabilityInfo!: sheriffAvailabilityInfoType[];
+        @Prop({required: true})
+        public sheriffInfo!: sheriffAvailabilityInfoType;
+
+        sheriffId = '';
 
         isDataMounted = false;
-
-        sheriffInfo = {} as sheriffAvailabilityInfoType;
+        fullName = '';
 
         halfUnavailStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), white);"
         halfUnavailHalfSchStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), rgb(12, 120, 170));"
@@ -75,48 +69,51 @@
         sheriffSchedules: any[] = []
         
         mounted()
-        {
-            this.sheriffInfo = this.sheriffsAvailabilityInfo.filter(sheriff =>{if(sheriff.sheriffId == this.sheriffId) return true})[0]
-            this.sheriffInfo['fullName'] = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
+        {  
+            this.isDataMounted = false;
+            this.sheriffId = this.sheriffInfo.sheriffId;          
+            this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
             
-            this.isDataMounted = true;
+           
             console.log(this.sheriffInfo)
             console.log(this.shiftRangeInfo.startDate)
 
-            for(let dayOffset=0; dayOffset<7; dayOffset++){
-                const date= moment(this.shiftRangeInfo.startDate).add(dayOffset,'days').format()
-                this.sheriffSchedules.push({date: date, weekday: dayOffset, text:this.WeekDay[dayOffset], variant:'white',  style:'', tooltip:{}})
-            }
-            this.extractConflicts();
+            // for(let dayOffset=0; dayOffset<7; dayOffset++){
+            //     const date= moment(this.shiftRangeInfo.startDate).add(dayOffset,'days').format()
+            //     this.sheriffSchedules.push({date: date, weekday: dayOffset, text:this.WeekDay[dayOffset], variant:'white',  style:'', tooltip:{}})
+            // } 
+
+            Vue.nextTick(()=>{this.isDataMounted = true;})
+           // this.extractConflicts();
         }
 
-        public extractConflicts(){
-            for(const conflict of this.sheriffInfo.conflicts){
-                console.log(conflict);
-                console.log(Vue.filter('isDateFullday')(conflict.start,conflict.end))
-                if(Vue.filter('isDateFullday')(conflict.start,conflict.end))
-                {                  
-                    for(const sheriffSchedule of this.sheriffSchedules){
-                       console.log(conflict.start)
-                       console.log(conflict.end)
-                       console.log(sheriffSchedule.date)
-                       console.log(moment(sheriffSchedule.date).isBetween(conflict.start,conflict.end))
-                    }
-                }
+        // public extractConflicts(){
+        //     for(const conflict of this.sheriffInfo.conflicts){
+        //         console.log(conflict);
+        //         console.log(Vue.filter('isDateFullday')(conflict.start,conflict.end))
+        //         if(Vue.filter('isDateFullday')(conflict.start,conflict.end))
+        //         {                  
+        //             for(const sheriffSchedule of this.sheriffSchedules){
+        //                console.log(conflict.start)
+        //                console.log(conflict.end)
+        //                console.log(sheriffSchedule.date)
+        //                console.log(moment(sheriffSchedule.date).isBetween(conflict.start,conflict.end))
+        //             }
+        //         }
 
 
-            }
-        }         
+        //     }
+        // }         
 
-        public DragStart(event: any) 
-        { 
-            event.dataTransfer.setData('text', event.target.id);
-        }
+        // public DragStart(event: any) 
+        // { 
+        //     event.dataTransfer.setData('text', event.target.id);
+        // }
 
-        public drag(event: any)
-        {
-            console.log(event)
-        }
+        // public drag(event: any)
+        // {
+        //     console.log(event)
+        // }
 
         // style:this.halfUnavailStyle, tooltip:{header:'Partial Leave', desc:'illness', time:'08:00-09:00'}
         //   {weekday: 0, text:this.WeekDay[0], variant:'white',  style:'', tooltip:{}},
