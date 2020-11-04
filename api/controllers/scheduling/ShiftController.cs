@@ -30,9 +30,9 @@ namespace SS.Api.controllers.scheduling
         [HttpGet]
         [PermissionClaimAuthorize(AuthorizeOperation.And, Permission.ViewAllShifts, Permission.ViewMyShifts,
             Permission.ViewAllShiftsAtMyLocation)]
-        public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end, bool scheduledOnly = false)
+        public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
-            var shifts = await ShiftService.GetShifts(locationId, start, end, scheduledOnly);
+            var shifts = await ShiftService.GetShifts(locationId, start, end);
             return Ok(shifts.Adapt<List<ShiftDto>>());
         }
 
