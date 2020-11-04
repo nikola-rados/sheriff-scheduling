@@ -1,4 +1,3 @@
-import {teamMemberInfoType} from '../../types/MyTeam';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 
 @Module({
@@ -6,7 +5,8 @@ import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 })
 class ManageTypesInformation extends VuexModule {
 
-  public sortingAssignmentInfo = {} as {prvIndex: number; newIndex: number} 
+  public sortingAssignmentInfo = {} as {prvIndex: number; newIndex: number}
+  public sortingLeaveTrainingInfo = {} as {prvIndex: number; newIndex: number}  
 
   @Mutation
   public setSortingAssignmentInfo(sortingAssignmentInfo): void {   
@@ -16,6 +16,16 @@ class ManageTypesInformation extends VuexModule {
   @Action
   public UpdateSortingAssignmentInfo(newSortingAssignmentInfo): void {
     this.context.commit('setSortingAssignmentInfo', newSortingAssignmentInfo)
+  } 
+
+  @Mutation
+  public setSortingLeaveTrainingInfo(sortingLeaveTrainingInfo): void {   
+    this.sortingLeaveTrainingInfo = sortingLeaveTrainingInfo
+  }
+
+  @Action
+  public UpdateSortingLeaveTrainingInfo(newSortingLeaveTrainingInfo): void {
+    this.context.commit('setSortingLeaveTrainingInfo', newSortingLeaveTrainingInfo)
   } 
 
 }

@@ -1,14 +1,14 @@
 <template>
     <b-card bg-variant="white" class="home">    
         <b-row class="bg-white">
-            <b-col cols="9">
+            <b-col cols="8">
                 <page-header :pageHeaderText="location.name+' '+sectionHeader"></page-header>                
             </b-col>
             <b-col cols="2">
                 <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem"> 
                     <b-form-select
                         size = "lg"
-                        @change="getAssignments"
+                        @change="changeAssignment"
                         v-model="selectedAssignmentType">                            
                             <b-form-select-option
                                 v-for="assignmentType in assignmentTypeTabs" 
@@ -19,6 +19,13 @@
                     </b-form-select>
                 </b-form-group>
             </b-col>
+            <b-col cols="2" >
+                <div :class="expiredViewChecked?'bg-warning':''" :style="(expiredViewChecked?'width: 13.25rem;':'width: 15.25rem;')+'margin: .75rem 1rem 0 .5rem;'">
+                    <b-form-checkbox class="ml-2" v-model="expiredViewChecked"  @change="getAssignments()" size="lg"  switch>
+                        {{viewStatus}}
+                    </b-form-checkbox>
+                </div>
+            </b-col>
         </b-row>
 
         <loading-spinner v-if= "!isAssignmentDataMounted" />
@@ -28,7 +35,7 @@
                 <h2 v-if="assignmentError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="assignmentErrorMsgDesc"  variant="danger"> {{assignmentErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="assignmentError = false" /></b-badge></h2>
             </b-card>
 
-            <div v-if="selectedAssignmentType.name != 'CourtRoom'">
+            <div v-if="selectedAssignmentType.name != 'CourtRoom' && userIsAdmin">
                 <b-card  v-if="!addNewAssignmentForm">                
                     <b-button size="sm" variant="success" @click="addNewAssignment"> <b-icon icon="plus" /> Add </b-button>
                 </b-card>
@@ -51,15 +58,17 @@
                         :fields="fields"                        
                         sort-icon-left
                         head-row-variant="primary"
-                        striped
+                        :striped="!expiredViewChecked"
                         borderless
                         small
-                        v-sortAssignmentType 
-                        id="mytable"
+                        v-sortAssignmentType
                         responsive="sm"> 
 
                             <template v-slot:table-colgroup>
                                 <col style="width:4rem">
+                                <col>
+                                <col>
+                                <col style="width:6rem">
                             </template>
                                               
                             <template v-slot:head(code) >
@@ -71,13 +80,14 @@
                                 <span v-else></span>
                             </template>
 
-                            <template v-slot:cell(sortOrder) >
-                                <span><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
+                            <template v-slot:cell(sortOrder)= "data" >                                
+                                <span v-if="!data.item['_rowVariant']"><b-icon class="handle ml-3" icon="arrows-expand"/></span> 
                             </template>
 
-                            <template v-slot:cell(edit)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDelete(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button v-if="selectedAssignmentType.name != 'CourtRoom'" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            <template v-slot:cell(edit)="data" >                                  
+                                <b-button v-if="userIsAdmin && !data.item['_rowVariant']" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteAssignment(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="userIsAdmin && data.item['_rowVariant']" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireAssignment(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="userIsAdmin && selectedAssignmentType.name != 'CourtRoom'" :disabled="data.item['_rowVariant']?true:false" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -86,9 +96,26 @@
                                 </b-card>
                             </template>
                     </b-table>
-                </b-card> 
+                </b-card>                 
             </div>                                     
         </b-card>
+
+        <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Delete Assignment</h2>
+                    <h2 v-else class="mb-0 text-light">Confirm Unexpire Assignment</h2>                     
+            </template>
+            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{selectedAssignmentType.label}}: {{assignmentToDelete.code?assignmentToDelete.code:''}}"  assignment type?</h4>
+            <h4 v-else>Are you sure you want to Unexpire the "{{selectedAssignmentType.label}}: {{assignmentToDelete.code?assignmentToDelete.code:''}}"  assignment type?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteAssignment()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                >&times;</b-button>
+            </template>
+        </b-modal>    
 
     </b-card>
 </template>
@@ -104,7 +131,7 @@
 
     import PageHeader from "@components/common/PageHeader.vue"; 
     import AddAssignmentForm from "../ManageTypes/AddAssignmentForm.vue"
-    import {locationInfoType} from '../../types/common'; 
+    import {locationInfoType, userInfoType} from '../../types/common'; 
     import {assignmentTypeInfoType}  from '../../types/ManageTypes/index'
     import * as _ from 'underscore';
     import sortAssignmentType from './utils/sortAssignmentType';
@@ -123,8 +150,13 @@
         @commonState.State
         public location!: locationInfoType;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
         @manageTypesState.State
         public sortingAssignmentInfo!: {prvIndex: number; newIndex: number};
+
+        userIsAdmin = false;
 
         sectionHeader = 'Assignments';
         isAssignmentDataMounted = false;
@@ -140,9 +172,17 @@
         updateTable =0;
 
         sortIndex = 0;
+        expiredViewChecked = false
+
+        confirmDelete = false;
+        deleteType = 'expire'; // 'unexpire'
+        assignmentToDelete = {} as assignmentTypeInfoType;
+
+        saveOrderFlag = false;
 
         assignmentList: assignmentTypeInfoType[] = [];
         selectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
+        previousSelectedAssignmentType = {name:'CourtRoom', label:'Court Room'};
         
         assignmentTypeTabs = 
         [
@@ -169,9 +209,10 @@
                     if(Number(listIndex) == this.sortingAssignmentInfo.prvIndex)
                         this.assignmentList[listIndex].sortOrder = this.sortingAssignmentInfo.newIndex*2 + Math.sign(this.sortingAssignmentInfo.newIndex-this.sortingAssignmentInfo.prvIndex)
                     else
-                        this.assignmentList[listIndex].sortOrder *=2;
+                        this.assignmentList[listIndex].sortOrder *=2
+                this.saveOrderFlag = true;
                 this.refineSortOrders();
-                this.saveSortOrders();
+                
             }         
         } 
         
@@ -185,29 +226,32 @@
 
         mounted () 
         {  
-            console.log('assignment type')
+            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
             this.getAssignments()       
         }
 
-        public getAssignments() {            
-            this.isAssignmentDataMounted = false;
-            const url = 'api/managetypes?codeType='+this.selectedAssignmentType.name +'&locationId='+this.location.id;
-            console.log(url)
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)
-                        this.extractAssignments(response.data);                        
-                    }
-                    this.isAssignmentDataMounted = true;
-                })        
+        public getAssignments() {
+            this.closeAssignmentForm()
+            Vue.nextTick(()=>{            
+                this.isAssignmentDataMounted = false;
+                const url = 'api/managetypes?codeType='+this.selectedAssignmentType.name +'&locationId='+this.location.id+'&showExpired='+this.expiredViewChecked;
+                //console.log(url)
+                this.$http.get(url)
+                    .then(response => {
+                        if(response.data){
+                            //console.log(response.data)
+                            this.extractAssignments(response.data);                        
+                        }
+                        this.isAssignmentDataMounted = true;
+                    }) 
+            });       
         }
 
         public extractAssignments(assignmentsJson) {
 
             this.assignmentList = [];
-            this.sortIndex = assignmentsJson.length? 10000+assignmentsJson.length : 0;
-            console.log(this.sortIndex)
+            this.sortIndex = assignmentsJson.length? 5000+assignmentsJson.length : 0;
+            //console.log(this.sortIndex)
             for(const assignmentJson of assignmentsJson) {
 
                 const assignment = {} as assignmentTypeInfoType;
@@ -215,38 +259,50 @@
                 assignment.code = assignmentJson.code;
                 assignment.locationId = assignmentJson.locationId;
                 if(this.selectedAssignmentType.name != 'CourtRoom') assignment['scope'] = assignmentJson.locationId? this.location.name : 'Province' 
-                assignment['hasSortOrder'] = assignmentJson.sortOrderForLocation? true : false;
-                assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
-                console.log(assignment.code+' '+assignment.sortOrder)
+                assignment['_rowVariant'] = '';
+                let sortOrderOffset = 0;
+                if(assignmentJson.expiryDate){
+                    assignment['_rowVariant'] = 'info';
+                    sortOrderOffset = 10000;
+                }
+                assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(sortOrderOffset+this.sortIndex++);
+                //console.log(assignment.code+' '+assignment.sortOrder)
                 assignment.type = assignmentJson.type; 
                 this.assignmentList.push(assignment)                
             }
 
-            console.log(this.assignmentList)
+            //console.log(this.assignmentList)
             this.refineSortOrders();
         }
 
         public refineSortOrders(){
             this.assignmentList = _.sortBy(this.assignmentList,'sortOrder');
-            for(const listIndex in this.assignmentList)
-                this.assignmentList[listIndex].sortOrder = Number(listIndex);
+            for(const listIndex in this.assignmentList){
+                if(!this.assignmentList[listIndex]['_rowVariant'])
+                    this.assignmentList[listIndex].sortOrder = Number(listIndex);
+            }
+                
             this.updateTable++;
-            console.log(this.assignmentList)            
+            //console.log(this.assignmentList)
+            if(this.saveOrderFlag) this.saveSortOrders();           
         }
 
         public saveSortOrders(){
+            this.saveOrderFlag = false;
             const sortOrders: {lookupCodeId: number ; sortOrder: number}[] = [];
 
-            for(const assignment of this.assignmentList )
-               sortOrders.push({lookupCodeId: assignment.id , sortOrder: assignment.sortOrder})
+            for(const assignment of this.assignmentList ){
+                if(!assignment['_rowVariant'])
+                    sortOrders.push({lookupCodeId: assignment.id , sortOrder: assignment.sortOrder})
+            }
                 
             const body = {
                 sortOrderLocationId: this.location.id,
                 sortOrders: sortOrders
             }
 
-            console.log(sortOrders)
-            console.log(body)
+            //console.log(sortOrders)
+            //console.log(body)
             const url = 'api/managetypes/updatesort' 
 
             this.$http.put(url, body)
@@ -258,28 +314,53 @@
                     this.assignmentErrorMsgDesc = errMsg;
                     this.assignmentError = true;
                     location.href = '#AssignmentError'
-                });  
-
+                });
         }
     
         public addNewAssignment(){
             if(this.isEditOpen){
                 location.href = '#Assignment-'+this.latestEditData.item.code
                 this.addFormColor = 'danger'
-            }else
-            {
+            }else{
                 this.addNewAssignmentForm = true;
                 this.$nextTick(()=>{location.href = '#addAssignmentForm';})
             }
         }
 
-        public confirmDelete(assignment){
-            console.log("deleting")
-            console.log(this.sortIndex)
+        public confirmUnexpireAssignment(assignment){
+            this.assignmentToDelete = assignment;           
+            this.deleteType = 'unexpire';           
+            this.confirmDelete = true; 
+            //console.log(assignment)
+        }
+
+        public confirmDeleteAssignment(assignment){
+            this.assignmentToDelete = assignment;
+            this.deleteType = 'expire';           
+            this.confirmDelete = true; 
+            //console.log(assignment)
+        }
+
+        public deleteAssignment(){
+            this.confirmDelete = false; 
+            const url = 'api/managetypes/'+this.assignmentToDelete.id+'/'+this.deleteType;
+            this.$http.put(url)
+                .then(response => {
+                    //console.log(response);
+                    this.saveOrderFlag = true;
+                    this.getAssignments();
+                    
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.assignmentErrorMsgDesc = errMsg;
+                    this.assignmentError = true;
+                    location.href = '#AssignmentError'
+                });
         }
 
         public editAssignment(assignment){
-            console.log(assignment)
+            //console.log(assignment)
             if(this.addNewAssignmentForm){
                 location.href = '#addAssignmentForm'
                 this.addFormColor = 'danger'
@@ -298,9 +379,9 @@
 
         public saveAssignment(body, iscreate){
             this.assignmentError = false;
-            console.log(body) 
+            //console.log(body) 
             body['type']= this.selectedAssignmentType.name;
-            
+            body['description'] = body.code;
             const method = iscreate? 'post' :'put';            
             const url = 'api/managetypes'  
             const options = { method: method, url:url, data:body}
@@ -333,7 +414,7 @@
 
         public addAssignmentToList(assignmentJson){
 
-            console.log(assignmentJson)
+            //console.log(assignmentJson)
 
             this.sortIndex++;
             const assignment = {} as assignmentTypeInfoType;
@@ -344,11 +425,11 @@
             assignment.sortOrder = assignmentJson.sortOrderForLocation? assignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
             assignment.type = assignmentJson.type; 
             this.assignmentList.push(assignment);
+            this.saveOrderFlag = true;
             this.refineSortOrders();
-            this.saveSortOrders();
         }
 
-         public modifyAssignmentList(modifiedAssignmentJson){            
+        public modifyAssignmentList(modifiedAssignmentJson){            
 
             const index = this.assignmentList.findIndex(assignment =>{ if(assignment.id == modifiedAssignmentJson.id) return true})
             if(index>=0){
@@ -359,8 +440,29 @@
                 this.assignmentList[index].sortOrder = modifiedAssignmentJson.sortOrderForLocation? modifiedAssignmentJson.sortOrderForLocation.sortOrder :(this.sortIndex++);
                 this.assignmentList[index].type = modifiedAssignmentJson.type;                
             }
-            this.refineSortOrders();
-            this.saveSortOrders(); 
+            this.saveOrderFlag = true;
+            this.refineSortOrders();            
+        }
+
+        get viewStatus() {
+            if(this.expiredViewChecked) return 'All Assignments';else return 'Active Assignments'
+        }
+        
+        public changeAssignment(){
+            //console.log(this.selectedAssignmentType)
+            //console.log(this.previousSelectedAssignmentType)
+            if(this.addNewAssignmentForm){
+                location.href = '#addAssignmentForm'
+                this.addFormColor = 'danger';
+                this.selectedAssignmentType = this.previousSelectedAssignmentType;
+            }else if(this.isEditOpen){
+                location.href = '#Assignment-'+this.latestEditData.item.code
+                this.addFormColor = 'danger'
+                this.selectedAssignmentType =  this.previousSelectedAssignmentType;              
+            }else{
+                this.previousSelectedAssignmentType = this.selectedAssignmentType;
+                this.getAssignments();
+            }
         }
 
     

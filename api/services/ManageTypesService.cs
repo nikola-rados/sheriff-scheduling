@@ -69,7 +69,7 @@ namespace SS.Api.services
                 &&
                 Db.LookupCode.AsNoTracking()
                     .Any(lc => lc.Code == lookupCode.Code && lc.LocationId == lookupCode.LocationId))
-                throw new BusinessLayerException("An entry already exists with this value and location.");
+                throw new BusinessLayerException($"Attempted to create a duplicate entry.");
 
             savedLookup.Location = await Db.Location.FindAsync(lookupCode.LocationId);
 
