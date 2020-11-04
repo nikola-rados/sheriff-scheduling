@@ -24,12 +24,15 @@ namespace SS.Api.controllers.scheduling
         }
 
         #region Shift
+        /// <summary>
+        /// This is used in the main shift screen, also used in duty roster to populate the available sheriffs on the right hand side. 
+        /// </summary>
         [HttpGet]
         [PermissionClaimAuthorize(AuthorizeOperation.And, Permission.ViewAllShifts, Permission.ViewMyShifts,
             Permission.ViewAllShiftsAtMyLocation)]
-        public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
+        public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end, bool scheduledOnly = false)
         {
-            var shifts = await ShiftService.GetShifts(locationId, start, end);
+            var shifts = await ShiftService.GetShifts(locationId, start, end, scheduledOnly);
             return Ok(shifts.Adapt<List<ShiftDto>>());
         }
 
@@ -43,10 +46,10 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPut]
         [PermissionClaimAuthorize(perm: Permission.EditShifts)]
-        public async Task<ActionResult<ShiftDto>> UpdateShift(ShiftDto shiftDto)
+        public async Task<ActionResult<List<ShiftDto>>> UpdateShift(List<ShiftDto> shiftDtos)
         {
-            var shift = await ShiftService.UpdateShift(shiftDto.Adapt<Shift>());
-            return Ok(shift.Adapt<ShiftDto>());
+            var shift = await ShiftService.UpdateShifts(shiftDtos.Adapt<List<Shift>>());
+            return Ok(shift.Adapt<List<ShiftDto>>());
         }
 
         [HttpPut]
@@ -76,15 +79,16 @@ namespace SS.Api.controllers.scheduling
         }
         #endregion
 
+        /// <summary>
+        /// This is for the left hand side of the Shift Screen, where it shows each worker's availability as an icon.
+        /// </summary>
         [HttpGet]
         [Route("shiftAvailability")]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
         public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
-            if (start >= end)
-                throw new BusinessLayerException("Start date was on or after end date.");
-            if (end.Subtract(start).TotalDays > 30)
-                throw new BusinessLayerException("End date and start date are more than 30 days apart.");
+            if (start >= end) throw new BusinessLayerException("Start date was on or after end date.");
+            if (end.Subtract(start).TotalDays > 30) throw new BusinessLayerException("End date and start date are more than 30 days apart.");
 
             var shiftAvailability = await ShiftService.GetShiftAvailability(locationId, start, end);
             return Ok(shiftAvailability.Adapt<List<ShiftAvailabilityDto>>());
