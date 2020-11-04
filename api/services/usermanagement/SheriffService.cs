@@ -46,11 +46,12 @@ namespace SS.Api.services.usermanagement
         }
 
         //Used for the Shift scheduling screen.
-        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
+        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end, Guid? sheriffId = null)
         {
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
                 .Where(s =>
+                    (sheriffId == null || sheriffId != null && s.Id == sheriffId) && 
                     s.IsEnabled &&
                     s.HomeLocationId == locationId ||
                     s.AwayLocation.Any(al =>
