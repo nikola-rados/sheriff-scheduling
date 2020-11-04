@@ -376,19 +376,22 @@ namespace tests.controllers
         public async Task AddShift()
         {
             var shiftDto = await CreateShift();
-            var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
+            var shiftDtos = new List<ShiftDto> {shiftDto};
+            var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
         }
 
         [Fact]
         public async Task UpdateShift()
         {
             var shiftDto = await CreateShift();
+            var shiftDtos = new List<ShiftDto> {shiftDto};
             var sheriffId = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There"});
             await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = 1 });
             await Db.SaveChangesAsync();
 
-            var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
+            var shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
+            var shift = shifts.First();
             shift.Type = ShiftType.Escorts;
             shift.StartDate = DateTimeOffset.UtcNow.AddDays(5).Date;
             shift.EndDate = DateTimeOffset.UtcNow.AddDays(6).Date;
@@ -402,7 +405,8 @@ namespace tests.controllers
             shift.Location = new LocationDto(); // shouldn't change
             shift.LocationId = 5555; // shouldn't change
 
-            var updatedShift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shift));
+            var updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shifts));
+            var updatedShift = updatedShifts.First();
 
             Assert.Equal(shiftDto.LocationId,updatedShift.LocationId);
             Assert.Null(updatedShift.ExpiryDate);
@@ -413,19 +417,22 @@ namespace tests.controllers
             shiftDto.SheriffId = null;
             shiftDto.StartDate = DateTimeOffset.UtcNow.AddDays(5).Date;
             shiftDto.EndDate = DateTimeOffset.UtcNow.AddDays(6).Date;
-            shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
+            shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
+            shift = shifts.First();
 
             shift.SheriffId = sheriffId;
-            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShift(shift));
+            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShift(shifts));
 
             //Create a shift that sits side by side, without sheriff, shouldn't conflict.
             shiftDto.SheriffId = null;
             shiftDto.StartDate = DateTimeOffset.UtcNow.AddDays(4).Date;
             shiftDto.EndDate = DateTimeOffset.UtcNow.AddDays(5).Date;
-            shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
+            shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
+            shift = shifts.First();
 
             shift.SheriffId = sheriffId;
-            updatedShift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shift));
+            updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shifts));
+            updatedShift = updatedShifts.First();
 
             Assert.Equal(shiftDto.StartDate, updatedShift.StartDate);
             Assert.Equal(shiftDto.EndDate, updatedShift.EndDate);
@@ -437,7 +444,9 @@ namespace tests.controllers
         public async Task RemoveShift()
         {
             var shiftDto = await CreateShift();
-            var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
+            var shiftDtos = new List<ShiftDto> {shiftDto};
+            var shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
+            var shift = shifts.First();
 
             HttpResponseTest.CheckForNoContentResponse(await ShiftController.ExpireShift(shift.Id));
 
@@ -455,7 +464,8 @@ namespace tests.controllers
             shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5); //Last week tuesday
             shiftDto.SheriffId = sheriffId;
 
-            var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShift(shiftDto));
+            var shiftDtos = new List<ShiftDto> {shiftDto};
+            var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
 
             var importedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
                 await ShiftController.ImportWeeklyShifts(1, true));

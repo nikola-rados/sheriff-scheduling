@@ -172,11 +172,11 @@ namespace SS.Api.services.usermanagement
 
             await ValidateNoOverlapAsync(awayLocation, awayLocation.Id);
 
+            Db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
             Db.Entry(savedAwayLocation).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedAwayLocation).Property(x => x.ExpiryReason).IsModified = false;
-            Db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
             await Db.SaveChangesAsync();
-            return awayLocation;
+            return savedAwayLocation;
         }
 
         public async Task RemoveSheriffAwayLocation(int id, string expiryReason)
@@ -220,11 +220,12 @@ namespace SS.Api.services.usermanagement
 
             await ValidateNoOverlapAsync(sheriffLeave, sheriffLeave.Id);
 
+            Db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
             Db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
-            Db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
+      
             await Db.SaveChangesAsync();
-            return sheriffLeave;
+            return savedLeave;
         }
 
         public async Task RemoveSheriffLeave(int id, string expiryReason)
@@ -268,11 +269,12 @@ namespace SS.Api.services.usermanagement
 
             await ValidateNoOverlapAsync(sheriffTraining, sheriffTraining.Id);
 
+            Db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
             Db.Entry(savedTraining).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedTraining).Property(x => x.ExpiryReason).IsModified = false;
-            Db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
+
             await Db.SaveChangesAsync();
-            return sheriffTraining;
+            return savedTraining;
         }
 
         public async Task RemoveSheriffTraining(int id, string expiryReason)
