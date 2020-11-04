@@ -405,7 +405,8 @@ namespace tests.controllers
             shift.Location = new LocationDto(); // shouldn't change
             shift.LocationId = 5555; // shouldn't change
 
-            var updatedShift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shift));
+            var updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shifts));
+            var updatedShift = updatedShifts.First();
 
             Assert.Equal(shiftDto.LocationId,updatedShift.LocationId);
             Assert.Null(updatedShift.ExpiryDate);
@@ -420,7 +421,7 @@ namespace tests.controllers
             shift = shifts.First();
 
             shift.SheriffId = sheriffId;
-            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShift(shift));
+            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShift(shifts));
 
             //Create a shift that sits side by side, without sheriff, shouldn't conflict.
             shiftDto.SheriffId = null;
@@ -430,7 +431,8 @@ namespace tests.controllers
             shift = shifts.First();
 
             shift.SheriffId = sheriffId;
-            updatedShift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shift));
+            updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShift(shifts));
+            updatedShift = updatedShifts.First();
 
             Assert.Equal(shiftDto.StartDate, updatedShift.StartDate);
             Assert.Equal(shiftDto.EndDate, updatedShift.EndDate);

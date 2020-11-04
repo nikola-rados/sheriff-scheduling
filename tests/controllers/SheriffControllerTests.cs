@@ -312,7 +312,7 @@ namespace tests.controllers
             Assert.Equal(response3.StartDate, updateSheriffLeave.StartDate);
             Assert.Equal(response3.EndDate, updateSheriffLeave.EndDate);
             Assert.Equal(response3.SheriffId, updateSheriffLeave.SheriffId);
-            Assert.Equal(response3.LeaveType.Id, updateSheriffLeave.LeaveTypeId);
+            Assert.Equal(response3.LeaveTypeId, updateSheriffLeave.LeaveTypeId);
 
             //Remove
             var controllerResult4 = await _controller.RemoveSheriffLeave(updateSheriffLeave.Id, "expired");
@@ -381,7 +381,7 @@ namespace tests.controllers
             Assert.Equal(response3.StartDate, updateSheriffTraining.StartDate);
             Assert.Equal(response3.EndDate, updateSheriffTraining.EndDate);
             Assert.Equal(response3.SheriffId, updateSheriffTraining.SheriffId);
-            Assert.Equal(response3.TrainingType.Id, updateSheriffTraining.TrainingTypeId);
+            Assert.Equal(response3.TrainingTypeId, updateSheriffTraining.TrainingTypeId);
 
             //Remove
             var controllerResult4 = await _controller.RemoveSheriffTraining(updateSheriffTraining.Id, "expired");
