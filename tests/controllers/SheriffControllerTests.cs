@@ -381,7 +381,7 @@ namespace tests.controllers
             Assert.Equal(response3.StartDate, updateSheriffTraining.StartDate);
             Assert.Equal(response3.EndDate, updateSheriffTraining.EndDate);
             Assert.Equal(response3.SheriffId, updateSheriffTraining.SheriffId);
-            Assert.Equal(response3.TrainingType.Id, updateSheriffTraining.TrainingTypeId);
+            Assert.Equal(response3.TrainingTypeId, updateSheriffTraining.TrainingTypeId);
 
             //Remove
             var controllerResult4 = await _controller.RemoveSheriffTraining(updateSheriffTraining.Id, "expired");
