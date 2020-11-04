@@ -48,13 +48,17 @@
     import { namespace } from "vuex-class";
     import "@store/modules/ShiftScheduleInformation";
     const shiftState = namespace("ShiftScheduleInformation");
-    import { sheriffAvailabilityInfoType } from '../../../types/ShiftSchedule';
+    import { sheriffAvailabilityInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
+    import moment from 'moment-timezone';
 
     @Component
     export default class TeamMemberCard extends Vue {
 
         @Prop({required: true})
         sheriffId!: string;
+
+        @shiftState.State
+        public shiftRangeInfo!: shiftRangeInfoType;
 
         @shiftState.State
         public sheriffsAvailabilityInfo!: sheriffAvailabilityInfoType[];
@@ -67,28 +71,40 @@
         halfUnavailHalfSchStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), rgb(12, 120, 170));"
         halfSchStyle="background-image: linear-gradient(to bottom right, rgb(12, 120, 170),rgb(243, 232, 232), white);"
         WeekDay = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-        sheriffSchedules=[
-            {weekday: 0, text:this.WeekDay[0], variant:'white',  style:'', tooltip:{}},
-            {weekday: 1, text:this.WeekDay[1], variant:'white',  style:'', tooltip:{}},
-            {weekday: 2, text:this.WeekDay[2], variant:'white',  style:'', tooltip:{}},
-            {weekday: 3, text:this.WeekDay[3], variant:'white',  style:'', tooltip:{}},
-            {weekday: 4, text:this.WeekDay[4], variant:'white',  style:'', tooltip:{}},
-            {weekday: 5, text:this.WeekDay[5], variant:'white',  style:'', tooltip:{}},
-            {weekday: 6, text:this.WeekDay[6], variant:'white',  style:'', tooltip:{}}           
-        ]
+
+        sheriffSchedules: any[] = []
         
         mounted()
         {
             this.sheriffInfo = this.sheriffsAvailabilityInfo.filter(sheriff =>{if(sheriff.sheriffId == this.sheriffId) return true})[0]
             this.sheriffInfo['fullName'] = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
-            this.extractConflicts();
+            
             this.isDataMounted = true;
             console.log(this.sheriffInfo)
+            console.log(this.shiftRangeInfo.startDate)
+
+            for(let dayOffset=0; dayOffset<7; dayOffset++){
+                const date= moment(this.shiftRangeInfo.startDate).add(dayOffset,'days').format()
+                this.sheriffSchedules.push({date: date, weekday: dayOffset, text:this.WeekDay[dayOffset], variant:'white',  style:'', tooltip:{}})
+            }
+            this.extractConflicts();
         }
 
         public extractConflicts(){
             for(const conflict of this.sheriffInfo.conflicts){
-                console.log(conflict)
+                console.log(conflict);
+                console.log(Vue.filter('isDateFullday')(conflict.start,conflict.end))
+                if(Vue.filter('isDateFullday')(conflict.start,conflict.end))
+                {                  
+                    for(const sheriffSchedule of this.sheriffSchedules){
+                       console.log(conflict.start)
+                       console.log(conflict.end)
+                       console.log(sheriffSchedule.date)
+                       console.log(moment(sheriffSchedule.date).isBetween(conflict.start,conflict.end))
+                    }
+                }
+
+
             }
         }         
 
