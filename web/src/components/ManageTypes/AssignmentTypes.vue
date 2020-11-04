@@ -381,7 +381,7 @@
             this.assignmentError = false;
             //console.log(body) 
             body['type']= this.selectedAssignmentType.name;
-            
+            body['description'] = body.code;
             const method = iscreate? 'post' :'put';            
             const url = 'api/managetypes'  
             const options = { method: method, url:url, data:body}
