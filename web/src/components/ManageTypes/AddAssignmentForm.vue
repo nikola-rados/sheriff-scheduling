@@ -132,7 +132,7 @@
             this.locationSpecifics.push({value:this.location.id, text:this.location.name})
             this.selectedLocationScope = this.location.id;
 
-            console.log(this.formData)
+            //console.log(this.formData)
             if(this.formData.id) {
                 this.extractFormInfo();
             }               
@@ -143,9 +143,9 @@
             this.originalAssignment = this.selectedAssignment = this.formData.code            
             this.originalLocationScope = this.selectedLocationScope =  (this.formData.locationId == this.location.id) ? this.location.id : -1;
 
-            console.log(this.formDataId)
-            console.log(this.originalAssignment)
-            console.log(this.originalLocationScope)
+            //console.log(this.formDataId)
+            //console.log(this.originalAssignment)
+            //console.log(this.originalLocationScope)
         }
 
         public saveForm(){

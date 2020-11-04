@@ -94,7 +94,7 @@
                 <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
-                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="cancelDeletion()"
                  >&times;</b-button>
             </template>
         </b-modal>
