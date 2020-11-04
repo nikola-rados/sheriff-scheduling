@@ -46,19 +46,10 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPut]
         [PermissionClaimAuthorize(perm: Permission.EditShifts)]
-        public async Task<ActionResult<List<ShiftDto>>> UpdateShift(List<ShiftDto> shiftDtos)
+        public async Task<ActionResult<List<ShiftDto>>> UpdateShifts(List<ShiftDto> shiftDtos)
         {
             var shift = await ShiftService.UpdateShifts(shiftDtos.Adapt<List<Shift>>());
             return Ok(shift.Adapt<List<ShiftDto>>());
-        }
-
-        [HttpPut]
-        [Route("assign")]
-        [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
-        public async Task<ActionResult<List<ShiftDto>>> AssignToShifts(List<int> id, Guid sheriff, bool overrideShift = false)
-        {
-            var assignToShifts = await ShiftService.AssignToShifts(id, sheriff, overrideShift);
-            return Ok(assignToShifts.Adapt<List<ShiftDto>>());
         }
 
         [HttpDelete]

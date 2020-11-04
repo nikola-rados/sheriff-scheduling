@@ -21,6 +21,7 @@ namespace SS.Api.controllers.scheduling
             DutyRosterService = dutyRosterService;
         }
 
+        [HttpGet]
         [PermissionClaimAuthorize(perm: "GetDuties")]
         public async Task<ActionResult<List<DutyDto>>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
@@ -28,6 +29,7 @@ namespace SS.Api.controllers.scheduling
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 
+        [HttpPost]
         [PermissionClaimAuthorize(perm: "AddDuties")]
         public async Task<ActionResult<List<DutyDto>>> AddDutiesAsync(List<DutyDto> newDuties)
         {
@@ -35,6 +37,7 @@ namespace SS.Api.controllers.scheduling
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 
+        [HttpPut]
         [PermissionClaimAuthorize(perm: "EditDuties")]
         public async Task<ActionResult<List<DutyDto>>> UpdateDutiesAsync(List<DutyDto> editDuties)
         {
@@ -42,13 +45,16 @@ namespace SS.Api.controllers.scheduling
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 
+        [HttpPost]
         [PermissionClaimAuthorize(perm: "AssignDuties")]
+        [Route("assign")]
         public async Task<ActionResult> AssignDuty(int id, int? shiftId)
         {
             await DutyRosterService.AssignDuty(id, shiftId);
             return NoContent();
         }
 
+        [HttpDelete]
         [PermissionClaimAuthorize(perm: "ExpireDuties")]
         public async Task<ActionResult> ExpireDuties(List<int> ids)
         {
