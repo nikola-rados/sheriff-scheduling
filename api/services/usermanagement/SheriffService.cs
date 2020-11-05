@@ -326,6 +326,7 @@ namespace SS.Api.services.usermanagement
                 throw new BusinessLayerException($"Sheriff with id: {sheriffId} does not exist.");
         }
 
+        //TODO we may need this to span over more than it's provided type in the future. 
         private async Task ValidateNoOverlapAsync<T>(T data, int? updateOnlyId = null) where T : SheriffEvent
         {
             var entity = await Db.Set<T>().FirstOrDefaultAsync(sal =>
