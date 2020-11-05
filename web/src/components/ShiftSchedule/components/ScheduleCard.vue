@@ -1,43 +1,88 @@
 <template>
-    <div> 
-        
-        <b-card 
-            :id="'schCard'+shiftInfo.date"
-            :style=" 'border:1px solid; position: relative; left:'+ shiftInfo.startTime +'%; width:' + shiftInfo.timeDuration+'%; height:6rem;'" 
-            :bg-variant="blockDrop?'danger':selected?'select':''"
-            :border-variant="shiftInfo.type"
-            class="m-0 p-0" 
-            body-class="m-0 p-0" 
-            :header-class=" 'h7 text-center text-capitalize m-0 p-0 text-white bg-'+shiftInfo.type"            
-            @mousedown="cardSelected"
-            @dragenter="dragEnter"
-            @dragleave="dragLeave"  
-            @dragover="dragEnter"          
-            @dragover.prevent
-            @drop.prevent="drop" 
-            :header="shiftInfo.type">
-                <span style="margin-left:2px;font-size:10px; line-height: 12px; display: block;">{{shiftInfo.timeStamp}}</span>                              
-                <!-- <b class="h7 m-0 p-0"> {{shiftInfo.assignee}} </b> --> 
-        <!-- <b-card-img src="https://placekitten.com/480/210" alt="Image" bottom></b-card-img> -->
-                   
-       </b-card>
+    <div     
+        v-if="shiftInfo.length>0" 
+        >             
+            <b-card 
+                v-for="block in shiftBlocks"
+                :key="block.key"
+                :id="'schCard'+block.key"
+                :style=" 'background-color:grey; display:inline-block; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:6rem;'" 
+                
+                >
+                    <span v-if="block.timeDuration>20" style="margin-left:2px;font-size:10px; line-height: 12px; display: block;">{{block.timeStamp}}</span>
+                    
+            </b-card>
     </div>
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Prop } from 'vue-property-decorator';
+    import { Component, Vue, Prop } from 'vue-property-decorator';    
+    import {conflictsInfoType} from '../../../types/ShiftSchedule/index'
+    import * as _ from 'underscore';
 
-    import {shiftInfoType} from '../../../types/ShiftSchedule/index'
+    //  v-b-tooltip.hover                                
+    //     :title="timeDuration<=20? shiftInfo.type + ' ' +timeStamp:''"
+
+    //  :bg-variant="blockDrop?'danger':selected?'select':''"
+    //             border-variant="white"
+    //             class="m-0 p-0" 
+    //             body-class="m-0 p-0 bg-warning" 
+    //             header-class="h7 text-center text-capitalize m-0 p-0 bg-warning"            
+    //             @mousedown="cardSelected"
+    //             @dragenter="dragEnter"
+    //             @dragleave="dragLeave"  
+    //             @dragover="dragEnter"          
+    //             @dragover.prevent
+    //             @drop.prevent="drop" 
+    //             :header="timeDuration>20? shiftInfo.type:''" 
+    //             >
 
     @Component
     export default class ScheduleCard extends Vue {
 
         @Prop({required: true})
-        shiftInfo!: shiftInfoType;
+        shiftInfo!: conflictsInfoType;
+
+        shiftBlocks: any[] = []
 
         blockDrop = false;
         selected = false;
-       // cardColor =  
+       // cardColor = 
+       
+        mounted()
+        {
+            console.log(this.shiftInfo)
+
+            const sortedShiftInfo: conflictsInfoType[] = _.sortBy(this.shiftInfo,'startInMinutes')
+            console.log(sortedShiftInfo)
+            this.shiftBlocks = []
+            //let width =0;
+            for(const shift of sortedShiftInfo){
+                console.log(shift)
+                if(shift.startTime){
+
+                    this.shiftBlocks.push({
+                        key: shift.date +'Z' +shift.startTime,
+                        startTime: shift.startInMinutes *5 /72,
+                        timeDuration: shift.timeDuration * 5 /72,
+                        timeStamp: shift.startTime +'-'+this.shiftInfo.endTime
+                    })
+                    console.log(this.shiftBlocks)
+                }else{
+
+                    this.shiftBlocks.push({
+                        key: shift.date +'Z' +shift.startTime,
+                        startTime: 20,
+                        timeDuration: 60,
+                        timeStamp: 'Full Day'
+                    })
+                }
+                    
+            }
+            
+            
+            
+        }
 
         public drop(event: any) 
         {
