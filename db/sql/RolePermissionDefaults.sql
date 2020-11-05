@@ -67,6 +67,10 @@ BEGIN
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewAssignments')),
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'CreateAssignments')),
 	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'EditAssignments')),
-	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ExpireAssignments'));
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ExpireAssignments')),
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewDuties')),
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'CreateAndAssignDuties')),
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'EditDuties')),
+	(SystemUserId,now(),NULL,NULL,AdministratorId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ExpireDuties'));
 end;
 $$;
