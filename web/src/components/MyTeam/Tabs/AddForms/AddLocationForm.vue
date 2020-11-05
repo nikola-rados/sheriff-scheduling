@@ -10,7 +10,7 @@
                             <b class="ml-3 px-1" style="background-color: #aed4bc" v-else >Partial Day: </b>
                         </b-tr>
                         <b-tr >
-                            <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 19rem"> 
+                            <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 17rem"> 
                                 <b-form-select
                                     size = "sm"
                                     v-model="selectedLocation"
