@@ -1,38 +1,28 @@
 <template>
     <b-card bg-variant="white" class="mx-1 home" no-body>
-        <!-- <loading-spinner v-if="!isManageScheduleDataMounted" />     -->
-       
-                <schedule-header v-on:change="loadScheduleInformation()" />
-                <b-table
-                    :items="shiftSchedules" 
-                    :fields="fields"
-                    head-row-variant="primary"   
-                    bordered
-                    fixed>
-                        <template v-slot:table-colgroup>
-                            <col style="width:6.5rem">                            
-                        </template>
-                        <template v-slot:head() = "data" >
-                            <span class="text-success">{{data.column}}</span> <span> {{data.label}}</span>
-                        </template>
-                        <template v-slot:head(myteam) = "data" >                           
-                            <span> {{data.label}}</span>
-                        </template>
-                        <template v-slot:cell()="data"  >                          
-                            <schedule-card   :shiftInfo=" data.value"/>
-                            <!-- <b-card 
-                                style="display:inline-block; background-color:grey; position: relative; left:10%; width:20%; height:6rem;"> 
-                            </b-card>
-                            <b-card 
-                                style="display:inline-block;background-color:blue; position: relative; left:15%; width:10%; height:6rem;"> 
-                            </b-card>
-                            <b-card 
-                                style="display:inline-block;background-color:red; position: relative; left:25%; width:15%; height:6rem;"> 
-                            </b-card>
-                            <b-card 
-                                style="display:inline-block;background-color:green; position: relative; left:25%; width:15%; height:6rem;"> 
-                            </b-card> -->
-                        </template>
+        
+        <schedule-header v-on:change="loadScheduleInformation()" />
+        <loading-spinner v-if="!isManageScheduleDataMounted" />
+        <div v-else>
+            <b-table
+                :key="updateTable"
+                :items="shiftSchedules" 
+                :fields="fields"
+                head-row-variant="primary"   
+                bordered
+                fixed>
+                    <template v-slot:table-colgroup>
+                        <col style="width:6.5rem">                            
+                    </template>
+                    <template v-slot:head() = "data" >
+                        <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
+                    </template>
+                    <template v-slot:head(myteam) = "data" >                           
+                        <span> {{data.label}}</span>
+                    </template>
+                    <template v-slot:cell()="data"  >                          
+                        <schedule-card   :shiftInfo=" data.value"/>
+                    </template>
 
                         <template v-slot:cell(myteam) = "data" > 
                             <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
@@ -84,16 +74,17 @@
 
         headerDates: string[] = [];
         numberOfheaderDates = 7;
+        updateTable=0;
 
         fields=[
             {key:'myteam',label:'My Team', tdClass:'px-0 mx-0'},
-            {key:'Sun', label:'', tdClass:'px-0 mx-0'},
-            {key:'Mon', label:'', tdClass:'px-0 mx-0'},
-            {key:'Tue', label:'', tdClass:'px-0 mx-0'},
-            {key:'Wed', label:'', tdClass:'px-0 mx-0'},
-            {key:'Thu', label:'', tdClass:'px-0 mx-0'},
-            {key:'Fri', label:'', tdClass:'px-0 mx-0'},
-            {key:'Sat', label:'', tdClass:'px-0 mx-0'}
+            {key:'Sun', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
+            {key:'Mon', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
+            {key:'Tue', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
+            {key:'Wed', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
+            {key:'Thu', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
+            {key:'Fri', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
+            {key:'Sat', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'}
         ]
 
         shiftSchedules: weekShiftInfoType[] =[];
@@ -109,12 +100,7 @@
         mounted()
         {                       
             this.loadScheduleInformation();
-        }
-
-        public getShifts() {
-            //GET shifts using the /api/shift call
-            //console.log('getting shifts')
-            this.isManageScheduleDataMounted = true;
+            console.log('mount manage')
         }
 
         public loadScheduleInformation() {
@@ -171,10 +157,9 @@
                     Sat: sheriffAvailability.conflicts.filter(conflict=>{if(conflict.dayOffset ==6) return true})
                 })
             }
-            
-            
             //this.UpdateSheriffsAvailabilityInfo(sheriffsAvailability);
             this.getShifts();
+            this.updateTable++;
         }
 
         public extractConflicts(conflictsJson){
@@ -276,8 +261,25 @@
             }
             //console.log(conflicts)
             //console.log(moment())
+
+            conflicts.push({
+                dayOffset: 4, 
+                date:this.headerDates[4], 
+                startTime:'08:00', 
+                endTime:'16:00', 
+                startInMinutes:480,
+                timeDuration:480, 
+                type:'Shift', 
+                fullday:false
+            })   
+
             return conflicts
-        }      
+        } 
+        public getShifts() {
+            //GET shifts using the /api/shift call
+            //console.log('getting shifts')
+            this.isManageScheduleDataMounted = true;
+        }     
 
     }
 </script>
