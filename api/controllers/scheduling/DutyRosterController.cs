@@ -21,35 +21,41 @@ namespace SS.Api.controllers.scheduling
             DutyRosterService = dutyRosterService;
         }
 
-        [PermissionClaimAuthorize(perm: "GetDuties")]
+        [HttpGet]
+        [PermissionClaimAuthorize(perm: Permission.ViewDuties)]
         public async Task<ActionResult<List<DutyDto>>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
             var duties = await DutyRosterService.GetDuties(locationId, start, end);
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 
-        [PermissionClaimAuthorize(perm: "AddDuties")]
+        [HttpPost]
+        [PermissionClaimAuthorize(perm: Permission.CreateAndAssignDuties)]
         public async Task<ActionResult<List<DutyDto>>> AddDutiesAsync(List<DutyDto> newDuties)
         {
             var duties = await DutyRosterService.AddDuties(newDuties.Adapt<List<Duty>>());
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 
-        [PermissionClaimAuthorize(perm: "EditDuties")]
+        [HttpPut]
+        [PermissionClaimAuthorize(perm: Permission.EditDuties)]
         public async Task<ActionResult<List<DutyDto>>> UpdateDutiesAsync(List<DutyDto> editDuties)
         {
             var duties = await DutyRosterService.UpdateDuties(editDuties.Adapt<List<Duty>>());
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 
-        [PermissionClaimAuthorize(perm: "AssignDuties")]
+        [HttpPost]
+        [PermissionClaimAuthorize(perm: Permission.CreateAndAssignDuties)]
+        [Route("assign")]
         public async Task<ActionResult> AssignDuty(int id, int? shiftId)
         {
             await DutyRosterService.AssignDuty(id, shiftId);
             return NoContent();
         }
 
-        [PermissionClaimAuthorize(perm: "ExpireDuties")]
+        [HttpDelete]
+        [PermissionClaimAuthorize(perm: Permission.ExpireDuties)]
         public async Task<ActionResult> ExpireDuties(List<int> ids)
         {
             await DutyRosterService.ExpireDuties(ids);

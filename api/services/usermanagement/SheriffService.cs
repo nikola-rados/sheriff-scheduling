@@ -46,11 +46,12 @@ namespace SS.Api.services.usermanagement
         }
 
         //Used for the Shift scheduling screen.
-        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
+        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end, Guid? sheriffId = null)
         {
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
                 .Where(s =>
+                    (sheriffId == null || sheriffId != null && s.Id == sheriffId) && 
                     s.IsEnabled &&
                     s.HomeLocationId == locationId ||
                     s.AwayLocation.Any(al =>
@@ -325,6 +326,7 @@ namespace SS.Api.services.usermanagement
                 throw new BusinessLayerException($"Sheriff with id: {sheriffId} does not exist.");
         }
 
+        //TODO we may need this to span over more than it's provided type in the future. 
         private async Task ValidateNoOverlapAsync<T>(T data, int? updateOnlyId = null) where T : SheriffEvent
         {
             var entity = await Db.Set<T>().FirstOrDefaultAsync(sal =>
