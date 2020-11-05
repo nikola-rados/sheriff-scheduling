@@ -34,8 +34,8 @@
                             </b-card> -->
                         </template>
 
-                        <template v-slot:cell(myteam) = "data" >                           
-                            <team-member-card  :sheriffInfo=data.item.myteam />
+                        <template v-slot:cell(myteam) = "data" > 
+                            <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
                         </template>
                 </b-table>
                 <b-card><br></b-card>  
