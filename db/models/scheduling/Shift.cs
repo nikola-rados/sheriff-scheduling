@@ -5,27 +5,28 @@ using db.models;
 using Mapster;
 using SS.Api.Models.DB;
 using SS.Common.attributes;
+using SS.Common.attributes.mapping;
 using SS.Db.models.sheriff;
 
 namespace SS.Db.models.scheduling
 {
     [AdaptTo("[name]Dto")]
-    [AdaptTo("Save[name]Dto", IgnoreAttributes = new[] { typeof(ExcludeFromSaveDtoAttribute) })]
+    [GenerateUpdateDto, GenerateAddDto]
     public class Shift : BaseEntity
     {
         [Key]
         public int Id { get; set;}
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        [ExcludeFromSaveDto]
+        [ExcludeFromSaveAndAddDto]
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
-        [ExcludeFromSaveDto]
+        [ExcludeFromSaveAndAddDto]
         public ICollection<Duty> Duties { get; set; } = new List<Duty>();
-        [ExcludeFromSaveDto]
+        [ExcludeFromSaveAndAddDto]
         public Assignment AnticipatedAssignment { get; set; }
         public int? AnticipatedAssignmentId { get; set; }
-        [ExcludeFromSaveDto]
+        [ExcludeFromSaveAndAddDto]
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }

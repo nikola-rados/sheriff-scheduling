@@ -3,19 +3,20 @@ using System.ComponentModel.DataAnnotations;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
-using SS.Common.attributes;
+using SS.Common.attributes.mapping;
 using SS.Common.helpers.extensions;
 using ss.db.models;
 
 namespace SS.Db.models.scheduling
 {
     [AdaptTo("[name]Dto")]
-    [AdaptTo("Save[name]Dto", IgnoreAttributes = new[] { typeof(ExcludeFromSaveDtoAttribute) })]
+    [GenerateUpdateDto, GenerateAddDto]
     public class Assignment : BaseEntity
     {
         [Key]
+        [ExcludeFromAddDto]
         public int Id { get; set; }
-        [ExcludeFromSaveDto]
+        [ExcludeFromSaveAndAddDto]
         public LookupCode LookupCode { get; set; } 
         public int LookupCodeId { get; set; }
         public DateTimeOffset? AdhocStartDate { get; set; }
@@ -29,7 +30,7 @@ namespace SS.Db.models.scheduling
         public bool Friday { get; set; }
         public bool Saturday { get; set; }
         public bool Sunday { get; set; }
-        [ExcludeFromSaveDto]
+        [ExcludeFromSaveAndAddDto]
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }

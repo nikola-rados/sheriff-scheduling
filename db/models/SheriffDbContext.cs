@@ -47,6 +47,7 @@ namespace SS.Db.models
         public virtual DbSet<Shift> Shift { get; set; }
         public virtual DbSet<Assignment> Assignment { get; set; }
         public virtual DbSet<Duty> Duty { get; set; }
+        public virtual DbSet<DutySlot> DutySlot { get; set; }
         #endregion Scheduling
 
         // This maps to the table that stores keys.
