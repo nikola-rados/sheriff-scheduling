@@ -28,7 +28,7 @@ namespace SS.Api.controllers.scheduling
         /// This is used in the main shift screen, also used in duty roster to populate the available sheriffs on the right hand side. 
         /// </summary>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.And, Permission.ViewAllShifts, Permission.ViewMyShifts,
+        [PermissionClaimAuthorize(AuthorizeOperation.Or, Permission.ViewAllShifts, Permission.ViewMyShifts,
             Permission.ViewAllShiftsAtMyLocation)]
         public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
