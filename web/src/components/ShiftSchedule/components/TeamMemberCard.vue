@@ -3,36 +3,41 @@
         <b-row 
             style="width:100%; height:100%;" 
             bg-variant="white"            
-            class="mx-2 my-1 p-1" 
-           >
-            <b-col cols="8">
-                <b-row style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
-                <b-row style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
-                <b-row 
-                    style="font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
-                    v-b-tooltip.hover.topleft                                
-                    :title="fullName.length>14?fullName:''">
-                        {{fullName|truncate(12)}}
-                </b-row>
-            </b-col>
-            <b-col cols="4">
-                <b-button 
-                    style="max-height: 40px;" 
-                    size="sm" 
-                    variant="success" 
-                    @click="AddShift()"><b-icon-plus/>
-                </b-button>                    
-            </b-col>
+            class="mx-2 my-1 p-1">
+                <b-col cols="9">
+                    <b-row style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
+                    <b-row style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
+                    <b-row 
+                        style="font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
+                        v-b-tooltip.hover.topleft                                
+                        :title="fullName.length>14?fullName:''">
+                            {{fullName|truncate(12)}}
+                    </b-row>
+                </b-col>
+                <b-col cols="3" class="m-0 p-0">
+                    <b-button 
+                        class="m-0 p-0"                    
+                        size="sm" 
+                        variant="success" 
+                        @click="AddShift()">
+                            <b-icon-plus/>
+                    </b-button>                    
+                </b-col>
         </b-row>
 
-        <b-modal v-model="showShiftDetails" id="bv-modal-shift-details" header-class="bg-primary text-light">
+        <b-modal  v-model="showShiftDetails" id="bv-modal-shift-details" header-class="bg-primary text-light">
             <template v-slot:modal-title>
-                <h2 v-if="editMode" class="mb-0 text-light"> Updating Shift - {{sheriffInfo.firstName}} {{sheriffInfo.lastName}} </h2>
-                <h2 v-else-if="createMode" class="mb-0 text-light"> Creating Shift - {{sheriffInfo.firstName}} {{sheriffInfo.lastName}}</h2>
+                <span v-if="editMode" class="mb-0 text-light"> 
+                    <h3 class="m-0 p-0" >Updating Shift </h3>
+                    <h4  class="m-0 pt-2 pb-0 text-warning" style="text-align: center"> {{sheriffInfo.firstName}} {{sheriffInfo.lastName}} </h4> 
+                </span>
+                <span v-else-if="createMode" class="m-0 p-0" > 
+                    <h3 class="m-0 p-0" >Creating Shift for </h3>
+                    <h4  class="m-0 pt-2 pb-0 text-warning" style="text-align: center"> {{sheriffInfo.firstName}} {{sheriffInfo.lastName}}</h4>
+                </span>
             </template>
 
             <b-card v-if="isShiftDataMounted" no-body style="font-size: 14px;user-select: none;" >
-
                 <b-card id="ShiftError" no-body>
                     <h2 v-if="shiftError" class="mx-1 mt-2"
                         ><b-badge v-b-tooltip.hover
@@ -44,51 +49,51 @@
                     /></b-badge></h2>
                 </b-card>              
 
-                <b-row class="mx-1 my-0 p-0">
-                    
-                </b-row>
 
                 <b-row class="mx-1 my-3">
-                    <b-form-group class="bg-light">							
-                        <b-row>
-                            <label class="h6 ml-3 mr-5">Days<span class="text-danger">*</span></label>								
+                    <b-form-group class="bg-light">
+                        <b-row> 
+                            <label class="h6 ml-3 mr-5">Days<span class="text-danger">*</span></label>  
+                            <b-form-checkbox
+                                size="sm"
+                                class="ml-auto mr-4 text-jail"									
+                                v-model="weekDaysSelected"
+                                :disabled="selectWeekDisabled"
+                                @change="toggleWeekDays">
+                                    Select Week Days
+                            </b-form-checkbox>                       
                             <b-form-checkbox
                                 size="sm"
                                 class="ml-auto mr-4 text-court"									
                                 v-model="allDaysSelected"
+                                :disabled="selectAllDisabled"
                                 @change="toggleAllDays">
                                     Select All
                             </b-form-checkbox>
                         </b-row>
-
-                        <b-row>
-                            <b-col
-                            v-for="day in dayOptions"
-                                    :key="day.diff"
-                                    :value="day.diff"
-                            
-                            >
-                                <!-- <user-location-summary v-if="day.conflict.away.length>0" class="mx-3" :homeLocation="teamMember.homeLocationNm" :awayJson="teamMember.awayLocation" :index="teamMember.badgeNumber"/> -->
-                                <training-conflicts class="mx-2" v-if="day.conflicts.Training.length>0" :trainingConflicts="day.conflicts.Training" :index="sheriffId" :timezone="location.timezone?location.timezone:'UTC'"/>
-                                <!-- <user-leave-summary class="mx-2" v-if="teamMember.leave.length>0" :leaveJson="teamMember.leave" :index="teamMember.badgeNumber" :timezone="teamMember.homeLocation?teamMember.homeLocation.timezone:'UTC'"/> -->
-                            
-                            </b-col>
-                            
-                        </b-row>
-
-
                         <b-form-checkbox-group
                             size="sm"			
                             v-model="selectedDays"								
                             :state = "selectedDayState?null:false">
-                                <b-form-checkbox
-                                    @change="weekdaysChanged"									
-                                    :class="day.diff? 'ml-2 pl-3' :'ml-1 pl-4' +'align-middle'"
-                                    v-for="day in dayOptions"
-                                    :key="day.diff"
-                                    :value="day.diff">
-                                        {{day.name}}
-                                </b-form-checkbox>
+                            <b-td
+                                v-for="day in dayOptions"
+                                :key="day.diff">
+                                <b-tr style="float:left">
+                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.AwayLocation" type="AwayLocation" :index="day.diff" /></b-td>
+                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Leave" type="Leave" :index="day.diff" /></b-td>                    
+                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Training" type="Training" :index="day.diff" /></b-td>
+                                </b-tr>
+                                <b-tr>
+                                    <b-td colspan="3">
+                                        <b-form-checkbox
+                                            @change="weekdaysChanged"						
+                                            :disabled="day.fullday"
+                                            :value="day.diff">
+                                                {{day.name}}
+                                        </b-form-checkbox>
+                                    </b-td>
+                                </b-tr>
+                            </b-td>
                         </b-form-checkbox-group>
                     </b-form-group>
                 </b-row>
@@ -129,10 +134,12 @@
             <template v-slot:modal-footer>
                 <b-button
                         variant="secondary"
+                        size="sm"
                         @click="closeShiftWindow()"
                 ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
                 <b-button
                         variant="success"
+                        size="sm"
                         @click="saveShift()"
                 ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
             </template>
@@ -155,14 +162,13 @@
     const shiftState = namespace("ShiftScheduleInformation");
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import TrainingConflicts from './TrainingConflicts.vue'
+    import ConflictsIcon from './ConflictsIcon.vue'
     import { dayOptionsInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
     import moment from 'moment-timezone';
     import { locationInfoType } from '../../../types/common';
-
     @Component({
         components: {
-            TrainingConflicts
+            ConflictsIcon
         }
     })
     export default class TeamMemberCard extends Vue {
@@ -201,7 +207,8 @@
 		selectedDayState = true;
 
 		selectedDays: number[] = [];
-		allDaysSelected = false;
+        allDaysSelected = false;
+        weekDaysSelected = false;
 
 		dayOptions: dayOptionsInfoType[] = [];		
 
@@ -216,39 +223,61 @@
             this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
 
             this.dayOptions = [
-                {name:'Sun', diff:0, conflicts:{Training: [], Leave: [], AwayLocation:[]}},
-                {name:'Mon', diff:1, conflicts:{Training: [], Leave: [], AwayLocation:[]}},
-                {name:'Tue', diff:2, conflicts:{Training: [], Leave: [], AwayLocation:[]}},
-                {name:'Wed', diff:3, conflicts:{Training: [], Leave: [], AwayLocation:[]}},
-                {name:'Thu', diff:4, conflicts:{Training: [], Leave: [], AwayLocation:[]}},
-                {name:'Fri', diff:5, conflicts:{Training: [], Leave: [], AwayLocation:[]}},
-                {name:'Sat', diff:6, conflicts:{Training: [], Leave: [], AwayLocation:[]}}
+                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
+                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
+                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
+                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
+                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
+                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
+                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}}
             ];        
             this.extractConflicts();
-            console.log(this.dayOptions[4].conflicts.Training)
+            //console.log(this.dayOptions[4].conflicts.Training)
         }
 
-        public extractConflicts() {    
+        public extractConflicts() {   
+            console.log(this.sheriffInfo.conflicts) 
                       
             for(const conflict of this.sheriffInfo.conflicts)
             {
-                this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict);                
+                this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict); 
+                this.dayOptions[conflict.dayOffset].fullday = this.dayOptions[conflict.dayOffset].fullday || conflict.fullday               
             }
+
+            console.log(this.dayOptions)
             
             Vue.nextTick(()=>{this.isDataMounted = true;})
                      
         }
 
+        get selectAllDisabled(){
+            for(const day of this.dayOptions)
+                if(day.fullday) return true;
+            return false;
+        }
+
+        get selectWeekDisabled(){
+            for(const day in this.dayOptions)
+                if(this.dayOptions[day].fullday && this.dayOptions[day].diff !=0 && this.dayOptions[day].diff !=6) return true;
+            return false;
+        }
 
 
         public weekdaysChanged(){
 			Vue.nextTick(()=>{
-				this.allDaysSelected = this.selectedDays.length==7? true: false
+                this.allDaysSelected = this.selectedDays.length==7? true: false
+                this.weekDaysSelected = this.selectedDays.includes(1) && this.selectedDays.includes(2) && this.selectedDays.includes(3) && this.selectedDays.includes(4) && this.selectedDays.includes(5) 
 			})
 		}
 
 		public toggleAllDays(checked) {
+            this.weekDaysSelected = checked ? true: false;
 			this.selectedDays = checked ? [0,1,2,3,4,5,6] : [];
+        }
+        
+        public toggleWeekDays(checked) {
+            this.allDaysSelected = false;
+			this.selectedDays = checked ? [1,2,3,4,5] : [];
 		}
 
 		public AddShift() {
@@ -395,7 +424,7 @@
 <style scoped>   
 
     .card {
-        border:2px solid rgb(124, 136, 136);
+       border: white;
     }
 
     .badge {

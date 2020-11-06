@@ -4,7 +4,7 @@
             v-for="block in shiftBlocks"
             :key="block.key"
             :id="'schCard'+block.key"
-            :style=" 'background-color:'+block.color+'; float:left; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:6rem;'" 
+            :style=" 'background-color:'+block.color+'; float:left; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:4rem;'" 
             no-body>
                 <span v-if="block.timeDuration>20" @mousedown="cardSelected(block)">
                     <h6 :style="'background-color:'+block.headerColor+'; color:white; text-align: center; font-size:10px; line-height: 16px;'">{{block.title}}</h6>

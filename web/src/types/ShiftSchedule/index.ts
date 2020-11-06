@@ -55,9 +55,11 @@ export interface conflictsInfoType {
 export interface dayOptionsInfoType {
     name:string,
     diff: number,
+    fullday: boolean, 
     conflicts: {
         Training: conflictsInfoType[],
         Leave: conflictsInfoType[],
-        AwayLocation: conflictsInfoType[]
+        AwayLocation: conflictsInfoType[],
+        Shift: conflictsInfoType[]
     }
 }
