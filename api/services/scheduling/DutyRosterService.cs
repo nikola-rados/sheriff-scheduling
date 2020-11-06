@@ -80,7 +80,7 @@ namespace SS.Api.services.scheduling
             return duty;
         }
 
-        public async Task ExpireDuties(List<int> ids, string reason)
+        public async Task ExpireDuties(List<int> ids)
         {
             await Db.Duty.Where(d => ids.Contains(d.Id)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
             await Db.SaveChangesAsync();
