@@ -98,11 +98,9 @@ namespace SS.Api.services.scheduling
             var timezone = location?.Timezone;
             timezone.GetTimezone().ThrowBusinessExceptionIfNull("Timezone was invalid.");
 
-            var lastMondayStart = new DateTimeOffset(start.Date.AddDays(-(int) DateTime.Now.DayOfWeek - 6));
-
             //We need to adjust to their start of the week, because it can differ depending on the TZ! 
-            var targetStartDate = lastMondayStart.ConvertToTimezone(timezone);
-            var targetEndDate = lastMondayStart.TranslateDateIfDaylightSavings(timezone, 7);
+            var targetStartDate = start.ConvertToTimezone(timezone);
+            var targetEndDate = targetStartDate.TranslateDateIfDaylightSavings(timezone, 7);
 
             var shiftsToImport = Db.Shift
                 .Include(s => s.Location)
@@ -175,7 +173,7 @@ namespace SS.Api.services.scheduling
             }).ToList();
         }
 
-        //todo In Progress
+        //todo flush this out when the GUI is working. 
         public async Task AdjustShift(int shiftId, DateTimeOffset? start = null, DateTimeOffset? end = null)
         {
             var savedShift = await Db.Shift.FindAsync(shiftId);
