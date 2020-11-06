@@ -12,15 +12,13 @@ namespace SS.Api.services.scheduling
     public class DutyRosterService
     {
         private SheriffDbContext Db { get; }
-        private ShiftService ShiftService { get; }
-        public DutyRosterService(SheriffDbContext db, ShiftService shiftService)
+        public DutyRosterService(SheriffDbContext db)
         {
             Db = db;
-            ShiftService = shiftService;
         }
 
         public async Task<List<Duty>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end) =>
-            await Db.Duty.AsNoTracking().Include(d => d.Shift)
+            await Db.Duty.AsNoTracking().Include(d => d.Shifts)
                 .Include(d=> d.Assignment)
                 .Include(d=> d.Location)
                 .Where(d => d.LocationId == locationId &&
@@ -33,31 +31,35 @@ namespace SS.Api.services.scheduling
         {
             foreach (var duty in duties)
             {
-                duty.Timezone.ThrowBusinessExceptionIfNullOrEmpty($"{nameof(duty.Timezone)} cannot be null or empty.");
+                duty.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(duty.Timezone)} must be provided.");
                 duty.Location = await Db.Location.FindAsync(duty.LocationId);
                 duty.Assignment = await Db.Assignment.FindAsync(duty.AssignmentId);
-                duty.Shift = await Db.Shift.FindAsync(duty.ShiftId);
+                duty.Shifts = new List<Shift>();
                 await Db.Duty.AddAsync(duty);
             }
             await Db.SaveChangesAsync();
             return duties;
         }
 
+        /// <summary>
+        /// This will only allow changes on the base object, nothing complex. AssignDuty should handle assigning shifts.
+        /// </summary>
         public async Task<List<Duty>> UpdateDuties(List<Duty> duties)
         {
+            var dutyIds = duties.SelectToList(s => s.Id);
+            var savedDuties = Db.Duty.Where(s => dutyIds.Contains(s.Id));
+
             foreach (var duty in duties)
             {
-                duty.Timezone.ThrowBusinessExceptionIfNullOrEmpty($"{nameof(duty.Timezone)} cannot be null or empty.");
-                var savedDuty = await Db.Duty.FindAsync(duty.Id);
+                var savedDuty = savedDuties.FirstOrDefault(s => s.Id == duty.Id);
+                duty.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(duty.Timezone)} must be provided.");
                 savedDuty.ThrowBusinessExceptionIfNull($"{nameof(Duty)} with the id: {duty.Id} could not be found. ");
-
-                if (await Db.Shift.AsNoTracking().AnyAsync(d => d.Id == duty.ShiftId))
-                    await AdjustShiftStartEndForDuty(duty, duty.ShiftId);
-
-                Db.Entry(savedDuty).CurrentValues.SetValues(duty);
+                //TODO Check for assigned shift conflicts, if adjusting the duty start / end. 
+                //For example a duty being extended past a Sheriff's schedule.
+                Db.Entry(savedDuty!).CurrentValues.SetValues(duty);
             }
             await Db.SaveChangesAsync();
-            return duties;
+            return await savedDuties.ToListAsync();
         }
 
         /// <summary>
@@ -66,11 +68,14 @@ namespace SS.Api.services.scheduling
         public async Task<Duty> AssignDuty(int id, int? shiftId)
         {
             var duty = await Db.Duty.FindAsync(id);
+            var shift = await Db.Shift.FindAsync(shiftId);
+            
+            //Ensure no other duty for the shift is going on for this time. Otherwise remove?
+            //Ensure the shift and duty have overlap.
+            //TODO Adjust shift length?
+            shift.Duties.Add(duty);
+            duty.Shifts.Add(shift);
 
-            if (await Db.Shift.AsNoTracking().AnyAsync(d => d.Id == duty.ShiftId))
-                await AdjustShiftStartEndForDuty(duty, shiftId!.Value);
-
-            //todo.
             await Db.SaveChangesAsync();
             return duty;
         }
@@ -79,17 +84,6 @@ namespace SS.Api.services.scheduling
         {
             await Db.Duty.Where(d => ids.Contains(d.Id)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
             await Db.SaveChangesAsync();
-        }
-
-        private async Task AdjustShiftStartEndForDuty(Duty duty, int shiftId)
-        {
-            DateTimeOffset? start = null;
-            DateTimeOffset? end = null;
-
-            //todo.
-            //Calculate the beginning or end adjustment. 
-
-            await ShiftService.AdjustShift(shiftId, start, end);
         }
     }
 }

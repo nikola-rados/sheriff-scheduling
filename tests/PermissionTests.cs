@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using SS.Api.Controllers;
 using SS.Api.infrastructure.authorization;
 using SS.Api.Models.DB;
+using SS.Common.authorization;
 using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;

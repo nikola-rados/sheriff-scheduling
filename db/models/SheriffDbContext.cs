@@ -10,7 +10,7 @@ using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
-using SS.Api.infrastructure.authorization;
+using SS.Common.authorization;
 using SS.Db.models.lookupcodes;
 using SS.Db.models.scheduling;
 

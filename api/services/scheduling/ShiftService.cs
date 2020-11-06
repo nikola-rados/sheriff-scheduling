@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SS.Api.services.usermanagement;
+using SS.Common.helpers.extensions;
 using SS.Db.models.scheduling.notmapped;
 
 namespace SS.Api.services.scheduling
@@ -42,7 +43,8 @@ namespace SS.Api.services.scheduling
 
             foreach (var shift in shifts)
             {
-                shift.Timezone.ThrowBusinessExceptionIfNullOrEmpty($"{nameof(shift.Timezone)} is a required field.");
+                if (shift.StartDate > shift.EndDate) throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
+                shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(shift.Timezone)} needs to be included in the {nameof(Shift)}.");
                 shift.Duties = null;
                 shift.ExpiryDate = null;
                 shift.Sheriff = await Db.Sheriff.FindAsync(shift.SheriffId);
@@ -66,7 +68,8 @@ namespace SS.Api.services.scheduling
             {
                 var savedShift = savedShifts.FirstOrDefault(s => s.Id == shift.Id);
                 savedShift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with the id: {shift.Id} could not be found.");
-                shift.Timezone.ThrowBusinessExceptionIfNullOrEmpty($"{nameof(shift.Timezone)} is a required field.");
+                if (shift.StartDate > shift.EndDate) throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
+                shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(shift.Timezone)} needs to be included in the {nameof(Shift)}.");
 
                 Db.Entry(savedShift!).CurrentValues.SetValues(shift);
                 Db.Entry(savedShift).Property(x => x.LocationId).IsModified = false;
@@ -88,18 +91,16 @@ namespace SS.Api.services.scheduling
             await Db.SaveChangesAsync();
         }
 
-        public async Task<List<Shift>> ImportWeeklyShifts(int locationId, bool includeSheriffs)
+        public async Task<List<Shift>> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
         {
             var location = Db.Location.FirstOrDefault(l => l.Id == locationId);
             location.ThrowBusinessExceptionIfNull($"Couldn't find {nameof(Location)} with id: {locationId}.");
             var timezone = location?.Timezone;
-            timezone.ThrowBusinessExceptionIfNull("Timezone was null.");
-
-            var lastMondayStart = new DateTimeOffset(DateTime.UtcNow.Date.AddDays(-(int) DateTime.Now.DayOfWeek - 6));
+            timezone.GetTimezone().ThrowBusinessExceptionIfNull("Timezone was invalid.");
 
             //We need to adjust to their start of the week, because it can differ depending on the TZ! 
-            var targetStartDate = lastMondayStart.ConvertToTimezone(timezone);
-            var targetEndDate = lastMondayStart.TranslateDateIfDaylightSavings(timezone, 7);
+            var targetStartDate = start.ConvertToTimezone(timezone);
+            var targetEndDate = targetStartDate.TranslateDateIfDaylightSavings(timezone, 7);
 
             var shiftsToImport = Db.Shift
                 .Include(s => s.Location)
@@ -172,7 +173,7 @@ namespace SS.Api.services.scheduling
             }).ToList();
         }
 
-        //todo In Progress
+        //todo flush this out when the GUI is working. 
         public async Task AdjustShift(int shiftId, DateTimeOffset? start = null, DateTimeOffset? end = null)
         {
             var savedShift = await Db.Shift.FindAsync(shiftId);
@@ -257,7 +258,7 @@ namespace SS.Api.services.scheduling
             => $"Conflict - {nameof(Sheriff)}: {sheriff.LastName}, {sheriff.FirstName} - Existing Shift conflicts: {shift.StartDate.ConvertToTimezone(shift.Timezone)} -> {shift.EndDate.ConvertToTimezone(shift.Timezone)}";
 
         private static string PrintSheriffEventConflict<T>(Sheriff sheriff, DateTimeOffset start, DateTimeOffset end)
-            => $"{sheriff.LastName}, {sheriff.FirstName} has an event {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} from: {start} to: {end}";
+            => $"{sheriff.LastName}, {sheriff.FirstName} has a(n) {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} from: {start} to: {end}";
         #endregion String Helpers
 
         #endregion

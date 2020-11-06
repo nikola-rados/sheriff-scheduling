@@ -1,5 +1,6 @@
 ﻿using System;
 using SS.Api.helpers.extensions;
+using SS.Common.helpers.extensions;
 using Xunit;
 
 namespace tests

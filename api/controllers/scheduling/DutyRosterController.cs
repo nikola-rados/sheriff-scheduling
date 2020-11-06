@@ -31,7 +31,7 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignDuties)]
-        public async Task<ActionResult<List<DutyDto>>> AddDutiesAsync(List<DutyDto> newDuties)
+        public async Task<ActionResult<List<DutyDto>>> AddDutiesAsync(List<SaveDutyDto> newDuties)
         {
             var duties = await DutyRosterService.AddDuties(newDuties.Adapt<List<Duty>>());
             return Ok(duties.Adapt<List<DutyDto>>());
@@ -39,7 +39,7 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPut]
         [PermissionClaimAuthorize(perm: Permission.EditDuties)]
-        public async Task<ActionResult<List<DutyDto>>> UpdateDutiesAsync(List<DutyDto> editDuties)
+        public async Task<ActionResult<List<DutyDto>>> UpdateDutiesAsync(List<SaveDutyDto> editDuties)
         {
             var duties = await DutyRosterService.UpdateDuties(editDuties.Adapt<List<Duty>>());
             return Ok(duties.Adapt<List<DutyDto>>());
