@@ -12,6 +12,7 @@ using SS.Api.Models.DB;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using SS.Api.services.usermanagement;
+using SS.Common.helpers.extensions;
 using SS.Db.models.scheduling;
 using SS.Db.models.scheduling.notmapped;
 using SS.Db.models.sheriff;

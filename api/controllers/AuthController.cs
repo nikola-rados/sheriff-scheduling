@@ -16,6 +16,7 @@ using SS.Api.helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.services;
+using SS.Common.authorization;
 using SS.Db.models;
 
 namespace SS.Api.Controllers

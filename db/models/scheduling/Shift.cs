@@ -1,32 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
-using common.attributes;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
+using SS.Common.attributes;
 using SS.Db.models.sheriff;
 
 namespace SS.Db.models.scheduling
 {
     [AdaptTo("[name]Dto")]
-    [AdaptTo("Add[name]Dto", IgnoreAttributes = new[] { typeof(ExcludeFromAddDtoAttribute) })]
+    [AdaptTo("Save[name]Dto", IgnoreAttributes = new[] { typeof(ExcludeFromSaveDtoAttribute) })]
     public class Shift : BaseEntity
     {
         [Key]
         public int Id { get; set;}
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        [ExcludeFromAddDto]
+        [ExcludeFromSaveDto]
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
-        [ExcludeFromAddDto]
+        [ExcludeFromSaveDto]
         public ICollection<Duty> Duties { get; set; } = new List<Duty>();
-        [ExcludeFromAddDto]
+        [ExcludeFromSaveDto]
         public Assignment AnticipatedAssignment { get; set; }
         public int? AnticipatedAssignmentId { get; set; }
-        [ExcludeFromAddDto]
+        [ExcludeFromSaveDto]
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }

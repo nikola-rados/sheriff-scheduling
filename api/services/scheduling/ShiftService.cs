@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SS.Api.services.usermanagement;
+using SS.Common.helpers.extensions;
 using SS.Db.models.scheduling.notmapped;
 
 namespace SS.Api.services.scheduling

@@ -1,12 +1,10 @@
 using System;
-using SS.Api.models.dto.generated;
 
 namespace SS.Api.models.dto.generated
 {
-    public partial class AssignmentDto
+    public partial class SaveAssignmentDto
     {
         public int Id { get; set; }
-        public LookupCodeDto LookupCode { get; set; }
         public int LookupCodeId { get; set; }
         public DateTimeOffset? AdhocStartDate { get; set; }
         public DateTimeOffset? AdhocEndDate { get; set; }
@@ -19,7 +17,6 @@ namespace SS.Api.models.dto.generated
         public bool Friday { get; set; }
         public bool Saturday { get; set; }
         public bool Sunday { get; set; }
-        public LocationDto Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string ExpiryReason { get; set; }

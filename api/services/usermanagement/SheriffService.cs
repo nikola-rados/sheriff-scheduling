@@ -9,6 +9,7 @@ using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
+using SS.Common.helpers.extensions;
 using SS.Db.models;
 using SS.Db.models.sheriff;
 

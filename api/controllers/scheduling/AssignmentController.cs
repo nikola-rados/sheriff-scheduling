@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
@@ -23,15 +24,15 @@ namespace SS.Api.controllers.scheduling
 
         [HttpGet]
         [PermissionClaimAuthorize(perm: Permission.ViewAssignments)]
-        public async Task<ActionResult<List<AssignmentDto>>> GetAssignments(int locationId)
+        public async Task<ActionResult<List<AssignmentDto>>> GetAssignments(int locationId, DateTimeOffset? start, DateTimeOffset? end)
         {
-            var assignments = await AssignmentService.GetAssignments(locationId);
+            var assignments = await AssignmentService.GetAssignments(locationId, start, end);
             return Ok(assignments.Adapt<List<AssignmentDto>>());
         }
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateAssignments)]
-        public async Task<ActionResult<AssignmentDto>> AddAssignment(AssignmentDto assignmentDto)
+        public async Task<ActionResult<AssignmentDto>> AddAssignment(SaveAssignmentDto assignmentDto)
         {
             var assignment = assignmentDto.Adapt<Assignment>();
             var createdAssignment = await AssignmentService.CreateAssignment(assignment);
@@ -40,7 +41,7 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPut]
         [PermissionClaimAuthorize(perm: Permission.EditAssignments)]
-        public async Task<ActionResult<AssignmentDto>> UpdateAssignment(AssignmentDto assignmentDto)
+        public async Task<ActionResult<AssignmentDto>> UpdateAssignment(SaveAssignmentDto assignmentDto)
         {
             var assignment = assignmentDto.Adapt<Assignment>();
             var updatedAssignment = await AssignmentService.UpdateAssignment(assignment);

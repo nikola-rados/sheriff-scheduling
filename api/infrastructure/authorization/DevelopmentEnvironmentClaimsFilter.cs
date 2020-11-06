@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SS.Api.helpers;
 using SS.Api.helpers.extensions;
+using SS.Common.authorization;
 
 namespace SS.Api.infrastructure.authorization
 {
