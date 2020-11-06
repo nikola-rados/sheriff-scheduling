@@ -32,7 +32,7 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateAssignments)]
-        public async Task<ActionResult<AssignmentDto>> AddAssignment(SaveAssignmentDto assignmentDto)
+        public async Task<ActionResult<AssignmentDto>> AddAssignment(AddAssignmentDto assignmentDto)
         {
             var assignment = assignmentDto.Adapt<Assignment>();
             var createdAssignment = await AssignmentService.CreateAssignment(assignment);
@@ -41,7 +41,7 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPut]
         [PermissionClaimAuthorize(perm: Permission.EditAssignments)]
-        public async Task<ActionResult<AssignmentDto>> UpdateAssignment(SaveAssignmentDto assignmentDto)
+        public async Task<ActionResult<AssignmentDto>> UpdateAssignment(UpdateAssignmentDto assignmentDto)
         {
             var assignment = assignmentDto.Adapt<Assignment>();
             var updatedAssignment = await AssignmentService.UpdateAssignment(assignment);

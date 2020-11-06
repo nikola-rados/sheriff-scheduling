@@ -12,11 +12,9 @@ namespace SS.Api.helpers.extensions
         public static string ConvertCamelCaseToMultiWord(this string target) =>
             Regex.Replace(target, "([A-Z])", " $1").Trim().ToLower();
 
-        public static DateTimeZone? GetTimezone(this string timezone)
+        public static DateTimeZone GetTimezone(this string timezone)
         {
-            if (string.IsNullOrEmpty(timezone))
-                return null;
-            return DateTimeZoneProviders.Tzdb.GetZoneOrNull(timezone);
+            return string.IsNullOrEmpty(timezone) ? null : DateTimeZoneProviders.Tzdb.GetZoneOrNull(timezone);
         }
     }
 }

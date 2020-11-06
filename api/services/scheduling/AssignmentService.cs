@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using NodaTime;
 using SS.Api.helpers.extensions;
 using SS.Db.models;
 using SS.Db.models.scheduling;

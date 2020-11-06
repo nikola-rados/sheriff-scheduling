@@ -13,8 +13,7 @@ namespace SS.Db.configuration
 
             builder.HasOne(d => d.Assignment).WithOne().OnDelete(DeleteBehavior.SetNull);
             builder.HasOne(d => d.Location).WithOne().OnDelete(DeleteBehavior.SetNull);
-            builder.HasMany(d => d.Shifts).WithMany(s => s.Duties)
-                .UsingEntity(j => j.ToTable("ShiftDuty"));
+            builder.HasMany(d => d.DutySlots).WithOne().HasForeignKey(m => m.DutyId).OnDelete(DeleteBehavior.Cascade);
 
             base.Configure(builder);
         }
