@@ -14,8 +14,7 @@ namespace SS.Db.configuration
             builder.HasOne(b => b.Location).WithMany().HasForeignKey(m => m.LocationId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            builder.HasMany(s => s.Duties).WithOne(s => s.Shift).HasForeignKey(s => s.ShiftId)
-                .OnDelete(DeleteBehavior.SetNull);
+            builder.HasMany(s => s.Duties).WithMany(s => s.Shifts).UsingEntity(j => j.ToTable("ShiftDuties"));
 
             builder.HasOne(d => d.AnticipatedAssignment).WithMany().OnDelete(DeleteBehavior.SetNull);
 

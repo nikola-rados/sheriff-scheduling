@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
+using SS.Common.authorization;
 using SS.Db.models;
 
 namespace SS.Api.infrastructure.authorization

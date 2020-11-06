@@ -9,7 +9,9 @@ using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
+using SS.Common.helpers.extensions;
 using SS.Db.models;
+using SS.Db.models.scheduling;
 using SS.Db.models.sheriff;
 
 namespace SS.Api.services.usermanagement
@@ -46,11 +48,13 @@ namespace SS.Api.services.usermanagement
         }
 
         //Used for the Shift scheduling screen.
-        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
+        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end, Guid? sheriffId = null)
         {
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
                 .Where(s =>
+                    (sheriffId == null || sheriffId != null && s.Id == sheriffId) && 
+                    s.IsEnabled &&
                     s.HomeLocationId == locationId ||
                     s.AwayLocation.Any(al =>
                         al.LocationId == locationId && !(al.StartDate > end || start > al.EndDate)
@@ -171,11 +175,11 @@ namespace SS.Api.services.usermanagement
 
             await ValidateNoOverlapAsync(awayLocation, awayLocation.Id);
 
+            Db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
             Db.Entry(savedAwayLocation).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedAwayLocation).Property(x => x.ExpiryReason).IsModified = false;
-            Db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
             await Db.SaveChangesAsync();
-            return awayLocation;
+            return savedAwayLocation;
         }
 
         public async Task RemoveSheriffAwayLocation(int id, string expiryReason)
@@ -219,11 +223,12 @@ namespace SS.Api.services.usermanagement
 
             await ValidateNoOverlapAsync(sheriffLeave, sheriffLeave.Id);
 
+            Db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
             Db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
-            Db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
+      
             await Db.SaveChangesAsync();
-            return sheriffLeave;
+            return savedLeave;
         }
 
         public async Task RemoveSheriffLeave(int id, string expiryReason)
@@ -267,11 +272,12 @@ namespace SS.Api.services.usermanagement
 
             await ValidateNoOverlapAsync(sheriffTraining, sheriffTraining.Id);
 
+            Db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
             Db.Entry(savedTraining).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedTraining).Property(x => x.ExpiryReason).IsModified = false;
-            Db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
+
             await Db.SaveChangesAsync();
-            return sheriffTraining;
+            return savedTraining;
         }
 
         public async Task RemoveSheriffTraining(int id, string expiryReason)
@@ -324,38 +330,59 @@ namespace SS.Api.services.usermanagement
 
         private async Task ValidateNoOverlapAsync<T>(T data, int? updateOnlyId = null) where T : SheriffEvent
         {
-            var entity = await Db.Set<T>().FirstOrDefaultAsync(sal =>
-                sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
-                sal.ExpiryDate == null && 
-                (!updateOnlyId.HasValue ||
-                 updateOnlyId.HasValue && sal.Id != updateOnlyId));
-
-            if (entity == null)
-                return;
-
-            string startDateString;
-            string endDateString;
-            switch (data)
+            var sheriffEventConflicts = new List<SheriffEvent>
             {
-                case SheriffAwayLocation sheriffAwayLocation:
+                await LookForSheriffEventConflictAsync(Db.SheriffLeave, data, updateOnlyId),
+                await LookForSheriffEventConflictAsync(Db.SheriffTraining, data, updateOnlyId),
+                await LookForSheriffEventConflictAsync(Db.SheriffAwayLocation, data, updateOnlyId)
+            }.WhereToList(se => se != null);
+
+            var shiftConflict = await Db.Shift.AsNoTracking().FirstOrDefaultAsync(sal =>
+                sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
+                sal.ExpiryDate == null);
+
+            string startDate;
+            string endDate;
+            if (sheriffEventConflicts.Any())
+            {
+                var eventConflict = sheriffEventConflicts.First();
+                if (eventConflict is SheriffAwayLocation sheriffAwayLocation)
+                {
                     //Calculate the start and end date for the away location.
                     var awayLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffAwayLocation.LocationId)?.Timezone;
-                    startDateString = entity.StartDate.ConvertToTimezone(awayLocationTimezone).ToString();
-                    endDateString = entity.EndDate.ConvertToTimezone(awayLocationTimezone).ToString();
-                    break;
-                default:
+                    startDate = sheriffAwayLocation.StartDate.ConvertToTimezone(awayLocationTimezone).ToString();
+                    endDate = sheriffAwayLocation.EndDate.ConvertToTimezone(awayLocationTimezone).ToString();
+                }
+                else
+                {
                     //Calculate the start and end date for the user's home location id. 
                     var sheriffId = Db.Sheriff.AsNoTracking().FirstOrDefault(s => s.Id == data.SheriffId)?.HomeLocationId;
                     var homeLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffId.Value)?.Timezone;
-                    startDateString = entity.StartDate.ConvertToTimezone(homeLocationTimezone).ToString();
-                    endDateString = entity.EndDate.ConvertToTimezone(homeLocationTimezone).ToString();
-                    break;
+                    startDate = eventConflict.StartDate.ConvertToTimezone(homeLocationTimezone).ToString();
+                    endDate = eventConflict.EndDate.ConvertToTimezone(homeLocationTimezone).ToString();
+                }
+                throw new BusinessLayerException(
+                    $"Overlaps with existing {eventConflict.GetType().Name.ConvertCamelCaseToMultiWord()}: {startDate} to {endDate}");
             }
-            throw new BusinessLayerException(
-                $"Overlaps with existing {typeof(T).Name.ConvertCamelCaseToMultiWord()}: {startDateString} to {endDateString}");
+
+            if (shiftConflict != null)
+            {
+                startDate = shiftConflict.StartDate.ConvertToTimezone(shiftConflict.Timezone).ToString();
+                endDate = shiftConflict.EndDate.ConvertToTimezone(shiftConflict.Timezone).ToString();
+                throw new BusinessLayerException(
+                    $"Overlaps with existing {nameof(Shift).ConvertCamelCaseToMultiWord()}: {startDate} to {endDate}");
+            }
         }
 
-        
+        private async Task<T1> LookForSheriffEventConflictAsync<T1,T2>(DbSet<T1> dbSet, T2 data, int? updateOnlyId = null) where T1 : SheriffEvent where T2 : SheriffEvent
+        {
+            return await dbSet.AsNoTracking().FirstOrDefaultAsync(sal =>
+                sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
+                sal.ExpiryDate == null &&
+                (typeof(T1) != typeof(T2) ||
+                (typeof(T1) == typeof(T2) && (!updateOnlyId.HasValue || updateOnlyId.HasValue && sal.Id != updateOnlyId))));
+        }
+
         #endregion
 
         #endregion
