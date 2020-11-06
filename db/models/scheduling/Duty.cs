@@ -4,27 +4,28 @@ using System.ComponentModel.DataAnnotations;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
-using SS.Common.attributes;
+using SS.Common.attributes.mapping;
 
 namespace SS.Db.models.scheduling
 {
     [AdaptTo("[name]Dto")]
-    [AdaptTo("Save[name]Dto", IgnoreAttributes = new[] { typeof(ExcludeFromSaveDtoAttribute) })]
+    [GenerateUpdateDto, GenerateAddDto]
     public class Duty : BaseEntity
     {
+        [ExcludeFromAddDto]
         [Key]
         public int Id { get; set; }
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        [ExcludeFromSaveDto]
+        [ExcludeFromSaveAndAddDto]
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
-        [ExcludeFromSaveDto]
+        [ExcludeFromSaveAndAddDto]
         public Assignment Assignment { get; set; }
         public int? AssignmentId { get; set; }
-        [ExcludeFromSaveDto]
-        public ICollection<Shift> Shifts { get; set; } = new List<Shift>();
+        [ExcludeFromAddDto]
+        public virtual ICollection<DutySlot> DutySlots { get; set; } = new List<DutySlot>();
         public string Timezone { get; set; }
     }
 }

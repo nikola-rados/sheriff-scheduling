@@ -469,7 +469,7 @@ namespace tests.controllers
             shift.AnticipatedAssignmentId = 5;
             shift.Location = new LocationDto(); // shouldn't change
 
-            var updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShifts(shifts));
+            var updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShifts(shifts.Adapt<List<UpdateShiftDto>>()));
             var updatedShift = updatedShifts.First();
 
             Assert.Equal(shiftDto.LocationId,updatedShift.LocationId);
@@ -485,7 +485,7 @@ namespace tests.controllers
             shift = shifts.First();
 
             shift.SheriffId = sheriffId;
-            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShifts(shifts));
+            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShifts(shifts.Adapt<List<UpdateShiftDto>>()));
 
             //Create a shift that sits side by side, without sheriff, shouldn't conflict.
             shiftDto.SheriffId = null;
@@ -495,7 +495,7 @@ namespace tests.controllers
             shift = shifts.First();
 
             shift.SheriffId = sheriffId;
-            updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShifts(shifts));
+            updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShifts(shifts.Adapt<List<UpdateShiftDto>>()));
             updatedShift = updatedShifts.First();
 
             Assert.Equal(shiftDto.StartDate, updatedShift.StartDate);
@@ -534,7 +534,7 @@ namespace tests.controllers
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));
 
             var importedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
-                await ShiftController.ImportWeeklyShifts(1, true, DateTime.Now));
+                await ShiftController.ImportWeeklyShifts(1, true, shiftDto.StartDate));
 
             Assert.NotNull(importedShifts);
             var importedShift = importedShifts.First();

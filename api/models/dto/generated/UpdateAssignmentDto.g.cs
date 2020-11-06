@@ -2,7 +2,7 @@ using System;
 
 namespace SS.Api.models.dto.generated
 {
-    public partial class SaveAssignmentDto
+    public partial class UpdateAssignmentDto
     {
         public int Id { get; set; }
         public int LookupCodeId { get; set; }
