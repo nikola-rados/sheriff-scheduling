@@ -12,7 +12,7 @@
                 bordered
                 fixed>
                     <template v-slot:table-colgroup>
-                        <col style="width:6.5rem">                            
+                        <col style="width:8.5rem">                            
                     </template>
                     <template v-slot:head() = "data" >
                         <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
@@ -23,12 +23,12 @@
                     <template v-slot:cell()="data"  >                          
                         <schedule-card   :shiftInfo=" data.value"/>
                     </template>
-
-                        <template v-slot:cell(myteam) = "data" > 
-                            <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
-                        </template>
-                </b-table>
-                <b-card><br></b-card>  
+                    <template v-slot:cell(myteam) = "data" > 
+                        <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
+                    </template>
+            </b-table>
+            <b-card><br></b-card>
+        </div>  
            
     </b-card>
 </template>
@@ -77,7 +77,7 @@
         updateTable=0;
 
         fields=[
-            {key:'myteam',label:'My Team', tdClass:'px-0 mx-0'},
+            {key:'myteam', label:'My Team', tdClass:'px-0 mx-0'},
             {key:'Sun', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
             {key:'Mon', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
             {key:'Tue', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
@@ -247,7 +247,7 @@
                             })
                             conflicts.push({
                                 dayOffset: Number(dateIndex)+1, 
-                                date:this.headerDates[dateIndex]+1, 
+                                date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
                                 startTime:'00:00', 
                                 endTime:Vue.filter('beautify-time')(conflict.end), 
                                 startInMinutes:0,
@@ -262,16 +262,16 @@
             //console.log(conflicts)
             //console.log(moment())
 
-            conflicts.push({
-                dayOffset: 4, 
-                date:this.headerDates[4], 
-                startTime:'08:00', 
-                endTime:'16:00', 
-                startInMinutes:480,
-                timeDuration:480, 
-                type:'Shift', 
-                fullday:false
-            })   
+            // conflicts.push({
+            //     dayOffset: 4, 
+            //     date:this.headerDates[4], 
+            //     startTime:'08:00', 
+            //     endTime:'16:00', 
+            //     startInMinutes:480,
+            //     timeDuration:480, 
+            //     type:'Shift', 
+            //     fullday:false
+            // })   
 
             return conflicts
         } 
