@@ -35,9 +35,9 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset? ExpiryDate { get; set; }
         public string ExpiryReason { get; set; }
 
-        public bool IsAvailableOnDate(DateTimeOffset utcDate)
+        public bool IsAvailableOnDate(DateTimeOffset date)
         {
-            return utcDate.UtcDateTime.DayOfWeek switch
+            return date.DayOfWeek switch
             {
                 DayOfWeek.Monday => Monday,
                 DayOfWeek.Tuesday => Tuesday,

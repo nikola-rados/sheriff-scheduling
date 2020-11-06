@@ -61,11 +61,11 @@ namespace SS.Api.controllers.scheduling
         }
 
         [HttpPost]
-        [Route("import")]
+        [Route("importWeek")]
         [PermissionClaimAuthorize(perm: Permission.ImportShifts)]
-        public async Task<ActionResult<List<ShiftDto>>> ImportWeeklyShifts(int locationId, bool includeSheriffs)
+        public async Task<ActionResult<List<ShiftDto>>> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
         {
-            var shifts = await ShiftService.ImportWeeklyShifts(locationId, includeSheriffs);
+            var shifts = await ShiftService.ImportWeeklyShifts(locationId, includeSheriffs, start);
             return Ok(shifts.Adapt<List<ShiftDto>>());
         }
         #endregion
