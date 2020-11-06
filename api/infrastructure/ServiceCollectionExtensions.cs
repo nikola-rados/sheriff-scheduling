@@ -58,6 +58,7 @@ namespace SS.Api.infrastructure
             services.AddScoped<UserService>();
             services.AddScoped<SheriffService>();
             services.AddScoped<ShiftService>();
+            services.AddScoped<DutyRosterService>();
             services.AddScoped<AssignmentService>();
             services.AddScoped<JCDataUpdaterService>();
 

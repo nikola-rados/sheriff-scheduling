@@ -28,7 +28,7 @@ namespace SS.Api.controllers.scheduling
         /// This is used in the main shift screen, also used in duty roster to populate the available sheriffs on the right hand side. 
         /// </summary>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.And, Permission.ViewAllShifts, Permission.ViewMyShifts,
+        [PermissionClaimAuthorize(AuthorizeOperation.Or, Permission.ViewAllShifts, Permission.ViewMyShifts,
             Permission.ViewAllShiftsAtMyLocation)]
         public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
@@ -61,11 +61,11 @@ namespace SS.Api.controllers.scheduling
         }
 
         [HttpPost]
-        [Route("import")]
+        [Route("importWeek")]
         [PermissionClaimAuthorize(perm: Permission.ImportShifts)]
-        public async Task<ActionResult<List<ShiftDto>>> ImportWeeklyShifts(int locationId, bool includeSheriffs)
+        public async Task<ActionResult<List<ShiftDto>>> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
         {
-            var shifts = await ShiftService.ImportWeeklyShifts(locationId, includeSheriffs);
+            var shifts = await ShiftService.ImportWeeklyShifts(locationId, includeSheriffs, start);
             return Ok(shifts.Adapt<List<ShiftDto>>());
         }
         #endregion

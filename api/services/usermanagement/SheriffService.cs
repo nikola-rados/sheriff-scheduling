@@ -9,7 +9,9 @@ using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
+using SS.Common.helpers.extensions;
 using SS.Db.models;
+using SS.Db.models.scheduling;
 using SS.Db.models.sheriff;
 
 namespace SS.Api.services.usermanagement
@@ -326,41 +328,61 @@ namespace SS.Api.services.usermanagement
                 throw new BusinessLayerException($"Sheriff with id: {sheriffId} does not exist.");
         }
 
-        //TODO we may need this to span over more than it's provided type in the future. 
         private async Task ValidateNoOverlapAsync<T>(T data, int? updateOnlyId = null) where T : SheriffEvent
         {
-            var entity = await Db.Set<T>().FirstOrDefaultAsync(sal =>
-                sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
-                sal.ExpiryDate == null && 
-                (!updateOnlyId.HasValue ||
-                 updateOnlyId.HasValue && sal.Id != updateOnlyId));
-
-            if (entity == null)
-                return;
-
-            string startDateString;
-            string endDateString;
-            switch (data)
+            var sheriffEventConflicts = new List<SheriffEvent>
             {
-                case SheriffAwayLocation sheriffAwayLocation:
+                await LookForSheriffEventConflictAsync(Db.SheriffLeave, data, updateOnlyId),
+                await LookForSheriffEventConflictAsync(Db.SheriffTraining, data, updateOnlyId),
+                await LookForSheriffEventConflictAsync(Db.SheriffAwayLocation, data, updateOnlyId)
+            }.WhereToList(se => se != null);
+
+            var shiftConflict = await Db.Shift.AsNoTracking().FirstOrDefaultAsync(sal =>
+                sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
+                sal.ExpiryDate == null);
+
+            string startDate;
+            string endDate;
+            if (sheriffEventConflicts.Any())
+            {
+                var eventConflict = sheriffEventConflicts.First();
+                if (eventConflict is SheriffAwayLocation sheriffAwayLocation)
+                {
                     //Calculate the start and end date for the away location.
                     var awayLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffAwayLocation.LocationId)?.Timezone;
-                    startDateString = entity.StartDate.ConvertToTimezone(awayLocationTimezone).ToString();
-                    endDateString = entity.EndDate.ConvertToTimezone(awayLocationTimezone).ToString();
-                    break;
-                default:
+                    startDate = sheriffAwayLocation.StartDate.ConvertToTimezone(awayLocationTimezone).ToString();
+                    endDate = sheriffAwayLocation.EndDate.ConvertToTimezone(awayLocationTimezone).ToString();
+                }
+                else
+                {
                     //Calculate the start and end date for the user's home location id. 
                     var sheriffId = Db.Sheriff.AsNoTracking().FirstOrDefault(s => s.Id == data.SheriffId)?.HomeLocationId;
                     var homeLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffId.Value)?.Timezone;
-                    startDateString = entity.StartDate.ConvertToTimezone(homeLocationTimezone).ToString();
-                    endDateString = entity.EndDate.ConvertToTimezone(homeLocationTimezone).ToString();
-                    break;
+                    startDate = eventConflict.StartDate.ConvertToTimezone(homeLocationTimezone).ToString();
+                    endDate = eventConflict.EndDate.ConvertToTimezone(homeLocationTimezone).ToString();
+                }
+                throw new BusinessLayerException(
+                    $"Overlaps with existing {eventConflict.GetType().Name.ConvertCamelCaseToMultiWord()}: {startDate} to {endDate}");
             }
-            throw new BusinessLayerException(
-                $"Overlaps with existing {typeof(T).Name.ConvertCamelCaseToMultiWord()}: {startDateString} to {endDateString}");
+
+            if (shiftConflict != null)
+            {
+                startDate = shiftConflict.StartDate.ConvertToTimezone(shiftConflict.Timezone).ToString();
+                endDate = shiftConflict.EndDate.ConvertToTimezone(shiftConflict.Timezone).ToString();
+                throw new BusinessLayerException(
+                    $"Overlaps with existing {nameof(Shift).ConvertCamelCaseToMultiWord()}: {startDate} to {endDate}");
+            }
         }
 
-        
+        private async Task<T1> LookForSheriffEventConflictAsync<T1,T2>(DbSet<T1> dbSet, T2 data, int? updateOnlyId = null) where T1 : SheriffEvent where T2 : SheriffEvent
+        {
+            return await dbSet.AsNoTracking().FirstOrDefaultAsync(sal =>
+                sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
+                sal.ExpiryDate == null &&
+                (typeof(T1) != typeof(T2) ||
+                (typeof(T1) == typeof(T2) && (!updateOnlyId.HasValue || updateOnlyId.HasValue && sal.Id != updateOnlyId))));
+        }
+
         #endregion
 
         #endregion

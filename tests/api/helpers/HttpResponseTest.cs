@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
+using SS.Common.authorization;
 using SS.Db.models.auth;
 using Xunit;
 

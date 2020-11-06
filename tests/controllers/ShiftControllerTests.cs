@@ -12,6 +12,8 @@ using SS.Api.Models.DB;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using SS.Api.services.usermanagement;
+using SS.Common.helpers.extensions;
+using ss.db.models;
 using SS.Db.models.scheduling;
 using SS.Db.models.scheduling.notmapped;
 using SS.Db.models.sheriff;
@@ -94,7 +96,7 @@ namespace tests.controllers
             {
                 Id = 6,
                 StartDate = DateTimeOffset.UtcNow.Date.AddHours(2),
-                EndDate = DateTimeOffset.UtcNow.Date.AddHours(1),
+                EndDate = DateTimeOffset.UtcNow.Date.AddHours(3),
                 LocationId = 1,
                 Timezone = "America/Vancouver",
                 SheriffId = sheriffId
@@ -373,7 +375,7 @@ namespace tests.controllers
                 StartDate = startTimeOffset,
                 EndDate = endTimeOffset,
                 Sheriff = new Sheriff { Id = Guid.NewGuid(), LastName = "hello" },
-                AnticipatedAssignment = new Assignment {Id = 1, Name = "Super assignment", Location = new Location { Id = 1, AgencyId = "zz"}},
+                AnticipatedAssignment = new Assignment {Id = 1, Name = "Super assignment", Location = new Location { Id = 1, AgencyId = "zz"}, LookupCode = new LookupCode() {Id = 900000}},
                 LocationId = 1
             });
 
@@ -451,7 +453,7 @@ namespace tests.controllers
             var shiftDtos = new List<ShiftDto> {shiftDto};
             var sheriffId = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There", IsEnabled = true, HomeLocationId = 1});
-            await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = 1 });
+            await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = 1, LookupCode = new LookupCode() { Id = 9000 }});
             await Db.SaveChangesAsync();
 
             var shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));
@@ -532,7 +534,7 @@ namespace tests.controllers
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));
 
             var importedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
-                await ShiftController.ImportWeeklyShifts(1, true));
+                await ShiftController.ImportWeeklyShifts(1, true, DateTime.Now));
 
             Assert.NotNull(importedShifts);
             var importedShift = importedShifts.First();
