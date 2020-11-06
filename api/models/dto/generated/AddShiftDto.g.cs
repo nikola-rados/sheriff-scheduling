@@ -4,7 +4,6 @@ namespace SS.Api.models.dto.generated
 {
     public partial class AddShiftDto
     {
-        public int Id { get; set; }
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
         public Guid? SheriffId { get; set; }

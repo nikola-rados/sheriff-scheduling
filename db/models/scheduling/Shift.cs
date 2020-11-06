@@ -14,7 +14,7 @@ namespace SS.Db.models.scheduling
     [GenerateUpdateDto, GenerateAddDto]
     public class Shift : BaseEntity
     {
-        [Key]
+        [Key, ExcludeFromAddDto]
         public int Id { get; set;}
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
