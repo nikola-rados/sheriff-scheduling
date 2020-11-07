@@ -2,16 +2,16 @@
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
+using SS.Api.services.usermanagement;
+using SS.Common.helpers.extensions;
 using SS.Db.models;
 using SS.Db.models.scheduling;
+using SS.Db.models.scheduling.notmapped;
 using SS.Db.models.sheriff;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using SS.Api.services.usermanagement;
-using SS.Common.helpers.extensions;
-using SS.Db.models.scheduling.notmapped;
 
 namespace SS.Api.services.scheduling
 {
@@ -32,7 +32,7 @@ namespace SS.Api.services.scheduling
                 .Include(s => s.Sheriff)
                 .Include(s => s.AnticipatedAssignment)
                 .Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
-                            !(s.StartDate > end || start > s.EndDate)) //May need to change this. This includes times on the edge.
+                            s.StartDate < end && start < s.EndDate)
                 .ToListAsync();
         }
 
@@ -107,7 +107,7 @@ namespace SS.Api.services.scheduling
                 .AsNoTracking()
                 .Where(s => s.LocationId == locationId &&
                             s.ExpiryDate == null &&
-                            !(s.StartDate > targetEndDate || targetStartDate > s.EndDate));   //may need to refine this date query - This includes times on the edge.
+                            s.StartDate < targetEndDate && targetStartDate < s.EndDate);  
 
             var importedShifts = new List<Shift>();
             foreach (var importShift in shiftsToImport)
@@ -184,13 +184,6 @@ namespace SS.Api.services.scheduling
         }
 
         #region Helpers
-        private async Task<List<Shift>> GetShiftsForSheriffs(IEnumerable<Guid> sheriffIds, DateTimeOffset startDate, DateTimeOffset endDate) =>
-            await Db.Shift.AsNoTracking().Where(s =>
-                    !(s.StartDate > endDate || startDate > s.EndDate) && //Date may require refining -  This includes times on the edge.
-                    s.SheriffId != null &&
-                    sheriffIds.Contains((Guid)s.SheriffId) &&
-                    s.ExpiryDate == null)
-                .ToListAsync();
 
         #region Availability
         private async Task CheckSheriffEvents(List<Shift> shifts)
@@ -229,7 +222,16 @@ namespace SS.Api.services.scheduling
                 throw new BusinessLayerException(message);
             }
         }
-    
+
+        private async Task<List<Shift>> GetShiftsForSheriffs(IEnumerable<Guid> sheriffIds, DateTimeOffset startDate, DateTimeOffset endDate) =>
+            await Db.Shift.AsNoTracking().Where(s =>
+                    s.StartDate < endDate && startDate < s.EndDate &&
+                    s.SheriffId != null &&
+                    sheriffIds.Contains((Guid)s.SheriffId) &&
+                    s.ExpiryDate == null)
+                .ToListAsync();
+
+
         private async Task<List<Shift>> OverlappingShifts(int locationId, List<Shift> targetShifts)
         {
             var dateMin = targetShifts.Min(ts => ts.StartDate);
@@ -241,8 +243,7 @@ namespace SS.Api.services.scheduling
                 .Where(s =>
                     s.ExpiryDate == null &&
                     s.LocationId == locationId &&
-                    s.StartDate >= dateMin &&
-                    s.EndDate <= dateMax &&
+                    s.StartDate < dateMax && dateMin < s.EndDate &&
                     sheriffIds.Contains(s.SheriffId)
                 ).ToListAsync();
 

@@ -131,6 +131,7 @@ namespace tests.controllers
             HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(new List<AddShiftDto> { shiftSix, shiftSeven }));
             sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
             Assert.All(sheriffShifts, s => new List<int> { 3, 4, 6, 7 }.Contains(s.Id));
+
         }
 
 
@@ -394,6 +395,42 @@ namespace tests.controllers
             var shiftDto = await CreateShift();
             var shiftDtos = new List<AddShiftDto> {shiftDto.Adapt<AddShiftDto>()};
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
+
+            var sheriffId = Guid.NewGuid();
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There", IsEnabled = true, HomeLocationId = 1 });
+            await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = 1, LookupCode = new LookupCode() { Id = 9000 } });
+            await Db.SaveChangesAsync();
+
+            //Add Shift, this also tests UpdateShift's validation. 
+            //Tests a conflict. 
+            var stDate = DateTimeOffset.UtcNow.AddDays(20);
+            var addShifts = new List<AddShiftDto>
+            {
+                new AddShiftDto
+                {
+                    SheriffId = sheriffId,
+                    StartDate = stDate,
+                    EndDate = stDate.AddHours(5),
+                    LocationId = 1,
+                    Timezone = "America/Edmonton"
+                }
+            };
+
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(addShifts));
+
+            addShifts = new List<AddShiftDto>
+            {
+                new AddShiftDto
+                {
+                    SheriffId = sheriffId,
+                    StartDate = stDate.AddHours(2),
+                    EndDate = stDate.AddHours(3),
+                    LocationId = 1,
+                    Timezone = "America/Edmonton"
+                }
+            };
+
+            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.AddShifts(addShifts));
         }
 
 
@@ -500,6 +537,9 @@ namespace tests.controllers
 
             Assert.Equal(shiftDto.StartDate, updatedShift.StartDate);
             Assert.Equal(shiftDto.EndDate, updatedShift.EndDate);
+
+
+
         }
 
 
