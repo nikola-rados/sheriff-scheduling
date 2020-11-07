@@ -113,7 +113,7 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        //console.log(response.data)
+                        console.log(response.data)
                         this.extractTeamAvailabilityInfo(response.data);                        
                     }                                   
                 })            
@@ -185,7 +185,7 @@
                                 endTime:'',
                                 startInMinutes:0, 
                                 timeDuration:0, 
-                                type: conflict.conflict, 
+                                type:this.getConflictsType(conflict), 
                                 fullday: true
                             })        
                         }                       
@@ -216,7 +216,7 @@
                                 endTime:Vue.filter('beautify-time')(conflict.end), 
                                 startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                 timeDuration:duration.asMinutes(), 
-                                type:conflict.conflict, 
+                                type:this.getConflictsType(conflict), 
                                 fullday:false
                             })        
                         }else if(date == conflict.start.substring(0,10) && nextDate == conflict.end.substring(0,10))
@@ -242,7 +242,7 @@
                                 endTime:Vue.filter('beautify-time')(midnight.format()), 
                                 startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                 timeDuration:durationStart.asMinutes(), 
-                                type:conflict.conflict, 
+                                type:this.getConflictsType(conflict), 
                                 fullday:false
                             })
                             conflicts.push({
@@ -252,7 +252,7 @@
                                 endTime:Vue.filter('beautify-time')(conflict.end), 
                                 startInMinutes:0,
                                 timeDuration:durationEnd.asMinutes(), 
-                                type:conflict.conflict, 
+                                type:this.getConflictsType(conflict), 
                                 fullday:false
                             })        
                         }                       
@@ -279,8 +279,17 @@
         public getShifts() {
             //GET shifts using the /api/shift call
             //console.log('getting shifts')
+
+
             this.isManageScheduleDataMounted = true;
-        }     
+        }  
+
+        public getConflictsType(conflict){
+            if(conflict.conflict =='AwayLocation') return 'Loaned'
+            else if(conflict.conflict =='Scheduled') return 'Shift'
+            else return conflict.conflict
+        }
+        
 
     }
 </script>

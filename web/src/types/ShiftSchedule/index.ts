@@ -71,9 +71,9 @@ export interface dayOptionsInfoType {
     diff: number;
     fullday: boolean; 
     conflicts: {
-        Training: conflictsInfoType[];
-        Leave: conflictsInfoType[];
-        AwayLocation: conflictsInfoType[];
-        Shift: conflictsInfoType[];
-    };
+        Training: conflictsInfoType[],
+        Leave: conflictsInfoType[],
+        Loaned: conflictsInfoType[],
+        Shift: conflictsInfoType[]
+    }
 }
