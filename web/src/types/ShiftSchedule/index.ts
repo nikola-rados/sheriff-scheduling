@@ -59,7 +59,7 @@ export interface dayOptionsInfoType {
     conflicts: {
         Training: conflictsInfoType[],
         Leave: conflictsInfoType[],
-        AwayLocation: conflictsInfoType[],
+        Loaned: conflictsInfoType[],
         Shift: conflictsInfoType[]
     }
 }

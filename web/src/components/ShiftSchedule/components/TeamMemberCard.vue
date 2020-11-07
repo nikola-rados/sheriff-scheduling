@@ -79,7 +79,7 @@
                                 v-for="day in dayOptions"
                                 :key="day.diff">
                                 <b-tr style="float:left">
-                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.AwayLocation" type="AwayLocation" :index="day.diff" /></b-td>
+                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Loaned" type="Loaned" :index="day.diff" /></b-td>
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Leave" type="Leave" :index="day.diff" /></b-td>                    
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Training" type="Training" :index="day.diff" /></b-td>
                                 </b-tr>
@@ -223,13 +223,13 @@
             this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
 
             this.dayOptions = [
-                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
-                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
-                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
-                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
-                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
-                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}},
-                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], AwayLocation:[], Shift:[]}}
+                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
+                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
+                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
+                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
+                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
+                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
+                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}}
             ];        
             this.extractConflicts();
             //console.log(this.dayOptions[4].conflicts.Training)
@@ -238,16 +238,14 @@
         public extractConflicts() {   
             console.log(this.sheriffInfo.conflicts) 
                       
-            for(const conflict of this.sheriffInfo.conflicts)
-            {
+            for(const conflict of this.sheriffInfo.conflicts){
                 this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict); 
                 this.dayOptions[conflict.dayOffset].fullday = this.dayOptions[conflict.dayOffset].fullday || conflict.fullday               
             }
 
-            console.log(this.dayOptions)
+            //console.log(this.dayOptions)
             
-            Vue.nextTick(()=>{this.isDataMounted = true;})
-                     
+            Vue.nextTick(()=>{this.isDataMounted = true;})                     
         }
 
         get selectAllDisabled(){
@@ -300,14 +298,22 @@
 					this.startTimeState = false;
 					requiredError = true;
 			} else {
+                    this.selectedStartTime = this.autoCompleteTime(this.selectedStartTime);
 					this.startTimeState = true;
 			}
 			if (!this.selectedEndTime) {
 					this.endTimeState = false;
 					requiredError = true;
 			} else {
+                    this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);
 					this.endTimeState = true;
-			}
+            }
+            if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
+                    this.startTimeState = false;
+                    this.endTimeState = false;
+					requiredError = true;
+            } 
+            
 			if (this.selectedDays.length < 1) {
 					this.selectedDayState = false;
 					requiredError = true;
@@ -316,12 +322,31 @@
 			}
 
 			if (!requiredError) {
+                    this.startTimeState = true;
+                    this.endTimeState = true;
 					if (this.editMode) this.updateShift();
 					if (this.createMode) this.createShift();
 			} else {
 					console.log('Error required')
 			}
-		}
+        }
+        
+        public autoCompleteTime(time){
+            const tail="00:00";
+            let result = "";
+            
+            if(time.length==1) result = '0'+time+ tail.slice(2);
+            else if(time.length==4) {
+                if(time.slice(3,4)=='2') result = time.slice(0,3)+'15';
+                else result = time+(time.slice(-1)=='1' || time.slice(-1)=='4'?'5':'0');
+            }
+            else if(time.length==5){
+                if(time.slice(3,4)=='2') result = time.slice(0,3)+'15';
+                else result =time.slice(0,4)+(time.slice(3,4)=='1' || time.slice(3,4)=='4'?'5':'0');
+            }
+            else  result = time+ tail.slice(time.length);
+            return result
+        }
 
 		public closeShiftWindow(){
 			this.resetShiftWindowState();
@@ -337,26 +362,97 @@
 				this.selectedDayState = true;
 				this.startTimeState = true;
 				this.endTimeState = true;
-		}
+        }
+        
+        public getListOfDates(days){
+            const listOfDates: any[] = [];
+            //{name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
+            //
+            //console.log(this.location.timezone)
+            //console.log(this.selectedEndTime)    
+			for(const day of this.dayOptions) {
+                if(this.selectedDays.includes(day.diff))
+                {
+                    // console.log(this.sheriffInfo.conflicts)
+
+                    const startTime = this.completeDate(day.diff, this.selectedStartTime);
+                    const endTime = this.completeDate(day.diff, this.selectedEndTime);
+                    this.takeoutConflicts(day.diff, startTime, endTime )
+
+                    listOfDates.push({
+                        id: 0,
+                        //startDate:  moment.tz(startTime, this.location.timezone).utc().format(),
+                        //endDate: .utc().format(),
+                        sheriffId: this.sheriffId,
+                        locationId: this.location.id,
+                        timezone: this.location.timezone
+                    })
+                }                
+			}
+			console.log(listOfDates)
+			return listOfDates;
+        }
+
+        public takeoutConflicts(dayOffset, start, end){
+            const shifts: any[]=[];
+            const shiftStart = moment.tz(start, this.location.timezone).format();
+            const shiftEnd = moment.tz(end, this.location.timezone).format();
+            shifts.push({start:shiftStart, end:shiftEnd});
+            for(const conflict of this.sheriffInfo.conflicts){
+                if(conflict.dayOffset == dayOffset){
+                    const conflictStart = moment(conflict.date).add(conflict.startTime).format()
+                    const conflictEnd = moment(conflict.date).add(conflict.endTime).format()
+                    console.error('start')
+                    console.log(conflict.date)
+                    console.log(conflict.startTime)
+                    console.log(conflict.endTime)
+                    console.log(conflictStart)
+                    console.log(conflictEnd)
+                    console.log(shiftStart)
+                    console.log(shiftEnd)
+                    console.warn('____')
+                    console.log('SE<CS '+(shiftEnd<=conflictStart)) // SE<CS
+                    console.log('SS<CS '+(shiftStart<=conflictStart)) // SS<CS 
+                    console.log('SS>CE '+(shiftStart>=conflictEnd)) // SS>CE
+                    console.log('SE>CE '+(shiftEnd>=conflictEnd))  //SE>CE
+                    if(shiftEnd>conflictEnd && shiftStart<conflictStart){
+                        shifts.push({start:shiftStart, end:conflictStart});
+                        shifts.push({start:conflictEnd, end:shiftEnd});
+                    }else if(shiftEnd>conflictStart && shiftStart<conflictStart){
+                        shifts.push({start:shiftStart, end:conflictStart});
+                    }
+                    else if(shiftEnd>conflictEnd && shiftStart<conflictEnd){
+                        shifts.push({start:conflictEnd, end:shiftEnd});
+                    }
+                    
+                }
+            }
+
+            console.log('____________')
+            console.log(shifts)
+
+        }
+
+        public completeDate(offset, time){
+            return moment(this.shiftRangeInfo.startDate).add(offset,'days').add(time);
+        }
 
 		public createShift() {
-			const shiftDates = this.getListOfDates(this.selectedDays);
-
-			const body = { }
-				const url = 'api/shift';
-				this.$http.post(url, body )
-						.then(response => {
-								if(response.data){
-										this.resetShiftWindowState();
-										this.closeShiftWindow;
-										this.$emit('change');
-								}
-						}, err => {
-								const errMsg = err.response.data.error;
-								this.shiftErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-								this.shiftErrorMsgDesc = errMsg;
-								this.shiftError = true;
-						})
+            const body = this.getListOfDates(this.selectedDays);
+            const url = 'api/shift';
+            // this.$http.post(url, body )
+            //     .then(response => {
+            //         if(response.data){
+            //             this.resetShiftWindowState();
+            //             this.closeShiftWindow;
+            //             this.$emit('change');
+            //         }
+            //     }, err => {
+            //         const errMsg = err.response.data.error;
+            //         this.shiftErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+            //         this.shiftErrorMsgDesc = errMsg;
+            //         this.shiftError = true;
+            //     })
 		}
 
 		public updateShift() {
@@ -379,18 +475,7 @@
 			//     })
 
         }
-        
-        public getListOfDates(days){
-            const listOfDates: string[] = [];
-			const firstDayOfWeek = this.shiftRangeInfo.startDate;      
-			for(const day of days) {
-				const date = moment(firstDayOfWeek).add(day, 'days').format().substring(0,10)         
-				listOfDates.push(date)                
-			}
-			// console.log(listOfDates)
-			return listOfDates;
-        }
-        
+           
         public timeFormat(value , event) {
 			if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1)
 			if(value.length!=3 && value.slice(-1) == ':') return value.slice(0,-1);

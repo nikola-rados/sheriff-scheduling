@@ -1,7 +1,7 @@
 <template> 
     <div v-if="displayConflicts"  class="bg-transparent text-danger" style="margin:0 .01rem 0 .01rem;padding:0 0 0 .1rem; width:.8rem; height:.8rem">
 
-        <div  v-if="type=='AwayLocation'">
+        <div  v-if="type=='Loaned'">
             <b-icon-box-arrow-left style="transform:translate(0,-6px)"   font-scale="0.65" :id="'conflictIcon'+type+index" />
             <!-- <b-icon-box-arrow-in-right/> -->
         </div>
