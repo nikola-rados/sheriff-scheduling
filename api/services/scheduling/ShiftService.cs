@@ -32,7 +32,7 @@ namespace SS.Api.services.scheduling
                 .Include(s => s.Sheriff)
                 .Include(s => s.AnticipatedAssignment)
                 .Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
-                            !(s.StartDate > end || start > s.EndDate)) //May need to change this. This includes times on the edge.
+                            s.StartDate < end && start < s.EndDate)
                 .ToListAsync();
         }
 
@@ -107,7 +107,7 @@ namespace SS.Api.services.scheduling
                 .AsNoTracking()
                 .Where(s => s.LocationId == locationId &&
                             s.ExpiryDate == null &&
-                            !(s.StartDate > targetEndDate || targetStartDate > s.EndDate));   //may need to refine this date query - This includes times on the edge.
+                            s.StartDate < targetEndDate && targetStartDate < s.EndDate);  
 
             var importedShifts = new List<Shift>();
             foreach (var importShift in shiftsToImport)
@@ -225,7 +225,7 @@ namespace SS.Api.services.scheduling
 
         private async Task<List<Shift>> GetShiftsForSheriffs(IEnumerable<Guid> sheriffIds, DateTimeOffset startDate, DateTimeOffset endDate) =>
             await Db.Shift.AsNoTracking().Where(s =>
-                    !(s.StartDate > endDate || startDate > s.EndDate) && //Date may require refining -  This includes times on the edge.
+                    s.StartDate < endDate && startDate < s.EndDate &&
                     s.SheriffId != null &&
                     sheriffIds.Contains((Guid)s.SheriffId) &&
                     s.ExpiryDate == null)
