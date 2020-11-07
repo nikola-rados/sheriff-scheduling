@@ -131,6 +131,7 @@ namespace tests.controllers
             HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(new List<AddShiftDto> { shiftSix, shiftSeven }));
             sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
             Assert.All(sheriffShifts, s => new List<int> { 3, 4, 6, 7 }.Contains(s.Id));
+
         }
 
 
@@ -500,6 +501,39 @@ namespace tests.controllers
 
             Assert.Equal(shiftDto.StartDate, updatedShift.StartDate);
             Assert.Equal(shiftDto.EndDate, updatedShift.EndDate);
+
+            /*s.StartDate >= dateMin &&
+            s.EndDate <= dateMax &&*/
+
+            var stDate = DateTimeOffset.UtcNow.AddDays(20);
+            var addShifts = new List<AddShiftDto>
+            {
+                new AddShiftDto
+                {
+                    SheriffId = sheriffId,
+                    StartDate = stDate,
+                    EndDate = stDate.AddHours(5),
+                    LocationId = 1,
+                    Timezone = "America/Edmonton"
+                }
+            };
+
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(addShifts));
+
+            addShifts = new List<AddShiftDto>
+            {
+                new AddShiftDto
+                {
+                    SheriffId = sheriffId,
+                    StartDate = stDate.AddHours(2),
+                    EndDate = stDate.AddHours(3),
+                    LocationId = 1,
+                    Timezone = "America/Edmonton"
+                }
+            };
+
+            await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.AddShifts(addShifts));
+
         }
 
 
