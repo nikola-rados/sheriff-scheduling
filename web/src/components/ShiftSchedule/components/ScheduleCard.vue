@@ -1,5 +1,5 @@
 <template>
-    <div v-if="shiftInfo.length>0">             
+    <div v-if="scheduleInfo.length>0">             
         <b-card
             v-for="block in scheduleBlocks"
             :key="block.key"

@@ -21,7 +21,7 @@
                         <span> {{data.label}}</span>
                     </template>
                     <template v-slot:cell()="data"  >                          
-                        <schedule-card   :shiftInfo=" data.value"/>
+                        <schedule-card   :scheduleInfo=" data.value"/>
                     </template>
                     <template v-slot:cell(myteam) = "data" > 
                         <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
