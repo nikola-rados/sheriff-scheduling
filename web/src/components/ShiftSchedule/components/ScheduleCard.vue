@@ -1,7 +1,7 @@
 <template>
     <div v-if="shiftInfo.length>0">             
         <b-card
-            v-for="block in shiftBlocks"
+            v-for="block in scheduleBlocks"
             :key="block.key"
             :id="'schCard'+block.key"
             :style=" 'background-color:'+block.color+'; float:left; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:4rem;'" 
@@ -23,9 +23,12 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Prop } from 'vue-property-decorator';    
-    import {conflictsInfoType} from '../../../types/ShiftSchedule/index'
+    import { Component, Vue, Prop } from 'vue-property-decorator';
+    import { namespace } from "vuex-class";    
     import * as _ from 'underscore';
+    import "@store/modules/ShiftScheduleInformation";   
+    const shiftState = namespace("ShiftScheduleInformation");
+    import {conflictsInfoType, scheduleBlockInfoType} from '../../../types/ShiftSchedule/index'
 
     
 
@@ -47,58 +50,59 @@
     export default class ScheduleCard extends Vue {
 
         @Prop({required: true})
-        shiftInfo!: conflictsInfoType;
+        scheduleInfo!: conflictsInfoType;
 
-        shiftBlocks: any[] = []
+        @shiftState.State
+        public selectedShifts!: string[];
+
+        @shiftState.Action
+        public UpdateSelectedShifts!: (newSelectedShifts: string[]) => void
+
+        scheduleBlocks: scheduleBlockInfoType[] = [];
 
         blockDrop = false;
-        
-       // cardColor = 
        
         mounted()
         {
             //console.log(this.shiftInfo)
 
-            const sortedShiftInfo: conflictsInfoType[] = _.sortBy(this.shiftInfo,'startInMinutes')
-            //console.log(sortedShiftInfo)
-            this.shiftBlocks = []
+            const sortedScheduleInfo: conflictsInfoType[] = _.sortBy(this.scheduleInfo,'startInMinutes')
+            //console.log(sortedScheduleInfo)
+            this.scheduleBlocks = []
             let widthOtherElements =0;
-            for(const shift of sortedShiftInfo){
-                //console.log(shift)
-                if(shift.startTime){
+            for(const schedule of sortedScheduleInfo){
+                //console.log(schedule)
+                if(schedule.startTime){
 
-                    this.shiftBlocks.push({
-                        key: shift.date +'Z' +shift.startTime,
-                        startTime: shift.startInMinutes *5 /72 -widthOtherElements,
-                        timeDuration: shift.timeDuration * 5 /72,
-                        timeStamp: shift.startTime +'-'+shift.endTime,
-                        title:shift.type,
-                        color: shift.type=='Shift'?'#BEF2F7':'#FFEEDD',
-                        originalColor: shift.type=='Shift'?'#BEF2F7':'#FFEEDD',
-                        headerColor: shift.type=='Shift'?'#004567':'#F94567',
+                    this.scheduleBlocks.push({
+                        id: schedule.id? schedule.id:'',
+                        key: schedule.date +'Z' +schedule.startTime,
+                        startTime: schedule.startInMinutes *5 /72 -widthOtherElements,
+                        timeDuration: schedule.timeDuration * 5 /72,
+                        timeStamp: schedule.startTime +'-'+schedule.endTime,
+                        title:schedule.type,
+                        color: schedule.type=='Shift'?'#BEF2F7':'#FFEEDD',
+                        originalColor: schedule.type=='Shift'?'#BEF2F7':'#FFEEDD',
+                        headerColor: schedule.type=='Shift'?'#004567':'#F94567',
                         selected: false
                     })
-                    widthOtherElements += (shift.timeDuration * 5 /72);
-                    //console.log(this.shiftBlocks)
+                    widthOtherElements += (schedule.timeDuration * 5 /72);
+                    //console.log(this.scheduleBlocks)
                 }else{
 
-                    this.shiftBlocks.push({
-                        key: shift.date +'Z' +shift.startTime,
+                    this.scheduleBlocks.push({
+                        key: schedule.date +'Z' +schedule.startTime,
                         startTime: 0,
                         timeDuration: 100,
                         timeStamp: 'Full Day',
-                        title:shift.type,
-                        color: shift.type=='Shift'?'#BEF2F7':'#FFEEDD',
-                        originalColor: shift.type=='Shift'?'#BEF2F7':'#FFEEDD',
-                        headerColor: shift.type=='Shift'?'#004567':'#F94567',
+                        title:schedule.type,
+                        color: schedule.type=='Shift'?'#BEF2F7':'#FFEEDD',
+                        originalColor: schedule.type=='Shift'?'#BEF2F7':'#FFEEDD',
+                        headerColor: schedule.type=='Shift'?'#004567':'#F94567',
                         selected: false
                     })
-                }
-                    
-            }
-            //#ebb734
-            
-            
+                }                    
+            } 
         }
 
         public drop(event: any) 
@@ -117,11 +121,14 @@
 
         public cardSelected(block)
         {
-            console.log("this.selected")
-            console.log(block)
+            // console.log("this.selected")
+            // console.log(block)
+            const selectedCards = this.selectedShifts;
             if(block.title=='Shift'){
                 block.selected = !block.selected;
                 block.color=block.selected?'#F7F54F':block.originalColor;
+                selectedCards.push(block.id);
+                this.UpdateSelectedShifts(selectedCards);
             }
         }
     }

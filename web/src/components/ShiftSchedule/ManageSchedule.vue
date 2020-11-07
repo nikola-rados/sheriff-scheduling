@@ -262,16 +262,17 @@
             //console.log(conflicts)
             //console.log(moment())
 
-            // conflicts.push({
-            //     dayOffset: 4, 
-            //     date:this.headerDates[4], 
-            //     startTime:'08:00', 
-            //     endTime:'16:00', 
-            //     startInMinutes:480,
-            //     timeDuration:480, 
-            //     type:'Shift', 
-            //     fullday:false
-            // })   
+            conflicts.push({
+                id: '237453',
+                dayOffset: 3, 
+                date:this.headerDates[3], 
+                startTime:'08:00', 
+                endTime:'16:00', 
+                startInMinutes:480,
+                timeDuration:480, 
+                type:'Shift', 
+                fullday:false
+            })   
 
             return conflicts
         } 

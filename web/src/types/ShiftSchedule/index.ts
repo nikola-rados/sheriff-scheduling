@@ -2,12 +2,12 @@ import {} from '../common';
 import {} from '../DutyRoster/jsonTypes/index';
 
 export interface shiftInfoType {
-    id: number,
-    startDate: string,
-    endDate: string,    
-    type: string,
-    subType: string,     
-    sheriffId: string,
+    id: number;
+    startDate: string;
+    endDate: string;    
+    type: string;
+    subType: string;     
+    sheriffId: string;
 }
 
 export interface weekShiftInfoType {
@@ -24,7 +24,7 @@ export interface weekShiftInfoType {
 
 export interface shiftRangeInfoType {
     startDate: string;
-    endDate: string
+    endDate: string;
 }
 
 export interface shiftSubTypeInfoType {
@@ -42,24 +42,38 @@ export interface sheriffAvailabilityInfoType {
 }
 
 export interface conflictsInfoType {
-    dayOffset:number, 
-    date:string, 
-    startTime:string,
-    endTime:string,
-    startInMinutes:number,
-    timeDuration: number, 
-    type: string, 
-    fullday: boolean   
+    id?: string;
+    dayOffset:number; 
+    date:string; 
+    startTime:string;
+    endTime:string;
+    startInMinutes:number;
+    timeDuration: number; 
+    type: string; 
+    fullday: boolean;   
+}
+
+export interface scheduleBlockInfoType {
+    id?: string;
+    key: string;
+    startTime:number;
+    timeStamp: string;
+    timeDuration: number; 
+    title: string;
+    color: string;
+    originalColor: string; 
+    headerColor: string;  
+    selected: boolean;   
 }
 
 export interface dayOptionsInfoType {
-    name:string,
-    diff: number,
-    fullday: boolean, 
+    name:string;
+    diff: number;
+    fullday: boolean; 
     conflicts: {
-        Training: conflictsInfoType[],
-        Leave: conflictsInfoType[],
-        AwayLocation: conflictsInfoType[],
-        Shift: conflictsInfoType[]
-    }
+        Training: conflictsInfoType[];
+        Leave: conflictsInfoType[];
+        AwayLocation: conflictsInfoType[];
+        Shift: conflictsInfoType[];
+    };
 }
