@@ -15,6 +15,8 @@ namespace SS.Api.models.dto.generated
         public Guid? SheriffId { get; set; }
         public ShiftDto Shift { get; set; }
         public int? ShiftId { get; set; }
+        public LocationDto Location { get; set; }
+        public int LocationId { get; set; }
         public string Timezone { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
