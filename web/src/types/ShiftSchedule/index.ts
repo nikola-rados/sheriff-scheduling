@@ -5,8 +5,8 @@ export interface shiftInfoType {
     id: number;
     startDate: string;
     endDate: string;    
-    type: string;
-    subType: string;     
+    timezone: string;
+    locationId: string;     
     sheriffId: string;
 }
 
@@ -77,3 +77,5 @@ export interface dayOptionsInfoType {
         Shift: conflictsInfoType[]
     }
 }
+
+export interface shiftInfoType

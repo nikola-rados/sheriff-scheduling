@@ -4,8 +4,7 @@
             v-for="block in scheduleBlocks"
             :key="block.key"
             :id="'schCard'+block.key"
-            :style=" 'background-color:'+block.color+'; float:left; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:4rem;'" 
-            
+            :style=" 'background-color:'+block.color+'; float:left; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:4rem;'"             
             no-body>
                 <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)"> 
                     <h6 :style="'background-color:'+block.headerColor+'; color:white; text-align: center; font-size:10px; line-height: 16px;'">
@@ -55,7 +54,7 @@
 
         mounted()
         {
-            //console.log(this.shiftInfo)
+            // console.log(this.scheduleInfo)
 
             const sortedScheduleInfo: conflictsInfoType[] = _.sortBy(this.scheduleInfo,'startInMinutes')
            
@@ -101,6 +100,7 @@
        
         public cardSelected(block){
             const selectedCards = this.selectedShifts;
+            console.log(block)
             if(block.title=='Shift'){
                 block.selected = !block.selected;
                 block.color=block.selected?'#F7F54F':block.originalColor;
