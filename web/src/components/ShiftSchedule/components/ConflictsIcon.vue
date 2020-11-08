@@ -1,9 +1,11 @@
 <template> 
     <div v-if="displayConflicts"  class="bg-transparent text-danger" style="margin:0 .01rem 0 .01rem;padding:0 0 0 .1rem; width:.8rem; height:.8rem">
-
+        
+        <div  v-if="type=='Shift'">
+             <b-icon-person-fill style="transform:translate(0,-6px); margin:0; padding:0; color:blue;" font-scale="0.65"  :id="'conflictIcon'+type+index"/>
+        </div>
         <div  v-if="type=='Loaned'">
-            <b-icon-box-arrow-left style="transform:translate(0,-6px)"   font-scale="0.65" :id="'conflictIcon'+type+index" />
-            <!-- <b-icon-box-arrow-in-right/> -->
+           <font-awesome-icon  style="transform:translate(0,-6px) rotate(180deg); font-size: .6rem;"  icon="sign-out-alt"   :id="'conflictIcon'+type+index" />
         </div>
         <div v-if="type=='Leave'">
             <font-awesome-icon style="transform:translate(0px,-6px); font-size: .55rem;"  icon="suitcase" :id="'conflictIcon'+type+index"></font-awesome-icon> 

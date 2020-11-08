@@ -144,7 +144,7 @@
                 sheriffAvailability.rank = sheriffAvailabilityJson.sheriff.rank;
                 sheriffAvailability.conflicts = this.extractConflicts(sheriffAvailabilityJson.conflicts);        
                 //sheriffsAvailability.push(sheriffAvailability)
-                //console.log(sheriffAvailability)
+               // console.log(sheriffsAvailabilityJson['sheriff']['homeLocationId'])
                 
                 this.shiftSchedules.push({
                     myteam: sheriffAvailability,
@@ -179,6 +179,7 @@
                             // console.log(conflict.end)
                             // console.log(date)
                             conflicts.push({
+                                id:conflict.shiftId? conflict.shiftId:0,
                                 dayOffset: Number(dateIndex), 
                                 date:date, 
                                 startTime:'', 
@@ -210,6 +211,7 @@
                             // console.log(moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes())
                             // console.log(duration.asMinutes())
                             conflicts.push({
+                                id:conflict.shiftId? conflict.shiftId:0,
                                 dayOffset: Number(dateIndex), 
                                 date:this.headerDates[dateIndex], 
                                 startTime:Vue.filter('beautify-time')(conflict.start), 
@@ -236,6 +238,7 @@
                             // console.log(durationStart.asMinutes())
                             // console.log(durationEnd.asMinutes())
                             conflicts.push({
+                                id:conflict.shiftId? conflict.shiftId:0,
                                 dayOffset: Number(dateIndex), 
                                 date:this.headerDates[dateIndex], 
                                 startTime:Vue.filter('beautify-time')(conflict.start), 
@@ -246,6 +249,7 @@
                                 fullday:false
                             })
                             conflicts.push({
+                                id:conflict.shiftId? conflict.shiftId:0,
                                 dayOffset: Number(dateIndex)+1, 
                                 date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
                                 startTime:'00:00', 

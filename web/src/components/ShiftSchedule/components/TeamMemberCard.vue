@@ -80,17 +80,18 @@
                                 v-for="day in dayOptions"
                                 :key="day.diff">
                                 <b-tr style="float:left">
+                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Shift" type="Shift" :index="day.diff" /></b-td>
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Loaned" type="Loaned" :index="day.diff" /></b-td>
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Leave" type="Leave" :index="day.diff" /></b-td>                    
-                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Training" type="Training" :index="day.diff" /></b-td>
+                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Training" type="Training" :index="day.diff" /></b-td>                                
                                 </b-tr>
                                 <b-tr>
-                                    <b-td colspan="3">
-                                        <b-form-checkbox
-                                            @change="weekdaysChanged"						
-                                            :disabled="day.fullday"
+                                    <b-td colspan="3" >
+                                        <b-form-checkbox style="width:3.32rem;"
+                                            @change="weekdaysChanged"                                            					
+                                            :disabled="day.fullday"                                            
                                             :value="day.diff">
-                                                {{day.name}}
+                                            <span class="h6 font-weight-normal m-0 p-0">{{day.name}}</span>
                                         </b-form-checkbox>
                                     </b-td>
                                 </b-tr>
@@ -98,6 +99,8 @@
                         </b-form-checkbox-group>
                     </b-form-group>
                 </b-row>
+
+                <div>Selected: <strong>{{ selectedDays }}</strong></div>
 
                 <b-row class="mx-1 my-0 p-0">
                     <b-form-group class="mr-3" style="width: 7rem">
@@ -187,6 +190,8 @@
 
         isDataMounted = false;
         fullName = '';
+
+        indeterminate = true
 
         halfUnavailStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), white);"
         halfUnavailHalfSchStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), rgb(12, 120, 170));"
@@ -284,7 +289,8 @@
 			this.createMode = true;
 			this.editMode = false;
 			this.isShiftDataMounted = true;
-			this.showShiftDetails = true;
+            this.showShiftDetails = true;
+            this.indeterminate= true
         }
         
         public saveShift() {
@@ -522,6 +528,10 @@
 
     .card {
        border: white;
+    }
+
+    .custom-control-input{
+        background-color: darkorange;
     }
 
 </style>

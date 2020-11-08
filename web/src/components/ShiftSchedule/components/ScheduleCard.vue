@@ -94,6 +94,10 @@
                 }                    
             } 
         }
+
+        // public getScheduleColor(type){
+        //     if(type=='Unavailable')
+        // }
        
         public cardSelected(block){
             const selectedCards = this.selectedShifts;
