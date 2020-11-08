@@ -1,16 +1,22 @@
 <template>
-    <div v-if="scheduleInfo.length>0">             
+    <div v-if="scheduleInfo.length>0" id="shiftBox" ref="shiftBox" :key="updateBoxes">             
         <b-card
             v-for="block in scheduleBlocks"
             :key="block.key"
             :id="'schCard'+block.key"
             :style=" 'background-color:'+block.color+'; float:left; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:4rem;'" 
+            
             no-body>
-                <span v-if="block.timeDuration>20" @mousedown="cardSelected(block)">
-                    <h6 :style="'background-color:'+block.headerColor+'; color:white; text-align: center; font-size:10px; line-height: 16px;'">{{block.title}}</h6>
+                <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)"> 
+                    <h6 :style="'background-color:'+block.headerColor+'; color:white; text-align: center; font-size:10px; line-height: 16px;'">
+                        <font-awesome-icon v-if="block.title=='Loaned'" style="transform: rotate(180deg); font-size: .55rem;"  icon="sign-out-alt" /> 
+                        <font-awesome-icon v-if="block.title=='Leave'" style="font-size: .55rem;"  icon="suitcase"/> 
+                        <font-awesome-icon v-if="block.title=='Training'" style="font-size: .5rem;" icon="graduation-cap"/> 
+                        <b-icon-person-fill v-if="block.title=='Shift'"/>
+                    </h6>
                     <span style="text-align: center;font-size:10px; line-height: 12px; display: block;">{{block.timeStamp}}</span>
                 </span>
-                <span v-else>
+                <span v-else @mousedown="cardSelected(block)">
                     <h6 
                         v-b-tooltip.hover                                
                         :title="block.title + ' ' + block.timeStamp"
@@ -30,22 +36,6 @@
     const shiftState = namespace("ShiftScheduleInformation");
     import {conflictsInfoType, scheduleBlockInfoType} from '../../../types/ShiftSchedule/index'
 
-    
-
-    //  :bg-variant="blockDrop?'danger':selected?'select':''"
-    //             border-variant="white"
-    //             class="m-0 p-0" 
-    //             body-class="m-0 p-0 bg-warning" 
-    //             header-class="h7 text-center text-capitalize m-0 p-0 bg-warning"            
-    //             @mousedown="cardSelected"
-    //             @dragenter="dragEnter"
-    //             @dragleave="dragLeave"  
-    //             @dragover="dragEnter"          
-    //             @dragover.prevent
-    //             @drop.prevent="drop" 
-    //             :header="timeDuration>20? shiftInfo.type:''" 
-    //             >
-
     @Component
     export default class ScheduleCard extends Vue {
 
@@ -61,17 +51,17 @@
         scheduleBlocks: scheduleBlockInfoType[] = [];
 
         blockDrop = false;
-       
+        updateBoxes =0;
+
         mounted()
         {
             //console.log(this.shiftInfo)
 
             const sortedScheduleInfo: conflictsInfoType[] = _.sortBy(this.scheduleInfo,'startInMinutes')
-            //console.log(sortedScheduleInfo)
+           
             this.scheduleBlocks = []
             let widthOtherElements =0;
             for(const schedule of sortedScheduleInfo){
-                //console.log(schedule)
                 if(schedule.startTime){
 
                     this.scheduleBlocks.push({
@@ -104,25 +94,8 @@
                 }                    
             } 
         }
-
-        public drop(event: any) 
-        {
-            this.blockDrop = false;
-            const cardid = event.dataTransfer.getData('text');
-            console.log(cardid)
-        }
-
-        public dragEnter(){
-            this.blockDrop = true;
-        }
-        public dragLeave(){
-            this.blockDrop = false;
-        }
-
-        public cardSelected(block)
-        {
-            // console.log("this.selected")
-            // console.log(block)
+       
+        public cardSelected(block){
             const selectedCards = this.selectedShifts;
             if(block.title=='Shift'){
                 block.selected = !block.selected;
@@ -131,6 +104,28 @@
                 this.UpdateSelectedShifts(selectedCards);
             }
         }
+
+        public blockSize(block){
+            const el = document.getElementById('schCard'+block.key)
+            if(el){
+                return el.clientWidth
+            }else{
+                return 0
+            }            
+        }
+
+        created() {
+            window.addEventListener("resize", this.onResize);
+        }
+
+        destroyed() {
+            window.removeEventListener("resize", this.onResize);
+        }
+
+        public onResize() {          
+            this.updateBoxes++;
+        }
+
     }
 </script>
 

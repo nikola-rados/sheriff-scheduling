@@ -262,17 +262,17 @@
             //console.log(conflicts)
             //console.log(moment())
 
-            conflicts.push({
-                id: '237453',
-                dayOffset: 3, 
-                date:this.headerDates[3], 
-                startTime:'08:00', 
-                endTime:'16:00', 
-                startInMinutes:480,
-                timeDuration:480, 
-                type:'Shift', 
-                fullday:false
-            })   
+            // conflicts.push({
+            //     id: '237453',
+            //     dayOffset: 4, 
+            //     date:this.headerDates[4], 
+            //     startTime:'08:05', 
+            //     endTime:'15:55', 
+            //     startInMinutes:485,
+            //     timeDuration:470, 
+            //     type:'Shift', 
+            //     fullday:false
+            // })   
 
             return conflicts
         } 
@@ -288,8 +288,7 @@
             if(conflict.conflict =='AwayLocation') return 'Loaned'
             else if(conflict.conflict =='Scheduled') return 'Shift'
             else return conflict.conflict
-        }
-        
+        }        
 
     }
 </script>

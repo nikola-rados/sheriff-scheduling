@@ -37,17 +37,18 @@
                 </span>
             </template>
 
-            <b-card v-if="isShiftDataMounted" no-body style="font-size: 14px;user-select: none;" >
-                <b-card id="ShiftError" no-body>
-                    <h2 v-if="shiftError" class="mx-1 mt-2"
-                        ><b-badge v-b-tooltip.hover
-                            :title="shiftErrorMsgDesc"
-                            variant="danger"> {{shiftErrorMsg}}
-                            <b-icon class="ml-3"
-                                icon = x-square-fill
-                                @click="shiftError = false"
-                    /></b-badge></h2>
-                </b-card>              
+            <b-card v-if="isShiftDataMounted" no-body style="font-size: 14px; user-select: none;" >
+                
+                <b-row v-if="shiftError" id="ShiftError" class="h3 mx-2">
+                    <b-badge class="mx-1 mt-2"
+                        v-b-tooltip.hover
+                        :title="shiftErrorMsgDesc"
+                        variant="danger"> {{shiftErrorMsg}}
+                        <b-icon class="ml-3"
+                            icon = x-square-fill
+                            @click="shiftError = false"
+                    /></b-badge>                    
+                </b-row>              
 
 
                 <b-row class="mx-1 my-3">
@@ -192,8 +193,6 @@
         halfSchStyle="background-image: linear-gradient(to bottom right, rgb(12, 120, 170),rgb(243, 232, 232), white);"
         WeekDay = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-        
-
         selectedDate = '';
 		selectedStartTime = '';
 		selectedEndTime = '';
@@ -260,7 +259,6 @@
             return false;
         }
 
-
         public weekdaysChanged(){
 			Vue.nextTick(()=>{
                 this.allDaysSelected = this.selectedDays.length==7? true: false
@@ -290,8 +288,8 @@
         }
         
         public saveShift() {
-			console.log('saving')
-
+            console.log('saving')            
+            this.shiftError = false;
 			let requiredError = false;
 			
 			if (!this.selectedStartTime) {
@@ -365,28 +363,33 @@
         }
         
         public getListOfDates(days){
-            const listOfDates: any[] = [];
-            //{name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
-            //
-            //console.log(this.location.timezone)
-            //console.log(this.selectedEndTime)    
+            const listOfDates: any[] = [];   
 			for(const day of this.dayOptions) {
-                if(this.selectedDays.includes(day.diff))
-                {
-                    // console.log(this.sheriffInfo.conflicts)
+                if(this.selectedDays.includes(day.diff)){
 
                     const startTime = this.completeDate(day.diff, this.selectedStartTime);
                     const endTime = this.completeDate(day.diff, this.selectedEndTime);
-                    this.takeoutConflicts(day.diff, startTime, endTime )
+                    const shifts = this.takeoutConflicts(day.diff, startTime, endTime )
+                    console.log(shifts)
+                    console.log(shifts.length)
+                    if(shifts.length==0){
+                        this.shiftErrorMsg = 'Too many shift conflicts on '+day.name +'.';
+                        this.shiftErrorMsgDesc = '';
+                        this.shiftError = true;
+                        return
+                    }
 
-                    listOfDates.push({
-                        id: 0,
-                        //startDate:  moment.tz(startTime, this.location.timezone).utc().format(),
-                        //endDate: .utc().format(),
-                        sheriffId: this.sheriffId,
-                        locationId: this.location.id,
-                        timezone: this.location.timezone
-                    })
+                    for(const shift of shifts){
+                        if(shift.start>=shift.end)continue;
+                        listOfDates.push({
+                            id: 0,
+                            startDate: moment(shift.start).utc().format(),
+                            endDate: moment(shift.end).utc().format(),
+                            sheriffId: this.sheriffId,
+                            locationId: this.location.id,
+                            timezone: this.location.timezone
+                        })
+                    }
                 }                
 			}
 			console.log(listOfDates)
@@ -394,43 +397,51 @@
         }
 
         public takeoutConflicts(dayOffset, start, end){
+            let numberOfConflicts=0
             const shifts: any[]=[];
             const shiftStart = moment.tz(start, this.location.timezone).format();
             const shiftEnd = moment.tz(end, this.location.timezone).format();
-            shifts.push({start:shiftStart, end:shiftEnd});
+            
             for(const conflict of this.sheriffInfo.conflicts){
                 if(conflict.dayOffset == dayOffset){
                     const conflictStart = moment(conflict.date).add(conflict.startTime).format()
-                    const conflictEnd = moment(conflict.date).add(conflict.endTime).format()
-                    console.error('start')
-                    console.log(conflict.date)
-                    console.log(conflict.startTime)
-                    console.log(conflict.endTime)
-                    console.log(conflictStart)
-                    console.log(conflictEnd)
-                    console.log(shiftStart)
-                    console.log(shiftEnd)
-                    console.warn('____')
-                    console.log('SE<CS '+(shiftEnd<=conflictStart)) // SE<CS
-                    console.log('SS<CS '+(shiftStart<=conflictStart)) // SS<CS 
-                    console.log('SS>CE '+(shiftStart>=conflictEnd)) // SS>CE
-                    console.log('SE>CE '+(shiftEnd>=conflictEnd))  //SE>CE
+                    const conflictEnd = moment(conflict.date).add(conflict.endTime).format()                   
                     if(shiftEnd>conflictEnd && shiftStart<conflictStart){
-                        shifts.push({start:shiftStart, end:conflictStart});
-                        shifts.push({start:conflictEnd, end:shiftEnd});
+                        shifts.push({start:shiftStart, end: this.roundTime(conflictStart,true)});
+                        shifts.push({start:this.roundTime(conflictEnd,false), end:shiftEnd});
+                        numberOfConflicts++;
                     }else if(shiftEnd>conflictStart && shiftStart<conflictStart){
-                        shifts.push({start:shiftStart, end:conflictStart});
-                    }
-                    else if(shiftEnd>conflictEnd && shiftStart<conflictEnd){
-                        shifts.push({start:conflictEnd, end:shiftEnd});
-                    }
-                    
+                        shifts.push({start:shiftStart, end:this.roundTime(conflictStart,true)});
+                        numberOfConflicts++;
+                    }else if(shiftEnd>conflictEnd && shiftStart<conflictEnd){
+                        shifts.push({start:this.roundTime(conflictEnd,false), end:shiftEnd});
+                        numberOfConflicts++;
+                    }else if(shiftEnd<=conflictEnd && shiftStart>=conflictStart){                        
+                        numberOfConflicts++;
+                    }                    
                 }
             }
+            if(numberOfConflicts == 0){
+                shifts.push({start:shiftStart, end:shiftEnd});
+            }else if(numberOfConflicts >=2){
+                return [];
+            } 
 
-            console.log('____________')
-            console.log(shifts)
+            return shifts
+        }
 
+        public roundTime(time, floor){
+            const minutes = moment(time).minutes()
+            let minOffset = 0
+            //if(minutes%15 == 0) return time
+
+            if(minutes/15 >= 3) minOffset= floor? 45-minutes: 60-minutes;
+            else if(minutes/15 >= 2) minOffset= floor? 30-minutes: 45-minutes;
+            else if(minutes/15 >= 1) minOffset= floor? 15-minutes: 30-minutes;
+            else minOffset= floor? 0-minutes: 15-minutes;
+
+            //console.log(moment(time).add(minOffset,'minutes').format()) 
+            return moment(time).add(minOffset,'minutes').format()           
         }
 
         public completeDate(offset, time){
@@ -439,20 +450,21 @@
 
 		public createShift() {
             const body = this.getListOfDates(this.selectedDays);
+            if(!body || (body && body.length==0)) return
             const url = 'api/shift';
-            // this.$http.post(url, body )
-            //     .then(response => {
-            //         if(response.data){
-            //             this.resetShiftWindowState();
-            //             this.closeShiftWindow;
-            //             this.$emit('change');
-            //         }
-            //     }, err => {
-            //         const errMsg = err.response.data.error;
-            //         this.shiftErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-            //         this.shiftErrorMsgDesc = errMsg;
-            //         this.shiftError = true;
-            //     })
+            this.$http.post(url, body )
+                .then(response => {
+                    if(response.data){
+                        this.resetShiftWindowState();
+                        this.closeShiftWindow;
+                        this.$emit('change');
+                    }
+                }, err => {
+                    const errMsg = err.response.data.error;
+                    this.shiftErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.shiftErrorMsgDesc = errMsg;
+                    this.shiftError = true;
+                })
 		}
 
 		public updateShift() {
@@ -510,16 +522,6 @@
 
     .card {
        border: white;
-    }
-
-    .badge {
-        width: 0.75rem;
-        height: 0.9rem;
-        margin:0.5rem .04rem 0 .04rem;
-        padding: 0.15rem 0 0 0;
-        border: solid 1px rgb(53, 56, 53); 
-        border-radius: 4px;
-        /* background-image: linear-gradient(to bottom right, rgb(12, 120, 170),rgb(243, 232, 232), white);*/        
     }
 
 </style>
