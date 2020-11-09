@@ -199,7 +199,7 @@ namespace SS.Api.services.scheduling
                 var sheriff = sheriffs.FirstOrDefault();
                 sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}, they might not be active in location for the shift.");
 
-                validationErrors.AddRange(sheriff!.AwayLocation.Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate)));
+                validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId).Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate)));
                 validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(aw.Sheriff, aw.StartDate, aw.EndDate)));
                 validationErrors.AddRange(sheriff.Training.Select(aw => PrintSheriffEventConflict<SheriffTraining>(aw.Sheriff, aw.StartDate, aw.EndDate)));
             }
