@@ -7,8 +7,10 @@
             :style=" 'background-color:'+block.color+'; float:left; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:4rem;'"             
             no-body>
                 <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)"> 
-                    <h6 :style="'background-color:'+block.headerColor+'; color:white; text-align: center; font-size:10px; line-height: 16px;'">
-                        <font-awesome-icon v-if="block.title=='Loaned'" style="transform: rotate(180deg); font-size: .55rem;"  icon="sign-out-alt" /> 
+                    <h6 :style="'background-color:'+block.headerColor+'; color:white; text-align: center; font-size:10px; line-height: 16px;'"
+                        v-b-tooltip.hover                                
+                        :title="block.title + ' ' + block.timeStamp">
+                        <font-awesome-icon v-if="block.title.includes('Loaned')" style="transform: rotate(180deg); font-size: .55rem;"  icon="sign-out-alt" /> 
                         <font-awesome-icon v-if="block.title=='Leave'" style="font-size: .55rem;"  icon="suitcase"/> 
                         <font-awesome-icon v-if="block.title=='Training'" style="font-size: .5rem;" icon="graduation-cap"/> 
                         <b-icon-person-fill v-if="block.title=='Shift'"/>
@@ -76,7 +78,7 @@
                         startTime: schedule.startInMinutes *5 /72 -widthOtherElements,
                         timeDuration: schedule.timeDuration * 5 /72,
                         timeStamp: schedule.startTime +'-'+schedule.endTime,
-                        title:schedule.type,
+                        title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: schedule.type,
                         color: this.getScheduleColor(schedule.type).body,
                         originalColor: this.getScheduleColor(schedule.type).body,
                         headerColor: this.getScheduleColor(schedule.type).header,
@@ -92,7 +94,7 @@
                         startTime: 0,
                         timeDuration: 100,
                         timeStamp: 'Full Day',
-                        title:schedule.type,
+                        title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: schedule.type,
                         color: this.getScheduleColor(schedule.type).body,
                         originalColor: this.getScheduleColor(schedule.type).body,
                         headerColor: this.getScheduleColor(schedule.type).header,

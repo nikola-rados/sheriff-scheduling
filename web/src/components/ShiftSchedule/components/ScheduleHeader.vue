@@ -46,27 +46,33 @@
 
             <b-card v-if="isShiftDataMounted" no-body style="font-size: 14px; user-select: none;" >
                 
-                <b-row v-if="shiftError" id="ShiftError" class="h3 mx-2">
-                    <b-badge class="mx-1 mt-2"
+                <b-row v-if="shiftError" id="ShiftError" style="border-radius:10px; max-width: 30rem;" class="h4 mx-2 text-white bg-danger">
+
+					<span class="mx-2 mt-2 mb-0 p-0"
+						>{{shiftErrorMsg}}</span><b-icon class="p-0" 
+						style="margin-left:auto; transform:translate(-10px, -10px);"
+                        icon = x-square-fill
+                        @click="shiftError = false"
+                    />
+                    <!-- <b-badge class="mx-1 mt-2"
+						style="width: 20rem;"
                         v-b-tooltip.hover
                         :title="shiftErrorMsgDesc"
                         variant="danger"> {{shiftErrorMsg}}
                         <b-icon class="ml-3"
                             icon = x-square-fill
                             @click="shiftError = false"
-                    /></b-badge>                    
+                    /></b-badge>                     -->
                 </b-row>              
 
 
-                <b-row v-if="shiftTimesDiffer" id="shiftTimesDifferError" class="h3 mx-2">
-                    <b-badge class="mx-1 mt-2"
-                        v-b-tooltip.hover
-						:title="shiftTimesDifferMsgDesc"
-                        variant="warning"> {{shiftTimesDifferMsg}}
-                        <b-icon class="ml-2"
-                            icon = x-square-fill
-                            @click="shiftTimesDiffer = false"
-                    /></b-badge>                    
+                <b-row v-if="shiftTimesDiffer" id="shiftTimesDifferError" style="border-radius:10px; max-width: 30rem;" class="h4 mx-2 bg-warning">
+					<span class="mx-2 mt-2 mb-0 p-0"
+						>{{shiftTimesDifferMsg}}</span><b-icon class="p-0" 
+						style="margin-left:auto; transform:translate(-10px, -10px);"
+                        icon = x-square-fill
+                        @click="shiftTimesDiffer = false"
+                    />
                 </b-row>
 
                 <b-row class="mx-1 my-0 p-0">
@@ -191,11 +197,11 @@
 
 		shiftError = false;
 		shiftErrorMsg = '';
-		shiftErrorMsgDesc = '';
+		// shiftErrorMsgDesc = '';
 
 		shiftTimesDiffer = false;
 		shiftTimesDifferMsg = '';
-		shiftTimesDifferMsgDesc = '';
+		// shiftTimesDifferMsgDesc = '';
 
 		mounted() {
 			this.selectedDate = moment().format().substring(0,10);			
@@ -206,11 +212,11 @@
 			this.isShiftDataMounted = false;
 			this.shiftError = false;
 			this.shiftErrorMsg = '';
-			this.shiftErrorMsgDesc = '';
+			// this.shiftErrorMsgDesc = '';
 
 			this.shiftTimesDiffer = false;
 			this.shiftTimesDifferMsg = '';
-			this.shiftTimesDifferMsgDesc = '';
+			// this.shiftTimesDifferMsgDesc = '';
 			this.getShiftsToEdit();
 		}
 		
@@ -222,9 +228,11 @@
 			let numberOfEndTimes= 0;
 			this.shiftTimesDiffer = false;
 			this.shiftTimesDifferMsg = '';
-			this.shiftTimesDifferMsgDesc = '';
+			// this.shiftTimesDifferMsgDesc = '';
 
-			const url = 'api/shift?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+this.shiftRangeInfo.endDate;
+			const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
+
+			const url = 'api/shift?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+endDate;
             this.$http.get(url)
                 .then(response => {
                     if(response.data){						
@@ -257,14 +265,14 @@
 
 						if (this.shiftTimesDiffer) {
 							if (numberOfEndTimes > 1 && numberOfStartTimes > 1) {
-								this.shiftTimesDifferMsgDesc = "The start and end times of the selected shifts do not match."
-								this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
+								this.shiftTimesDifferMsg = "The start and end times of the selected shifts do not match."
+								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							} else if (numberOfStartTimes > 1) {
-								this.shiftTimesDifferMsgDesc = "The start times of the selected shifts do not match."
-								this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
+								this.shiftTimesDifferMsg = "The start times of the selected shifts do not match."
+								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							} else if (numberOfEndTimes > 1) {
-								this.shiftTimesDifferMsgDesc = "The end times of the selected shifts do not match."
-								this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
+								this.shiftTimesDifferMsg = "The end times of the selected shifts do not match."
+								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							}
 						}
 
@@ -325,12 +333,17 @@
             return result
 		}
 
+		public completeDate(date, time){
+            const startOfdate = moment(date).startOf("day").format().substring(0,10);
+            return(moment.tz(startOfdate + 'T'+time, this.location.timezone).format()); 
+        }
+
 		public updateShift() {
 			const body = [] as shiftInfoType[];
 
 			for (const shift of this.shiftsToEdit) {							
-				const newStartDate = moment(shift.startDate).startOf("day").add(this.selectedStartTime).format();
-				const newEndDate = moment(shift.endDate).startOf("day").add(this.selectedEndTime).format();
+				const newStartDate = this.completeDate(shift.startDate,this.selectedStartTime);
+				const newEndDate = this.completeDate(shift.endDate,this.selectedEndTime);
 				//console.log(shift)
 				body.push({
 					id: shift.id,
@@ -351,8 +364,8 @@
 					}
 				}, err => {
 					const errMsg = err.response.data.error;
-					this.shiftErrorMsg = errMsg.slice(0,50) + (errMsg.length>50?' ...':'');
-					this.shiftErrorMsgDesc = errMsg;
+					// this.shiftErrorMsg = errMsg.slice(0,50) + (errMsg.length>50?' ...':'');
+					this.shiftErrorMsg = errMsg;
 					this.shiftError = true;
 				})
 

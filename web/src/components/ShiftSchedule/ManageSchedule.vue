@@ -115,7 +115,9 @@
 
             this.headerDate();
 
-            const url = 'api/shift/shiftavailability?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+this.shiftRangeInfo.endDate;
+            const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
+
+            const url = 'api/shift/shiftavailability?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+endDate;
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
@@ -150,7 +152,7 @@
                 sheriffAvailability.rank = sheriffAvailabilityJson.sheriff.rank;
                 sheriffAvailability.homeLocation= {id: sheriffAvailabilityJson.sheriff.homeLocation.id, name: sheriffAvailabilityJson.sheriff.homeLocation.name}
                 const isInLoanLocation = (sheriffAvailabilityJson.sheriff.homeLocation.id !=this.location.id)
-                sheriffAvailability.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffAvailabilityJson.conflicts) :this.extractConflicts(sheriffAvailabilityJson.conflicts);        
+                sheriffAvailability.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffAvailabilityJson.conflicts) :this.extractConflicts(sheriffAvailabilityJson.conflicts, false);        
                 //sheriffsAvailability.push(sheriffAvailability)
                // console.log(isInLoanLocation)
                 
@@ -170,11 +172,13 @@
             this.updateTable++;
         }
 
-        public extractConflicts(conflictsJson){
+        public extractConflicts(conflictsJson, onlyShedules){
 
             const conflicts: conflictsInfoType[] = []
 
-            for(const conflict of conflictsJson){ 
+            for(const conflict of conflictsJson){
+                if (conflict.conflict=="Scheduled" && conflict.locationId != this.location.id) continue;
+                if (conflict.conflict!="Scheduled" && onlyShedules) continue;
                 conflict.start = moment(conflict.start).tz(this.location.timezone).format();
                 conflict.end = moment(conflict.end).tz(this.location.timezone).format();               
                 if(Vue.filter('isDateFullday')(conflict.start,conflict.end))
@@ -190,6 +194,7 @@
                             // console.log(date)
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
+                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
                                 dayOffset: Number(dateIndex), 
                                 date:date, 
                                 startTime:'', 
@@ -222,6 +227,7 @@
                             // console.log(duration.asMinutes())
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
+                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
                                 dayOffset: Number(dateIndex), 
                                 date:this.headerDates[dateIndex], 
                                 startTime:Vue.filter('beautify-time')(conflict.start), 
@@ -249,6 +255,7 @@
                             // console.log(durationEnd.asMinutes())
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
+                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
                                 dayOffset: Number(dateIndex), 
                                 date:this.headerDates[dateIndex], 
                                 startTime:Vue.filter('beautify-time')(conflict.start), 
@@ -260,6 +267,7 @@
                             })
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
+                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
                                 dayOffset: Number(dateIndex)+1, 
                                 date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
                                 startTime:'00:00', 
@@ -319,6 +327,7 @@
                             if(duration>5)
                                 conflicts.push({
                                     id:'0',
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
                                     dayOffset: Number(dateIndex), 
                                     date:date, 
                                     startTime:Vue.filter('beautify-time')(previousConflictEndDate), 
@@ -336,6 +345,7 @@
                 if( numberOfConflictsPerDay == 0){
                     conflicts.push({
                         id:'0',
+                        location:'',
                         dayOffset: Number(dateIndex), 
                         date:date, 
                         startTime:'', 
@@ -358,6 +368,7 @@
                     if(duration>5)
                         conflicts.push({
                             id:'0',
+                            location: '',
                             dayOffset: Number(dateIndex), 
                             date:date, 
                             startTime:Vue.filter('beautify-time')(previousConflictEndDate), 
@@ -368,6 +379,11 @@
                             fullday:false
                         })
                 }
+            }
+            const shifts = this.extractConflicts(conflictsJson, true);
+
+            for (const shift of shifts) {
+                conflicts.push(shift);
             }
 
             return conflicts

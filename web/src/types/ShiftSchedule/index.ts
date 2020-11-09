@@ -44,6 +44,7 @@ export interface sheriffAvailabilityInfoType {
 
 export interface conflictsInfoType {
     id?: string;
+    location: string;
     dayOffset:number; 
     date:string; 
     startTime:string;

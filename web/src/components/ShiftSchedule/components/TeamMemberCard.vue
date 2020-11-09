@@ -444,11 +444,9 @@
 			return listOfDates;
         }
 
-        public takeoutConflicts(dayOffset, start, end){
+        public takeoutConflicts(dayOffset, shiftStart, shiftEnd){
             let numberOfConflicts=0
-            const shifts: any[]=[];
-            const shiftStart = moment.tz(start, this.location.timezone).format();
-            const shiftEnd = moment.tz(end, this.location.timezone).format();
+            const shifts: any[]=[];            
             
             for(const conflict of this.sheriffInfo.conflicts){
                 if(conflict.dayOffset == dayOffset){
@@ -493,7 +491,8 @@
         }
 
         public completeDate(offset, time){
-            return moment(this.shiftRangeInfo.startDate).add(offset,'days').add(time);
+            const startOfdate = moment(this.shiftRangeInfo.startDate).add(offset,'days').format().substring(0,10);
+            return(moment.tz(startOfdate + 'T'+time, this.location.timezone).format()); 
         }
 
 		public createShift() {
