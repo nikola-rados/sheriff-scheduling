@@ -39,6 +39,7 @@ export interface sheriffAvailabilityInfoType {
     lastName: string;
     badgeNumber: string;
     rank: string;
+    homeLocation: {id:number, name:string};
 }
 
 export interface conflictsInfoType {
@@ -74,7 +75,8 @@ export interface dayOptionsInfoType {
         Training: conflictsInfoType[],
         Leave: conflictsInfoType[],
         Loaned: conflictsInfoType[],
-        Shift: conflictsInfoType[]
+        Shift: conflictsInfoType[],
+        Unavailable: conflictsInfoType[]
     }
 }
 

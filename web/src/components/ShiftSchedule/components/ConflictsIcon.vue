@@ -13,6 +13,9 @@
         <div v-if="type=='Training'">
             <font-awesome-icon style="transform:translate(0,-6px); font-size: .5rem;" icon="graduation-cap" :id="'conflictIcon'+type+index"></font-awesome-icon> 
         </div>
+        <div v-if="type=='Unavailable'">
+            <b-icon-calendar2-x style="transform:translate(0,-6px); margin:0; padding:0; color:blue;" font-scale="0.65"  :id="'conflictIcon'+type+index"/>
+        </div>
 
         <b-tooltip :target="'conflictIcon'+type+index" variant="warning" show.sync ="true" triggers="hover">
             <h2 class="text-danger">{{type}}:</h2>                

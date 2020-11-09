@@ -13,6 +13,15 @@
                         :title="fullName.length>14?fullName:''">
                             {{fullName|truncate(12)}}
                     </b-row>
+                    <b-row
+                        v-if="LoanedInDesc">
+                        <div
+                            style="margin-left:auto; margin-right:auto;"
+                            v-b-tooltip.hover.topleft                                
+                            :title="LoanedInDesc"> 
+                                <b-icon-box-arrow-in-right /> 
+                        </div>
+                    </b-row>
                 </b-col>
                 <b-col cols="3" class="m-0 p-0">
                     <b-button 
@@ -80,6 +89,7 @@
                                 v-for="day in dayOptions"
                                 :key="day.diff">
                                 <b-tr style="float:left">
+                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Unavailable" type="Unavailable" :index="day.diff" /></b-td>
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Shift" type="Shift" :index="day.diff" /></b-td>
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Loaned" type="Loaned" :index="day.diff" /></b-td>
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Leave" type="Leave" :index="day.diff" /></b-td>                    
@@ -99,8 +109,6 @@
                         </b-form-checkbox-group>
                     </b-form-group>
                 </b-row>
-
-                <div>Selected: <strong>{{ selectedDays }}</strong></div>
 
                 <b-row class="mx-1 my-0 p-0">
                     <b-form-group class="mr-3" style="width: 7rem">
@@ -155,7 +163,24 @@
                     >
                     &times;</b-button>
             </template>
-		</b-modal>       
+		</b-modal>
+
+        <b-modal v-model="showCancelWarning" id="bv-modal-shift-cancel-warning" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light"> Unsaved New Shifts </h2>                                 
+            </template>
+            <p>Are you sure you want to cancel without saving your changes?</p>
+            <template v-slot:modal-footer>
+                <b-button variant="secondary" @click="$bvModal.hide('bv-modal-shift-cancel-warning')"                   
+                >No</b-button>
+                <b-button variant="success" @click="confirmedCloseShiftWindow()"
+                >Yes</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-shift-cancel-warning')"
+                 >&times;</b-button>
+            </template>
+        </b-modal>        
     </div>
 </template>
 
@@ -191,14 +216,11 @@
         isDataMounted = false;
         fullName = '';
 
-        indeterminate = true
-
         halfUnavailStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), white);"
         halfUnavailHalfSchStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), rgb(12, 120, 170));"
         halfSchStyle="background-image: linear-gradient(to bottom right, rgb(12, 120, 170),rgb(243, 232, 232), white);"
         WeekDay = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-        selectedDate = '';
 		selectedStartTime = '';
 		selectedEndTime = '';
 		showShiftDetails = false;
@@ -218,7 +240,10 @@
 
 		shiftError = false;
 		shiftErrorMsg = '';
-		shiftErrorMsgDesc = '';
+        shiftErrorMsgDesc = '';
+        
+        showCancelWarning = false;
+        LoanedInDesc = '';
         
         mounted()
         {  
@@ -227,20 +252,22 @@
             this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
 
             this.dayOptions = [
-                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
-                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
-                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
-                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
-                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
-                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}},
-                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[]}}
+                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
+                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
+                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
+                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
+                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
+                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
+                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}}
             ];        
             this.extractConflicts();
             //console.log(this.dayOptions[4].conflicts.Training)
         }
 
         public extractConflicts() {   
-            console.log(this.sheriffInfo.conflicts) 
+            console.log(this.sheriffInfo)
+            this.LoanedInDesc = '';
+            if(this.sheriffInfo.homeLocation.id != this.location.id) this.LoanedInDesc =  "Loaned In from " + this.sheriffInfo.homeLocation.name
                       
             for(const conflict of this.sheriffInfo.conflicts){
                 this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict); 
@@ -290,7 +317,6 @@
 			this.editMode = false;
 			this.isShiftDataMounted = true;
             this.showShiftDetails = true;
-            this.indeterminate= true
         }
         
         public saveShift() {
@@ -352,17 +378,35 @@
             return result
         }
 
+        public isChanged(){
+            if( this.selectedStartTime ||
+                this.selectedEndTime ||
+                this.selectedDays.length >0) return true;
+            return false;           
+        }
+
 		public closeShiftWindow(){
-			this.resetShiftWindowState();
+			if(this.isChanged())
+                this.showCancelWarning = true;
+            else
+                this.confirmedCloseShiftWindow();
+        }
+        
+        public confirmedCloseShiftWindow(){
+            this.resetShiftWindowState();
+            this.showCancelWarning = false;
 			this.showShiftDetails = false;
-		}
+        } 
 
 		public resetShiftWindowState() {
 				this.shift = {} as shiftInfoType;
 				this.ClearFormState();
 		}
 
-		public ClearFormState(){				
+		public ClearFormState(){
+                this.selectedStartTime ='';
+                this.selectedEndTime = '';
+                this.selectedDays = [] ;				
 				this.selectedDayState = true;
 				this.startTimeState = true;
 				this.endTimeState = true;
@@ -467,32 +511,11 @@
                     }
                 }, err => {
                     const errMsg = err.response.data.error;
-                    this.shiftErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.shiftErrorMsg = errMsg.slice(0,50) + (errMsg.length>50?' ...':'');
                     this.shiftErrorMsgDesc = errMsg;
                     this.shiftError = true;
                 })
 		}
-
-		public updateShift() {
-			const shiftDates = this.getListOfDates(this.selectedDays);
-			console.log("updating")
-			// const body = { }
-			// const url = 'api/shift';
-			// this.$http.put(url, body )
-			//     .then(response => {
-			//         if(response.data){
-			//             this.resetShiftWindowState();
-			//             this.closeShiftWindow;
-			//             this.$emit('change');
-			//         }
-			//     }, err => {
-			//         const errMsg = err.response.data.error;
-			//         this.shiftErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-			//         this.shiftErrorMsgDesc = errMsg;
-			//         this.shiftError = true;
-			//     })
-
-        }
            
         public timeFormat(value , event) {
 			if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1)
