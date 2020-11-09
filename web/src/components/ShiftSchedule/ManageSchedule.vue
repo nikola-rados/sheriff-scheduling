@@ -48,6 +48,7 @@
     import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,conflictsInfoType } from '../../types/ShiftSchedule/index'
     import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
     import moment from 'moment-timezone';
+    import * as _ from 'underscore';
 
     @Component({
         components: {
@@ -63,6 +64,9 @@
 
         @shiftState.State
         public shiftRangeInfo!: shiftRangeInfoType;
+
+        @shiftState.Action
+        public UpdateSelectedShifts!: (newSelectedShifts: string[]) => void
 
         @shiftState.State
         public sheriffsAvailabilityInfo!: sheriffAvailabilityInfoType[];
@@ -105,6 +109,7 @@
 
         public loadScheduleInformation() {
 
+            this.UpdateSelectedShifts([]);
             this.isManageScheduleDataMounted=false;
 
             this.headerDate();
@@ -142,9 +147,11 @@
                 sheriffAvailability.lastName = sheriffAvailabilityJson.sheriff.lastName;
                 sheriffAvailability.badgeNumber = sheriffAvailabilityJson.sheriff.badgeNumber;
                 sheriffAvailability.rank = sheriffAvailabilityJson.sheriff.rank;
-                sheriffAvailability.conflicts = this.extractConflicts(sheriffAvailabilityJson.conflicts);        
+                sheriffAvailability.homeLocation= {id: sheriffAvailabilityJson.sheriff.homeLocation.id, name: sheriffAvailabilityJson.sheriff.homeLocation.name}
+                const isInLoanLocation = (sheriffAvailabilityJson.sheriff.homeLocation.id !=this.location.id)
+                sheriffAvailability.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffAvailabilityJson.conflicts) :this.extractConflicts(sheriffAvailabilityJson.conflicts);        
                 //sheriffsAvailability.push(sheriffAvailability)
-               // console.log(sheriffsAvailabilityJson['sheriff']['homeLocationId'])
+               // console.log(isInLoanLocation)
                 
                 this.shiftSchedules.push({
                     myteam: sheriffAvailability,
@@ -158,7 +165,7 @@
                 })
             }
             //this.UpdateSheriffsAvailabilityInfo(sheriffsAvailability);
-            this.getShifts();
+            this.isManageScheduleDataMounted = true;
             this.updateTable++;
         }
 
@@ -266,27 +273,100 @@
             //console.log(conflicts)
             //console.log(moment())
 
-            // conflicts.push({
-            //     id: '237453',
-            //     dayOffset: 4, 
-            //     date:this.headerDates[4], 
-            //     startTime:'08:05', 
-            //     endTime:'15:55', 
-            //     startInMinutes:485,
-            //     timeDuration:470, 
-            //     type:'Shift', 
-            //     fullday:false
-            // })   
-
             return conflicts
         } 
-        public getShifts() {
-            //GET shifts using the /api/shift call
-            //console.log('getting shifts')
 
+        public extractInLoanLocationConflicts(conflictsJson){
+            let conflictsJsonAwayLocation: any[] = []
+            const conflicts: conflictsInfoType[] = []
+            for(const conflict of conflictsJson){                
+                if(conflict.conflict !='AwayLocation' || conflict.locationId != this.location.id) continue;
+                console.log(conflict)
+                conflict['startDay']=conflict.start.substring(0,10);
+                conflict['endDay']=conflict.end.substring(0,10);
+                conflictsJsonAwayLocation.push(conflict);
+            }
+            conflictsJsonAwayLocation = _.sortBy(conflictsJsonAwayLocation,'start')
+            //console.log(conflictsJsonAwayLocation)
 
-            this.isManageScheduleDataMounted = true;
-        }  
+            for(const dateIndex in this.headerDates){
+                const date = this.headerDates[dateIndex]
+                const day = date.substring(0,10);
+                let numberOfConflictsPerDay = 0;
+                let previousConflictEndDate = moment(date).startOf('day').format();
+                for(const conflict of conflictsJsonAwayLocation){
+
+                    if(day>=conflict.startDay && day<=conflict.endDay)
+                    {  
+                        // console.error('start_end_now')                    
+                        // console.log(conflict.start)
+                        // console.log(conflict.end)
+                        // console.log(date)
+                        numberOfConflictsPerDay++;
+                        if(Vue.filter('isDateFullday')(conflict.start,conflict.end)){                            
+                            break;
+                        } else {                            
+                            numberOfConflictsPerDay++;
+                            //console.log( numberOfConflictsPerDay)
+                            const start = moment(previousConflictEndDate)
+                            const end = moment(conflict.start)
+                            const duration = moment.duration(end.diff(start)).asMinutes();
+                            if(duration>5)
+                                conflicts.push({
+                                    id:'0',
+                                    dayOffset: Number(dateIndex), 
+                                    date:date, 
+                                    startTime:Vue.filter('beautify-time')(previousConflictEndDate), 
+                                    endTime:Vue.filter('beautify-time')(conflict.start), 
+                                    startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
+                                    timeDuration:duration, 
+                                    type:'Unavailable', 
+                                    fullday:false
+                                })
+                            previousConflictEndDate = conflict.end;  
+                        }
+                    }   
+                }
+
+                if( numberOfConflictsPerDay == 0){
+                    conflicts.push({
+                        id:'0',
+                        dayOffset: Number(dateIndex), 
+                        date:date, 
+                        startTime:'', 
+                        endTime:'',
+                        startInMinutes:0, 
+                        timeDuration:0, 
+                        type:'Unavailable', 
+                        fullday: true
+                    })
+                } else if( numberOfConflictsPerDay > 1){
+                    // console.warn('start_end_now')                    
+                    // console.log(previousConflictEndDate)
+                    // console.log(date)
+                    const start = moment(previousConflictEndDate)
+                    const end = moment(date).endOf('day')
+                    const duration = moment.duration(end.diff(start)).asMinutes();
+                    // console.log(start)
+                    // console.log(end)
+                    // console.log(duration)
+                    if(duration>5)
+                        conflicts.push({
+                            id:'0',
+                            dayOffset: Number(dateIndex), 
+                            date:date, 
+                            startTime:Vue.filter('beautify-time')(previousConflictEndDate), 
+                            endTime:Vue.filter('beautify-time')(end.format()), 
+                            startInMinutes:moment.duration(start.diff(moment(previousConflictEndDate).startOf('day'))).asMinutes(),
+                            timeDuration:duration, 
+                            type:'Unavailable', 
+                            fullday:false
+                        })
+                }
+            }
+
+            return conflicts
+        }
 
         public getConflictsType(conflict){
             if(conflict.conflict =='AwayLocation') return 'Loaned'

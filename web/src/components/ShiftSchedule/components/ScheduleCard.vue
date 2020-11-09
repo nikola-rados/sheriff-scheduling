@@ -13,6 +13,7 @@
                         <font-awesome-icon v-if="block.title=='Leave'" style="font-size: .55rem;"  icon="suitcase"/> 
                         <font-awesome-icon v-if="block.title=='Training'" style="font-size: .5rem;" icon="graduation-cap"/> 
                         <b-icon-person-fill v-if="block.title=='Shift'"/>
+                        <b-icon-calendar2-x v-if="block.title=='Unavailable'"/>
                     </h6>
                     <span style="text-align: center;font-size:10px; line-height: 12px; display: block;">{{block.timeStamp}}</span>
                 </span>
