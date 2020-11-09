@@ -160,7 +160,15 @@ namespace SS.Api.services.scheduling
             });
 
             var existingShiftConflicts = shiftsForSheriffs.Select(s => new ShiftConflict
-                {Conflict = ShiftConflictType.Scheduled, SheriffId = s.SheriffId, LocationId = s.LocationId, Start = s.StartDate, End = s.EndDate, ShiftId = s.Id});
+            {
+                Conflict = ShiftConflictType.Scheduled, 
+                SheriffId = s.SheriffId, 
+                Location = s.Location, 
+                LocationId = s.LocationId, 
+                Start = s.StartDate, 
+                End = s.EndDate, 
+                ShiftId = s.Id
+            });
 
             var allShiftConflicts = sheriffEventConflicts.Concat(existingShiftConflicts).ToList();
             
