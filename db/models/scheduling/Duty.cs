@@ -17,11 +17,11 @@ namespace SS.Db.models.scheduling
         public int Id { get; set; }
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Assignment Assignment { get; set; }
         public int? AssignmentId { get; set; }
         [ExcludeFromAddDto]

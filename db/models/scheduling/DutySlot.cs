@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using db.models;
 using Mapster;
+using SS.Api.Models.DB;
 using SS.Common.attributes.mapping;
 using SS.Db.models.sheriff;
 
@@ -16,15 +17,19 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset StartDate { get; set; }   
         public DateTimeOffset EndDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Duty Duty { get; set;}
         public int DutyId { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Shift Shift { get; set; }
         public int? ShiftId { get; set; }
+        [ExcludeFromAddAndUpdateDto]
+        public Location Location { get; set; }
+        [ExcludeFromAddAndUpdateDto]
+        public int LocationId { get; set; }
         public string Timezone { get; set; }
     }
 }

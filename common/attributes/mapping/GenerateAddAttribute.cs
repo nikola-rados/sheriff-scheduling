@@ -20,7 +20,7 @@ namespace SS.Common.attributes.mapping
         {
             IgnoreAttributes = new[]
             {
-                typeof(ExcludeFromSaveAndAddDtoAttribute),
+                typeof(ExcludeFromAddAndUpdateDtoAttribute),
                 typeof(ExcludeFromAddDtoAttribute)
             };
             MapType = MapType.MapToTarget;

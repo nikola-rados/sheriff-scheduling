@@ -173,7 +173,7 @@ namespace SS.Api.services.scheduling
             }).ToList();
         }
 
-        //todo flush this out when the GUI is working. 
+        //TODO flush this out when the GUI is working. 
         public async Task AdjustShift(int shiftId, DateTimeOffset? start = null, DateTimeOffset? end = null)
         {
             var savedShift = await Db.Shift.FindAsync(shiftId);
@@ -214,7 +214,7 @@ namespace SS.Api.services.scheduling
                 shifts.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
                 throw new BusinessLayerException("Shifts provided overlap with themselves.");
 
-            var overlappingShifts = await OverlappingShifts(shifts.First().LocationId, shifts);
+            var overlappingShifts = await OverlappingShifts(shifts);
             if (overlappingShifts.Any())
             {
                 var message = overlappingShifts.Select(ol => ConflictingSheriffAndSchedule(ol.Sheriff, ol)).ToList()
@@ -232,24 +232,27 @@ namespace SS.Api.services.scheduling
                 .ToListAsync();
 
 
-        private async Task<List<Shift>> OverlappingShifts(int locationId, List<Shift> targetShifts)
+        private async Task<List<Shift>> OverlappingShifts(List<Shift> targetShifts)
         {
-            var dateMin = targetShifts.Min(ts => ts.StartDate);
-            var dateMax = targetShifts.Max(ts => ts.EndDate);
             var sheriffIds = targetShifts.Select(ts => ts.SheriffId).Distinct();
+            var locationId = targetShifts.First().LocationId;
 
-            var shifts = await Db.Shift.AsNoTracking()
-                .Include(s=> s.Sheriff)
-                .Where(s =>
-                    s.ExpiryDate == null &&
-                    s.LocationId == locationId &&
-                    s.StartDate < dateMax && dateMin < s.EndDate &&
-                    sheriffIds.Contains(s.SheriffId)
-                ).ToListAsync();
+            var conflictingShifts = new List<Shift>();
+            foreach (var ts in targetShifts)
+            {
+                conflictingShifts.AddRange(await Db.Shift.AsNoTracking()
+                    .Include(s => s.Sheriff)
+                    .Where(s =>
+                        s.ExpiryDate == null &&
+                        s.LocationId == locationId &&
+                        s.StartDate < ts.EndDate && ts.StartDate < s.EndDate &&
+                        sheriffIds.Contains(s.SheriffId)
+                    ).ToListAsync());
+            }
 
-            return shifts.WhereToList(s =>
+            return conflictingShifts.Distinct().WhereToList(s =>
                 targetShifts.Any(ts =>
-                    ts.ExpiryDate == null && s.Id != ts.Id && ts.StartDate < s.EndDate && s.StartDate < ts.EndDate)
+                    ts.ExpiryDate == null && s.Id != ts.Id && ts.StartDate < s.EndDate && s.StartDate < ts.EndDate && ts.SheriffId == s.SheriffId)
             );
         }
         #endregion Availability
