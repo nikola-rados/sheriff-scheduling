@@ -140,7 +140,8 @@ namespace SS.Api.services.scheduling
                     SheriffId = sheriff.Id, 
                     Start = s.StartDate,
                     End = s.EndDate, 
-                    LocationId = s.LocationId
+                    LocationId = s.LocationId,
+                    Location = s.Location
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Leave.Select(s => new ShiftConflict
                 {
