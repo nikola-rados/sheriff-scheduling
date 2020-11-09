@@ -27,7 +27,7 @@ namespace SS.Api.services.scheduling
 
         public async Task<List<Shift>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
-            return await Db.Shift.AsNoTracking()
+            return await Db.Shift.AsSingleQuery().AsNoTracking()
                 .Include( s=> s.Location)
                 .Include(s => s.Sheriff)
                 .Include(s => s.AnticipatedAssignment)
@@ -233,12 +233,14 @@ namespace SS.Api.services.scheduling
         }
 
         private async Task<List<Shift>> GetShiftsForSheriffs(IEnumerable<Guid> sheriffIds, DateTimeOffset startDate, DateTimeOffset endDate) =>
-            await Db.Shift.AsNoTracking().Where(s =>
-                    s.StartDate < endDate && startDate < s.EndDate &&
-                    s.SheriffId != null &&
-                    sheriffIds.Contains((Guid)s.SheriffId) &&
-                    s.ExpiryDate == null)
-                .ToListAsync();
+            await Db.Shift.AsSingleQuery().AsNoTracking()
+                    .Include(s => s.Location)
+                    .Where(s =>
+                        s.StartDate < endDate && startDate < s.EndDate &&
+                        s.SheriffId != null &&
+                        sheriffIds.Contains((Guid)s.SheriffId) &&
+                        s.ExpiryDate == null)
+                    .ToListAsync();
 
 
         private async Task<List<Shift>> OverlappingShifts(List<Shift> targetShifts)
