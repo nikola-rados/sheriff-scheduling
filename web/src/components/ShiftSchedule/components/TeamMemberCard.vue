@@ -35,12 +35,8 @@
         </b-row>
 
         <b-modal  v-model="showShiftDetails" id="bv-modal-shift-details" header-class="bg-primary text-light">
-            <template v-slot:modal-title>
-                <span v-if="editMode" class="mb-0 text-light"> 
-                    <h3 class="m-0 p-0" >Updating Shift </h3>
-                    <h4  class="m-0 pt-2 pb-0 text-warning" style="text-align: center"> {{sheriffInfo.firstName}} {{sheriffInfo.lastName}} </h4> 
-                </span>
-                <span v-else-if="createMode" class="m-0 p-0" > 
+            <template v-slot:modal-title>                
+                <span class="m-0 p-0" > 
                     <h3 class="m-0 p-0" >Creating Shift for </h3>
                     <h4  class="m-0 pt-2 pb-0 text-warning" style="text-align: center"> {{sheriffInfo.firstName}} {{sheriffInfo.lastName}}</h4>
                 </span>
@@ -225,8 +221,6 @@
 		selectedEndTime = '';
 		showShiftDetails = false;
 		isShiftDataMounted = false;
-		createMode = false;
-		editMode = false;
 		shift = {} as shiftInfoType;
 		startTimeState = true;
 		endTimeState = true;
@@ -265,7 +259,7 @@
         }
 
         public extractConflicts() {   
-            console.log(this.sheriffInfo)
+            // console.log(this.sheriffInfo)
             this.LoanedInDesc = '';
             if(this.sheriffInfo.homeLocation.id != this.location.id) this.LoanedInDesc =  "Loaned In from " + this.sheriffInfo.homeLocation.name
                       
@@ -313,8 +307,6 @@
 			// TODO: add when edit functionality is in place
 			// const shift = {} as shiftInfoType;
 			// this.UpdateShiftToEdit(shift);
-			this.createMode = true;
-			this.editMode = false;
 			this.isShiftDataMounted = true;
             this.showShiftDetails = true;
         }
@@ -354,8 +346,7 @@
 			if (!requiredError) {
                     this.startTimeState = true;
                     this.endTimeState = true;
-					if (this.editMode) this.updateShift();
-					if (this.createMode) this.createShift();
+					this.createShift();
 			} else {
 					console.log('Error required')
 			}
