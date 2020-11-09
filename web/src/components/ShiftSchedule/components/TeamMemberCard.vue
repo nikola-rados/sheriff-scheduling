@@ -3,34 +3,35 @@
         <b-row 
             style="width:100%; height:100%;" 
             bg-variant="white"            
-            class="mx-2 my-1 p-1">
+            class="ml-2 my-0 p-0">
                 <b-col cols="9">
                     <b-row style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
                     <b-row style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
                     <b-row 
                         style="font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
                         v-b-tooltip.hover.topleft                                
-                        :title="fullName.length>14?fullName:''">
-                            {{fullName|truncate(12)}}
-                    </b-row>
-                    <b-row
-                        v-if="LoanedInDesc">
-                        <div
-                            style="margin-left:auto; margin-right:auto;"
-                            v-b-tooltip.hover.topleft                                
-                            :title="LoanedInDesc"> 
-                                <b-icon-box-arrow-in-right /> 
-                        </div>
+                        :title="fullName.length>13?fullName:''">
+                            {{fullName|truncate(11)}}
                     </b-row>
                 </b-col>
-                <b-col cols="3" class="m-0 p-0">
+                <b-col cols="3" class="m-0 p-0">                    
                     <b-button 
-                        class="m-0 p-0"                    
+                        style="margin:.75rem 0 0 0; padding:0;"                   
                         size="sm" 
                         variant="success" 
                         @click="AddShift()">
                             <b-icon-plus/>
-                    </b-button>                    
+                    </b-button>                     
+                    <b-row
+                    style="margin:.15rem 0 0 0; padding:0;"
+                        >
+                        <div                        
+                            v-if="LoanedInDesc"
+                            v-b-tooltip.hover.topleft                                
+                            :title="LoanedInDesc"> 
+                                <b-icon-box-arrow-in-right variant="jail" /> 
+                        </div>
+                    </b-row>                  
                 </b-col>
         </b-row>
 
@@ -502,7 +503,7 @@
                     }
                 }, err => {
                     const errMsg = err.response.data.error;
-                    this.shiftErrorMsg = errMsg.slice(0,50) + (errMsg.length>50?' ...':'');
+                    this.shiftErrorMsg = errMsg.slice(0,45) + (errMsg.length>45?' ...':'');
                     this.shiftErrorMsgDesc = errMsg;
                     this.shiftError = true;
                 })

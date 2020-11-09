@@ -20,8 +20,8 @@
                     <template v-slot:head(myteam) = "data" >                           
                         <span> {{data.label}}</span>
                     </template>
-                    <template v-slot:cell()="data"  >                          
-                        <schedule-card   :scheduleInfo=" data.value"/>
+                    <template v-slot:cell()="data" >
+                        <schedule-card :sheriffId="data.item.myteam.sheriffId" :scheduleInfo=" data.value"/>
                     </template>
                     <template v-slot:cell(myteam) = "data" > 
                         <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
@@ -97,15 +97,16 @@
         locationChange()
         {
             if (this.isManageScheduleDataMounted) {
-                this.loadScheduleInformation()                
+                this.loadScheduleInformation() 
+                //console.log('watch')               
             }            
         } 
 
-        mounted()
-        {                       
-            this.loadScheduleInformation();
-            console.log('mount manage')
-        }
+        // mounted()
+        // {                       
+        //     //this.loadScheduleInformation();
+        //     console.log('mount manage')
+        // }
 
         public loadScheduleInformation() {
 
@@ -281,7 +282,7 @@
             const conflicts: conflictsInfoType[] = []
             for(const conflict of conflictsJson){                
                 if(conflict.conflict !='AwayLocation' || conflict.locationId != this.location.id) continue;
-                console.log(conflict)
+                //console.log(conflict)
                 conflict['startDay']=conflict.start.substring(0,10);
                 conflict['endDay']=conflict.end.substring(0,10);
                 conflictsJsonAwayLocation.push(conflict);

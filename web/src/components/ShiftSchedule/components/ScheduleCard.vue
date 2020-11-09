@@ -1,5 +1,5 @@
 <template>
-    <div v-if="scheduleInfo.length>0" id="shiftBox" ref="shiftBox" :key="updateBoxes">             
+    <div v-if="scheduleInfo.length>0 && isMounted" id="shiftBox" ref="shiftBox" :key="updateBoxes">             
         <b-card
             v-for="block in scheduleBlocks"
             :key="block.key"
@@ -42,6 +42,9 @@
         @Prop({required: true})
         scheduleInfo!: conflictsInfoType;
 
+        @Prop({required: true})
+        sheriffId!: string;
+
         @shiftState.State
         public selectedShifts!: string[];
 
@@ -53,9 +56,12 @@
         blockDrop = false;
         updateBoxes =0;
 
+        isMounted = false;
+
         mounted()
         {
             // console.log(this.scheduleInfo)
+            this.isMounted = false;
 
             const sortedScheduleInfo: conflictsInfoType[] = _.sortBy(this.scheduleInfo,'startInMinutes')
            
@@ -66,14 +72,14 @@
 
                     this.scheduleBlocks.push({
                         id: schedule.id? schedule.id:'',
-                        key: schedule.date +'Z' +schedule.startTime,
+                        key: this.sheriffId+schedule.date +'Z' +schedule.startTime,
                         startTime: schedule.startInMinutes *5 /72 -widthOtherElements,
                         timeDuration: schedule.timeDuration * 5 /72,
                         timeStamp: schedule.startTime +'-'+schedule.endTime,
                         title:schedule.type,
-                        color: schedule.type=='Shift'?'#BEF2F7':'#FFEEDD',
-                        originalColor: schedule.type=='Shift'?'#BEF2F7':'#FFEEDD',
-                        headerColor: schedule.type=='Shift'?'#004567':'#F94567',
+                        color: this.getScheduleColor(schedule.type).body,
+                        originalColor: this.getScheduleColor(schedule.type).body,
+                        headerColor: this.getScheduleColor(schedule.type).header,
                         selected: false
                     })
                     widthOtherElements += (schedule.timeDuration * 5 /72);
@@ -81,37 +87,48 @@
                 }else{
 
                     this.scheduleBlocks.push({
-                        key: schedule.date +'Z' +schedule.startTime,
+                        id: schedule.id? schedule.id:'',
+                        key: this.sheriffId+schedule.date +'Z' +schedule.startTime,
                         startTime: 0,
                         timeDuration: 100,
                         timeStamp: 'Full Day',
                         title:schedule.type,
-                        color: schedule.type=='Shift'?'#BEF2F7':'#FFEEDD',
-                        originalColor: schedule.type=='Shift'?'#BEF2F7':'#FFEEDD',
-                        headerColor: schedule.type=='Shift'?'#004567':'#F94567',
+                        color: this.getScheduleColor(schedule.type).body,
+                        originalColor: this.getScheduleColor(schedule.type).body,
+                        headerColor: this.getScheduleColor(schedule.type).header,
                         selected: false
                     })
                 }                    
-            } 
+            }
+            this.isMounted = true; 
         }
 
-        // public getScheduleColor(type){
-        //     if(type=='Unavailable')
-        // }
+        public getScheduleColor(type){
+            if(type=='Unavailable') return{body:'#CFCFCF' , header:'#868686'}
+            else if(type=='Shift') return{body:'#BEF2F7' , header:'#004567'}
+            else return{body:'#FFEEDD' , header:'#F94567'}
+        }
        
         public cardSelected(block){
-            const selectedCards = this.selectedShifts;
-            console.log(block)
+            let selectedCards = this.selectedShifts;
+            //console.log(block)
             if(block.title=='Shift'){
                 block.selected = !block.selected;
-                block.color=block.selected?'#F7F54F':block.originalColor;
-                selectedCards.push(block.id);
+                if(block.selected){
+                    block.color = '#F7F54F';
+                    selectedCards.push(block.id);
+                }else{
+                    block.color = block.originalColor;
+                    selectedCards = selectedCards.filter(card=>{if(card != block.id) return true })
+                }                
                 this.UpdateSelectedShifts(selectedCards);
             }
         }
 
         public blockSize(block){
+            //console.log('schCard'+block.key)
             const el = document.getElementById('schCard'+block.key)
+            //console.log(el)
             if(el){
                 return el.clientWidth
             }else{

@@ -4,29 +4,34 @@
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav class="custom-navbar">
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="previousDateRange" class="my-2"><b-icon-chevron-left /></b-button>
-						<b-form-datepicker
-								class="my-2 p-1"
-								size="sm"
-								style="max-height: 40px;"
-								v-model="selectedDate"
-								@context="dateChanged"
-								button-only
-								locale="en-US">
-						</b-form-datepicker>
+					<b-form-datepicker
+							class="my-2 p-1"
+							size="sm"
+							style="max-height: 40px;"
+							v-model="selectedDate"
+							@context="dateChanged"
+							@shown = "datePickerOpened = true"
+							@hidden = "datePickerOpened = false"
+							button-only
+							locale="en-US">
+					</b-form-datepicker>
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="nextDateRange" class="my-2"><b-icon-chevron-right/></b-button>
 				</b-navbar-nav>
 
 				<b-navbar-nav class="mr-5">
-					<b-nav-form>
-						<b-button 
-							style="max-height: 40px;" 
-							size="sm"
-							variant="transparent"
-							:disabled="selectedShifts.length==0?true:false" 
-							@click="EditShift()" 
-							class="my-2">
-							<b-icon icon="pencil-square" font-scale="1.25" variant="warning"/>
-						</b-button>
+					<b-nav-form> 
+						<div v-b-tooltip.hover
+							:title="selectedShifts.length==0?'Please select shifts':''">
+								<b-button 
+									style="max-height: 40px;" 
+									size="sm"
+									variant="transparent"
+									:disabled="selectedShifts.length==0?true:false"							
+									@click="EditShift()" 
+									class="my-2">
+									<b-icon icon="pencil-square" font-scale="2.0" variant="warning"/>
+								</b-button>
+						</div>
 					</b-nav-form>
 				</b-navbar-nav>
 			</b-navbar>
@@ -182,6 +187,8 @@
 		startTimeState = true;
 		endTimeState = true;
 
+		datePickerOpened = false;
+
 		shiftError = false;
 		shiftErrorMsg = '';
 		shiftErrorMsgDesc = '';
@@ -197,6 +204,13 @@
 
 		public EditShift() {
 			this.isShiftDataMounted = false;
+			this.shiftError = false;
+			this.shiftErrorMsg = '';
+			this.shiftErrorMsgDesc = '';
+
+			this.shiftTimesDiffer = false;
+			this.shiftTimesDifferMsg = '';
+			this.shiftTimesDifferMsgDesc = '';
 			this.getShiftsToEdit();
 		}
 		
@@ -317,10 +331,17 @@
 			for (const shift of this.shiftsToEdit) {							
 				const newStartDate = moment(shift.startDate).startOf("day").add(this.selectedStartTime).format();
 				const newEndDate = moment(shift.endDate).startOf("day").add(this.selectedEndTime).format();
-				shift.startDate = newStartDate;
-				shift.endDate = newEndDate;
-				body.push(shift);
+				//console.log(shift)
+				body.push({
+					id: shift.id,
+					startDate: newStartDate,
+					endDate: newEndDate,    
+					timezone: shift.timezone ,
+					locationId: shift.locationId ,     
+					sheriffId: shift.sheriffId
+				});				
 			}
+			//console.log(body)
 			const url = 'api/shift';
 			this.$http.put(url, body)
 				.then(response => {
@@ -387,6 +408,7 @@
 			this.resetShiftWindowState();
 			this.UpdateSelectedShifts([]);
 			this.showEditShiftDetails = false;
+			this.$emit('change'); 
 		}
 
 		public resetShiftWindowState() {
@@ -399,8 +421,10 @@
 			this.endTimeState = true;
         }
 
-		public dateChanged() {
-			this.loadNewDateRange();
+		public dateChanged(event) {
+			//console.log(event)
+			//console.log(this.datePickerOpened)
+			if(this.datePickerOpened)this.loadNewDateRange();
 		}
 
 		public nextDateRange() {			
