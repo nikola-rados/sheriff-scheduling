@@ -16,7 +16,7 @@ namespace SS.Db.models.scheduling
         [Key]
         [ExcludeFromAddDto]
         public int Id { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public LookupCode LookupCode { get; set; } 
         public int LookupCodeId { get; set; }
         public DateTimeOffset? AdhocStartDate { get; set; }
@@ -30,7 +30,7 @@ namespace SS.Db.models.scheduling
         public bool Friday { get; set; }
         public bool Saturday { get; set; }
         public bool Sunday { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }

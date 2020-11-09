@@ -18,15 +18,15 @@ namespace SS.Db.models.scheduling
         public int Id { get; set;}
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public ICollection<Duty> Duties { get; set; } = new List<Duty>();
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Assignment AnticipatedAssignment { get; set; }
         public int? AnticipatedAssignmentId { get; set; }
-        [ExcludeFromSaveAndAddDto]
+        [ExcludeFromAddAndUpdateDto]
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
