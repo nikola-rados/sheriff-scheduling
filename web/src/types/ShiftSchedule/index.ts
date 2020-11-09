@@ -79,5 +79,3 @@ export interface dayOptionsInfoType {
         Unavailable: conflictsInfoType[]
     }
 }
-
-export interface shiftInfoType

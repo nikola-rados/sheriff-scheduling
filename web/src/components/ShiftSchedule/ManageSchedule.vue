@@ -174,7 +174,9 @@
 
             const conflicts: conflictsInfoType[] = []
 
-            for(const conflict of conflictsJson){                
+            for(const conflict of conflictsJson){ 
+                conflict.start = moment(conflict.start).tz(this.location.timezone).format();
+                conflict.end = moment(conflict.end).tz(this.location.timezone).format();               
                 if(Vue.filter('isDateFullday')(conflict.start,conflict.end))
                 {               
                     for(const dateIndex in this.headerDates){
@@ -280,7 +282,9 @@
         public extractInLoanLocationConflicts(conflictsJson){
             let conflictsJsonAwayLocation: any[] = []
             const conflicts: conflictsInfoType[] = []
-            for(const conflict of conflictsJson){                
+            for(const conflict of conflictsJson){  
+                conflict.start = moment(conflict.start).tz(this.location.timezone).format();
+                conflict.end = moment(conflict.end).tz(this.location.timezone).format();              
                 if(conflict.conflict !='AwayLocation' || conflict.locationId != this.location.id) continue;
                 //console.log(conflict)
                 conflict['startDay']=conflict.start.substring(0,10);

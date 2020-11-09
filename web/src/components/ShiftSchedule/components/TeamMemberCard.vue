@@ -396,12 +396,18 @@
 		}
 
 		public ClearFormState(){
+                this.allDaysSelected = false;
+                this.weekDaysSelected = false;
                 this.selectedStartTime ='';
                 this.selectedEndTime = '';
                 this.selectedDays = [] ;				
 				this.selectedDayState = true;
 				this.startTimeState = true;
-				this.endTimeState = true;
+                this.endTimeState = true;
+                this.shiftError = false;
+                this.shiftErrorMsg = '';
+                this.shiftErrorMsgDesc = '';
+                this.LoanedInDesc = '';
         }
         
         public getListOfDates(days){
