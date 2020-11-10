@@ -2,6 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>SS.Common</AssemblyName>
+    <RootNamespace>SS.Common</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mapster" Version="6.5.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0-rc.2.20475.6" />
+    <PackageReference Include="NodaTime" Version="3.0.3" />
+  </ItemGroup>
 
 </Project>

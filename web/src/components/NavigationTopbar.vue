@@ -3,14 +3,14 @@
     <b-navbar toggleable="lg" class="navbar navbar-expand-lg navbar-dark">    
       <b-navbar-brand class="mt-1" href="https://www2.gov.bc.ca">
           <img 
-              class="img-fluid d-none d-md-block"          
+              class="img-fluid d-none d-lg-block"          
               src="../../public/images/bcid-logo-rev-en.svg"
               width="177"
               height="44"
               alt="B.C. Government Logo"
             />
           <img
-            class="img-fluid d-md-none"
+            class="img-fluid d-lg-none"
             src="../../public/images/bcid-symbol-rev.svg"
             width="63"
             height="44"

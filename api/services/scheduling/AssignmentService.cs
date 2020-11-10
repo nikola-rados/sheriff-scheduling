@@ -17,15 +17,28 @@ namespace SS.Api.services.scheduling
             Db = db;
         }
 
-        public async Task<List<Assignment>> GetAssignments(int locationId)
+        public async Task<List<Assignment>> GetAssignments(int locationId, DateTimeOffset? start, DateTimeOffset? end)
         {
-            //Order by managed types?
-            return await Db.Assignment.Where(a => a.LocationId == locationId && a.ExpiryDate == null).ToListAsync();
-            //Order by Courtrooms, SubOrder, CourtRoles, SubOrder, JailRoles, SubOrder, EscortRuns, SubOrder, OtherAssignments
+            //Order by LookupCodeType, SortOrder, then lack of SortOrder. 
+            var assignment = await Db.Assignment.AsSplitQuery().AsNoTracking()
+                .Include(a => a.Location)
+                .Include(a => a.LookupCode)
+                .ThenInclude(lc => lc.SortOrder.Where(so => so.LocationId == locationId))
+                .Where(a => a.LocationId == locationId && a.ExpiryDate == null)
+                .OrderBy(a => (int)a.LookupCode.Type)
+                .ThenBy(a => a.LookupCode.SortOrder.First().SortOrder)
+                .ThenBy(a => !a.LookupCode.SortOrder.Any())
+                .ToListAsync();
+
+            //Filter out the date ranges outside of the database. 
+            var filteredAssignments = assignment.WhereToList(a => a.HasAtLeastOneDayOverlap(start, end));
+            filteredAssignments.ForEach(lc => lc.LookupCode.SortOrderForLocation = lc.LookupCode.SortOrder.FirstOrDefault());
+            return filteredAssignments;
         }
 
         public async Task<Assignment> CreateAssignment(Assignment assignment)
         {
+            assignment.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(assignment.Timezone)} needs to be included in the assignment.");
             assignment.Location = await Db.Location.FindAsync(assignment.LocationId);
             assignment.LookupCode = await Db.LookupCode.FindAsync(assignment.LookupCodeId);
             await Db.Assignment.AddAsync(assignment);
@@ -33,13 +46,13 @@ namespace SS.Api.services.scheduling
             return assignment;
         }
 
-        public async Task<Assignment> UpdateAssignment(Assignment entity)
+        public async Task<Assignment> UpdateAssignment(Assignment assignment)
         {
-            var savedAssignment = await Db.Assignment.FindAsync(entity.Id);
-            savedAssignment.ThrowBusinessExceptionIfNull($"{nameof(Assignment)} with the id: {entity.Id} could not be found.");
+            assignment.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(assignment.Timezone)} needs to be included in the assignment.");
+            var savedAssignment = await Db.Assignment.FindAsync(assignment.Id);
+            savedAssignment.ThrowBusinessExceptionIfNull($"{nameof(Assignment)} with the id: {assignment.Id} could not be found.");
 
-            Db.Entry(savedAssignment).CurrentValues.SetValues(entity);
-
+            Db.Entry(savedAssignment).CurrentValues.SetValues(assignment);
             Db.Entry(savedAssignment).Property(a => a.LocationId).IsModified = false;
             Db.Entry(savedAssignment).Property(a => a.ExpiryDate).IsModified = false;
             Db.Entry(savedAssignment).Property(a => a.ExpiryReason).IsModified = false;

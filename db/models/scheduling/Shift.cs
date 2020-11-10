@@ -4,25 +4,29 @@ using System.ComponentModel.DataAnnotations;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
+using SS.Common.attributes;
+using SS.Common.attributes.mapping;
 using SS.Db.models.sheriff;
 
 namespace SS.Db.models.scheduling
 {
     [AdaptTo("[name]Dto")]
+    [GenerateUpdateDto, GenerateAddDto]
     public class Shift : BaseEntity
     {
-        [Key]
+        [Key, ExcludeFromAddDto]
         public int Id { get; set;}
-        public ShiftType Type { get; set; }
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
+        [ExcludeFromAddAndUpdateDto]
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
+        [ExcludeFromAddAndUpdateDto]
         public ICollection<Duty> Duties { get; set; } = new List<Duty>();
+        [ExcludeFromAddAndUpdateDto]
         public Assignment AnticipatedAssignment { get; set; }
         public int? AnticipatedAssignmentId { get; set; }
-        //May not need this. This provides us a historic value.
-        //public string AnticipatedAssignmentValue { get; set; }
+        [ExcludeFromAddAndUpdateDto]
         public Location Location { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }

@@ -10,7 +10,7 @@ using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
-using SS.Api.infrastructure.authorization;
+using SS.Common.authorization;
 using SS.Db.models.lookupcodes;
 using SS.Db.models.scheduling;
 
@@ -47,6 +47,7 @@ namespace SS.Db.models
         public virtual DbSet<Shift> Shift { get; set; }
         public virtual DbSet<Assignment> Assignment { get; set; }
         public virtual DbSet<Duty> Duty { get; set; }
+        public virtual DbSet<DutySlot> DutySlot { get; set; }
         #endregion Scheduling
 
         // This maps to the table that stores keys.
