@@ -32,10 +32,48 @@
 									<b-icon icon="pencil-square" font-scale="2.0" variant="warning"/>
 								</b-button>
 						</div>
+						<div v-b-tooltip.hover
+							:title="selectedShifts.length==0?'Please select shifts':''">
+								<b-button 
+									style="max-height: 40px;" 
+									size="sm"
+									variant="transparent"
+									:disabled="selectedShifts.length==0?true:false"							
+									@click="confirmDeleteShift()" 
+									class="my-2">
+									<b-icon icon="trash-fill" font-scale="2.0" variant="danger"/>
+								</b-button>
+						</div>
 					</b-nav-form>
 				</b-navbar-nav>
 			</b-navbar>
 		</header>
+
+		<b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+			<b-row v-if="deleteError" id="DeleteError" class="h4 mx-2">
+				<b-badge class="mx-1 mt-2"
+					style="width: 20rem;"
+					v-b-tooltip.hover
+					:title="deleteErrorMsgDesc"
+					variant="danger"> {{deleteErrorMsg}}
+					<b-icon class="ml-3"
+						icon = x-square-fill
+						@click="deleteError = false"
+				/></b-badge>                    
+            </b-row>            
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Confirm Delete Shift</h2>                   
+            </template>
+            <h4 >Are you sure you want to delete the selected shifts?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteShift()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                >&times;</b-button>
+            </template>
+        </b-modal>  
 
 		<b-modal  v-model="showEditShiftDetails" id="bv-modal-shift-edit-details" header-class="bg-primary text-light">
             <template v-slot:modal-title>
@@ -54,17 +92,7 @@
                         icon = x-square-fill
                         @click="shiftError = false"
                     />
-                    <!-- <b-badge class="mx-1 mt-2"
-						style="width: 20rem;"
-                        v-b-tooltip.hover
-                        :title="shiftErrorMsgDesc"
-                        variant="danger"> {{shiftErrorMsg}}
-                        <b-icon class="ml-3"
-                            icon = x-square-fill
-                            @click="shiftError = false"
-                    /></b-badge>                     -->
-                </b-row>              
-
+                </b-row>
 
                 <b-row v-if="shiftTimesDiffer" id="shiftTimesDifferError" style="border-radius:10px; max-width: 30rem;" class="h4 mx-2 bg-warning">
 					<span class="mx-2 mt-2 mb-0 p-0"
@@ -145,8 +173,7 @@
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-edit-shift-cancel-warning')"
                  >&times;</b-button>
             </template>
-        </b-modal> 
-
+        </b-modal>
 	</div>
 </template>
 
@@ -189,6 +216,7 @@
 		originalSelectedEndTime = '';
 		showEditShiftDetails = false;
 		showEditShiftCancelWarning = false;
+		confirmDelete = false;
 		isShiftDataMounted = false;
 		startTimeState = true;
 		endTimeState = true;
@@ -197,11 +225,13 @@
 
 		shiftError = false;
 		shiftErrorMsg = '';
-		// shiftErrorMsgDesc = '';
 
 		shiftTimesDiffer = false;
 		shiftTimesDifferMsg = '';
-		// shiftTimesDifferMsgDesc = '';
+
+		deleteErrorMsg = '';
+        deleteErrorMsgDesc = '';
+        deleteError = true;
 
 		mounted() {
 			this.selectedDate = moment().format().substring(0,10);			
@@ -212,11 +242,9 @@
 			this.isShiftDataMounted = false;
 			this.shiftError = false;
 			this.shiftErrorMsg = '';
-			// this.shiftErrorMsgDesc = '';
 
 			this.shiftTimesDiffer = false;
 			this.shiftTimesDifferMsg = '';
-			// this.shiftTimesDifferMsgDesc = '';
 			this.getShiftsToEdit();
 		}
 		
@@ -228,7 +256,6 @@
 			let numberOfEndTimes= 0;
 			this.shiftTimesDiffer = false;
 			this.shiftTimesDifferMsg = '';
-			// this.shiftTimesDifferMsgDesc = '';
 
 			const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
 
@@ -266,21 +293,17 @@
 						if (this.shiftTimesDiffer) {
 							if (numberOfEndTimes > 1 && numberOfStartTimes > 1) {
 								this.shiftTimesDifferMsg = "The start and end times of the selected shifts do not match."
-								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							} else if (numberOfStartTimes > 1) {
 								this.shiftTimesDifferMsg = "The start times of the selected shifts do not match."
-								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							} else if (numberOfEndTimes > 1) {
 								this.shiftTimesDifferMsg = "The end times of the selected shifts do not match."
-								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							}
 						}
 
 						this.isShiftDataMounted = true;
 						this.showEditShiftDetails = true;
                     }                                   
-                })		
-
+                })
 		}
 
 		public saveShift() {         
@@ -306,7 +329,6 @@
                     this.endTimeState = false;
 					requiredError = true;
             }
-
 			if (!requiredError) {
                     this.startTimeState = true;
                     this.endTimeState = true;
@@ -354,7 +376,6 @@
 					sheriffId: shift.sheriffId
 				});				
 			}
-			//console.log(body)
 			const url = 'api/shift';
 			this.$http.put(url, body)
 				.then(response => {
@@ -364,7 +385,6 @@
 					}
 				}, err => {
 					const errMsg = err.response.data.error;
-					// this.shiftErrorMsg = errMsg.slice(0,50) + (errMsg.length>50?' ...':'');
 					this.shiftErrorMsg = errMsg;
 					this.shiftError = true;
 				})
@@ -432,11 +452,33 @@
 		public ClearFormState(){
 			this.startTimeState = true;
 			this.endTimeState = true;
+		}
+
+		public confirmDeleteShift(){
+			this.deleteError = false;
+			this.confirmDelete = true;
+        }
+
+        public deleteShift(){
+			const url = 'api/shift';
+			console.log(this.selectedShifts)
+			const body = this.selectedShifts;
+            this.$http.delete(url, body)
+                .then(response => {
+                    console.log(response);
+                    this.confirmDelete = false;
+                    this.$emit('change');
+                    
+                }, err=>{
+					const errMsg = err.response.data.error;
+					console.log(err.response)
+                    this.deleteErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.deleteErrorMsgDesc = errMsg;
+                    this.deleteError = true;
+                });
         }
 
 		public dateChanged(event) {
-			//console.log(event)
-			//console.log(this.datePickerOpened)
 			if(this.datePickerOpened)this.loadNewDateRange();
 		}
 
