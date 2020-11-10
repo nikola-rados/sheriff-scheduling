@@ -54,9 +54,9 @@ namespace SS.Api.controllers.scheduling
 
         [HttpDelete]
         [PermissionClaimAuthorize(perm: Permission.ExpireShifts)]
-        public async Task<ActionResult<ShiftDto>> ExpireShift(int id)
+        public async Task<ActionResult<ShiftDto>> ExpireShifts(List<int> ids)
         {
-            await ShiftService.ExpireShift(id);
+            await ShiftService.ExpireShifts(ids);
             return NoContent();
         }
 
