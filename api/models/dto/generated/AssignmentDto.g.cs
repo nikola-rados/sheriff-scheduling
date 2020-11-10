@@ -1,17 +1,15 @@
 using System;
 using SS.Api.models.dto.generated;
-using SS.Db.models.lookupcodes;
 
 namespace SS.Api.models.dto.generated
 {
     public partial class AssignmentDto
     {
         public int Id { get; set; }
-        public LookupTypes AssignmentType { get; set; }
         public LookupCodeDto LookupCode { get; set; }
-        public int? LookupCodeId { get; set; }
-        public DateTimeOffset? StartDate { get; set; }
-        public DateTimeOffset? EndDate { get; set; }
+        public int LookupCodeId { get; set; }
+        public DateTimeOffset? AdhocStartDate { get; set; }
+        public DateTimeOffset? AdhocEndDate { get; set; }
         public string Timezone { get; set; }
         public string Name { get; set; }
         public bool Monday { get; set; }

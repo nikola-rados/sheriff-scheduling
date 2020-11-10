@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using Mapster;
+using SS.Api.Models.DB;
 using SS.Db.models.sheriff;
 
 namespace SS.Db.models.scheduling.notmapped
@@ -25,10 +26,13 @@ namespace SS.Db.models.scheduling.notmapped
 
     public class ShiftConflict
     {
-        public DateTimeOffset Date { get; set; }
+        public Guid? SheriffId { get; set; }
         public ShiftConflictType Conflict { get; set; }
         public DateTimeOffset Start { get; set; }
         public DateTimeOffset End { get; set; }
+        public int? LocationId { get; set;}
+        public Location Location { get; set; }
+        public int? ShiftId { get; set; }
     }
 
     public enum ShiftConflictType

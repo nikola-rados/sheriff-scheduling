@@ -42,7 +42,10 @@ namespace SS.Db.models.auth
         public const string CreateAssignments = nameof(CreateAssignments);
         public const string EditAssignments = nameof(EditAssignments);
         public const string ExpireAssignments = nameof(ExpireAssignments);
-
+        public const string ViewDuties = nameof(ViewDuties);
+        public const string CreateAndAssignDuties = nameof(CreateAndAssignDuties);
+        public const string EditDuties = nameof(EditDuties);
+        public const string ExpireDuties = nameof(ExpireDuties);
 
         [Key]
         public int Id { get; set; }
