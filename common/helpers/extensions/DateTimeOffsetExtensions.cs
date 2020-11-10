@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using NodaTime;
 
-namespace SS.Api.helpers.extensions
+namespace SS.Common.helpers.extensions
 {
     public static class DateTimeOffsetExtensions
     {

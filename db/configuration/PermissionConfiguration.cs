@@ -43,7 +43,11 @@ namespace SS.Db.configuration
                 new Permission { Id = 29, Name = Permission.ViewAssignments, Description = "View Assignments" },
                 new Permission { Id = 30, Name = Permission.CreateAssignments, Description = "Create Assignments" },
                 new Permission { Id = 31, Name = Permission.EditAssignments, Description = "Edit Assignments" },
-                new Permission { Id = 32, Name = Permission.ExpireAssignments, Description = "Expire Assignments" }
+                new Permission { Id = 32, Name = Permission.ExpireAssignments, Description = "Expire Assignments" },
+                new Permission { Id = 33, Name = Permission.ViewDuties, Description = "View Duties" },
+                new Permission { Id = 34, Name = Permission.CreateAndAssignDuties, Description = "Create Duties" },
+                new Permission { Id = 35, Name = Permission.EditDuties, Description = "Edit Duties" },
+                new Permission { Id = 36, Name = Permission.ExpireDuties, Description = "Expire Duties" }
             );
             base.Configure(builder);
         }

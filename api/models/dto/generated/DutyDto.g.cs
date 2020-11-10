@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SS.Api.models.dto.generated;
 
 namespace SS.Api.models.dto.generated
@@ -13,8 +14,7 @@ namespace SS.Api.models.dto.generated
         public DateTimeOffset? ExpiryDate { get; set; }
         public AssignmentDto Assignment { get; set; }
         public int? AssignmentId { get; set; }
-        public ShiftDto Shift { get; set; }
-        public int ShiftId { get; set; }
+        public ICollection<DutySlotDto> DutySlots { get; set; }
         public string Timezone { get; set; }
         public uint ConcurrencyToken { get; set; }
     }

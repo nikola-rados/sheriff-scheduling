@@ -6,7 +6,7 @@ import VueRouter from 'vue-router'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faGraduationCap, faSuitcase } from '@fortawesome/free-solid-svg-icons'
+import { faGraduationCap, faSuitcase, faSignInAlt, faSignOutAlt } from '@fortawesome/free-solid-svg-icons'
 import "@styles/index.scss";
 import App from './App.vue';
 import routes from './router/index'
@@ -17,6 +17,8 @@ import LoadingSpinner from "@components/LoadingSpinner.vue";
 
 library.add(faGraduationCap);
 library.add(faSuitcase);
+library.add(faSignInAlt);
+library.add(faSignOutAlt);
 
 Vue.use(VueRouter);
 Vue.use(BootstrapVue);

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using NodaTime;
 
 namespace SS.Api.helpers.extensions
 {
@@ -10,6 +12,9 @@ namespace SS.Api.helpers.extensions
         public static string ConvertCamelCaseToMultiWord(this string target) =>
             Regex.Replace(target, "([A-Z])", " $1").Trim().ToLower();
 
-
+        public static DateTimeZone GetTimezone(this string timezone)
+        {
+            return string.IsNullOrEmpty(timezone) ? null : DateTimeZoneProviders.Tzdb.GetZoneOrNull(timezone);
+        }
     }
 }

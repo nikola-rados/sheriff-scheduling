@@ -36,7 +36,7 @@ Vue.filter('capitalize', function(str: string){
 })
 
 Vue.filter('truncate', function (text: string, stop: number) {
-    return text.slice(0, stop) + (stop < text.length ? '...' : '')
+    return (stop+3 < text.length) ? text.slice(0, stop)+'...' : text
 })
 
 Vue.filter('convertDate', function(date: string, time: string, type: string, timezone: string){
