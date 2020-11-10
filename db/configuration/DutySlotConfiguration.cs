@@ -14,9 +14,9 @@ namespace SS.Db.configuration
         {
             builder.Property(b => b.Id).HasIdentityOptions(startValue: 200);
 
-            builder.HasOne(d => d.Sheriff).WithOne().OnDelete(DeleteBehavior.SetNull);
-            builder.HasOne(d => d.Shift).WithOne().OnDelete(DeleteBehavior.SetNull);
-            builder.HasOne(d => d.Location).WithOne().OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(d => d.Sheriff).WithMany().OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(d => d.Shift).WithMany().OnDelete(DeleteBehavior.SetNull);
+            builder.HasOne(d => d.Location).WithMany().OnDelete(DeleteBehavior.SetNull);
             builder.HasOne(d => d.Duty).WithMany(d => d.DutySlots).HasForeignKey(d => d.DutyId)
                 .OnDelete(DeleteBehavior.Cascade);
 

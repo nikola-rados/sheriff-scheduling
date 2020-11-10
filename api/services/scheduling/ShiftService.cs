@@ -83,11 +83,20 @@ namespace SS.Api.services.scheduling
             return await savedShifts.ToListAsync();
         }
 
-        public async Task ExpireShift(int id)
+        public async Task ExpireShifts(List<int> ids)
         {
-            var entity = await Db.Shift.FirstOrDefaultAsync(s => s.Id == id);
-            entity.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
-            entity!.ExpiryDate = DateTimeOffset.UtcNow;
+            foreach (var id in ids)
+            {
+                var entity = await Db.Shift.FirstOrDefaultAsync(s => s.Id == id);
+                entity.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
+                entity!.ExpiryDate = DateTimeOffset.UtcNow;
+                var dutySlots = Db.DutySlot.Where(d => d.ShiftId == id);
+                await dutySlots.ForEachAsync(ds =>
+                {
+                    ds.SheriffId = null;
+                    ds.ShiftId = null;
+                });
+            }
             await Db.SaveChangesAsync();
         }
 
@@ -209,11 +218,6 @@ namespace SS.Api.services.scheduling
 
         private async Task CheckForShiftOverlap(List<Shift> shifts)
         {
-            shifts.ThrowBusinessExceptionIfEmpty("No shifts were provided.");
-            if (shifts.Any(a =>
-                shifts.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
-                throw new BusinessLayerException("Shifts provided overlap with themselves.");
-
             var overlappingShifts = await OverlappingShifts(shifts);
             if (overlappingShifts.Any())
             {
@@ -234,6 +238,11 @@ namespace SS.Api.services.scheduling
 
         private async Task<List<Shift>> OverlappingShifts(List<Shift> targetShifts)
         {
+            targetShifts.ThrowBusinessExceptionIfEmpty("No shifts were provided.");
+            if (targetShifts.Any(a =>
+                targetShifts.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
+                throw new BusinessLayerException("Shifts provided overlap with themselves.");
+
             var sheriffIds = targetShifts.Select(ts => ts.SheriffId).Distinct();
             var locationId = targetShifts.First().LocationId;
 
@@ -250,10 +259,14 @@ namespace SS.Api.services.scheduling
                     ).ToListAsync());
             }
 
-            return conflictingShifts.Distinct().WhereToList(s =>
+            conflictingShifts = conflictingShifts.Distinct().WhereToList(s =>
                 targetShifts.Any(ts =>
-                    ts.ExpiryDate == null && s.Id != ts.Id && ts.StartDate < s.EndDate && s.StartDate < ts.EndDate && ts.SheriffId == s.SheriffId)
+                    ts.ExpiryDate == null && s.Id != ts.Id && ts.StartDate < s.EndDate && s.StartDate < ts.EndDate &&
+                    ts.SheriffId == s.SheriffId) && 
+                targetShifts.All(ts => ts.Id != s.Id)
             );
+
+            return conflictingShifts;
         }
         #endregion Availability
 
