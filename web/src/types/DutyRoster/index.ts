@@ -1,13 +1,12 @@
 import {} from '../common';
 import {} from './jsonTypes';
 
-export interface placeHolderInfoType {
+export interface dutyRangeInfoType {
+    startDate: string;
+    endDate: string;
+}
 
-    "ID": string,
-    "Role": string,
-    "First Name": string,
-    "Last Name": string,
-    "Name": string,
-    "Index": number
+export interface myTeamShiftInfoType {
+    sheriffId: string;
 }
 

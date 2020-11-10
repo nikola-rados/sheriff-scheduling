@@ -10,6 +10,13 @@ Vue.filter('beautify-date', function(date){
 		return ''
 })
 
+Vue.filter('beautify-date-weekday', function(date){
+	if(date)
+		return	moment(date).format('ddd DD MMM YYYY');
+	else
+		return ''
+})
+
 Vue.filter('beautify-date-time', function(date){
 	enum MonthList {'Jan' = 1, 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'}
 	if(date)
