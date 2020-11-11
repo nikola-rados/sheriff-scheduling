@@ -66,6 +66,7 @@ export interface scheduleBlockInfoType {
     originalColor: string; 
     headerColor: string;  
     selected: boolean;   
+    type: string;
 }
 
 export interface dayOptionsInfoType {

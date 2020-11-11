@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div v-on:edit-shifts="EditShifts()">
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav class="custom-navbar">
@@ -206,6 +206,9 @@
 		mounted() {
 			this.selectedDate = moment().format().substring(0,10);			
 			this.loadNewDateRange();
+			this.$root.$on('editShifts', () => {
+				this.EditShift();
+			});
 		}
 
 		public EditShift() {
