@@ -6,7 +6,7 @@
             :id="'schCard'+block.key"
             :style=" 'background-color:'+block.color+'; float:left; position: relative; left:'+ block.startTime +'%; width:' + block.timeDuration+'%; height:4rem;'"             
             no-body>
-                <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)"> 
+                <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)" style="height:100%"> 
                     <h6 :style="'background-color:'+block.headerColor+'; color:white; text-align: center; font-size:10px; line-height: 16px;'"
                         v-b-tooltip.hover                                
                         :title="block.title + ' ' + block.timeStamp">
@@ -18,7 +18,7 @@
                     </h6>
                     <span style="text-align: center;font-size:10px; line-height: 12px; display: block;">{{block.timeStamp}}</span>
                 </span>
-                <span v-else @mousedown="cardSelected(block)">
+                <span v-else @mousedown="cardSelected(block)" style="height:100%">
                     <h6 
                         v-b-tooltip.hover                                
                         :title="block.title + ' ' + block.timeStamp"
