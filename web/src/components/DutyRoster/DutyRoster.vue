@@ -16,12 +16,16 @@
                     bordered                    
                     fixed>
                     <template v-slot:table-colgroup>
-                        <col style="width:8.5rem"> 
+                        <col style="width:7.35rem"> 
                     </template>
                         <!-- <template v-slot:head() = "data" >
                             <span class="text-success">{{data.column}}</span> <span> {{data.label}}</span>
                         </template> -->
-                        <template v-slot:cell(assignments) ="data" >
+
+                        <template v-slot:head(assignments) ="data" >                            
+                            <div id="assignmentsheader">{{data.label}} </div>                            
+                        </template>
+                        <template v-slot:cell(assignments) ="data" >                            
                             <b-row class="ml-3">{{data.value}} </b-row>
                             <b-row>
                                 <b-button style="margin-left:auto; margin-right:1rem; height:1rem; width:1rem;" size="sm"  @click="data.toggleDetails();"><b-icon-arrow90deg-down font-scale=".75"  style="transform:translate(-5px,-11px);"/></b-button>
@@ -36,8 +40,7 @@
                             
                         </template> 
 
-                        <template v-slot:row-details>
-                            <!-- <div style="margin:0; padding:0; background-color:red; width:100%; height:2rem;"></div> -->
+                        <!-- <template v-slot:row-details>
                              <b-table
                                 :items="[{sheriff:'john'},{sheriff:'joe'},{sheriff:'jill'},{sheriff:'jack'}]" 
                                 :fields="[{key:'sheriff', label:'sheriff', thClass:'', tdClass:'h7 px-1 mx-1', thStyle:''},{key:'time', label:'time', thClass:'', tdClass:'px-0 mx-0', thStyle:''}]"
@@ -50,12 +53,36 @@
                                 <template v-slot:table-colgroup>
                                     <col style="width:8.47rem"> 
                                 </template>
-                                <template v-slot:cell(time) >  
-                                    <b-card style="background-color:#BBBBBB; float:left; position: relative; left:22.6%; width:70%; height:.5rem;"/>
+                                <template v-slot:footer(time) >  
+                                    <b-card style="background-color:#BBBBBB; float:left; position: relative; left:22.6%; width:61%; height:.5rem;"/>
                                 </template>
                              </b-table>
-                        </template>                      
+                        </template>                       -->
                 </b-table>
+                <div class="bg-light fixed-bottom mb-5" > 
+                    <b-row  class="m-0 p-0" cols="2" >
+                        <b-col class="m-0 p-0" cols="11" border-vaiant="danger">
+                            <b-table
+                                :key="updateGaugeTable"
+                                :items="myteamAvailability" 
+                                :fields="gaugeFields"
+                                small
+                                class="gauge"
+                                thead-class="d-none"
+                                sticky-header="600px"                        
+                                bordered                    
+                                fixed>
+                                    <template v-slot:table-colgroup> 
+                                        <col>                                      
+                                        <col style="width:6.2rem">
+                                    </template>                                    
+                                    <template v-slot:cell(h0) >  
+                                        <b-card style="background-color:#BBBBBB; float:left; position: relative; left:0%; width:50%; height:.5rem;"/>
+                                    </template>
+                            </b-table> 
+                        </b-col>
+                    </b-row>
+                </div>
                 <b-card><br></b-card>  
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
@@ -100,6 +127,8 @@
 
         myTeamShifts: myTeamShiftInfoType[] =[]; 
 
+        myteamAvailability=[{sheriff:'jill'},{sheriff:'jack'},{sheriff:'jill'},{sheriff:'jack'}]
+        gaugeFields: any[] = []
 
         dutyRosters =[
             {assignments:'101'},
@@ -115,7 +144,9 @@
         mounted()
         {
             this.isDutyRosterDataMounted = false;
-            this.writeFields();                
+            this.writeFields();
+            this.writeGaugeFields(); 
+                        
         }
 
         public writeFields(){
@@ -124,6 +155,28 @@
                 const time = hour>9? hour+':00': '0'+hour+':00'
                 this.fields.push( {key:('h'+hour), label:time, thClass:'align-middle', tdClass:'px-0 mx-0', thStyle:'margin:0; padding:0; font-size:10px'})
             }
+        }
+
+        public writeGaugeFields(){
+
+            // thead-class="d-none"
+            this.gaugeFields = []
+            // for(let hour=0; hour<24; hour++){
+            //     const time = hour>9? hour+':00': '0'+hour+':00'
+            this.gaugeFields.push( {key:'h0', label:'time', thClass:'align-middle', tdClass:'px-0 mx-0', thStyle:'margin:0; padding:0; font-size:10px'})
+            // }
+            this.gaugeFields.push({key:'sheriff', label:'sheriff', thClass:'', tdClass:'h7 p-0 m-0', thStyle:'margin:0; padding:0; font-size:10px'})
+        }
+
+        public blockSize(){
+            //console.log('schCard'+block.key)
+            const el = document.getElementById('assignmentsheader')
+            console.log(el)
+            if(el){
+                return el.clientWidth
+            }else{
+                return 0
+            }            
         }
 
         public getShifts(){
@@ -145,9 +198,7 @@
             {
                 console.log(shift)
             }
-
         }
-
     }
 </script>
 
@@ -155,6 +206,11 @@
 
     .card {
         border: white;
+    }
+
+    .gauge {
+        direction:rtl;
+        position: sticky;
     }
 
 </style>

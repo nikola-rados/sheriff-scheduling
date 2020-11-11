@@ -66,8 +66,9 @@
 		}
 
         public addAssignment(){
-            console.log('add assignment')
+            console.log('add assignment')           
         }
+
         
         public dateChanged(event) {
 			//console.log(event)
