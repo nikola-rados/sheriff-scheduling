@@ -70,17 +70,16 @@
                             <template v-slot:cell(expiryDate)="data" >
                                 <span>{{data.value | beautify-date}}</span> 
                             </template>
-                            <template v-slot:cell(editTraining)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" :disabled="data.item['_rowVariant']?true:false" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                            <template v-slot:cell(editTraining)="data" >
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>                                       
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" v-if="data.item['_rowVariant']?false:true" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>                                
                             </template>
 
                             <template v-slot:row-details="data">
                                 <b-card :id="'Tr-Date-'+data.item.startDate.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
                                     <add-training-form :formData="data.item" :editable="data.item['_rowVariant']?false:true" :isCreate="false" :trainingTypeInfoList="trainingTypeInfoList" v-on:submit="saveTraining" v-on:cancel="closeTrainingForm" />
                                 </b-card>
-                            </template>
-                            
+                            </template>                            
                     </b-table> 
                 </b-card> 
                 <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">

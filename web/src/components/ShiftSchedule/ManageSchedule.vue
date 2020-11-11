@@ -1,36 +1,31 @@
 <template>
-    <b-card bg-variant="white" class="mx-1 home" no-body>
-        
-        <schedule-header v-on:change="loadScheduleInformation()" />
-            <b-overlay opacity="0.6" :show="!isManageScheduleDataMounted">
-                <template #overlay>
-                    <loading-spinner :inline="true"/>
-                </template>
-                <b-table
-                    :key="updateTable"
-                    :items="shiftSchedules" 
-                    :fields="fields"
-                    head-row-variant="primary"   
-                    bordered
-                    fixed>
-                        <template v-slot:table-colgroup>
-                            <col style="width:8.5rem">                            
-                        </template>
-                        <template v-slot:head() = "data" >
-                            <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
-                        </template>
-                        <template v-slot:head(myteam) = "data" >  
-                            <span> {{data.label}}</span>
-                        </template>
-                        <template v-slot:cell()="data" >
-                            <schedule-card :sheriffId="data.item.myteam.sheriffId" :scheduleInfo=" data.value"/>
-                        </template>
-                        <template v-slot:cell(myteam) = "data" > 
-                            <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
-                        </template>
-                </b-table>
-            </b-overlay>
-            <b-card><br></b-card>
+    <b-card bg-variant="white" class="mx-1 home" no-body>        
+        <schedule-header v-on:change="loadScheduleInformation()" />           
+                
+            <b-table
+                :key="updateTable"
+                :items="shiftSchedules" 
+                :fields="fields"
+                head-row-variant="primary"   
+                bordered
+                fixed>
+                    <template v-slot:table-colgroup>
+                        <col style="width:8.5rem">                            
+                    </template>
+                    <template v-slot:head() = "data" >
+                        <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
+                    </template>
+                    <template v-slot:head(myteam) = "data" >  
+                        <span> {{data.label}}</span>
+                    </template>
+                    <template v-slot:cell()="data" >
+                        <schedule-card :sheriffId="data.item.myteam.sheriffId" :scheduleInfo=" data.value"/>
+                    </template>
+                    <template v-slot:cell(myteam) = "data" > 
+                        <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
+                    </template>
+            </b-table>
+        <b-card><br></b-card>
            
     </b-card>
 </template>
@@ -187,12 +182,7 @@
                     for(const dateIndex in this.headerDates){
                         const date = this.headerDates[dateIndex]
                         if(date>=conflict.start && date<=conflict.end)
-                        {  
-                            // console.error('start_end_now')
-                            // console.log(conflict.conflict)
-                            // console.log(conflict.start)
-                            // console.log(conflict.end)
-                            // console.log(date)
+                        {
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
                                 location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
@@ -217,15 +207,7 @@
                         {  
                             const start = moment(conflict.start)
                             const end = moment(conflict.end)
-                            const duration = moment.duration(end.diff(start));//duration.asMinutes()
-                            // console.warn('start_end_now')
-                            // console.log(conflict.conflict)
-                            // console.log(conflict.start)
-                            // console.log(conflict.end)
-                            // console.log(date)
-                            // console.log(nextDate)
-                            // console.log(moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes())
-                            // console.log(duration.asMinutes())
+                            const duration = moment.duration(end.diff(start));//duration.asMinutes()                            
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
                                 location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
@@ -245,15 +227,6 @@
                             const end = moment(conflict.end)
                             const durationStart = moment.duration(midnight.diff(start));
                             const durationEnd = moment.duration(end.diff(midnight));
-                            // console.warn('Next______Day')
-                            // console.log(conflict.conflict)
-                            // console.log(conflict.start)
-                            // console.log(conflict.end)
-                            // console.log(date)
-                            // console.log(nextDate)
-                            // console.log(moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes())
-                            // console.log(durationStart.asMinutes())
-                            // console.log(durationEnd.asMinutes())
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
                                 location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
@@ -283,7 +256,6 @@
                 } 
             }
             //console.log(conflicts)
-            //console.log(moment())
 
             return conflicts
         } 
@@ -295,13 +267,11 @@
                 conflict.start = moment(conflict.start).tz(this.location.timezone).format();
                 conflict.end = moment(conflict.end).tz(this.location.timezone).format();              
                 if(conflict.conflict !='AwayLocation' || conflict.locationId != this.location.id) continue;
-                //console.log(conflict)
                 conflict['startDay']=conflict.start.substring(0,10);
                 conflict['endDay']=conflict.end.substring(0,10);
                 conflictsJsonAwayLocation.push(conflict);
             }
             conflictsJsonAwayLocation = _.sortBy(conflictsJsonAwayLocation,'start')
-            //console.log(conflictsJsonAwayLocation)
 
             for(const dateIndex in this.headerDates){
                 const date = this.headerDates[dateIndex]
@@ -311,11 +281,7 @@
                 for(const conflict of conflictsJsonAwayLocation){
 
                     if(day>=conflict.startDay && day<=conflict.endDay)
-                    {  
-                        // console.error('start_end_now')                    
-                        // console.log(conflict.start)
-                        // console.log(conflict.end)
-                        // console.log(date)
+                    { 
                         numberOfConflictsPerDay++;
                         if(Vue.filter('isDateFullday')(conflict.start,conflict.end)){                            
                             break;

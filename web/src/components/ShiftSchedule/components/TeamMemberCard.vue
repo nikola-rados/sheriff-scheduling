@@ -259,8 +259,7 @@
             //console.log(this.dayOptions[4].conflicts.Training)
         }
 
-        public extractConflicts() {   
-            // console.log(this.sheriffInfo)
+        public extractConflicts() {
             this.LoanedInDesc = '';
             if(this.sheriffInfo.homeLocation.id != this.location.id) this.LoanedInDesc =  "Loaned In from " + this.sheriffInfo.homeLocation.name
                       
@@ -268,8 +267,6 @@
                 this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict); 
                 this.dayOptions[conflict.dayOffset].fullday = this.dayOptions[conflict.dayOffset].fullday || conflict.fullday               
             }
-
-            //console.log(this.dayOptions)
             
             Vue.nextTick(()=>{this.isDataMounted = true;})                     
         }
@@ -305,9 +302,6 @@
 
 		public AddShift() {
 			console.log('adding shift')
-			// TODO: add when edit functionality is in place
-			// const shift = {} as shiftInfoType;
-			// this.UpdateShiftToEdit(shift);
 			this.isShiftDataMounted = true;
             this.showShiftDetails = true;
         }
@@ -391,8 +385,8 @@
         } 
 
 		public resetShiftWindowState() {
-				this.shift = {} as shiftInfoType;
-				this.ClearFormState();
+            this.shift = {} as shiftInfoType;
+            this.ClearFormState();
 		}
 
 		public ClearFormState(){

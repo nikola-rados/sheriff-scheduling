@@ -13,6 +13,8 @@
 							@shown = "datePickerOpened = true"
 							@hidden = "datePickerOpened = false"
 							button-only
+							today-button
+							close-button
 							locale="en-US">
 					</b-form-datepicker>
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="nextDateRange" class="my-2"><b-icon-chevron-right/></b-button>
@@ -466,12 +468,11 @@
 			const url = 'api/shift';
 			console.log(this.selectedShifts)
 			const body = this.selectedShifts;
-            this.$http.delete(url, body)
+            this.$http.delete(url, {data: body})
                 .then(response => {
                     console.log(response);
                     this.confirmDelete = false;
-                    this.$emit('change');
-                    
+                    this.$emit('change');                    
                 }, err=>{
 					const errMsg = err.response.data.error;
 					console.log(err.response)
