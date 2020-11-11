@@ -31,7 +31,7 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignDuties)]
-        public async Task<ActionResult<List<DutyDto>>> AddDuty(AddDutyDto newDuty)
+        public async Task<ActionResult<DutyDto>> AddDuty(AddDutyDto newDuty)
         {
             var duty = await DutyRosterService.AddDuty(newDuty.Adapt<Duty>());
             return Ok(duty.Adapt<DutyDto>());
@@ -39,7 +39,7 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPut]
         [PermissionClaimAuthorize(perm: Permission.EditDuties)]
-        public async Task<ActionResult<List<DutyDto>>> UpdateDuties(List<UpdateDutyDto> editDuties, bool overrideValidation)
+        public async Task<ActionResult<List<DutyDto>>> UpdateDuties(List<UpdateDutyDto> editDuties, bool overrideValidation = false)
         {
             var duties = await DutyRosterService.UpdateDuties(editDuties.Adapt<List<Duty>>(), overrideValidation);
             return Ok(duties.Adapt<List<DutyDto>>());

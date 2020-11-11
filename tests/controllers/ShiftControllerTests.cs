@@ -6,7 +6,6 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using SS.Api.controllers.scheduling;
-using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
 using SS.Api.models.dto.generated;
@@ -23,6 +22,8 @@ using Xunit;
 
 namespace tests.controllers
 {
+    //Sequential, because there are issues with Adding Location (with a unique index) within a TransactionScope.
+    [Collection("Sequential")]
     public class ShiftControllerTests : WrapInTransactionScope
     {
         private ShiftController ShiftController { get; }
@@ -131,6 +132,8 @@ namespace tests.controllers
             HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(new List<AddShiftDto> { shiftSix, shiftSeven }));
             sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
             Assert.All(sheriffShifts, s => new List<int> { 3, 4, 6, 7 }.Contains(s.Id));
+
+
 
         }
 
@@ -358,6 +361,7 @@ namespace tests.controllers
             Assert.NotNull(loanedInSheriffConflicts);
             Assert.Contains(loanedInSheriffConflicts.Conflicts, c =>
                 c.Conflict == ShiftConflictType.AwayLocation && c.LocationId == 1 && (startDate - c.Start).TotalSeconds <= 1 && (startDate.AddDays(1) - c.End).TotalSeconds <= 1);
+
         }
 
         [Fact]
@@ -396,14 +400,50 @@ namespace tests.controllers
             var shiftDtos = new List<AddShiftDto> {shiftDto.Adapt<AddShiftDto>()};
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
 
+            var stDate = DateTimeOffset.UtcNow.AddDays(20);
+
             var sheriffId = Guid.NewGuid();
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There", IsEnabled = true, HomeLocationId = 1 });
-            await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = 1, LookupCode = new LookupCode() { Id = 9000 } });
+            var sheriffIdAway = Guid.NewGuid();
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = sheriffId,
+                FirstName = "Hello",
+                LastName = "There",
+                IsEnabled = true,
+                HomeLocationId = 1
+            });
+            await Db.Sheriff.AddAsync(new Sheriff
+            {
+                Id = sheriffIdAway,
+                FirstName = "Hello2",
+                LastName = "There2",
+                IsEnabled = true,
+                HomeLocationId = 1,
+                AwayLocation = new List<SheriffAwayLocation>
+                {
+                    new SheriffAwayLocation
+                    {
+                        Id = 1,
+                        LocationId = 1,
+                        StartDate = stDate,
+                        EndDate = stDate.AddDays(5)
+                    }
+                }
+            });
+            await Db.Assignment.AddAsync(new Assignment
+            {
+                Id = 5,
+                LocationId = 1,
+                LookupCode = new LookupCode()
+                {
+                    Id = 9000
+                }
+            });
             await Db.SaveChangesAsync();
 
             //Add Shift, this also tests UpdateShift's validation. 
             //Tests a conflict. 
-            var stDate = DateTimeOffset.UtcNow.AddDays(20);
+
             var addShifts = new List<AddShiftDto>
             {
                 new AddShiftDto
@@ -431,6 +471,22 @@ namespace tests.controllers
             };
 
             await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.AddShifts(addShifts));
+
+            //Schedule a sheriff who has an AwayLocation row, with the same ID as the location scheduled for. 
+
+            addShifts = new List<AddShiftDto>
+            {
+                new AddShiftDto
+                {
+                    SheriffId = sheriffIdAway,
+                    StartDate = stDate.AddHours(2),
+                    EndDate = stDate.AddHours(3),
+                    LocationId = 1,
+                    Timezone = "America/Edmonton"
+                }
+            };
+
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(addShifts));
         }
 
 
@@ -537,9 +593,6 @@ namespace tests.controllers
 
             Assert.Equal(shiftDto.StartDate, updatedShift.StartDate);
             Assert.Equal(shiftDto.EndDate, updatedShift.EndDate);
-
-
-
         }
 
 
@@ -552,7 +605,7 @@ namespace tests.controllers
             var shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
             var shift = shifts.First();
 
-            HttpResponseTest.CheckForNoContentResponse(await ShiftController.ExpireShift(shift.Id));
+            HttpResponseTest.CheckForNoContentResponse(await ShiftController.ExpireShifts(new List<int> {shift.Id}));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.GetShifts(1, DateTimeOffset.UtcNow, DateTimeOffset.UtcNow.AddHours(5)));
             Assert.Empty(response);

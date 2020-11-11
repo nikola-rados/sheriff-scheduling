@@ -12,6 +12,7 @@
                         <b-tr >
                             <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 17rem"> 
                                 <b-form-select
+                                    tabindex="1"
                                     size = "sm"
                                     v-model="selectedLocation"
                                     :state = "locationState?null:false">
@@ -35,6 +36,7 @@
                         <label class="h6 m-0 p-0"> From: </label>
                         <b-input-group  style="padding 0; margin:0 ;width: 10rem">                            
                             <b-form-datepicker
+                                tabindex="2"
                                 class="mb-1"
                                 size="sm"
                                 v-model="selectedStartDate"
@@ -47,12 +49,18 @@
                         </b-input-group>
                         <b-row  style="padding 0; margin:0; height: 1.95rem; width: 10rem">
                             <b-input-group  style="padding 0; margin:0 ;width: 5.4rem">
-                                <b-form-checkbox v-model="addTime" @change="addTimeCheckBoxChanged" size="sm" class="mt-1 mx-0">
+                                <b-form-checkbox 
+                                    tabindex="4"
+                                    v-model="addTime" 
+                                    @change="addTimeCheckBoxChanged" 
+                                    size="sm" 
+                                    class="mt-1 mx-0">
                                     <span class="h6 mx-0 px-0">Add Time</span>                                
                                 </b-form-checkbox>
                             </b-input-group>                        
                             <b-input-group  style="width: 4.2rem; margin-left: auto;">                                                        
                                 <b-form-input v-if="addTime"
+                                    tabindex="5"
                                     v-model="selectedStartTime"
                                     @click="startTimeState=true"
                                     size="sm"
@@ -69,6 +77,7 @@
                     <b-td>
                         <label class="h6 m-0 p-0"> To: </label>
                         <b-form-datepicker
+                            tabindex="3"
                             class="mb-1 mt-0 pt-0"
                             size="sm"
                             v-model="selectedEndDate"
@@ -79,6 +88,7 @@
                         </b-form-datepicker> 
                         <b-input-group v-if="addTime" style="width: 4.2rem; margin-left: auto;">
                             <b-form-input
+                                tabindex="6"
                                 v-model="selectedEndTime"
                                 @click="endTimeState=true"
                                 size="sm"
