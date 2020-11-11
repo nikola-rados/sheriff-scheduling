@@ -157,7 +157,7 @@
     import UserTrainingSummary from './Tabs/UserTrainingSummary.vue';
     import UserLeaveSummary from './Tabs/UserLeaveSummary.vue';
     import TrainingTab from './Tabs/TrainingTab.vue';
-import { teamMemberJsonType } from '../../types/MyTeam/jsonTypes';
+    import { teamMemberJsonType } from '../../types/MyTeam/jsonTypes';
 
     enum gender {'Male'=0, 'Female', 'Other'}
 

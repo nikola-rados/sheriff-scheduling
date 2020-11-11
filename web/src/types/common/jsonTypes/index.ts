@@ -28,3 +28,11 @@ export interface trainingTypeJson {
     description: string,
     concurrencyToken: number
 }
+
+export interface sortOrderForLocationJsonType {
+    id : number,
+    lookupCodeId : number,
+    locationId : number,
+    sortOrder : number,
+    concurrencyToken : number
+}
