@@ -2,33 +2,35 @@
     <b-card bg-variant="white" class="mx-1 home" no-body>
         
         <schedule-header v-on:change="loadScheduleInformation()" />
-        <loading-spinner v-if="!isManageScheduleDataMounted" />
-        <div v-else>
-            <b-table
-                :key="updateTable"
-                :items="shiftSchedules" 
-                :fields="fields"
-                head-row-variant="primary"   
-                bordered
-                fixed>
-                    <template v-slot:table-colgroup>
-                        <col style="width:8.5rem">                            
-                    </template>
-                    <template v-slot:head() = "data" >
-                        <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
-                    </template>
-                    <template v-slot:head(myteam) = "data" >                           
-                        <span> {{data.label}}</span>
-                    </template>
-                    <template v-slot:cell()="data" >
-                        <schedule-card :sheriffId="data.item.myteam.sheriffId" :scheduleInfo=" data.value"/>
-                    </template>
-                    <template v-slot:cell(myteam) = "data" > 
-                        <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
-                    </template>
-            </b-table>
+            <b-overlay opacity="0.6" :show="!isManageScheduleDataMounted">
+                <template #overlay>
+                    <loading-spinner :inline="true"/>
+                </template>
+                <b-table
+                    :key="updateTable"
+                    :items="shiftSchedules" 
+                    :fields="fields"
+                    head-row-variant="primary"   
+                    bordered
+                    fixed>
+                        <template v-slot:table-colgroup>
+                            <col style="width:8.5rem">                            
+                        </template>
+                        <template v-slot:head() = "data" >
+                            <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
+                        </template>
+                        <template v-slot:head(myteam) = "data" >  
+                            <span> {{data.label}}</span>
+                        </template>
+                        <template v-slot:cell()="data" >
+                            <schedule-card :sheriffId="data.item.myteam.sheriffId" :scheduleInfo=" data.value"/>
+                        </template>
+                        <template v-slot:cell(myteam) = "data" > 
+                            <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
+                        </template>
+                </b-table>
+            </b-overlay>
             <b-card><br></b-card>
-        </div>  
            
     </b-card>
 </template>
@@ -75,7 +77,6 @@
         public UpdateSheriffsAvailabilityInfo!: (newSheriffsAvailabilityInfo: sheriffAvailabilityInfoType[]) => void
 
         isManageScheduleDataMounted = false;
-
         headerDates: string[] = [];
         numberOfheaderDates = 7;
         updateTable=0;
