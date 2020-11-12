@@ -10,6 +10,8 @@ namespace SS.Api.models.dto.generated
         public int LookupCodeId { get; set; }
         public DateTimeOffset? AdhocStartDate { get; set; }
         public DateTimeOffset? AdhocEndDate { get; set; }
+        public TimeSpan Start { get; set; }
+        public TimeSpan End { get; set; }
         public string Timezone { get; set; }
         public string Name { get; set; }
         public bool Monday { get; set; }

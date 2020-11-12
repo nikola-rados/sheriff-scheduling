@@ -86,23 +86,26 @@
 
             <b-card v-if="isShiftDataMounted" no-body style="font-size: 14px; user-select: none;" >
                 
-                <b-row v-if="shiftError" id="ShiftError" style="border-radius:10px; max-width: 30rem;" class="h4 mx-2 text-white bg-danger">
-
-					<span class="mx-2 mt-2 mb-0 p-0"
-						>{{shiftErrorMsg}}</span><b-icon class="p-0" 
-						style="margin-left:auto; transform:translate(-10px, -10px);"
+                <b-row v-if="shiftError" id="ShiftError" style="border-radius:5px; max-width: 30rem;" class="h4 mx-2 py-2 text-white bg-danger">
+					<b-col cols="11">
+						<span class="p-0">{{shiftErrorMsg}}</span>
+					</b-col>
+					<b-col cols="1" style=" padding:0; margin:auto 0;">
+						<b-icon
                         icon = x-square-fill
-                        @click="shiftError = false"
-                    />
+                        @click="shiftError = false"/>
+					</b-col>
                 </b-row>
 
-                <b-row v-if="shiftTimesDiffer" id="shiftTimesDifferError" style="border-radius:10px; max-width: 30rem;" class="h4 mx-2 bg-warning">
-					<span class="mx-2 mt-2 mb-0 p-0"
-						>{{shiftTimesDifferMsg}}</span><b-icon class="p-0" 
-						style="margin-left:auto; transform:translate(-10px, -10px);"
-                        icon = x-square-fill
-                        @click="shiftTimesDiffer = false"
-                    />
+                <b-row v-if="shiftTimesDiffer" id="shiftTimesDifferError" style="border-radius:5px; max-width: 30rem;" class="h4 mx-2 py-2 bg-warning">
+					<b-col cols="11">
+						<span class="p-0">{{shiftTimesDifferMsg}}</span>
+					</b-col>
+					<b-col cols="1" style=" padding:0; margin:auto 0;">
+						<b-icon
+							icon = x-square-fill
+							@click="shiftTimesDiffer = false"/>
+					</b-col>
                 </b-row>
 
                 <b-row class="mx-1 my-0 p-0">
@@ -110,7 +113,7 @@
                         <label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
                         <b-form-input
                             v-model="selectedStartTime"
-                            @click="startTimeState=true"
+                            @click="startTimeState=true;shiftTimesDiffer=false;"
                             size="sm"
                             type="text"
                             autocomplete="off"
@@ -125,7 +128,7 @@
                         <label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
                         <b-form-input
                             v-model="selectedEndTime"
-                            @click="endTimeState=true"
+                            @click="endTimeState=true;shiftTimesDiffer=false;"
                             size="sm"
                             type="text"
                             autocomplete="off"
