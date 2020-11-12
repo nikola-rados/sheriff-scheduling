@@ -63,7 +63,6 @@
                     <b-row  class="m-0 p-0" cols="2" >
                         <b-col class="m-0 p-0" cols="11" border-vaiant="danger">
                             <b-table
-                                :key="updateGaugeTable"
                                 :items="myteamAvailability" 
                                 :fields="gaugeFields"
                                 small
@@ -86,8 +85,8 @@
                 <b-card><br></b-card>  
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
-                <b-card v-if="isDutyRosterDataMounted" style="width:98%;" class="bg-dark mb-5" no-body header-class="text-white text-center" header="My Team"> 
-                    <!-- <team-member-card v-for="member in sheriffsAvailabilityInfo" :key="member.sheriffId" :sheriffId="member.sheriffId"/> -->
+                <b-card v-if="isDutyRosterDataMounted" style="width:98%;" class="bg-dark mb-5"  header-class="text-white text-center" header="My Team"> 
+                    <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member"/>
                 </b-card>
             </b-col>
         </b-row>
@@ -98,6 +97,7 @@
     import { Component, Vue } from 'vue-property-decorator';
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import SheriffAvailability from './components/SheriffAvailability.vue'
+    import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
 
     import { namespace } from "vuex-class";   
     import "@store/modules/CommonInformation";
@@ -107,12 +107,14 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import { locationInfoType } from '../../types/common';
-    import { dutyRangeInfoType, myTeamShiftInfoType} from '@/types/DutyRoster';
+    import { dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
+    import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component({
         components: {
             DutyRosterHeader,
-            SheriffAvailability
+            SheriffAvailability,
+            DutyRosterTeamMemberCard
         }
     })
     export default class DutyRoster extends Vue {
@@ -123,9 +125,15 @@
         @dutyState.State
         public dutyRangeInfo!: dutyRangeInfoType;
 
+        @dutyState.State
+        public shiftAvailabilityInfo!: myTeamShiftInfoType[];
+
+        @dutyState.Action
+        public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
+
         isDutyRosterDataMounted = false;
 
-        myTeamShifts: myTeamShiftInfoType[] =[]; 
+        // myTeamShifts: myTeamShiftInfoType[] =[]; 
 
         myteamAvailability=[{sheriff:'jill'},{sheriff:'jack'},{sheriff:'jill'},{sheriff:'jack'}]
         gaugeFields: any[] = []
@@ -193,11 +201,33 @@
         }
 
         public extractTeamShiftInfo(shiftsJson){
-            this.myTeamShifts = [];
-            for(const shift of shiftsJson)
+            this.UpdateShiftAvailabilityInfo([]);
+            for(const shiftJson of shiftsJson)
             {
-                console.log(shift)
+                console.log(shiftJson)
+                const availabilityInfo = {} as myTeamShiftInfoType;
+                const shiftInfo = {} as shiftInfoType;
+                shiftInfo.id = shiftJson.id;
+                shiftInfo.startDate = shiftJson.startDate;
+                shiftInfo.endDate = shiftJson.endDate;
+                shiftInfo.timezone = shiftJson.timezone;
+                shiftInfo.sheriffId = shiftJson.sheriffId;
+                shiftInfo.locationId = shiftJson.locationId;
+                const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
+                
+                if (index != -1) {
+                    this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
+                } else {
+                    availabilityInfo.shifts = [shiftInfo];
+                    availabilityInfo.sheriffId = shiftJson.sheriff.id;
+                    availabilityInfo.badgeNumber = shiftJson.sheriff.badgeNumber;
+                    availabilityInfo.firstName = shiftJson.sheriff.firstName;
+                    availabilityInfo.lastName = shiftJson.sheriff.lastName;
+                    availabilityInfo.rank = shiftJson.sheriff.rank;
+                    this.shiftAvailabilityInfo.push(availabilityInfo);
+                }
             }
+            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);
         }
     }
 </script>

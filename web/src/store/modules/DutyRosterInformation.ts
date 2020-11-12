@@ -1,4 +1,4 @@
-import { dutyRangeInfoType} from '@/types/DutyRoster';
+import { dutyRangeInfoType, myTeamShiftInfoType} from '@/types/DutyRoster';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 
 @Module({
@@ -7,6 +7,7 @@ import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 class DutyRosterInformation extends VuexModule {
 
   public dutyRangeInfo = {} as dutyRangeInfoType;
+  public shiftAvailabilityInfo: myTeamShiftInfoType[] = [];
   
   @Mutation
   public setDutyRangeInfo(dutyRangeInfo): void {   
@@ -18,6 +19,15 @@ class DutyRosterInformation extends VuexModule {
     this.context.commit('setDutyRangeInfo', newDutyRangeInfo)
   }
 
+  @Mutation
+  public setShiftAvailabilityInfo(shiftAvailabilityInfo): void {   
+    this.shiftAvailabilityInfo = shiftAvailabilityInfo;
+  }
+
+  @Action
+  public UpdateShiftAvailabilityInfo(newShiftAvailabilityInfo): void {
+    this.context.commit('setShiftAvailabilityInfo', newShiftAvailabilityInfo)
+  }
   
 }
 
