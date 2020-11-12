@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SS.Api.models;
 
 namespace SS.Api.services.scheduling
 {
@@ -38,8 +39,8 @@ namespace SS.Api.services.scheduling
 
         public async Task<List<Shift>> AddShifts(List<Shift> shifts)
         {
-            await CheckForShiftOverlap(shifts);
-            await CheckSheriffEvents(shifts);
+            var overlaps = await GetShiftConflicts(shifts);
+            if (overlaps.Any()) throw new BusinessLayerException(overlaps.SelectMany(ol => ol.ConflictMessages).ToStringWithPipes());
 
             foreach (var shift in shifts)
             {
@@ -58,8 +59,8 @@ namespace SS.Api.services.scheduling
 
         public async Task<List<Shift>> UpdateShifts(List<Shift> shifts)
         {
-            await CheckForShiftOverlap(shifts);
-            await CheckSheriffEvents(shifts);
+            var overlaps = await GetShiftConflicts(shifts);
+            if (overlaps.Any()) throw new BusinessLayerException(overlaps.SelectMany(ol => ol.ConflictMessages).ToStringWithPipes());
 
             var shiftIds = shifts.SelectToList(s => s.Id);
             var savedShifts = Db.Shift.Where(s => shiftIds.Contains(s.Id));
@@ -100,7 +101,7 @@ namespace SS.Api.services.scheduling
             await Db.SaveChangesAsync();
         }
 
-        public async Task<List<Shift>> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
+        public async Task<ImportedShifts> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
         {
             var location = Db.Location.FirstOrDefault(l => l.Id == locationId);
             location.ThrowBusinessExceptionIfNull($"Couldn't find {nameof(Location)} with id: {locationId}.");
@@ -118,21 +119,26 @@ namespace SS.Api.services.scheduling
                             s.ExpiryDate == null &&
                             s.StartDate < targetEndDate && targetStartDate < s.EndDate);  
 
-            var importedShifts = new List<Shift>();
-            foreach (var importShift in shiftsToImport)
+            var importedShifts = await shiftsToImport.Select(shift => Db.DetachedClone(shift)).ToListAsync();
+            foreach (var shift in importedShifts)
             {
-                var shift = Db.DetachedClone(importShift);
                 shift.Id = 0;
                 shift.SheriffId = includeSheriffs ? shift.SheriffId : null;
-                shift.LocationId = importShift.LocationId;
                 shift.StartDate = shift.StartDate.TranslateDateIfDaylightSavings(timezone, 7);
                 shift.EndDate = shift.EndDate.TranslateDateIfDaylightSavings(timezone, 7);
-                await Db.Shift.AddAsync(shift);
-                importedShifts.Add(shift);
             }
 
+            var overlaps = await GetShiftConflicts(importedShifts);
+            var filteredImportedShifts = importedShifts.WhereToList(s => overlaps.All(o => o.Shift.Id != s.Id));
+
+            await Db.Shift.AddRangeAsync(filteredImportedShifts);
             await Db.SaveChangesAsync();
-            return importedShifts;
+
+            return new ImportedShifts
+            {
+                ConflictMessages = overlaps.SelectMany(o => o.ConflictMessages).ToList(),
+                Shifts = filteredImportedShifts
+            };
         }
 
         public async Task<List<ShiftAvailability>> GetShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
@@ -140,10 +146,10 @@ namespace SS.Api.services.scheduling
             var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, start, end);
             var shiftsForSheriffs = await GetShiftsForSheriffs(sheriffs.Select(s => s.Id), start, end);
 
-            var sheriffEventConflicts = new List<ShiftConflict>();
+            var sheriffEventConflicts = new List<ShiftAvailabilityConflict>();
             sheriffs.ForEach(sheriff =>
             {
-                sheriffEventConflicts.AddRange(sheriff.AwayLocation.Select(s => new ShiftConflict
+                sheriffEventConflicts.AddRange(sheriff.AwayLocation.Select(s => new ShiftAvailabilityConflict
                 {
                     Conflict = ShiftConflictType.AwayLocation, 
                     SheriffId = sheriff.Id, 
@@ -152,14 +158,14 @@ namespace SS.Api.services.scheduling
                     LocationId = s.LocationId,
                     Location = s.Location
                 }));
-                sheriffEventConflicts.AddRange(sheriff.Leave.Select(s => new ShiftConflict
+                sheriffEventConflicts.AddRange(sheriff.Leave.Select(s => new ShiftAvailabilityConflict
                 {
                     Conflict = ShiftConflictType.Leave, 
                     SheriffId = sheriff.Id, 
                     Start = s.StartDate, 
                     End = s.EndDate
                 }));
-                sheriffEventConflicts.AddRange(sheriff.Training.Select(s => new ShiftConflict
+                sheriffEventConflicts.AddRange(sheriff.Training.Select(s => new ShiftAvailabilityConflict
                 {
                     Conflict = ShiftConflictType.Training, 
                     SheriffId = sheriff.Id, 
@@ -168,7 +174,7 @@ namespace SS.Api.services.scheduling
                 }));
             });
 
-            var existingShiftConflicts = shiftsForSheriffs.Select(s => new ShiftConflict
+            var existingShiftConflicts = shiftsForSheriffs.Select(s => new ShiftAvailabilityConflict
             {
                 Conflict = ShiftConflictType.Scheduled, 
                 SheriffId = s.SheriffId, 
@@ -191,65 +197,33 @@ namespace SS.Api.services.scheduling
             }).ToList();
         }
 
-        //TODO flush this out when the GUI is working. 
-        public async Task AdjustShift(int shiftId, DateTimeOffset? start = null, DateTimeOffset? end = null)
-        {
-            var savedShift = await Db.Shift.FindAsync(shiftId);
-            //Check for conflicts. Vacation / Leave / New Location etc.
-            savedShift.StartDate = start ?? savedShift.StartDate;
-            savedShift.EndDate = end ?? savedShift.EndDate;
-            await Db.SaveChangesAsync();
-        }
-
         #region Helpers
 
         #region Availability
-        private async Task CheckSheriffEvents(List<Shift> shifts)
+
+        private async Task<List<ShiftConflict>> GetShiftConflicts(List<Shift> shifts)
         {
-            var validationErrors = new List<string>();
-
-            foreach (var shift in shifts)
-            {
-                var locationId = shift.LocationId;
-                //This is the same call our availability uses. 
-                var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, shift.StartDate, shift.EndDate, shift.SheriffId);
-                var sheriff = sheriffs.FirstOrDefault();
-                sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}, they might not be active in location for the shift.");
-
-                validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId).Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate)));
-                validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(aw.Sheriff, aw.StartDate, aw.EndDate)));
-                validationErrors.AddRange(sheriff.Training.Select(aw => PrintSheriffEventConflict<SheriffTraining>(aw.Sheriff, aw.StartDate, aw.EndDate)));
-            }
-
-            if (validationErrors.Any())
-                throw new BusinessLayerException(validationErrors.ListToStringWithPipes());
+            var overlappingShifts = await CheckForShiftOverlap(shifts);
+            var sheriffEventOverlaps = await CheckSheriffEventsOverlap(shifts);
+            return overlappingShifts.Concat(sheriffEventOverlaps).ToList();
         }
 
-        private async Task CheckForShiftOverlap(List<Shift> shifts)
+        private async Task<List<ShiftConflict>> CheckForShiftOverlap(List<Shift> shifts)
         {
             var overlappingShifts = await OverlappingShifts(shifts);
-            if (overlappingShifts.Any())
+            return overlappingShifts.SelectToList(ol => new ShiftConflict
             {
-                var message = overlappingShifts.Select(ol => ConflictingSheriffAndSchedule(ol.Sheriff, ol)).ToList()
-                    .ListToStringWithPipes();
-                throw new BusinessLayerException(message);
-            }
+                ConflictMessages = new List<string>
+                {
+                    ConflictingSheriffAndSchedule(ol.Sheriff, ol)
+                },
+                Shift = ol
+            });
         }
-
-        private async Task<List<Shift>> GetShiftsForSheriffs(IEnumerable<Guid> sheriffIds, DateTimeOffset startDate, DateTimeOffset endDate) =>
-            await Db.Shift.AsSingleQuery().AsNoTracking()
-                    .Include(s => s.Location)
-                    .Where(s =>
-                        s.StartDate < endDate && startDate < s.EndDate &&
-                        s.SheriffId != null &&
-                        sheriffIds.Contains((Guid)s.SheriffId) &&
-                        s.ExpiryDate == null)
-                    .ToListAsync();
-
 
         private async Task<List<Shift>> OverlappingShifts(List<Shift> targetShifts)
         {
-            targetShifts.ThrowBusinessExceptionIfEmpty("No shifts were provided.");
+            if (!targetShifts.Any()) throw new BusinessLayerException("No shifts were provided.");
             if (targetShifts.Any(a =>
                 targetShifts.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
                 throw new BusinessLayerException("Shifts provided overlap with themselves.");
@@ -273,12 +247,47 @@ namespace SS.Api.services.scheduling
             conflictingShifts = conflictingShifts.Distinct().WhereToList(s =>
                 targetShifts.Any(ts =>
                     ts.ExpiryDate == null && s.Id != ts.Id && ts.StartDate < s.EndDate && s.StartDate < ts.EndDate &&
-                    ts.SheriffId == s.SheriffId) && 
+                    ts.SheriffId == s.SheriffId) &&
                 targetShifts.All(ts => ts.Id != s.Id)
             );
 
             return conflictingShifts;
         }
+
+        private async Task<List<ShiftConflict>> CheckSheriffEventsOverlap(List<Shift> shifts)
+        {
+            var sheriffEventConflicts = new List<ShiftConflict>();
+            foreach (var shift in shifts)
+            {
+                var locationId = shift.LocationId;
+                var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, shift.StartDate, shift.EndDate, shift.SheriffId);
+                var sheriff = sheriffs.FirstOrDefault();
+                sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}, they might not be active in location for the shift.");
+                var validationErrors = new List<string>();
+                validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId).Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate)));
+                validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(aw.Sheriff, aw.StartDate, aw.EndDate)));
+                validationErrors.AddRange(sheriff.Training.Select(aw => PrintSheriffEventConflict<SheriffTraining>(aw.Sheriff, aw.StartDate, aw.EndDate)));
+
+                if (validationErrors.Any())
+                    sheriffEventConflicts.Add(new ShiftConflict
+                    {
+                        Shift = shift,
+                        ConflictMessages = validationErrors
+                    });
+            }
+            return sheriffEventConflicts;
+        }
+
+        private async Task<List<Shift>> GetShiftsForSheriffs(IEnumerable<Guid> sheriffIds, DateTimeOffset startDate, DateTimeOffset endDate) =>
+            await Db.Shift.AsSingleQuery().AsNoTracking()
+                    .Include(s => s.Location)
+                    .Where(s =>
+                        s.StartDate < endDate && startDate < s.EndDate &&
+                        s.SheriffId != null &&
+                        sheriffIds.Contains((Guid)s.SheriffId) &&
+                        s.ExpiryDate == null)
+                    .ToListAsync();
+
         #endregion Availability
 
         #region String Helpers

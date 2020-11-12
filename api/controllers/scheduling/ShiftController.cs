@@ -5,6 +5,7 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
+using SS.Api.models;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using SS.Db.models.auth;
@@ -63,15 +64,15 @@ namespace SS.Api.controllers.scheduling
         [HttpPost]
         [Route("importWeek")]
         [PermissionClaimAuthorize(perm: Permission.ImportShifts)]
-        public async Task<ActionResult<List<ShiftDto>>> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
+        public async Task<ActionResult<ImportedShiftsDto>> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
         {
             var shifts = await ShiftService.ImportWeeklyShifts(locationId, includeSheriffs, start);
-            return Ok(shifts.Adapt<List<ShiftDto>>());
+            return Ok(shifts.Adapt<ImportedShiftsDto>());
         }
         #endregion
 
         /// <summary>
-        /// This is for the left hand side of the Shift Screen, where it shows each worker's availability as an icon.
+        /// This is used to show a worker's availability.
         /// </summary>
         [HttpGet]
         [Route("shiftAvailability")]

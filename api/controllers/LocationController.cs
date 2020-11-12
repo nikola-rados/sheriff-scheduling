@@ -14,7 +14,7 @@ using SS.Db.models.auth;
 namespace SS.Api.controllers
 {
     /// <summary>
-    /// Used to fetch Locations, plus expire locations. 
+    /// Used to fetch Locations, plus expire locations. These locations are inserted by JCDataUpdaterService.
     /// </summary>
     [Route("api/[controller]")]
     [Authorize]

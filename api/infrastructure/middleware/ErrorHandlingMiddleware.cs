@@ -108,6 +108,10 @@ namespace SS.Api.infrastructure.middleware
                     break;
 
                 case DbUpdateConcurrencyException _:
+                    code = HttpStatusCode.BadRequest;
+                    message = "Data may have been modified or deleted since item was loaded.";
+                    break;
+      
                 case BusinessLayerException _:
                 case BadRequestException _:
                 case InvalidOperationException _:

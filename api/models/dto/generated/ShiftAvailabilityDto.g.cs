@@ -9,7 +9,7 @@ namespace SS.Api.models.dto.generated
     {
         public DateTimeOffset Start { get; set; }
         public DateTimeOffset End { get; set; }
-        public List<ShiftConflict> Conflicts { get; set; }
+        public List<ShiftAvailabilityConflict> Conflicts { get; set; }
         public SheriffDto Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
         public string Timezone { get; set; }

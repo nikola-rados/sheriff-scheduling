@@ -16,6 +16,6 @@ namespace SS.Api.helpers.extensions
             return target.Where(lambda).ToList();
         }
 
-        public static string ListToStringWithPipes(this List<string> contents) => string.Join("||", contents);
+        public static string ToStringWithPipes(this IEnumerable<string> contents) => string.Join("||", contents);
     }
 }
