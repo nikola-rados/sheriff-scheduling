@@ -624,7 +624,7 @@ namespace tests.controllers
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));
 
             var importedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
-                await ShiftController.ImportWeeklyShifts(1, true, shiftDto.StartDate));
+                await ShiftController.ImportWeeklyShifts(1, shiftDto.StartDate));
 
             Assert.NotNull(importedShifts);
             var importedShift = importedShifts.Shifts.First();
