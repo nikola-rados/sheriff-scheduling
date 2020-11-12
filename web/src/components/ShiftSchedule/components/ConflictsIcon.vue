@@ -22,21 +22,34 @@
             <b-table  
                 :items="conflictsInfo"
                 :fields="conflictFields"
-                sort-by="startDate"                
+                sort-by="startTime"                
                 borderless
                 striped
                 small 
                 responsive="sm"
                 class="my-0 py-0"
                 >
-                
-                <template v-slot:cell(date)="data" >
-                    <span> {{data.value | beautify-date}}</span>
+                <template v-slot:cell(startTime)="data" >
+                    <span v-if="data.item.fullday">{{data.item.date | beautify-date}}</span>
+                    <span v-else>{{data.item.date | beautify-date}}<br>{{data.value}}</span>
                 </template>
+
+                <template v-slot:cell(endTime)="data" >
+                    <span v-if="data.item.fullday">{{data.item.date | beautify-date}}</span>
+                    <span v-else>{{data.item.date | beautify-date}}<br>{{data.value}}</span>
+                </template>
+
                 <template v-slot:cell(fullday)="data" >
-                    <span v-if="data.value">Full Day</span>
-                    <span v-else>Partial Day</span> 
+                    <span v-if="data.item.type=='Loaned'">
+                        <span v-if="data.value">Full Day<br>{{data.item.location}}</span>
+                        <span v-else>Partial Day<br>{{data.item.location}}</span> 
+                    </span>
+                    <span v-else>
+                        <span v-if="data.value">Full Day</span>
+                        <span v-else>Partial Day</span> 
+                    </span>
                 </template>
+                
             </b-table>                                        
         </b-tooltip>
     </div>   
@@ -62,9 +75,8 @@
         displayConflicts = false;
         conflictFields = [
             { key: 'fullday', label: 'Type', thClass: 'text-primary h4'},
-            { key: 'date', label: 'Date', thClass: 'text-primary h4'},
-            { key: 'startTime', label: 'From', thClass: 'text-primary h4'},
-            { key: 'endTime', label: 'To', thClass: 'text-primary h4'}
+            { key: 'startTime', label: 'Start', thClass: 'text-primary h4'},
+            { key: 'endTime', label: 'End', thClass: 'text-primary h4'}
         ];
 
         mounted()

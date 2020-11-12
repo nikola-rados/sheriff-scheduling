@@ -15,7 +15,7 @@ namespace SS.Db.models.scheduling.notmapped
         [NotMapped]
         public DateTimeOffset End { get; set; }
         [NotMapped]
-        public List<ShiftConflict> Conflicts { get; set; }
+        public List<ShiftAvailabilityConflict> Conflicts { get; set; }
         [NotMapped]
         public Sheriff Sheriff { get; set; }
         [NotMapped]
@@ -24,7 +24,7 @@ namespace SS.Db.models.scheduling.notmapped
         public string Timezone { get; set; }
     }
 
-    public class ShiftConflict
+    public class ShiftAvailabilityConflict
     {
         public Guid? SheriffId { get; set; }
         public ShiftConflictType Conflict { get; set; }

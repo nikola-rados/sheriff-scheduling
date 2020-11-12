@@ -66,13 +66,13 @@ namespace SS.Api.services.usermanagement
 
         public async Task<List<Sheriff>> GetSheriffsForTeams()
         {
-            var today = DateTimeOffset.UtcNow;
+            var now = DateTimeOffset.UtcNow;
             var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
 
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
-                .ApplyPermissionFilters(User, today, sevenDaysFromNow)
-                .IncludeSheriffEventsBetweenDates(today, sevenDaysFromNow);
+                .ApplyPermissionFilters(User, now, sevenDaysFromNow)
+                .IncludeSheriffEventsBetweenDates(now, sevenDaysFromNow);
          
             return await sheriffQuery.ToListAsync();
         }

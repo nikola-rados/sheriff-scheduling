@@ -72,12 +72,13 @@ namespace SS.Db.models
             return await base.SaveChangesAsync(cancellationToken);
         }
 
+        //Only used in tests. 
         public override int SaveChanges()
         {
             HandleSaveChanges();
             return base.SaveChanges();
         }
-
+        
         /// <summary>
         /// Save the entities with who created them or updated them.
         /// </summary>

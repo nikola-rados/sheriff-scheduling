@@ -22,6 +22,9 @@ namespace SS.Api.controllers.scheduling
             AssignmentService = assignmentService;
         }
 
+        /// <summary>
+        /// This is used as part of the DutyRoster screen, on the left hand side. 
+        /// </summary>
         [HttpGet]
         [PermissionClaimAuthorize(perm: Permission.ViewAssignments)]
         public async Task<ActionResult<List<AssignmentDto>>> GetAssignments(int locationId, DateTimeOffset? start, DateTimeOffset? end)
@@ -30,6 +33,9 @@ namespace SS.Api.controllers.scheduling
             return Ok(assignments.Adapt<List<AssignmentDto>>());
         }
 
+        /// <summary>
+        /// Adhoc or Default assignments can be created here. 
+        /// </summary>
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateAssignments)]
         public async Task<ActionResult<AssignmentDto>> AddAssignment(AddAssignmentDto assignmentDto)

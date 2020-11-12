@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div v-on:edit-shifts="EditShifts()">
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav class="custom-navbar">
@@ -13,6 +13,8 @@
 							@shown = "datePickerOpened = true"
 							@hidden = "datePickerOpened = false"
 							button-only
+							today-button
+							close-button
 							locale="en-US">
 					</b-form-datepicker>
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="nextDateRange" class="my-2"><b-icon-chevron-right/></b-button>
@@ -32,10 +34,48 @@
 									<b-icon icon="pencil-square" font-scale="2.0" variant="warning"/>
 								</b-button>
 						</div>
+						<div v-b-tooltip.hover
+							:title="selectedShifts.length==0?'Please select shifts':''">
+								<b-button 
+									style="max-height: 40px;" 
+									size="sm"
+									variant="transparent"
+									:disabled="selectedShifts.length==0?true:false"							
+									@click="confirmDeleteShift()" 
+									class="my-2">
+									<b-icon icon="trash-fill" font-scale="2.0" variant="danger"/>
+								</b-button>
+						</div>
 					</b-nav-form>
 				</b-navbar-nav>
 			</b-navbar>
 		</header>
+
+		<b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+			<b-row v-if="deleteError" id="DeleteError" class="h4 mx-2">
+				<b-badge class="mx-1 mt-2"
+					style="width: 20rem;"
+					v-b-tooltip.hover
+					:title="deleteErrorMsgDesc"
+					variant="danger"> {{deleteErrorMsg}}
+					<b-icon class="ml-3"
+						icon = x-square-fill
+						@click="deleteError = false"
+				/></b-badge>                    
+            </b-row>            
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Confirm Delete Shift</h2>                   
+            </template>
+            <h4 >Are you sure you want to delete the selected shifts?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteShift()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-delete')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
+                >&times;</b-button>
+            </template>
+        </b-modal>  
 
 		<b-modal  v-model="showEditShiftDetails" id="bv-modal-shift-edit-details" header-class="bg-primary text-light">
             <template v-slot:modal-title>
@@ -46,33 +86,26 @@
 
             <b-card v-if="isShiftDataMounted" no-body style="font-size: 14px; user-select: none;" >
                 
-                <b-row v-if="shiftError" id="ShiftError" style="border-radius:10px; max-width: 30rem;" class="h4 mx-2 text-white bg-danger">
-
-					<span class="mx-2 mt-2 mb-0 p-0"
-						>{{shiftErrorMsg}}</span><b-icon class="p-0" 
-						style="margin-left:auto; transform:translate(-10px, -10px);"
+                <b-row v-if="shiftError" id="ShiftError" style="border-radius:5px; max-width: 30rem;" class="h4 mx-2 py-2 text-white bg-danger">
+					<b-col cols="11">
+						<span class="p-0">{{shiftErrorMsg}}</span>
+					</b-col>
+					<b-col cols="1" style=" padding:0; margin:auto 0;">
+						<b-icon
                         icon = x-square-fill
-                        @click="shiftError = false"
-                    />
-                    <!-- <b-badge class="mx-1 mt-2"
-						style="width: 20rem;"
-                        v-b-tooltip.hover
-                        :title="shiftErrorMsgDesc"
-                        variant="danger"> {{shiftErrorMsg}}
-                        <b-icon class="ml-3"
-                            icon = x-square-fill
-                            @click="shiftError = false"
-                    /></b-badge>                     -->
-                </b-row>              
+                        @click="shiftError = false"/>
+					</b-col>
+                </b-row>
 
-
-                <b-row v-if="shiftTimesDiffer" id="shiftTimesDifferError" style="border-radius:10px; max-width: 30rem;" class="h4 mx-2 bg-warning">
-					<span class="mx-2 mt-2 mb-0 p-0"
-						>{{shiftTimesDifferMsg}}</span><b-icon class="p-0" 
-						style="margin-left:auto; transform:translate(-10px, -10px);"
-                        icon = x-square-fill
-                        @click="shiftTimesDiffer = false"
-                    />
+                <b-row v-if="shiftTimesDiffer" id="shiftTimesDifferError" style="border-radius:5px; max-width: 30rem;" class="h4 mx-2 py-2 bg-warning">
+					<b-col cols="11">
+						<span class="p-0">{{shiftTimesDifferMsg}}</span>
+					</b-col>
+					<b-col cols="1" style=" padding:0; margin:auto 0;">
+						<b-icon
+							icon = x-square-fill
+							@click="shiftTimesDiffer = false"/>
+					</b-col>
                 </b-row>
 
                 <b-row class="mx-1 my-0 p-0">
@@ -80,7 +113,7 @@
                         <label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
                         <b-form-input
                             v-model="selectedStartTime"
-                            @click="startTimeState=true"
+                            @click="startTimeState=true;shiftTimesDiffer=false;"
                             size="sm"
                             type="text"
                             autocomplete="off"
@@ -95,7 +128,7 @@
                         <label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
                         <b-form-input
                             v-model="selectedEndTime"
-                            @click="endTimeState=true"
+                            @click="endTimeState=true;shiftTimesDiffer=false;"
                             size="sm"
                             type="text"
                             autocomplete="off"
@@ -145,8 +178,7 @@
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-edit-shift-cancel-warning')"
                  >&times;</b-button>
             </template>
-        </b-modal> 
-
+        </b-modal>
 	</div>
 </template>
 
@@ -189,6 +221,7 @@
 		originalSelectedEndTime = '';
 		showEditShiftDetails = false;
 		showEditShiftCancelWarning = false;
+		confirmDelete = false;
 		isShiftDataMounted = false;
 		startTimeState = true;
 		endTimeState = true;
@@ -197,26 +230,29 @@
 
 		shiftError = false;
 		shiftErrorMsg = '';
-		// shiftErrorMsgDesc = '';
 
 		shiftTimesDiffer = false;
 		shiftTimesDifferMsg = '';
-		// shiftTimesDifferMsgDesc = '';
+
+		deleteErrorMsg = '';
+        deleteErrorMsgDesc = '';
+        deleteError = true;
 
 		mounted() {
 			this.selectedDate = moment().format().substring(0,10);			
 			this.loadNewDateRange();
+			this.$root.$on('editShifts', () => {
+				this.EditShift();
+			});
 		}
 
 		public EditShift() {
 			this.isShiftDataMounted = false;
 			this.shiftError = false;
 			this.shiftErrorMsg = '';
-			// this.shiftErrorMsgDesc = '';
 
 			this.shiftTimesDiffer = false;
 			this.shiftTimesDifferMsg = '';
-			// this.shiftTimesDifferMsgDesc = '';
 			this.getShiftsToEdit();
 		}
 		
@@ -228,7 +264,6 @@
 			let numberOfEndTimes= 0;
 			this.shiftTimesDiffer = false;
 			this.shiftTimesDifferMsg = '';
-			// this.shiftTimesDifferMsgDesc = '';
 
 			const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
 
@@ -266,21 +301,17 @@
 						if (this.shiftTimesDiffer) {
 							if (numberOfEndTimes > 1 && numberOfStartTimes > 1) {
 								this.shiftTimesDifferMsg = "The start and end times of the selected shifts do not match."
-								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							} else if (numberOfStartTimes > 1) {
 								this.shiftTimesDifferMsg = "The start times of the selected shifts do not match."
-								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							} else if (numberOfEndTimes > 1) {
 								this.shiftTimesDifferMsg = "The end times of the selected shifts do not match."
-								// this.shiftTimesDifferMsg = this.shiftTimesDifferMsgDesc.slice(0,50) + (this.shiftTimesDifferMsgDesc.length>50?' ...':'');
 							}
 						}
 
 						this.isShiftDataMounted = true;
 						this.showEditShiftDetails = true;
                     }                                   
-                })		
-
+                })
 		}
 
 		public saveShift() {         
@@ -306,7 +337,6 @@
                     this.endTimeState = false;
 					requiredError = true;
             }
-
 			if (!requiredError) {
                     this.startTimeState = true;
                     this.endTimeState = true;
@@ -354,7 +384,6 @@
 					sheriffId: shift.sheriffId
 				});				
 			}
-			//console.log(body)
 			const url = 'api/shift';
 			this.$http.put(url, body)
 				.then(response => {
@@ -364,7 +393,6 @@
 					}
 				}, err => {
 					const errMsg = err.response.data.error;
-					// this.shiftErrorMsg = errMsg.slice(0,50) + (errMsg.length>50?' ...':'');
 					this.shiftErrorMsg = errMsg;
 					this.shiftError = true;
 				})
@@ -432,11 +460,32 @@
 		public ClearFormState(){
 			this.startTimeState = true;
 			this.endTimeState = true;
+		}
+
+		public confirmDeleteShift(){
+			this.deleteError = false;
+			this.confirmDelete = true;
+        }
+
+        public deleteShift(){
+			const url = 'api/shift';
+			console.log(this.selectedShifts)
+			const body = this.selectedShifts;
+            this.$http.delete(url, {data: body})
+                .then(response => {
+                    console.log(response);
+                    this.confirmDelete = false;
+                    this.$emit('change');                    
+                }, err=>{
+					const errMsg = err.response.data.error;
+					console.log(err.response)
+                    this.deleteErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.deleteErrorMsgDesc = errMsg;
+                    this.deleteError = true;
+                });
         }
 
 		public dateChanged(event) {
-			//console.log(event)
-			//console.log(this.datePickerOpened)
 			if(this.datePickerOpened)this.loadNewDateRange();
 		}
 

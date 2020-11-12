@@ -62,6 +62,7 @@
     <Folder Include="src\components\MyTeam\Tabs\" />
     <Folder Include="src\components\MyTeam\Tabs\AddForms\" />
     <Folder Include="src\components\ShiftSchedule\" />
+    <Folder Include="src\components\ShiftSchedule\components\" />
     <Folder Include="src\filters\" />
     <Folder Include="src\plugins\" />
     <Folder Include="src\router\" />
