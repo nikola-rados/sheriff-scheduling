@@ -14,6 +14,9 @@ using SS.Db.models;
 
 namespace SS.Api.services.ef
 {
+    /// <summary>
+    /// This is a utility service, to load up our Migrations before any code execution. 
+    /// </summary>
     public class MigrationAndSeedService
     {
         public IServiceProvider Services { get; }
