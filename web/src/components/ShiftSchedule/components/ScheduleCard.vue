@@ -126,10 +126,9 @@
         }
 
         public getScheduleColor(block) {
-            let color = {body: '', header: ''};
+            let color = {body:'#FFEEDD' , header:'#F94567'};
             if(block.type=='Unavailable') color = {body:'#CFCFCF' , header:'#868686'}
             else if(block.type=='Shift') color = {body:'#BEF2F7' , header:'#004567'}
-            else color = {body:'#FFEEDD' , header:'#F94567'}
             if (block.id != null && this.selectedShifts.includes(block.id)) color.body ='#F7F54F';
             return color;
         }

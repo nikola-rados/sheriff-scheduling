@@ -1,19 +1,20 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
+using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto;
 using SS.Api.models.dto.generated;
-using SS.Api.services;
 using SS.Api.services.usermanagement;
 using SS.Db.models.auth;
 
 namespace SS.Api.controllers.usermanagement
 {
     /// <summary>
-    /// We need to be able to assign roles to permissions here. 
+    /// Used to manage roles. 
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
@@ -45,7 +46,7 @@ namespace SS.Api.controllers.usermanagement
         {
             addRole.ThrowBusinessExceptionIfNull("AddRole was null");
             addRole.Role.ThrowBusinessExceptionIfNull("Role was null");
-            addRole.PermissionIds.ThrowBusinessExceptionIfEmpty("Permission Ids was empty");
+            if (!addRole.PermissionIds.Any()) throw new BusinessLayerException("Permission Ids was empty");
             
             var entity = addRole.Role.Adapt<Role>();
             var createdRole = await RoleService.AddRole(entity, addRole.PermissionIds);

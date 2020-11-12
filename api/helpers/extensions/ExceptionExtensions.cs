@@ -83,16 +83,5 @@ namespace SS.Api.helpers.extensions
         {
             return value != null ? throw new BusinessLayerException(message) : (T) null;
         }
-
-        public static T ThrowBusinessExceptionIfEmpty<T>(this T value, string message) where T : class
-        {
-            return value is List<T> val && !val.Any() ? throw new BusinessLayerException(message) : value;
-        }
-
-        public static T ThrowBusinessExceptionIfNotEmpty<T>(this T value, string message) where T : class
-        {
-            return value is List<T> val && val.Any() ? throw new BusinessLayerException(message) : value;
-        }
-
     }
 }
