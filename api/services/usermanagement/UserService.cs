@@ -54,7 +54,6 @@ namespace SS.Api.services.usermanagement
                     ur.UserId == assignRole.UserId &&
                     ur.RoleId == assignRole.RoleId);
 
-                //Update if exists.
                 if (savedUserRole != null)
                 {
                     savedUserRole.Role = role;

@@ -132,9 +132,6 @@ namespace tests.controllers
             HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(new List<AddShiftDto> { shiftSix, shiftSeven }));
             sheriffShifts = Db.Shift.AsNoTracking().Where(s => s.SheriffId == sheriffId);
             Assert.All(sheriffShifts, s => new List<int> { 3, 4, 6, 7 }.Contains(s.Id));
-
-
-
         }
 
 
@@ -619,8 +616,8 @@ namespace tests.controllers
             await Db.Sheriff.AddAsync(new Sheriff {Id = sheriffId, IsEnabled = true, HomeLocationId = 1});
             await Db.SaveChangesAsync();
             shiftDto.LocationId = 1;
-            shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6); //Last week monday
-            shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5); //Last week tuesday
+            shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6).AddYears(5); //Last week monday
+            shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5).AddYears(5); //Last week tuesday
             shiftDto.SheriffId = sheriffId;
 
             var shiftDtos = new List<ShiftDto> {shiftDto};
@@ -630,7 +627,7 @@ namespace tests.controllers
                 await ShiftController.ImportWeeklyShifts(1, true, shiftDto.StartDate));
 
             Assert.NotNull(importedShifts);
-            var importedShift = importedShifts.First();
+            var importedShift = importedShifts.Shifts.First();
             Assert.Equal(shiftDto.StartDate.AddDays(7).DateTime,importedShift.StartDate.DateTime, TimeSpan.FromSeconds(10)); //This week monday
             Assert.Equal(shiftDto.EndDate.AddDays(7).DateTime, importedShift.EndDate.DateTime, TimeSpan.FromSeconds(10)); //This week monday
             Assert.Equal(shiftDto.SheriffId, importedShift.SheriffId);
