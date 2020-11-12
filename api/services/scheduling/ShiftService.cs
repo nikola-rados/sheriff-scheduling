@@ -122,15 +122,16 @@ namespace SS.Api.services.scheduling
             var importedShifts = await shiftsToImport.Select(shift => Db.DetachedClone(shift)).ToListAsync();
             foreach (var shift in importedShifts)
             {
-                shift.Id = 0;
+  
                 shift.SheriffId = includeSheriffs ? shift.SheriffId : null;
                 shift.StartDate = shift.StartDate.TranslateDateIfDaylightSavings(timezone, 7);
                 shift.EndDate = shift.EndDate.TranslateDateIfDaylightSavings(timezone, 7);
             }
 
             var overlaps = await GetShiftConflicts(importedShifts);
-            var filteredImportedShifts = importedShifts.WhereToList(s => overlaps.All(o => o.Shift.Id != s.Id));
+            var filteredImportedShifts = importedShifts.WhereToList(s => !overlaps.Any(o => o.Shift.Id == s.Id));
 
+            importedShifts.ForEach(s => s.Id = 0);
             await Db.Shift.AddRangeAsync(filteredImportedShifts);
             await Db.SaveChangesAsync();
 
@@ -227,6 +228,7 @@ namespace SS.Api.services.scheduling
             if (targetShifts.Any(a =>
                 targetShifts.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
                 throw new BusinessLayerException("Shifts provided overlap with themselves.");
+
 
             var sheriffIds = targetShifts.Select(ts => ts.SheriffId).Distinct();
             var locationId = targetShifts.First().LocationId;
