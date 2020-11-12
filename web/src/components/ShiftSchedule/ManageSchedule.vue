@@ -1,5 +1,5 @@
 <template>
-    <b-card bg-variant="white" class="mx-1 home" no-body>        
+    <b-card bg-variant="white" class="home" no-body>        
         <schedule-header v-on:change="loadScheduleInformation()" />           
                 
             <b-table
