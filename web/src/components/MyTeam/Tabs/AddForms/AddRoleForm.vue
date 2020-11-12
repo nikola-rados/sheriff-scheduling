@@ -10,6 +10,7 @@
                         <b-tr >                           
                             <b-form-group v-if="isCreate" style="padding: 0; margin: 0rem 0 0 .5rem;width: 15rem"> 
                                 <b-form-select
+                                    tabindex="1"
                                     size = "sm"
                                     v-model="selectedRole"
                                     :state = "roleState?null:false">
@@ -34,6 +35,7 @@
                     <b-td>
                         <label class="h6 m-0 p-0"> Effective Date: </label>
                         <b-form-datepicker
+                            tabindex="2"
                             class="mb-1"
                             size="sm"
                             v-model="selectedEffectiveDate"
@@ -46,6 +48,7 @@
                     <b-td>
                         <label class="h6 m-0 p-0"> Expiry Date: </label>
                         <b-form-datepicker
+                            tabindex="3"
                             class="mb-1 mt-0 pt-0"
                             size="sm"
                             v-model="selectedExpiryDate"

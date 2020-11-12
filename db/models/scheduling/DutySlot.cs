@@ -18,6 +18,7 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset EndDate { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         [ExcludeFromAddAndUpdateDto]
+        [AdaptIgnore]
         public Duty Duty { get; set;}
         public int DutyId { get; set; }
         [ExcludeFromAddAndUpdateDto]

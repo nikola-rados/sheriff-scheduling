@@ -19,10 +19,13 @@ namespace SS.Api.services.usermanagement
         
         public async Task<User> DisableUser(Guid id)
         {
-            var user = await Db.User.FindAsync(id);
+            var user = await Db.User.Include(u => u.UserRoles).FirstOrDefaultAsync(u => u.Id == id);
             user.ThrowBusinessExceptionIfNull($"User with the id: {id} could not be found. ");
 
             user.IsEnabled = false;
+            foreach (var userRole in user.UserRoles)
+                userRole.ExpiryDate = DateTimeOffset.UtcNow;
+
             await Db.SaveChangesAsync();
             return user;
         }
@@ -51,7 +54,6 @@ namespace SS.Api.services.usermanagement
                     ur.UserId == assignRole.UserId &&
                     ur.RoleId == assignRole.RoleId);
 
-                //Update if exists.
                 if (savedUserRole != null)
                 {
                     savedUserRole.Role = role;
