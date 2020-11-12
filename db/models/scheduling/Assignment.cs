@@ -71,7 +71,7 @@ namespace SS.Db.models.scheduling
                 return IsAvailableOnDate(startInTz);
 
             if (AdhocStartDate.HasValue && AdhocEndDate.HasValue &&
-                !(AdhocStartDate.Value > endInTz || startInTz > AdhocEndDate))
+                (AdhocStartDate > endInTz || startInTz > AdhocEndDate) )
                 return false;
 
             var dt = startInTz;
