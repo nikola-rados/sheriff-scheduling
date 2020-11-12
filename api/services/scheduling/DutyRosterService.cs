@@ -107,7 +107,7 @@ namespace SS.Api.services.scheduling
             if (overlappingDutySlots.Any())
             {
                 var message = overlappingDutySlots.Select(ol => ConflictingSheriffAndDutySlot(ol.Sheriff, ol)).ToList()
-                    .ListToStringWithPipes();
+                    .ToStringWithPipes();
                 throw new BusinessLayerException(message);
             }
         }

@@ -21,6 +21,9 @@ namespace SS.Api.controllers.scheduling
             DutyRosterService = dutyRosterService;
         }
 
+        /// <summary>
+        /// This is for the center of the DutyRoster screen. Specifically when assignments are created into Duties. 
+        /// </summary>
         [HttpGet]
         [PermissionClaimAuthorize(perm: Permission.ViewDuties)]
         public async Task<ActionResult<List<DutyDto>>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end)
