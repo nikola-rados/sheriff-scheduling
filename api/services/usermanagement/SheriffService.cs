@@ -47,6 +47,15 @@ namespace SS.Api.services.usermanagement
             return sheriff;
         }
 
+        public async Task<Sheriff> GetSheriff(Guid id) => await Db.Sheriff.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
+
+        public async Task<Sheriff> GetSheriff(Guid? id,
+            string badgeNumber) =>
+            await Db.Sheriff.AsNoTracking()
+                .FirstOrDefaultAsync(s =>
+                    (badgeNumber == null && id.HasValue && s.Id == id) ||
+                    (!id.HasValue && s.BadgeNumber == badgeNumber));
+
         //Used for the Shift scheduling screen.
         public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end, Guid? sheriffId = null)
         {
@@ -64,7 +73,7 @@ namespace SS.Api.services.usermanagement
             return await sheriffQuery.ToListAsync();
         }
 
-        public async Task<List<Sheriff>> GetSheriffsForTeams()
+        public async Task<List<Sheriff>> GetFilteredSheriffsForTeams()
         {
             var now = DateTimeOffset.UtcNow;
             var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
@@ -77,7 +86,7 @@ namespace SS.Api.services.usermanagement
             return await sheriffQuery.ToListAsync();
         }
 
-        public async Task<Sheriff> GetSheriffForTeams(Guid id)
+        public async Task<Sheriff> GetFilteredSheriffForTeams(Guid id)
         {
             var today = DateTimeOffset.UtcNow;
             var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
@@ -147,6 +156,11 @@ namespace SS.Api.services.usermanagement
 
         #endregion
 
+        #region Sheriff Event
+        public async Task<T> GetSheriffEvent<T>(int id) where T : SheriffEvent =>
+            await Db.Set<T>().AsNoTracking().FirstOrDefaultAsync(sal => sal.Id == id);
+        #endregion
+
         #region Sheriff Location
 
         public async Task<SheriffAwayLocation> AddSheriffAwayLocation(SheriffAwayLocation awayLocation)
@@ -176,6 +190,7 @@ namespace SS.Api.services.usermanagement
             await ValidateNoOverlapAsync(awayLocation, awayLocation.Id);
 
             Db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
+            Db.Entry(savedAwayLocation).Property(x => x.SheriffId).IsModified = false;
             Db.Entry(savedAwayLocation).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedAwayLocation).Property(x => x.ExpiryReason).IsModified = false;
             await Db.SaveChangesAsync();
@@ -195,6 +210,9 @@ namespace SS.Api.services.usermanagement
         #endregion
 
         #region Sheriff Leave
+
+        public async Task<SheriffEvent> GetSheriffLeave(int id) =>
+            await Db.SheriffLeave.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
 
         public async Task<SheriffLeave> AddSheriffLeave(SheriffLeave sheriffLeave)
         {
@@ -224,6 +242,7 @@ namespace SS.Api.services.usermanagement
             await ValidateNoOverlapAsync(sheriffLeave, sheriffLeave.Id);
 
             Db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
+            Db.Entry(savedLeave).Property(x => x.SheriffId).IsModified = false;
             Db.Entry(savedLeave).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedLeave).Property(x => x.ExpiryReason).IsModified = false;
       
@@ -244,6 +263,10 @@ namespace SS.Api.services.usermanagement
         #endregion
 
         #region Sheriff Training
+
+           
+        public async Task<SheriffTraining> GetSheriffTraining(int id) =>
+            await Db.SheriffTraining.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
 
         public async Task<SheriffTraining> AddSheriffTraining(SheriffTraining sheriffTraining)
         {
@@ -273,6 +296,7 @@ namespace SS.Api.services.usermanagement
             await ValidateNoOverlapAsync(sheriffTraining, sheriffTraining.Id);
 
             Db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
+            Db.Entry(savedTraining).Property(x => x.SheriffId).IsModified = false;
             Db.Entry(savedTraining).Property(x => x.ExpiryDate).IsModified = false;
             Db.Entry(savedTraining).Property(x => x.ExpiryReason).IsModified = false;
 

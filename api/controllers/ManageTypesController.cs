@@ -8,6 +8,7 @@ using SS.Api.models.dto;
 using SS.Api.models.dto.generated;
 using SS.Api.services;
 using ss.db.models;
+using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.lookupcodes;
 
@@ -17,11 +18,15 @@ namespace SS.Api.controllers
     [ApiController]
     public class ManageTypesController : ControllerBase
     {
-        private ManageTypesService ManageTypesService { get; }
+        public const string InvalidLookupCodeError = "Invalid LookupCode.";
 
-        public ManageTypesController(ManageTypesService manageTypesService)
+        private ManageTypesService ManageTypesService { get; }
+        private SheriffDbContext Db { get; }
+
+        public ManageTypesController(ManageTypesService manageTypesService, SheriffDbContext db)
         {
             ManageTypesService = manageTypesService;
+            Db = db;
         }
         
         [HttpGet]
@@ -30,8 +35,8 @@ namespace SS.Api.controllers
         public async Task<ActionResult<LookupCodeDto>> Find(int id)
         {
             var entity = await ManageTypesService.Find(id);
-            if (entity == null)
-                return NotFound();
+            if (entity == null) return NotFound();
+
             return Ok(entity.Adapt<LookupCodeDto>());
         }
 
@@ -47,8 +52,8 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.EditTypes)]
         public async Task<ActionResult<LookupCodeDto>> Add(AddLookupCodeDto lookupCodeDto)
         {
-            if (lookupCodeDto == null)
-                throw new BadRequestException("Invalid lookupCode.");
+            if (lookupCodeDto == null) return BadRequest(InvalidLookupCodeError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, lookupCodeDto.LocationId)) return Forbid();
 
             var lookupCode = await ManageTypesService.Add(lookupCodeDto);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
@@ -58,6 +63,10 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.ExpireTypes)]
         public async Task<ActionResult<LookupCodeDto>> Expire(int id)
         {
+            var entity = await ManageTypesService.Find(id);
+            if (entity == null) return NotFound();
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, entity.LocationId)) return Forbid();
+
             var lookupCode = await ManageTypesService.Expire(id);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
@@ -66,6 +75,10 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.ExpireTypes)]
         public async Task<ActionResult<LookupCodeDto>> UnExpire(int id)
         {
+            var entity = await ManageTypesService.Find(id);
+            if (entity == null) return NotFound();
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, entity.LocationId)) return Forbid();
+
             var lookupCode = await ManageTypesService.Unexpire(id);
             return Ok(lookupCode.Adapt<LookupCodeDto>());
         }
@@ -74,19 +87,23 @@ namespace SS.Api.controllers
         [PermissionClaimAuthorize(perm: Permission.EditTypes)]
         public async Task<ActionResult<LookupCodeDto>> Update(LookupCodeDto lookupCodeDto)
         {
-            if (lookupCodeDto == null)
-                throw new BadRequestException("Invalid lookupCode.");
-            var entity = lookupCodeDto.Adapt<LookupCode>();
-            var lookupCode = await ManageTypesService.Update(entity);
-            return Ok(lookupCode.Adapt<LookupCodeDto>());
+            if (lookupCodeDto == null) return BadRequest(InvalidLookupCodeError);
+            var entity = await ManageTypesService.Find(lookupCodeDto.Id);
+            if (entity == null) return NotFound();
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, lookupCodeDto.LocationId)) return Forbid();
+
+            var lookupCode = lookupCodeDto.Adapt<LookupCode>();
+            var lookupCodeResult = await ManageTypesService.Update(lookupCode);
+            return Ok(lookupCodeResult.Adapt<LookupCodeDto>());
         }
 
         [HttpPut("updateSort")]
         [PermissionClaimAuthorize(perm: Permission.EditTypes)]
         public async Task<ActionResult> UpdateSortOrders(SortOrdersDto sortOrdersDto)
         {
-            if (sortOrdersDto == null)
-                throw new BadRequestException("Invalid lookupCode.");
+            if (sortOrdersDto == null) return BadRequest(InvalidLookupCodeError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sortOrdersDto.SortOrderLocationId)) return Forbid();
+
             await ManageTypesService.UpdateSortOrders(sortOrdersDto);
             return NoContent();
         }
