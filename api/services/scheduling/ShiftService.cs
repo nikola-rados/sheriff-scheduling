@@ -133,7 +133,7 @@ namespace SS.Api.services.scheduling
             var overlaps = await GetShiftConflicts(importedShifts);
             var filteredImportedShifts = importedShifts.WhereToList(s => !overlaps.Any(o => o.Shift.Id == s.Id));
 
-            importedShifts.ForEach(s => s.Id = 0);
+            filteredImportedShifts.ForEach(s => s.Id = 0);
             await Db.Shift.AddRangeAsync(filteredImportedShifts);
             await Db.SaveChangesAsync();
 
