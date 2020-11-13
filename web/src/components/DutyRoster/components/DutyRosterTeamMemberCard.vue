@@ -1,9 +1,8 @@
 <template>
     <div v-if="isDataMounted">    
-        <b-card 
-            style="width:100%; height:100%;" 
+        <b-card              
             bg-variant="white"            
-            class="ml-2 my-0 p-0">
+            class="mb-2 p-0">
                 <b-col>
                     <b-row style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
                     <b-row style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>

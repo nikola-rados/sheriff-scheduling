@@ -46,6 +46,10 @@ Vue.filter('truncate', function (text: string, stop: number) {
     return (stop+3 < text.length) ? text.slice(0, stop)+'...' : text
 })
 
+Vue.filter('truncateleft', function (text: string, stop: number) {
+    return (stop+3 < text.length) ? '...'+text.slice(0, stop) : text
+})
+
 Vue.filter('convertDate', function(date: string, time: string, type: string, timezone: string){
 	const tail="00:00:00.000";
 	let result = "";
