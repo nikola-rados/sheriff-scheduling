@@ -21,6 +21,8 @@ namespace SS.Db.models.scheduling
         public int LookupCodeId { get; set; }
         public DateTimeOffset? AdhocStartDate { get; set; }
         public DateTimeOffset? AdhocEndDate { get; set; }
+        public TimeSpan Start { get; set; }
+        public TimeSpan End { get; set; }
         public string Timezone { get; set; }
         public string Name { get; set; }
         public bool Monday { get; set; }
@@ -68,8 +70,9 @@ namespace SS.Db.models.scheduling
             if (startInTz == endInTz)  
                 return IsAvailableOnDate(startInTz);
 
-            if (AdhocStartDate.HasValue && AdhocEndDate.HasValue)
-                return !(AdhocStartDate.Value > endInTz || startInTz > AdhocEndDate);
+            if (AdhocStartDate.HasValue && AdhocEndDate.HasValue &&
+                (AdhocStartDate > endInTz || startInTz > AdhocEndDate) )
+                return false;
 
             var dt = startInTz;
             while (dt < endInTz)

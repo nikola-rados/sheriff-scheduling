@@ -46,10 +46,46 @@
 									<b-icon icon="trash-fill" font-scale="2.0" variant="danger"/>
 								</b-button>
 						</div>
+						<div v-b-tooltip.hover
+							title="Import shifts from previous week">
+								<b-button 
+									style="max-height: 40px;" 
+									size="sm"
+									variant="warning"						
+									@click="confirmImportShift()" 
+									class="my-2 ml-2">Import Shift									
+								</b-button>
+						</div>
 					</b-nav-form>
 				</b-navbar-nav>
 			</b-navbar>
 		</header>
+
+		<b-modal v-model="confirmImport" id="bv-modal-confirm-import" header-class="bg-primary text-light">
+			<b-row v-if="importError" id="ImportError" class="h4 mx-2">
+				<b-badge class="mx-1 mt-2"
+					style="width: 20rem;"
+					v-b-tooltip.hover
+					:title="importErrorMsgDesc"
+					variant="danger"> {{importErrorMsg}}
+					<b-icon class="ml-3"
+						icon = x-square-fill
+						@click="importError = false"
+				/></b-badge>                    
+            </b-row>            
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Confirm Import Shifts</h2>                   
+            </template>
+            <h4 >Are you sure you want to import shifts from the previous week?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="success" @click="importShift()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-import')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-import')"
+                >&times;</b-button>
+            </template>
+        </b-modal> 
 
 		<b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
 			<b-row v-if="deleteError" id="DeleteError" class="h4 mx-2">
@@ -222,6 +258,7 @@
 		showEditShiftDetails = false;
 		showEditShiftCancelWarning = false;
 		confirmDelete = false;
+		confirmImport = false;
 		isShiftDataMounted = false;
 		startTimeState = true;
 		endTimeState = true;
@@ -236,7 +273,11 @@
 
 		deleteErrorMsg = '';
         deleteErrorMsgDesc = '';
-        deleteError = true;
+		deleteError = true;
+		
+		importErrorMsg = '';
+        importErrorMsgDesc = '';
+        importError = true;
 
 		mounted() {
 			this.selectedDate = moment().format().substring(0,10);			
@@ -482,6 +523,29 @@
                     this.deleteErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                     this.deleteErrorMsgDesc = errMsg;
                     this.deleteError = true;
+                });
+		}
+		
+		public confirmImportShift(){
+			this.importError = false;
+			this.confirmImport = true;
+        }
+
+        public importShift(){
+			const startDate = moment(this.shiftRangeInfo.startDate).subtract(7, 'days').format().substring(0,10);
+			const url = 'api/shift/importweek?locationId=' + this.location.id + '&start=' + startDate;
+			
+            this.$http.post(url)
+                .then(response => {
+                    console.log(response);
+                    this.confirmImport = false;
+                    this.$emit('change');                    
+                }, err=>{
+					const errMsg = err.response.data.error;
+					console.log(err.response)
+                    this.importErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.importErrorMsgDesc = errMsg;
+                    this.importError = true;
                 });
         }
 
