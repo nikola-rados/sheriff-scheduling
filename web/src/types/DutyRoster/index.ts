@@ -16,3 +16,30 @@ export interface myTeamShiftInfoType {
     rank: string;
 }
 
+export interface assignmentInfoType {
+    id?: number;
+    name: string;
+    adhocStartDate: string | null;
+    adhocEndDate: string | null;
+    reoccuring: boolean;
+    start: string;
+    end: string;
+    lookupCodeId: number;
+    locationId: number;
+    timezone: string;    
+    type: string;
+    subType: string;
+    monday: boolean;
+    tuesday: boolean;
+    wednesday: boolean;
+    thursday: boolean;
+    friday: boolean;
+    saturday: boolean;
+    sunday: boolean;
+}
+
+export interface assignmentSubTypeInfoType {
+    code: string;
+    id: number;
+}
+
