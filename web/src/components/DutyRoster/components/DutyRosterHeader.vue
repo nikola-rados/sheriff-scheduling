@@ -28,213 +28,217 @@
                     </b-col>
                 </b-navbar-nav>
 			</b-navbar>
+		</header>
 
-			<b-modal v-model="showAssignmentDetails" id="bv-modal-assignment-details" header-class="bg-primary text-light">
-				<template v-slot:modal-title>
-					<h2 class="mb-0 text-light"> Creating Assignment </h2>
-				</template>
 
-				<b-card v-if="isAssignmentDataMounted" no-body style="font-size: 14px;user-select: none;" >
+		<b-modal v-model="showAssignmentDetails" id="bv-modal-assignment-details" header-class="bg-primary text-light">
+			<template v-slot:modal-title>
+				<h2 class="mb-0 text-light"> Creating Assignment </h2>
+			</template>
 
-					<b-card id="AssignmentError" no-body>
-						<h2 v-if="assignmentError" class="mx-1 mt-2"
-							><b-badge v-b-tooltip.hover
-								:title="assignmentErrorMsgDesc"
-								variant="danger"> {{assignmentErrorMsg}}
-								<b-icon class="ml-3"
-									icon = x-square-fill
-									@click="assignmentError = false"
-						/></b-badge></h2>
-					</b-card>
+			<b-card v-if="isAssignmentDataMounted" no-body style="font-size: 14px;user-select: none;" >
 
-					<b-row class="mx-1 my-0 p-0">
-						<b-form-group class="mr-1" style="width: 12rem">
-							<label class="h6 m-0 p-0">Name<span class="text-danger">*</span></label>
-							<b-form-input 
-								v-model="assignment.name" 
-								placeholder="Enter Name" 
-								:state = "nameState?null:false">
-							</b-form-input>
-						</b-form-group>
-						<b-form-group class="ml-4" style="width: 14.35rem">	
-							<b-form-checkbox
-								size="sm"
-								class="ml-auto mr-4 mt-4"									
-								v-model="nonReoccuring"
-								@change="toggleReoccurring">
-									Non Reoccuring
-							</b-form-checkbox>						
-						</b-form-group>
-					</b-row>              
-
-					<b-row class="mx-1 my-0 p-0">
-						<b-form-group class="mr-1" style="width: 12rem">
-							<label class="h6 m-0 p-0">Assignment Category<span class="text-danger">*</span></label>
-							<b-form-select 
-								size="sm"
-								@change="loadSubTypes"
-								v-model="assignment.type"
-								:state = "selectedTypeState?null:false">
-									<b-form-select-option
-										v-for="type in assignmentTypeOptions"
-										:key="type.name"
-										:value="type">
-												{{type.label}}
-									</b-form-select-option>
-							</b-form-select>
-						</b-form-group>
-						<b-form-group class="ml-4" style="width: 14.35rem">
-							<label class="h6 my-0 ml-1 p-0">Assignment Sub caegory<span class="text-danger">*</span></label>
-							<b-form-select 
-								size="sm"
-								:disabled="!isSubTypeDataReady"
-								v-model="assignment.lookupCodeId"
-								:state = "selectedSubTypeState?null:false">
-									<b-form-select-option
-										v-for="subType in assignmentSubTypeOptions"
-										:key="subType.id"
-										:value="subType.id">
-												{{subType.code}}
-									</b-form-select-option>
-							</b-form-select>
-						</b-form-group>
-					</b-row>
-
-					<b-row v-if="nonReoccuring" class="mx-1 my-0 p-0">
-						<b-input-group class="mr-1" style="width: 12rem">					
-							<label class="h6 m-0 p-0"> From <span class="text-danger">*</span></label>
-                            <b-form-datepicker
-                                tabindex="2"
-                                class="mb-1"
-                                size="sm"
-                                v-model="selectedStartDate"
-                                placeholder="Start Date*"
-                                :state = "startDateState?null:false"
-                                :date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-                                @context="startDatePicked"
-                                locale="en-US">
-                            </b-form-datepicker>
-                        </b-input-group>
-						<b-input-group class="ml-4" style="width: 14.35rem">
-							<label class="h6 m-0 p-0"> To<span class="text-danger">*</span></label>
-							<b-form-datepicker
-								tabindex="3"
-								class="mb-1 mt-0 pt-0"
-								size="sm"
-								v-model="selectedEndDate"
-								placeholder="End Date*"
-								:state = "endDateState?null:false"                                    
-								:date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
-								locale="en-US">
-							</b-form-datepicker>
-						</b-input-group>
-					</b-row>
-
-					<b-row class="mx-1 my-3">
-						<b-form-group class="bg-light">							
-							<b-row>
-								<label class="h6 ml-3 mr-5">Days<span class="text-danger">*</span></label>								
-								<b-form-checkbox
-									size="sm"
-									class="ml-auto mr-4 text-jail"									
-									v-model="weekDaysSelected"
-									@change="toggleWeekDays">
-										Select Week Days
-								</b-form-checkbox>    
-								<b-form-checkbox
-									size="sm"
-									class="ml-auto mr-4 text-court"									
-									v-model="allDaysSelected"
-									@change="toggleAllDays">
-										Select All
-								</b-form-checkbox>
-							</b-row>
-							<b-form-checkbox-group
-								size="sm"			
-								v-model="selectedDays"								
-								:state = "selectedDayState?null:false">
-									<b-form-checkbox
-										@change="weekdaysChanged"									
-										:class="day.diff? 'ml-2 pl-3' :'ml-1 pl-4' +'align-middle'"
-										v-for="day in dayOptions"
-										:key="day.diff"
-										:value="day.diff">
-											{{day.name}}
-									</b-form-checkbox>
-							</b-form-checkbox-group>
-						</b-form-group>
-					</b-row>
-
-					<b-row class="mx-1 my-0 p-0">
-						<b-form-group class="mr-3" style="width: 7rem">
-							<label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
-							<b-form-input
-								v-model="selectedStartTime"
-								@click="startTimeState=true"
-								size="sm"
-								type="text"
-								autocomplete="off"
-								@paste.prevent
-								:formatter="timeFormat"
-								placeholder="HH:MM"
-								:state = "startTimeState?null:false"
-							></b-form-input>
-						</b-form-group>
-
-						<b-form-group class="mr-5" style="width: 7rem;">
-							<label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
-							<b-form-input
-								v-model="selectedEndTime"
-								@click="endTimeState=true"
-								size="sm"
-								type="text"
-								autocomplete="off"
-								@paste.prevent
-								:formatter="timeFormat"
-								placeholder="HH:MM"
-								:state = "endTimeState?null:false"
-							></b-form-input>
-						</b-form-group>						
-					</b-row>
+				<b-card id="AssignmentError" no-body>
+					<h2 v-if="assignmentError" class="mx-1 mt-2"
+						><b-badge v-b-tooltip.hover
+							:title="assignmentErrorMsgDesc"
+							variant="danger"> {{assignmentErrorMsg}}
+							<b-icon class="ml-3"
+								icon = x-square-fill
+								@click="assignmentError = false"
+					/></b-badge></h2>
 				</b-card>
 
-				<template v-slot:modal-footer>
-					<b-button
-							variant="secondary"
-							@click="closeAssignmentWindow()"
-					><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
-					<b-button
-							variant="success"
-							@click="saveAssignment()"
-					><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
-				</template>
-				<template v-slot:modal-header-close>
-					<b-button
-						variant="outline-primary"
-						class="text-light closeButton"
-						@click="closeAssignmentWindow()"
-						>
-						&times;</b-button>
-				</template>
-			</b-modal>
+				<b-row class="mx-1 my-0 p-0">
+					<b-form-group class="mr-1" style="width: 12rem">
+						<label class="h6 m-0 p-0">Name<span class="text-danger">*</span></label>
+						<b-form-input 
+						size="sm"
+							v-model="assignment.name" 
+							placeholder="Enter Name" 
+							:state = "nameState?null:false">
+						</b-form-input>
+					</b-form-group>
+					<b-form-group class="my-auto ml-auto" style="width: 8.6rem">	
+						<b-form-checkbox
+							size="sm"									
+							v-model="nonReoccuring"
+							@change="toggleReoccurring">
+								Non Reoccuring
+						</b-form-checkbox>						
+					</b-form-group>
+				</b-row>              
 
-			<b-modal v-model="showCancelWarning" id="bv-modal-assignment-cancel-warning" header-class="bg-warning text-light">            
-				<template v-slot:modal-title>
-					<h2 class="mb-0 text-light"> Unsaved New Assignments </h2>                                 
-				</template>
-				<p>Are you sure you want to cancel without saving your changes?</p>
-				<template v-slot:modal-footer>
-					<b-button variant="secondary" @click="$bvModal.hide('bv-modal-assignment-cancel-warning')"                   
-					>No</b-button>
-					<b-button variant="success" @click="confirmedCloseAssignmentWindow()"
-					>Yes</b-button>
-				</template>            
-				<template v-slot:modal-header-close>                 
-					<b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-assignment-cancel-warning')"
-					>&times;</b-button>
-				</template>
-			</b-modal>
-		</header>
+				<b-row class="mx-1 my-0 p-0">
+					<b-form-group class="mr-1" style="width: 12rem">
+						<label class="h6 m-0 p-0">Assignment Category<span class="text-danger">*</span></label>
+						<b-form-select 
+							size="sm"
+							@change="loadSubTypes"
+							v-model="assignment.type"
+							:state = "selectedTypeState?null:false">
+								<b-form-select-option
+									v-for="type in assignmentTypeOptions"
+									:key="type.name"
+									:value="type">
+											{{type.label}}
+								</b-form-select-option>
+						</b-form-select>
+					</b-form-group>
+					<b-form-group class="ml-4" style="width: 14.35rem">
+						<label class="h6 my-0 ml-1 p-0">Assignment Sub caegory<span class="text-danger">*</span></label>
+						<b-form-select 
+							size="sm"
+							:disabled="!isSubTypeDataReady"
+							v-model="assignment.lookupCodeId"
+							:state = "selectedSubTypeState?null:false">
+								<b-form-select-option
+									v-for="subType in assignmentSubTypeOptions"
+									:key="subType.id"
+									:value="subType.id">
+											{{subType.code}}
+								</b-form-select-option>
+						</b-form-select>
+					</b-form-group>
+				</b-row>
+
+				<b-row v-if="nonReoccuring" class="mx-1 my-1 p-0">
+					<b-form-group class="mr-1" style="width: 12rem">					
+						<label class="h6 m-0 p-0"> From <span class="text-danger">*</span></label>
+						<b-form-datepicker
+							tabindex="2"
+							class="mb-1"
+							size="sm"
+							v-model="selectedStartDate"
+							placeholder="Start Date*"
+							:state = "startDateState?null:false"
+							:date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+							@context="startDatePicked"
+							locale="en-US">
+						</b-form-datepicker>
+					</b-form-group>
+					<b-form-group class="ml-4" style="width: 14.35rem">
+						<label class="h6 m-0 p-0"> To<span class="text-danger">*</span></label>
+						<b-form-datepicker
+							tabindex="3"
+							class="mb-1 mt-0 pt-0"
+							size="sm"
+							v-model="selectedEndDate"
+							placeholder="End Date*"
+							:state = "endDateState?null:false"                                    
+							:date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+							locale="en-US">
+						</b-form-datepicker>
+					</b-form-group>
+				</b-row>
+
+				<b-row class="mx-1 mt-3 mb-0">
+					<b-form-group class="bg-light">							
+						<b-row>
+							<label class="h6 ml-3 mr-5">Days<span class="text-danger">*</span></label>								
+							<b-form-checkbox
+								size="sm"
+								class="ml-auto mr-4 text-jail"									
+								v-model="weekDaysSelected"
+								@change="toggleWeekDays">
+									Select Week Days
+							</b-form-checkbox>    
+							<b-form-checkbox
+								size="sm"
+								class="ml-auto mr-4 text-court"									
+								v-model="allDaysSelected"
+								@change="toggleAllDays">
+									Select All
+							</b-form-checkbox>
+						</b-row>
+						<b-form-checkbox-group
+							size="sm"			
+							v-model="selectedDays"								
+							:state = "selectedDayState?null:false">
+								<b-form-checkbox
+									@change="weekdaysChanged"									
+									:class="day.diff? 'ml-2 pl-3' :'ml-1 pl-4' +'align-middle'"
+									v-for="day in dayOptions"
+									:key="day.diff"
+									:value="day.diff">
+										{{day.name}}
+								</b-form-checkbox>
+						</b-form-checkbox-group>
+					</b-form-group>
+				</b-row>
+
+				<b-row class="mx-auto my-0 p-0">
+					<b-form-group class="mr-3" style="width: 7rem">
+						<label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
+						<b-form-input
+							v-model="selectedStartTime"
+							@click="startTimeState=true"
+							size="sm"
+							type="text"
+							autocomplete="off"
+							@paste.prevent
+							:formatter="timeFormat"
+							placeholder="HH:MM"
+							:state = "startTimeState?null:false"
+						></b-form-input>
+					</b-form-group>
+
+					<b-form-group style="width: 7rem;">
+						<label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
+						<b-form-input
+							v-model="selectedEndTime"
+							@click="endTimeState=true"
+							size="sm"
+							type="text"
+							autocomplete="off"
+							@paste.prevent
+							:formatter="timeFormat"
+							placeholder="HH:MM"
+							:state = "endTimeState?null:false"
+						></b-form-input>
+					</b-form-group>						
+				</b-row>
+			</b-card>
+
+			<template v-slot:modal-footer>
+				<b-button
+						size="sm"
+						variant="secondary"
+						@click="closeAssignmentWindow()"
+				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
+				<b-button
+						size="sm"
+						variant="success"
+						@click="saveAssignment()"
+				><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
+			</template>
+			<template v-slot:modal-header-close>
+				<b-button
+					variant="outline-primary"
+					class="text-light closeButton"
+					@click="closeAssignmentWindow()"
+					>
+					&times;</b-button>
+			</template>
+		</b-modal>
+
+		<b-modal v-model="showCancelWarning" id="bv-modal-assignment-cancel-warning" header-class="bg-warning text-light">            
+			<template v-slot:modal-title>
+				<h2 class="mb-0 text-light"> Unsaved New Assignments </h2>                                 
+			</template>
+			<p>Are you sure you want to cancel without saving your changes?</p>
+			<template v-slot:modal-footer>
+				<b-button variant="secondary" @click="$bvModal.hide('bv-modal-assignment-cancel-warning')"                   
+				>No</b-button>
+				<b-button variant="success" @click="confirmedCloseAssignmentWindow()"
+				>Yes</b-button>
+			</template>            
+			<template v-slot:modal-header-close>                 
+				<b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-assignment-cancel-warning')"
+				>&times;</b-button>
+			</template>
+		</b-modal>
+		
 	</div>
 </template>
 
@@ -459,18 +463,12 @@
         }
 
 		public isChanged(){
-			if( this.isEmpty(this.assignment) || this.selectedStartDate || this.selectedEndDate || 
+			if( this.assignment.name ||
+				this.assignment.type ||
 				this.selectedStartTime || this.selectedEndTime ||
                 this.nonReoccuring || this.selectedDays.length >0) return true;
             return false;           
 		}
-		
-		public isEmpty(obj){
-            for(const prop in obj) 
-                if(obj[prop] != null)
-                    return false;
-            return true;
-        }
 
 		public closeAssignmentWindow(){
 			if(this.isChanged())
@@ -509,7 +507,8 @@
 			this.endDateState = true;
 			this.assignmentError = false;
             this.assignmentErrorMsg = '';
-            this.assignmentErrorMsgDesc = '';
+			this.assignmentErrorMsgDesc = '';
+			this.nonReoccuring = false;
 		}
 
 
@@ -538,6 +537,8 @@
 			this.assignment.end = this.selectedEndTime;	
 
 			const body = this.assignment;
+
+			console.log(body)
 			const url = 'api/assignment';
 			this.$http.post(url, body )
 				.then(response => {

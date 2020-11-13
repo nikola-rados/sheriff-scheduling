@@ -7,7 +7,7 @@
                 <loading-spinner v-if="!isDutyRosterDataMounted" />
                 <b-table 
                     v-else              
-                    :items="dutyRosters" 
+                    :items="dutyRosterAssignments" 
                     :fields="fields"
                     small
                     head-row-variant="primary"   
@@ -17,11 +17,34 @@
                             <col style="width:9rem">                            
                         </template>
                        
-                        <template v-slot:cell(assignments)  >                            
-                            <!-- <b-row class="ml-3">{{data.value}} </b-row> -->
-                            <!-- <b-row>
-                                <b-button style="margin-left:auto; margin-right:1rem; height:1rem; width:1rem;" size="sm"  @click="data.toggleDetails();"><b-icon-arrow90deg-down font-scale=".75"  style="transform:translate(-5px,-11px);"/></b-button>
-                            </b-row> -->
+                        <template v-slot:cell(assignment) ="data"  >
+                            <b-row style="height:3rem;"> 
+                                <b-col cols="9" class="m-0 p-0">                          
+                                    <b-row                                  
+                                        style="text-transform: capitalize;" 
+                                        class="h6 p-0 mt-2 mb-0 ml-4">
+                                        <div 
+                                            v-b-tooltip.hover                            
+                                            :title="data.item.name.length>10? data.item.name:''"> 
+                                                {{data.item.name|truncate(10)}} 
+                                        </div></b-row>
+                                    <b-row class="h7 p-0 m-0 ml-4">
+                                        <div 
+                                            v-b-tooltip.hover                            
+                                            :title="data.item.code.length>10? data.item.code:''"> 
+                                            ({{data.item.code|truncate(10)}}) 
+                                        </div></b-row>
+                                </b-col>
+                                <b-col cols="3" class="m-0 p-0"> 
+                                    <b-button 
+                                        class="my-3"
+                                        :variant="data.item.type.name"
+                                        style="padding:0; height:1.2rem; width:1.2rem;" 
+                                        @click="data.toggleDetails();"
+                                        size="sm"> 
+                                            <b-icon-plus font-scale="1" style="transform:translate(0,-3px);"/></b-button>
+                                </b-col>
+                            </b-row>
                         </template>
 
                         <template v-slot:head(h0) >
@@ -41,17 +64,17 @@
                     v-if="isDutyRosterDataMounted" 
                     body-class="mx-2 p-0"
                     class="bg-dark m-0 p-0">
-                    <b-card-header header-class="m-0 text-white py-2 px-0"> 
-                        My Team
-                        <b-button
-                            @click="toggleDisplayMyteam()"
-                            v-b-tooltip.hover                            
-                            title="Display Graphical Availability of MyTeam "                            
-                            style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#189fd4;" 
-                            size="sm">
-                                <b-icon-bar-chart-steps /> 
-                        </b-button>
-                    </b-card-header> 
+                        <b-card-header header-class="m-0 text-white py-2 px-0"> 
+                            My Team
+                            <b-button
+                                @click="toggleDisplayMyteam()"
+                                v-b-tooltip.hover                            
+                                title="Display Graphical Availability of MyTeam "                            
+                                style="font-size:10px; width:1.1rem; margin:0 0 0 .2rem; padding:0; background-color:white; color:#189fd4;" 
+                                size="sm">
+                                    <b-icon-bar-chart-steps /> 
+                            </b-button>
+                        </b-card-header> 
                         <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member"/>
                 </b-card>
             </b-col>
@@ -66,8 +89,9 @@
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
     import DutyCard from './components/DutyCard.vue'
-
     import SheriffFuelGauge from './components/SheriffFuelGauge.vue'
+
+    import moment from 'moment-timezone';
 
     import { namespace } from "vuex-class";   
     import "@store/modules/CommonInformation";
@@ -115,23 +139,18 @@
         myteamAvailability=[{sheriff:'jill'},{sheriff:'jack'},{sheriff:'jill'},{sheriff:'jack'}]
         gaugeFields: any[] = []
 
-        dutyRosters =[
-            {assignments:'101'},
-            {assignments:'102'},
-            {assignments:'103'},
-            {assignments:'Test'},
-            {assignments:'CEW'},
-            {assignments:'Gates'},
-            {assignments:'101'},
-            {assignments:'102'},
-            {assignments:'103'},
-            {assignments:'Test'},
-            {assignments:'CEW'}
-        ]
+        dutyRosterAssignments: any[] =[]
 
         fields =[
-            {key:'assignments', label:'Assignments', thClass:'m-0 p-2', tdClass:' p-0 m-0', thStyle:''},
-            {key:'h0', label:'', thClass:'', tdClass:'bg-danger p-0 m-0', thStyle:'margin:0; padding:0;'}
+            {key:'assignment', label:'Assignments', thClass:'m-0 p-2', tdClass:' p-0 m-0', thStyle:''},
+            {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
+        ]
+
+        dutyColors = [
+            {name:'court' , colorCode:'#189fd4'},
+            {name:'jail' ,  colorCode:'#A22BB9'},
+            {name:'escort', colorCode:'#ffb007'},
+            {name:'other',  colorCode:'#c91a5d'}                       
         ]
 
         mounted()
@@ -139,21 +158,8 @@
             this.isDutyRosterDataMounted = false;
         }
 
-       
-
         public getBeautifyTime(hour: number){
             return( hour>9? hour+':00': '0'+hour+':00')
-        }
-
-        public blockSize(){
-            //console.log('schCard'+block.key)
-            const el = document.getElementById('assignmentsheader')
-            console.log(el)
-            if(el){
-                return el.clientWidth
-            }else{
-                return 0
-            }            
         }
 
         public getShifts(){
@@ -164,7 +170,8 @@
                 .then(response => {
                     if(response.data){
                         console.log(response.data)                        
-                       this.extractTeamShiftInfo(response.data);                                               
+                        this.extractTeamShiftInfo(response.data);
+                        this.getAssignments();                                               
                     }                                   
                 })      
         }
@@ -173,12 +180,12 @@
             this.UpdateShiftAvailabilityInfo([]);
             for(const shiftJson of shiftsJson)
             {
-                console.log(shiftJson)
+                //console.log(shiftJson)
                 const availabilityInfo = {} as myTeamShiftInfoType;
                 const shiftInfo = {} as shiftInfoType;
                 shiftInfo.id = shiftJson.id;
-                shiftInfo.startDate = shiftJson.startDate;
-                shiftInfo.endDate = shiftJson.endDate;
+                shiftInfo.startDate =  moment(shiftJson.startDate).tz(this.location.timezone).format();
+                shiftInfo.endDate = moment(shiftJson.endDate).tz(this.location.timezone).format();
                 shiftInfo.timezone = shiftJson.timezone;
                 shiftInfo.sheriffId = shiftJson.sheriffId;
                 shiftInfo.locationId = shiftJson.locationId;
@@ -196,8 +203,44 @@
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
             }
-            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);
+            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
+        }
+
+        public getAssignments(){
+            const url = 'api/assignment?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)                        
+                        this.extractAssignmentsInfo(response.data);                                               
+                    }                                   
+                })      
+        }
+
+        public extractAssignmentsInfo(assignments){
+
+            this.dutyRosterAssignments =[]
+            let sortOrder = 0;
+            for(const assignment of assignments){
+                sortOrder++;
+                this.dutyRosterAssignments.push({
+                    assignment:('00' + sortOrder).slice(-3) ,
+                    assignmentDetail: assignment,
+                    name:assignment.name,
+                    code:assignment.lookupCode.code,
+                    type: this.getType(assignment.lookupCode.type),
+                    attachedAssignment: false,
+                })
+            }
+
             this.isDutyRosterDataMounted = true;
+        }
+        
+        public getType(type: string){
+            for(const color of this.dutyColors){
+                if(type.toLowerCase().includes(color.name))return color
+            }
+            return this.dutyColors[3]
         }
 
         public toggleDisplayMyteam(){
