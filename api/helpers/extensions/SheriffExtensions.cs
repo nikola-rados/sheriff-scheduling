@@ -11,15 +11,15 @@ namespace SS.Api.helpers.extensions
         public static IQueryable<Sheriff> IncludeSheriffEventsBetweenDates(this IQueryable<Sheriff> query, DateTimeOffset startDate, DateTimeOffset endDate)
         {
             return query.Include(s => s.AwayLocation.Where(al =>
-                    !(al.StartDate > endDate || startDate > al.EndDate)
+                    (al.StartDate < endDate && startDate < al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)
                 .Include(s => s.Training.Where(al =>
-                    !(al.StartDate > endDate || startDate > al.EndDate)
+                    (al.StartDate < endDate && startDate < al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(t => t.TrainingType)
                 .Include(s => s.Leave.Where(al =>
-                    !(al.StartDate > endDate || startDate > al.EndDate)
+                    (al.StartDate < endDate && startDate < al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
                 .Include(s => s.HomeLocation);

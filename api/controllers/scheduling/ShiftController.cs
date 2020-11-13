@@ -64,9 +64,9 @@ namespace SS.Api.controllers.scheduling
         [HttpPost]
         [Route("importWeek")]
         [PermissionClaimAuthorize(perm: Permission.ImportShifts)]
-        public async Task<ActionResult<ImportedShiftsDto>> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
+        public async Task<ActionResult<ImportedShiftsDto>> ImportWeeklyShifts(int locationId, DateTimeOffset start)
         {
-            var shifts = await ShiftService.ImportWeeklyShifts(locationId, includeSheriffs, start);
+            var shifts = await ShiftService.ImportWeeklyShifts(locationId, start);
             return Ok(shifts.Adapt<ImportedShiftsDto>());
         }
         #endregion

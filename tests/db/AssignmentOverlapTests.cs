@@ -37,7 +37,7 @@ namespace tests.db
             Assert.True(assignment.HasAtLeastOneDayOverlap(targetDate.TranslateDateIfDaylightSavings(timezone,-1), targetDate.TranslateDateIfDaylightSavings(timezone, 1)));
 
             //Adhoc case
-            var adhocAssignment = new Assignment { Timezone = "America/Vancouver", AdhocStartDate = targetDate, AdhocEndDate = targetDate.TranslateDateIfDaylightSavings(timezone, 5) };
+            var adhocAssignment = new Assignment { Timezone = "America/Vancouver", AdhocStartDate = targetDate, AdhocEndDate = targetDate.TranslateDateIfDaylightSavings(timezone, 5), Monday= true, Tuesday= true, Wednesday = true, Thursday = true, Friday = true, Saturday = true, Sunday = true};
             Assert.True(adhocAssignment.HasAtLeastOneDayOverlap(targetDate, targetDate.TranslateDateIfDaylightSavings(timezone, 1)));
             Assert.False(adhocAssignment.HasAtLeastOneDayOverlap(targetDate.TranslateDateIfDaylightSavings(timezone, 40), targetDate.TranslateDateIfDaylightSavings(timezone, 50)));
 
