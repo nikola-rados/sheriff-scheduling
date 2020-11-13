@@ -101,7 +101,7 @@ namespace SS.Api.services.scheduling
             await Db.SaveChangesAsync();
         }
 
-        public async Task<ImportedShifts> ImportWeeklyShifts(int locationId, bool includeSheriffs, DateTimeOffset start)
+        public async Task<ImportedShifts> ImportWeeklyShifts(int locationId, DateTimeOffset start)
         {
             var location = Db.Location.FirstOrDefault(l => l.Id == locationId);
             location.ThrowBusinessExceptionIfNull($"Couldn't find {nameof(Location)} with id: {locationId}.");
@@ -122,15 +122,15 @@ namespace SS.Api.services.scheduling
             var importedShifts = await shiftsToImport.Select(shift => Db.DetachedClone(shift)).ToListAsync();
             foreach (var shift in importedShifts)
             {
-                shift.Id = 0;
-                shift.SheriffId = includeSheriffs ? shift.SheriffId : null;
+                shift.SheriffId = shift.SheriffId;
                 shift.StartDate = shift.StartDate.TranslateDateIfDaylightSavings(timezone, 7);
                 shift.EndDate = shift.EndDate.TranslateDateIfDaylightSavings(timezone, 7);
             }
 
             var overlaps = await GetShiftConflicts(importedShifts);
-            var filteredImportedShifts = importedShifts.WhereToList(s => overlaps.All(o => o.Shift.Id != s.Id));
+            var filteredImportedShifts = importedShifts.WhereToList(s => !overlaps.Any(o => o.Shift.Id == s.Id));
 
+            importedShifts.ForEach(s => s.Id = 0);
             await Db.Shift.AddRangeAsync(filteredImportedShifts);
             await Db.SaveChangesAsync();
 
@@ -228,6 +228,7 @@ namespace SS.Api.services.scheduling
                 targetShifts.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
                 throw new BusinessLayerException("Shifts provided overlap with themselves.");
 
+
             var sheriffIds = targetShifts.Select(ts => ts.SheriffId).Distinct();
             var locationId = targetShifts.First().LocationId;
 
@@ -295,7 +296,8 @@ namespace SS.Api.services.scheduling
             => $"Conflict - {nameof(Sheriff)}: {sheriff.LastName}, {sheriff.FirstName} - Existing Shift conflicts: {shift.StartDate.ConvertToTimezone(shift.Timezone)} -> {shift.EndDate.ConvertToTimezone(shift.Timezone)}";
 
         private static string PrintSheriffEventConflict<T>(Sheriff sheriff, DateTimeOffset start, DateTimeOffset end)
-            => $"{sheriff.LastName}, {sheriff.FirstName} has a(n) {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} from: {start} to: {end}";
+            => $"{sheriff.LastName}, {sheriff.FirstName} has {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} from: {start} to: {end}";
+
         #endregion String Helpers
 
         #endregion
