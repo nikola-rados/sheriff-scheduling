@@ -18,33 +18,7 @@
                         </template>
                        
                         <template v-slot:cell(assignment) ="data"  >
-                            <b-row style="height:3rem;"> 
-                                <b-col cols="9" class="m-0 p-0">                          
-                                    <b-row                                  
-                                        style="text-transform: capitalize;" 
-                                        class="h6 p-0 mt-2 mb-0 ml-4">
-                                        <div 
-                                            v-b-tooltip.hover                            
-                                            :title="data.item.name.length>10? data.item.name:''"> 
-                                                {{data.item.name|truncate(10)}} 
-                                        </div></b-row>
-                                    <b-row class="h7 p-0 m-0 ml-4">
-                                        <div 
-                                            v-b-tooltip.hover                            
-                                            :title="data.item.code.length>10? data.item.code:''"> 
-                                            ({{data.item.code|truncate(10)}}) 
-                                        </div></b-row>
-                                </b-col>
-                                <b-col cols="3" class="m-0 p-0"> 
-                                    <b-button 
-                                        class="my-3"
-                                        :variant="data.item.type.name"
-                                        style="padding:0; height:1.2rem; width:1.2rem;" 
-                                        @click="data.toggleDetails();"
-                                        size="sm"> 
-                                            <b-icon-plus font-scale="1" style="transform:translate(0,-3px);"/></b-button>
-                                </b-col>
-                            </b-row>
+                            <duty-roster-assignment v-on:change="getShifts()" :assignment="data.item"/>
                         </template>
 
                         <template v-slot:head(h0) >
@@ -54,7 +28,7 @@
                         </template>
 
                         <template v-slot:cell(h0) >
-                            <duty-card/>
+                            <!-- <duty-card/> -->
                         </template>
                 </b-table>                
                 <b-card><br></b-card>  
@@ -74,7 +48,9 @@
                                 size="sm">
                                     <b-icon-bar-chart-steps /> 
                             </b-button>
-                        </b-card-header> 
+                        </b-card-header>
+                        <duty-roster-team-member-card :sheriffInfo="memberNotRequired"/>
+                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable"/> 
                         <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member"/>
                 </b-card>
             </b-col>
@@ -90,6 +66,7 @@
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
     import DutyCard from './components/DutyCard.vue'
     import SheriffFuelGauge from './components/SheriffFuelGauge.vue'
+    import DutyRosterAssignment from './components/DutyRosterAssignment.vue'
 
     import moment from 'moment-timezone';
 
@@ -109,7 +86,8 @@
             DutyRosterHeader,
             DutyRosterTeamMemberCard,
             DutyCard,
-            SheriffFuelGauge
+            SheriffFuelGauge,
+            DutyRosterAssignment
         }
     })
     export default class DutyRoster extends Vue {
@@ -132,17 +110,16 @@
         @dutyState.Action
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
+        memberNotRequired = {} as myTeamShiftInfoType;
+        memberNotAvailable = {} as myTeamShiftInfoType;
         isDutyRosterDataMounted = false;
-
-        // myTeamShifts: myTeamShiftInfoType[] =[]; 
-
-        myteamAvailability=[{sheriff:'jill'},{sheriff:'jack'},{sheriff:'jill'},{sheriff:'jack'}]
-        gaugeFields: any[] = []
 
         dutyRosterAssignments: any[] =[]
 
+        dutyRostersJson
+
         fields =[
-            {key:'assignment', label:'Assignments', thClass:'m-0 p-2', tdClass:' p-0 m-0', thStyle:''},
+            {key:'assignment', label:'Assignments', thClass:'m-0 px-2 py-0', tdClass:' p-0 m-0', thStyle:''},
             {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
         ]
 
@@ -156,6 +133,8 @@
         mounted()
         {
             this.isDutyRosterDataMounted = false;
+            this.memberNotRequired.sheriffId ='00000-00000-11111';
+            this.memberNotAvailable.sheriffId ='00000-00000-22222';
         }
 
         public getBeautifyTime(hour: number){
@@ -171,7 +150,7 @@
                     if(response.data){
                         console.log(response.data)                        
                         this.extractTeamShiftInfo(response.data);
-                        this.getAssignments();                                               
+                        this.getDutyRosters();                                               
                     }                                   
                 })      
         }
@@ -204,6 +183,18 @@
                 }
             }
             this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
+        }
+
+        public getDutyRosters(){
+            const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.dutyRostersJson = response.data; 
+                        console.log(response.data)
+                        this.getAssignments()                                                                       
+                    }                                   
+                })      
         }
 
         public getAssignments(){
@@ -265,13 +256,14 @@
     .grid24 {        
         display:grid;
         grid-template-columns: repeat(24, 4.1666%);
-        grid-template-rows: 2.56rem;
+        grid-template-rows: 1.65rem;
         inline-size: 100%;
-        font-size: 10px;         
+        font-size: 10px;
+        height: 1.58rem;         
     }
 
     .grid24 > * {      
-        padding: .75rem 0;
+        padding: 0.3rem 0;
         border: 1px dotted rgb(185, 143, 143);
     }
 

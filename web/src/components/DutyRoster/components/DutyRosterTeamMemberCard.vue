@@ -5,8 +5,8 @@
         :draggable="true" 
         v-on:dragstart="DragStart" 
         style="border-radius:5px"          
-        class="mb-2 p-1 bg-white">
-            <b-col>
+        :class="bgcolor+' mb-2 p-1'">
+            <b-col v-if="!specialMember">
                 <b-row style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
                 <b-row style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
                 <b-row 
@@ -18,6 +18,9 @@
                 <b-row>
                     <b-badge v-b-tooltip.hover.v-warning.html="allShifts" class="mx-auto mt-1">{{shifts[0]}}<span v-if="shifts.length>1"> ...</span></b-badge>
                 </b-row>
+            </b-col>
+            <b-col class="m-0 p-0" v-else>
+                <div class="text-center text-white" style="font-size:13px;">{{fullName}}</div>
             </b-col>
     </div>
 </template>
@@ -46,14 +49,29 @@
         isDataMounted = false;
         fullName = '';
         shifts: string[] = [];
-        allShifts = {title:''}
+        allShifts = {title:''};
+
+        specialMember = false;
+        bgcolor='bg-white';
 
         mounted()
         {  
             this.isDataMounted = false;
-            this.sheriffId = this.sheriffInfo.sheriffId;          
-            this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
-            this.extractShifts();
+            this.sheriffId = this.sheriffInfo.sheriffId; 
+            if(this.sheriffId== '00000-00000-11111'){
+                this.fullName = 'Not Required'
+                this.bgcolor='bg-success'
+                this.specialMember = true
+            } else if(this.sheriffId== '00000-00000-22222'){
+                this.fullName = 'Not Available'
+                this.bgcolor='bg-danger'
+                this.specialMember = true
+            }else{      
+                this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
+                this.bgcolor='bg-white'
+                this.extractShifts();
+            }
+            this.isDataMounted = true;
         }
 
         public extractShifts() {
@@ -68,13 +86,7 @@
 
             tooltipTitle += '</div>'
             this.allShifts.title = tooltipTitle ;
-
-            this.isDataMounted = true;                     
         }
-
-        // (){
-        //     return '<div>'+this.shifts[0]+'<br/>'+this.shifts[0] +'</div>'
-        // }
 
         public DragStart(event: any) 
         { 

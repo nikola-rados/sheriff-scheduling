@@ -23,7 +23,7 @@
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
                         </b-row>
                         <b-row style="margin:0 0 .25rem auto;">
-                            <div style=" border-radius:5px; background-color:#f2d2f7; color:#fc0366; width:10rem;">{{selectedDate|beautify-date-weekday}}</div>
+                            <div class="bg-white" style=" border-radius:5px; width:10rem;">{{selectedDate|beautify-date-weekday}}</div>
                         </b-row>
                     </b-col>
                 </b-navbar-nav>
