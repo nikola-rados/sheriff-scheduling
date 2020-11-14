@@ -7,10 +7,13 @@ declare
 BEGIN
 	SystemUserId := '00000000-0000-0000-0000-000000000001';
 
-	DELETE FROM "RolePermission";
 	SELECT "Id" INTO AdministratorId FROM "Role" WHERE "Name" = 'Administrator';
 	SELECT "Id" INTO ManagerId FROM "Role" WHERE "Name" = 'Manager';
 	SELECT "Id" INTO SheriffId FROM "Role" WHERE "Name" = 'Sheriff';
+
+	DELETE FROM "RolePermission" WHERE "RoleId" = AdministratorId;
+	DELETE FROM "RolePermission" WHERE "RoleId" = ManagerId;
+	DELETE FROM "RolePermission" WHERE "RoleId" = SheriffId;
 
 	-- Sheriff
 	INSERT INTO "RolePermission" ("CreatedById","CreatedOn","UpdatedById","UpdatedOn","RoleId","PermissionId") VALUES (SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'Login')),
