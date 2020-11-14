@@ -61,6 +61,30 @@
 			</b-navbar>
 		</header>
 
+		<b-modal v-model="importConflict" size="lg" id="bv-modal-import-conflict" header-class="bg-primary text-light">
+			<b-table
+            :items="importConflictMsg"
+			:fields="importConflictFields"        
+            thead-class="d-none"
+            responsive="sm"
+            borderless 
+            small              
+            striped
+            >
+            </b-table>
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Import Shift Conflicts</h2>                   
+            </template>
+            
+            <template v-slot:modal-footer>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-import-conflict')">Ok</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-import-conflict')"
+                >&times;</b-button>
+            </template>
+        </b-modal> 
+
 		<b-modal v-model="confirmImport" id="bv-modal-confirm-import" header-class="bg-primary text-light">
 			<b-row v-if="importError" id="ImportError" class="h4 mx-2">
 				<b-badge class="mx-1 mt-2"
@@ -72,7 +96,7 @@
 						icon = x-square-fill
 						@click="importError = false"
 				/></b-badge>                    
-            </b-row>            
+            </b-row>         
             <template v-slot:modal-title>
                 <h2 class="mb-0 text-light">Confirm Import Shifts</h2>                   
             </template>
@@ -227,7 +251,7 @@
 	const shiftState = namespace("ShiftScheduleInformation");
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-	import { shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
+	import { importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
 	import { locationInfoType } from '../../../types/common';
 	
 	@Component
@@ -277,7 +301,11 @@
 		
 		importErrorMsg = '';
         importErrorMsgDesc = '';
-        importError = true;
+		importError = true;
+		
+		importConflictMsg: importConflictMessageType[] = [];
+		importConflict = false;
+		importConflictFields = [{key:"ConflictFieldName", tdClass: 'border-top my-2', label: "Field Name"}]
 
 		mounted() {
 			this.selectedDate = moment().format().substring(0,10);			
@@ -510,11 +538,10 @@
 
         public deleteShift(){
 			const url = 'api/shift';
-			console.log(this.selectedShifts)
 			const body = this.selectedShifts;
             this.$http.delete(url, {data: body})
                 .then(response => {
-                    console.log(response);
+                    // console.log(response);
                     this.confirmDelete = false;
                     this.$emit('change');                    
                 }, err=>{
@@ -537,9 +564,14 @@
 			
             this.$http.post(url)
                 .then(response => {
-                    console.log(response);
                     this.confirmImport = false;
-                    this.$emit('change');                    
+					this.$emit('change'); 
+					if (response.data.conflictMessages.length> 0) {
+						for (const message of response.data.conflictMessages) {
+							this.importConflictMsg.push({ConflictFieldName: message});
+						}						
+						this.importConflict = true;
+					}                   
                 }, err=>{
 					const errMsg = err.response.data.error;
 					console.log(err.response)

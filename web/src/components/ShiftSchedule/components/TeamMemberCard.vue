@@ -481,8 +481,6 @@
             else if(minutes/15 >= 2) minOffset= floor? 30-minutes: 45-minutes;
             else if(minutes/15 >= 1) minOffset= floor? 15-minutes: 30-minutes;
             else minOffset= floor? 0-minutes: 15-minutes;
-
-            //console.log(moment(time).add(minOffset,'minutes').format()) 
             return moment(time).add(minOffset,'minutes').format()           
         }
 
