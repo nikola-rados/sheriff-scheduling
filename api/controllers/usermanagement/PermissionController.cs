@@ -25,7 +25,7 @@ namespace SS.Api.controllers.usermanagement
         [HttpGet]
         public async Task<ActionResult<List<PermissionDto>>> GetPermissions()
         {
-            var permissions = await Db.Permission.ToListAsync();
+            var permissions = await Db.Permission.AsNoTracking().ToListAsync();
             return Ok(permissions.Adapt<List<PermissionDto>>());
         }
     }

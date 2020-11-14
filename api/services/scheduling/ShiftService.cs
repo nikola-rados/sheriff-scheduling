@@ -26,7 +26,7 @@ namespace SS.Api.services.scheduling
             SheriffService = sheriffService;
         }
 
-        public async Task<List<Shift>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
+        public async Task<List<Shift>> GetShiftsForLocation(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
             return await Db.Shift.AsSingleQuery().AsNoTracking()
                 .Include( s=> s.Location)
@@ -36,6 +36,9 @@ namespace SS.Api.services.scheduling
                             s.StartDate < end && start < s.EndDate)
                 .ToListAsync();
         }
+
+        public async Task<List<int>> GetShiftsLocations(List<int> ids) =>
+            await Db.Shift.AsNoTracking().Where(s => ids.Contains(s.Id)).Select(s => s.LocationId).Distinct().ToListAsync();
 
         public async Task<List<Shift>> AddShifts(List<Shift> shifts)
         {
@@ -130,7 +133,7 @@ namespace SS.Api.services.scheduling
             var overlaps = await GetShiftConflicts(importedShifts);
             var filteredImportedShifts = importedShifts.WhereToList(s => !overlaps.Any(o => o.Shift.Id == s.Id));
 
-            importedShifts.ForEach(s => s.Id = 0);
+            filteredImportedShifts.ForEach(s => s.Id = 0);
             await Db.Shift.AddRangeAsync(filteredImportedShifts);
             await Db.SaveChangesAsync();
 

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using SS.Api.infrastructure.authorization;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
+using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.scheduling;
 
@@ -15,11 +16,14 @@ namespace SS.Api.controllers.scheduling
     [ApiController]
     public class AssignmentController : ControllerBase
     {
+        public const string InvalidAssignmentError = "Invalid Assignment.";
         private AssignmentService AssignmentService { get; }
+        private SheriffDbContext Db { get; }
 
-        public AssignmentController(AssignmentService assignmentService)
+        public AssignmentController(AssignmentService assignmentService, SheriffDbContext db)
         {
             AssignmentService = assignmentService;
+            Db = db;
         }
 
         /// <summary>
@@ -29,6 +33,8 @@ namespace SS.Api.controllers.scheduling
         [PermissionClaimAuthorize(perm: Permission.ViewAssignments)]
         public async Task<ActionResult<List<AssignmentDto>>> GetAssignments(int locationId, DateTimeOffset? start, DateTimeOffset? end)
         {
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
+
             var assignments = await AssignmentService.GetAssignments(locationId, start, end);
             return Ok(assignments.Adapt<List<AssignmentDto>>());
         }
@@ -40,6 +46,9 @@ namespace SS.Api.controllers.scheduling
         [PermissionClaimAuthorize(perm: Permission.CreateAssignments)]
         public async Task<ActionResult<AssignmentDto>> AddAssignment(AddAssignmentDto assignmentDto)
         {
+            if (assignmentDto == null) return BadRequest(InvalidAssignmentError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, assignmentDto.LocationId)) return Forbid();
+
             var assignment = assignmentDto.Adapt<Assignment>();
             var createdAssignment = await AssignmentService.CreateAssignment(assignment);
             return Ok(createdAssignment.Adapt<AssignmentDto>());
@@ -49,8 +58,13 @@ namespace SS.Api.controllers.scheduling
         [PermissionClaimAuthorize(perm: Permission.EditAssignments)]
         public async Task<ActionResult<AssignmentDto>> UpdateAssignment(UpdateAssignmentDto assignmentDto)
         {
-            var assignment = assignmentDto.Adapt<Assignment>();
-            var updatedAssignment = await AssignmentService.UpdateAssignment(assignment);
+            if (assignmentDto == null) return BadRequest(InvalidAssignmentError);
+            var savedAssignment = await AssignmentService.GetAssignment(assignmentDto.Id);
+            if (savedAssignment == null) return NotFound();
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, savedAssignment.LocationId)) return Forbid();
+
+            var updateAssignment = assignmentDto.Adapt<Assignment>();
+            var updatedAssignment = await AssignmentService.UpdateAssignment(updateAssignment);
             return Ok(updatedAssignment.Adapt<AssignmentDto>());
         }
 
@@ -58,6 +72,10 @@ namespace SS.Api.controllers.scheduling
         [PermissionClaimAuthorize(perm: Permission.ExpireAssignments)]
         public async Task<ActionResult> ExpireAssignment(int id, string expiryReason)
         {
+            var savedAssignment = await AssignmentService.GetAssignment(id);
+            if (savedAssignment == null) return NotFound();
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, savedAssignment.LocationId)) return Forbid();
+
             await AssignmentService.ExpireAssignment(id, expiryReason);
             return NoContent();
         }

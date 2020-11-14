@@ -27,7 +27,7 @@ namespace tests.controllers
 
         public DutyRosterControllerTests() : base(false)
         {
-            _controller = new DutyRosterController(new DutyRosterService(Db))
+            _controller = new DutyRosterController(new DutyRosterService(Db), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
