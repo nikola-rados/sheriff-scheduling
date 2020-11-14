@@ -4,7 +4,6 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
 using SS.Api.Models.DB;
-using SS.Db.Migrations;
 using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
@@ -61,19 +60,33 @@ namespace SS.Api.infrastructure.authorization
                 (viewAssignedLocation && assignedLocationIds.Any(ali => ali == loc.Id)) ||
                 (viewHomeLocation && loc.Id == currentUserHomeLocationId));
         }
-        #endregion Location
 
-        #region Shift
-
-        public static IQueryable<Shift> ApplyPermissionFilters(this IQueryable<Shift> query,
-            ClaimsPrincipal currentUser, SheriffDbContext db)
+        public static bool HasAccessToLocation(ClaimsPrincipal currentUser, SheriffDbContext db, int? locationId)
         {
             var currentUserId = currentUser.CurrentUserId();
             var currentUserHomeLocationId = currentUser.HomeLocationId();
-            //TODO FINISH THIS.
-            return query;
-        }
 
-        #endregion
+            if (!locationId.HasValue || currentUser.HasPermission(Permission.ViewProvince)) return true;
+            if (currentUser.HasPermission(Permission.ViewHomeLocation) && currentUserHomeLocationId == locationId) return true;
+
+            if (currentUser.HasPermission(Permission.ViewRegion))
+            {
+                var currentUserRegionId = db.Location.AsNoTracking().FirstOrDefault(l => l.Id == currentUserHomeLocationId)?.RegionId;
+                var locationRegionId = db.Location.AsNoTracking().FirstOrDefault(l => l.Id == locationId)?.RegionId;
+                if (currentUserRegionId != null && currentUserRegionId == locationRegionId)
+                    return true;
+            }
+            
+            if (currentUser.HasPermission(Permission.ViewAssignedLocation))
+            {
+                //Not sure if we want to put some sort of time limit on this. 
+                var assignedLocationIds = db.SheriffAwayLocation.AsNoTracking().Where(sal => sal.SheriffId == currentUserId
+                    && sal.ExpiryDate == null).Select(s => s.LocationId).Distinct().ToList();
+                if (assignedLocationIds.Contains(locationId))
+                    return true;
+            }
+            return false;
+        }
+        #endregion Location
     }
 }

@@ -29,7 +29,7 @@ namespace tests.controllers
         private ShiftController ShiftController { get; }
         public ShiftControllerTests() : base(false)
         {
-            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db)))
+            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db)), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };

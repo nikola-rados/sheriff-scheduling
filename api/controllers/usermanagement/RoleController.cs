@@ -36,8 +36,9 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.ViewRoles)]
         public async Task<ActionResult<RoleDto>> GetRole(int id)
         {
-            var roles = await RoleService.Role(id);
-            return Ok(roles.Adapt<RoleDto>());
+            var role = await RoleService.Role(id);
+            if (role == null) return NotFound();
+            return Ok(role.Adapt<RoleDto>());
         }
 
         [HttpPost]

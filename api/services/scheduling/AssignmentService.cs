@@ -36,6 +36,9 @@ namespace SS.Api.services.scheduling
             return filteredAssignments;
         }
 
+        public async Task<Assignment> GetAssignment(int id) =>
+            await Db.Assignment.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
+
         public async Task<Assignment> CreateAssignment(Assignment assignment)
         {
             assignment.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(assignment.Timezone)} needs to be included in the assignment.");
@@ -63,6 +66,8 @@ namespace SS.Api.services.scheduling
 
         public async Task ExpireAssignment(int id, string expiryReason)
         {
+            //TODO remove duties?
+            //But still persist the assignment.
             var savedAssignment = await Db.Assignment.FindAsync(id);
             savedAssignment.ExpiryDate = DateTimeOffset.UtcNow;
             savedAssignment.ExpiryReason = expiryReason;
