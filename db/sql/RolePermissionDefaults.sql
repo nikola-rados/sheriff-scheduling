@@ -18,7 +18,7 @@ BEGIN
 	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewMyShifts')),
 	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewDistributeSchedule')),
 	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewAssignedLocation')),
-	(SystemUserId,now(),NULL,NULL, ManagerId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewHomeLocation'));
+	(SystemUserId,now(),NULL,NULL, SheriffId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'ViewHomeLocation'));
 
 	-- Manager
 	INSERT INTO "RolePermission" ("CreatedById","CreatedOn","UpdatedById","UpdatedOn","RoleId","PermissionId") VALUES (SystemUserId,now(),NULL,NULL, ManagerId, (SELECT "Id" FROM "Permission" WHERE "Name" = 'Login')),
