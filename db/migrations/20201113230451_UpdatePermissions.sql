@@ -7,7 +7,9 @@ declare
 BEGIN
 	SystemUserId := '00000000-0000-0000-0000-000000000001';
 
-	DELETE FROM "RolePermission";
+	DELETE FROM "RolePermission" WHERE "Name" = 'Administrator';
+	DELETE FROM "RolePermission" WHERE "Name" = 'Manager';
+	DELETE FROM "RolePermission" WHERE "Name" = 'Sheriff';
 	SELECT "Id" INTO AdministratorId FROM "Role" WHERE "Name" = 'Administrator';
 	SELECT "Id" INTO ManagerId FROM "Role" WHERE "Name" = 'Manager';
 	SELECT "Id" INTO SheriffId FROM "Role" WHERE "Name" = 'Sheriff';
