@@ -474,8 +474,7 @@
             const minutes = moment(time).minutes()
             let minOffset = 0
             if(minutes%15 == 0){
-                minOffset= floor? -15: 15;
-                return moment(time).add(minOffset,'minutes').format()
+                return time;
             } 
 
             if(minutes/15 >= 3) minOffset= floor? 45-minutes: 60-minutes;
