@@ -131,7 +131,10 @@ namespace SS.Api.services.scheduling
             }
 
             var overlaps = await GetShiftConflicts(importedShifts);
-            var filteredImportedShifts = importedShifts.WhereToList(s => !overlaps.Any(o => o.Shift.Id == s.Id));
+            var filteredImportedShifts = importedShifts.WhereToList(s => overlaps.All(o => o.Shift.Id != s.Id) && 
+                                                                         !overlaps.Any(ts =>
+                                                                             s.Id != ts.Shift.Id && ts.Shift.StartDate < s.EndDate && s.StartDate < ts.Shift.EndDate &&
+                                                                             ts.Shift.SheriffId == s.SheriffId));
 
             filteredImportedShifts.ForEach(s => s.Id = 0);
             await Db.Shift.AddRangeAsync(filteredImportedShifts);
