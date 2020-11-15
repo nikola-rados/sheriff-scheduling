@@ -1,7 +1,7 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>
 
-        <b-row  class="m-0 p-0" cols="2" >
+        <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
                 <duty-roster-header v-on:change="getShifts()"  />
                 <loading-spinner v-if="!isDutyRosterDataMounted" />
@@ -9,9 +9,10 @@
                     v-else              
                     :items="dutyRosterAssignments" 
                     :fields="fields"
+                    sort-by="assignment"
                     small
                     head-row-variant="primary"   
-                    bordered                    
+                    borderless                   
                     fixed>
                         <template v-slot:table-colgroup>
                             <col style="width:9rem">                            
@@ -27,8 +28,8 @@
                             </div>
                         </template>
 
-                        <template v-slot:cell(h0) >
-                            <!-- <duty-card/> -->
+                        <template v-slot:cell(h0)="data" >
+                            <duty-card :dutyRosterInfo="data.item"/>
                         </template>
                 </b-table>                
                 <b-card><br></b-card>  
@@ -61,7 +62,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
     import DutyCard from './components/DutyCard.vue'
@@ -119,7 +120,7 @@
         dutyRostersJson
 
         fields =[
-            {key:'assignment', label:'Assignments', thClass:'m-0 px-2 py-0', tdClass:' p-0 m-0', thStyle:''},
+            {key:'assignment', label:'Assignments', thClass:' m-0 px-2 py-0', tdClass:'p-0 m-0', thStyle:''},
             {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
         ]
 
@@ -129,6 +130,14 @@
             {name:'escort', colorCode:'#ffb007'},
             {name:'other',  colorCode:'#c91a5d'}                       
         ]
+
+        @Watch('location.id', { immediate: true })
+        locationChange()
+        {
+            if (this.isDutyRosterDataMounted) {
+                this.getShifts();                                
+            }            
+        } 
 
         mounted()
         {
@@ -214,14 +223,34 @@
             let sortOrder = 0;
             for(const assignment of assignments){
                 sortOrder++;
-                this.dutyRosterAssignments.push({
-                    assignment:('00' + sortOrder).slice(-3) ,
-                    assignmentDetail: assignment,
-                    name:assignment.name,
-                    code:assignment.lookupCode.code,
-                    type: this.getType(assignment.lookupCode.type),
-                    attachedAssignment: false,
-                })
+                const dutyRostersForThisAssignment = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
+                console.log(dutyRostersForThisAssignment)
+               
+               if(dutyRostersForThisAssignment.length>0){
+                    for(const rosterInx in dutyRostersForThisAssignment){
+                        this.dutyRosterAssignments.push({
+                            assignment:('00' + sortOrder).slice(-3)+'EFT'+('0'+ rosterInx).slice(-2) ,
+                            assignmentDetail: assignment,
+                            name:assignment.name,
+                            code:assignment.lookupCode.code,
+                            type: this.getType(assignment.lookupCode.type),
+                            attachedDuty: dutyRostersForThisAssignment[rosterInx],
+                            EFTnumber: Number(rosterInx),
+                            totalEFT: dutyRostersForThisAssignment.length
+                        })
+                    }
+                }else{                
+                    this.dutyRosterAssignments.push({
+                        assignment:('00' + sortOrder).slice(-3)+'EFT00' ,
+                        assignmentDetail: assignment,
+                        name:assignment.name,
+                        code:assignment.lookupCode.code,
+                        type: this.getType(assignment.lookupCode.type),
+                        attachedDuty: null,
+                        EFTnumber: 0,
+                        totalEFT: 0
+                    })
+                }
             }
 
             this.isDutyRosterDataMounted = true;

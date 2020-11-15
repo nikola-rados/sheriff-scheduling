@@ -1,7 +1,7 @@
 <template>
     <div v-if="isDataMounted">    
         <b-row 
-            style="width:100%; height:100%;" 
+            style="width:100%; height:3rem;" 
             bg-variant="white"            
             class="ml-2 my-0 p-0">
                 <b-col cols="9">
@@ -16,20 +16,20 @@
                 </b-col>
                 <b-col cols="3" class="m-0 p-0">                    
                     <b-button 
-                        style="margin:.75rem 0 0 0; padding:0;"                   
+                        style="margin:.7rem 0 0 0; padding:0;"                   
                         size="sm" 
                         variant="success" 
                         @click="AddShift()">
                             <b-icon-plus/>
                     </b-button>                     
                     <b-row
-                    style="margin:.15rem 0 0 0; padding:0;"
-                        >
-                        <div                        
+                        style="margin:0.1rem 0 0 0 ; padding:0;">
+                        <div
+                            style="height:1rem;"                       
                             v-if="LoanedInDesc"
                             v-b-tooltip.hover.topleft                                
                             :title="LoanedInDesc"> 
-                                <b-icon-box-arrow-in-right variant="jail" /> 
+                                <b-icon-box-arrow-in-right style="transform:translate(0,-5px)" variant="jail" /> 
                         </div>
                     </b-row>                  
                 </b-col>

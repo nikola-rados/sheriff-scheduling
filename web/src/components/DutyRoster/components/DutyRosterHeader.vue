@@ -526,8 +526,8 @@
 			this.assignment.timezone = this.location.timezone;			
 
 			if (this.nonReoccuring) {
-				this.assignment.adhocStartDate = this.selectedStartDate; 
-				this.assignment.adhocEndDate = this.selectedEndDate;
+				this.assignment.adhocStartDate = moment.tz(this.selectedStartDate, this.location.timezone).utc().format();
+				this.assignment.adhocEndDate = moment.tz(this.selectedEndDate, this.location.timezone).utc().format();
 			} else {
 				this.assignment.adhocStartDate = null;
 				this.assignment.adhocEndDate = null;

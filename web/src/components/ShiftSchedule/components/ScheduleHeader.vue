@@ -2,6 +2,10 @@
 	<div v-on:edit-shifts="EditShifts()">
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
+				<b-navbar-nav>
+					<div style="width:11rem;"/>
+				</b-navbar-nav>
+
 				<b-navbar-nav class="custom-navbar">
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="previousDateRange" class="my-2"><b-icon-chevron-left /></b-button>
 					<b-form-datepicker
@@ -20,7 +24,7 @@
 					<b-button style="max-height: 40px;" size="sm" variant="secondary" @click="nextDateRange" class="my-2"><b-icon-chevron-right/></b-button>
 				</b-navbar-nav>
 
-				<b-navbar-nav class="mr-5">
+				<b-navbar-nav class="mr-2">
 					<b-nav-form> 
 						<div v-b-tooltip.hover
 							:title="selectedShifts.length==0?'Please select shifts':''">
@@ -308,8 +312,12 @@
 		importConflictFields = [{key:"ConflictFieldName", tdClass: 'border-top my-2', label: "Field Name"}]
 
 		mounted() {
-			this.selectedDate = moment().format().substring(0,10);			
-			this.loadNewDateRange();
+			
+			if(!this.shiftRangeInfo.startDate){
+				this.selectedDate = moment().format().substring(0,10);			
+				this.loadNewDateRange();
+			}
+
 			this.$root.$on('editShifts', () => {
 				this.EditShift();
 			});
@@ -613,7 +621,7 @@
 
 	.custom-navbar {
 			float:none;
-			margin:0 auto;
+			margin:0 auto 0 auto;
 			display: block;
 			text-align: center;
 	}

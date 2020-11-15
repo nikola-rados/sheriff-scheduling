@@ -1,7 +1,23 @@
 <template>
     <div> 
-        <b-row style="height:2.7rem; background-color:#EEEEEE; border-radius:5px;margin:.1rem;" > 
-            <b-col cols="10" class="m-0 p-0" @click="editAssignment()">                          
+        <b-row v-if="assignment.EFTnumber>0" 
+			:style="{
+				borderTop: '0px solid #BBBBBB',
+				borderBottom: getBorderBottom,
+				height:'2.925rem',
+				backgroundColor:'#EEEEEE',
+				borderRadius:getBorderRadius,
+				margin:'0rem 0.1rem 0 0.1rem'}">
+        </b-row>
+        <b-row v-else :style="{
+				borderTop: '1px solid #BBBBBB',
+				borderBottom: getBorderBottom,
+				height:'2.785rem',
+				backgroundColor:'#EEEEEE',
+				borderRadius:getBorderRadius,
+				margin:'0.15rem 0.1rem 0 0.1rem'}" > 
+            <b-col cols="10" class="m-0 p-0" @click="editAssignment()">
+                                   
                 <b-row                                  
                     style="text-transform: capitalize;" 
                     class="h6 p-0 mt-2 mb-0 ml-1">
@@ -9,13 +25,25 @@
                         v-b-tooltip.hover                            
                         :title="assignment.name.length>10? assignment.name:''"> 
                             {{assignment.name|truncate(10)}} 
-                    </div></b-row>
-                <b-row class="h7 p-0 m-0 ml-1">
+                    </div>
+                </b-row>
+                <b-row v-if="dutyError" >
+					<h6 class="ml-3 my-0 p-0"
+						><b-badge v-b-tooltip.hover
+							:title="dutyErrorMsg"
+							variant="danger"> {{dutyErrorMsg|truncate(15)}}
+							<b-icon class="ml-2"
+								icon = x-square-fill
+								@click="dutyError = false"
+					/></b-badge></h6>
+				</b-row>     
+                <b-row v-else class="h7 p-0 m-0 ml-1">
                     <div 
                         v-b-tooltip.hover                            
-                        :title="assignment.code.length>10? assignment.code:''"> 
-                        ({{assignment.code|truncate(10)}}) 
-                    </div></b-row>
+                        :title="assignment.code.length>8? assignment.code:''"> 
+                        <div :style="{float:'left', color:assignment.type.colorCode}"> ({{assignment.type.name}}</div>-{{assignment.code|truncate(8)}}) 
+                    </div>
+                </b-row>
             </b-col>
             <b-col cols="2" class="m-0 p-0"> 
                 <b-button
@@ -258,7 +286,7 @@
         // @dutyState.Action
         // public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
-        isDutyDataMounted = false;
+        //isDutyDataMounted = false;
         dutyError = false;
         dutyErrorMsg = '';
         showDutyDetails = false;
@@ -270,7 +298,8 @@
 
         mounted()
         {
-            this.isDutyDataMounted = false;           
+            //this.isDutyDataMounted = false;
+            //console.log(this.assignment)           
         }
 
         public editAssignment(){
@@ -309,7 +338,22 @@
 					this.dutyErrorMsg = err.response.data.error;
 					this.dutyError = true;
 				})
-        }
+		}
+		
+		// EFTnumber: Number(rosterInx),
+        //                     totalEFT: dutyRostersForThisAssignment.length
+		get getBorderRadius(){
+			if(this.assignment.totalEFT<2) return '5px'
+			else if(this.assignment.EFTnumber == 0) return'5px 5px 0 0'
+			else if(this.assignment.EFTnumber == (this.assignment.totalEFT-1))	return'0 0 5px 5px'
+			else return '0'
+		}
+		get getBorderBottom(){
+			if(this.assignment.totalEFT<2) return '1px solid #BBBBBB'
+			else if(this.assignment.EFTnumber == 0) return'0px solid #BBBBBB'
+			else if(this.assignment.EFTnumber == (this.assignment.totalEFT-1))	return'1px solid #BBBBBB'
+			else return '0px solid #BBBBBB'
+		}
 
         // public getDutyDetails(){
             

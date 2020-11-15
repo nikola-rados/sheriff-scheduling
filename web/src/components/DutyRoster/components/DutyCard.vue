@@ -1,14 +1,22 @@
 <template>
     <div class="grid">
         <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/7'}"></div>
-        <div :style="{gridColumnStart: 3,gridColumnEnd:6, gridRow:'2/4',  backgroundColor: 'red' }"></div>    
-        <div :style="{gridColumnStart: 6,gridColumnEnd:9, gridRow:'4/6', backgroundColor: 'blue' }"></div>    
+        <div
+            v-for="block in dutyBlocks" 
+            :key="block.id"
+            :style="{gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
+            v-b-tooltip.hover                            
+            :title="block.title">
+                <div style="text-transform: capitalize; margin:  0 padding:0; color:white;">
+                    {{block.title|truncateleft(block.endTime - block.startTime-1)}}
+                </div>     
+        </div>    
+        <!-- <div :style="{gridColumnStart: 6,gridColumnEnd:9, gridRow:'4/6', backgroundColor: 'blue' }"></div>     -->
     </div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { myTeamShiftInfoType} from '../../../types/DutyRoster';
    
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
@@ -17,7 +25,7 @@
     export default class DutyCard extends Vue {
 
         @Prop({required: true})
-        sheriffInfo!: myTeamShiftInfoType;
+        dutyRosterInfo!: any;
 
         
 
@@ -36,28 +44,47 @@
 
         mounted()
         {
-            // console.log(this.scheduleInfo)
+            console.log(this.dutyRosterInfo)
             this.isMounted = false;
             this.dutyBlocks = []
-            
-            const sortedShifts = _.sortBy(this.sheriffInfo.shifts,'startDate');
 
-            for(const shift of sortedShifts){ 
-                const start = moment(shift.startDate);
-                const end = moment(shift.endDate);
-                const startOfDay = moment(shift.startDate).startOf('day');
-                const startTime = moment.duration(start.diff(startOfDay)).asMinutes()
-                const endTime = moment.duration(end.diff(startOfDay)).asMinutes()
+            if(this.dutyRosterInfo.attachedDuty){
 
+                const dutyStart = moment(this.dutyRosterInfo.attachedDuty.startDate).tz(this.dutyRosterInfo.attachedDuty.timezone);
+                const dutyEnd = moment(this.dutyRosterInfo.attachedDuty.endDate).tz(this.dutyRosterInfo.attachedDuty.timezone);
+                const startOfDay = moment(dutyStart).startOf("day");
+                // console.log(dutyStart)
                 this.dutyBlocks.push({
-                    id:shift.id,                    
-                    startTime: startTime/15,
-                    endTime: endTime/15,                    
-                    color: this.getDutyColor('free'),
-                    type: 'court',
-                    assignment: 'free'
+                    id:this.dutyRosterInfo.attachedDuty.id,                    
+                    startTime: 1+ moment.duration(dutyStart.diff(startOfDay)).asMinutes()/15,
+                    endTime: 1+ moment.duration(dutyEnd.diff(startOfDay)).asMinutes()/15,                    
+                    color: this.dutyRosterInfo.type.colorCode,
+                    height: '2/6',
+                    title: 'Unassigned'
                 })
+                //console.log(this.dutyBlocks)
             }
+
+            
+            
+            //const sortedShifts = _.sortBy(this.dutyRosterInfo.shifts,'startDate');
+
+            // for(const shift of sortedShifts){ 
+            //     const start = moment(shift.startDate);
+            //     const end = moment(shift.endDate);
+            //     const startOfDay = moment(shift.startDate).startOf('day');
+            //     const startTime = moment.duration(start.diff(startOfDay)).asMinutes()
+            //     const endTime = moment.duration(end.diff(startOfDay)).asMinutes()
+
+            //     this.dutyBlocks.push({
+            //         id:shift.id,                    
+            //         startTime: startTime/15,
+            //         endTime: endTime/15,                    
+            //         color: this.getDutyColor('free'),
+            //         type: 'court',
+            //         assignment: 'free'
+            //     })
+            // }
             this.isMounted = true; 
         }
 

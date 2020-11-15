@@ -75,7 +75,7 @@
         }
 
         public extractShifts() {
-            console.log(this.sheriffInfo)
+            //console.log(this.sheriffInfo)
             this.shifts = [];
             let tooltipTitle = '<div>';
             const sortedShifts = _.sortBy(this.sheriffInfo.shifts,'startDate');
