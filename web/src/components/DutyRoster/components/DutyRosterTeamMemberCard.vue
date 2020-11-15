@@ -11,7 +11,7 @@
                 <b-row style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
                 <b-row 
                     style="font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
-                    v-b-tooltip.hover.topleft                                
+                    v-b-tooltip.hover                                
                     :title="fullName.length>13?fullName:''">
                         {{fullName|truncate(11)}}
                 </b-row>

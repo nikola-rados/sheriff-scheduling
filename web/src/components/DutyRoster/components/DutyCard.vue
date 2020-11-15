@@ -8,7 +8,7 @@
             v-b-tooltip.hover                            
             :title="block.title">
                 <div style="text-transform: capitalize; margin:  0 padding:0; color:white;">
-                    {{block.title|truncateleft(block.endTime - block.startTime-1)}}
+                    {{block.title|truncate(block.endTime - block.startTime-1)}}
                 </div>     
         </div>    
         <!-- <div :style="{gridColumnStart: 6,gridColumnEnd:9, gridRow:'4/6', backgroundColor: 'blue' }"></div>     -->

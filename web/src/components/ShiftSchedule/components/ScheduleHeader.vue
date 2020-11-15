@@ -312,11 +312,17 @@
 		importConflictFields = [{key:"ConflictFieldName", tdClass: 'border-top my-2', label: "Field Name"}]
 
 		mounted() {
+			console.log('header')
 			
 			if(!this.shiftRangeInfo.startDate){
-				this.selectedDate = moment().format().substring(0,10);			
+				this.selectedDate = moment().format().substring(0,10);
 				this.loadNewDateRange();
+			} else {
+				this.selectedDate = this.shiftRangeInfo.startDate;
+				this.$emit('change');
 			}
+			console.log(this.selectedDate)
+			
 
 			this.$root.$on('editShifts', () => {
 				this.EditShift();

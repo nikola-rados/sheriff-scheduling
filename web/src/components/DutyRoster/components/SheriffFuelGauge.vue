@@ -30,7 +30,7 @@
                         <template v-slot:head(name) >                           
                             <b-button
                                 @click="closeDisplayMyteam()"
-                                v-b-tooltip.hover                            
+                                v-b-tooltip.hover.right                            
                                 title="Close Footer Display"
                                 style="font-size:10px; width:1.15rem; margin:0 0 0 .75rem; padding:0; background-color:white;color:#189fd4;" 
                                 size="sm">
