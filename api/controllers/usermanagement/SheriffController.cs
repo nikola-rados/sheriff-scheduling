@@ -9,9 +9,11 @@ using Microsoft.Extensions.Configuration;
 using SS.Api.helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
+using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto;
 using SS.Api.models.dto.generated;
 using SS.Api.services.usermanagement;
+using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 
@@ -21,12 +23,16 @@ namespace SS.Api.controllers.usermanagement
     [ApiController]
     public class SheriffController : UserController
     {
+        public const string CouldNotFindSheriffError = "Couldn't find sheriff.";
+        public const string CouldNotFindSheriffEventError = "Couldn't find sheriff event.";
         private SheriffService SheriffService { get; }
+        private SheriffDbContext Db { get; }
         // ReSharper disable once InconsistentNaming
         private readonly long _uploadPhotoSizeLimitKB;
-        public SheriffController(SheriffService sheriffService, UserService userUserService, IConfiguration configuration) : base (userUserService)
+        public SheriffController(SheriffService sheriffService, UserService userUserService, IConfiguration configuration, SheriffDbContext db) : base (userUserService)
         {
             SheriffService = sheriffService;
+            Db = db;
             _uploadPhotoSizeLimitKB = Convert.ToInt32(configuration.GetNonEmptyValue("UploadPhotoSizeLimitKB"));
         }
 
@@ -36,6 +42,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.CreateUsers)]
         public async Task<ActionResult<SheriffDto>> AddSheriff(CreateSheriffDto sheriffDto)
         {
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriffDto.HomeLocationId)) return Forbid();
+
             var sheriff = sheriffDto.Adapt<Sheriff>();
             sheriff = await SheriffService.AddSheriff(sheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
@@ -52,7 +60,7 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewProfilesInAllLocation)]
         public async Task<ActionResult<SheriffDto>> GetSheriffsForTeams()
         {
-            var sheriffs = await SheriffService.GetSheriffsForTeams();
+            var sheriffs = await SheriffService.GetFilteredSheriffsForTeams();
             return Ok(sheriffs.Adapt<List<SheriffDto>>());
         }
 
@@ -69,9 +77,10 @@ namespace SS.Api.controllers.usermanagement
         [Route("{id}")]
         public async Task<ActionResult<SheriffDto>> GetSheriffForTeam(Guid id)
         {
-            var sheriff = await SheriffService.GetSheriffForTeams(id);
-            if (sheriff == null)
-                return NotFound($"Couldn't find sheriff with id: {id}");
+            var sheriff = await SheriffService.GetFilteredSheriffForTeams(id);
+            if (sheriff == null) return NotFound(CouldNotFindSheriffError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriff.HomeLocationId)) return Forbid();
+
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
@@ -87,9 +96,8 @@ namespace SS.Api.controllers.usermanagement
         [Route("self")]
         public async Task<ActionResult<SheriffDto>> GetSelfSheriff()
         {
-            var sheriff = await SheriffService.GetSheriffForTeams(User.CurrentUserId());
-            if (sheriff == null)
-                return NotFound($"Couldn't find sheriff.");
+            var sheriff = await SheriffService.GetFilteredSheriffForTeams(User.CurrentUserId());
+            if (sheriff == null) return NotFound(CouldNotFindSheriffError);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
@@ -97,6 +105,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffDto sheriffDto)
         {
+            await CheckForAccessToSheriffByLocation(sheriffDto.Id);
+
             var sheriff = sheriffDto.Adapt<Sheriff>();
             sheriff = await SheriffService.UpdateSheriff(sheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
@@ -108,6 +118,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffDto>> UpdateSheriffHomeLocation(Guid id, int locationId)
         {
+            await CheckForAccessToSheriffByLocation(id);
+
             await SheriffService.UpdateSheriffHomeLocation(id, locationId);
             return NoContent();
         }
@@ -119,10 +131,7 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
         [ResponseCache(Duration = 15552000, Location = ResponseCacheLocation.Client )]
-        public async Task<IActionResult> GetPhoto(Guid id)
-        {
-            return File(await SheriffService.GetPhoto(id), "image/jpeg");
-        }
+        public async Task<IActionResult> GetPhoto(Guid id) => File(await SheriffService.GetPhoto(id), "image/jpeg");
 
         [HttpPost]
         [Route("uploadPhoto")]
@@ -130,17 +139,16 @@ namespace SS.Api.controllers.usermanagement
         [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
         public async Task<ActionResult<SheriffDto>> UploadPhoto(Guid? id, string badgeNumber, IFormFile file)
         {
-            if (file.Length == 0)
-                return BadRequest("File length = 0");
-            if (file.Length >= _uploadPhotoSizeLimitKB * 1024)
-                return BadRequest($"File length: {file.Length/1024} KB, Maximum upload size: {_uploadPhotoSizeLimitKB} KB");
+            await CheckForAccessToSheriffByLocation(id, badgeNumber);
+
+            if (file.Length == 0) return BadRequest("File length = 0");
+            if (file.Length >= _uploadPhotoSizeLimitKB * 1024) return BadRequest($"File length: {file.Length/1024} KB, Maximum upload size: {_uploadPhotoSizeLimitKB} KB");
 
             await using var ms = new MemoryStream();
             await file.CopyToAsync(ms);
             var fileBytes = ms.ToArray();
 
-            if (!fileBytes.IsImage())
-                return BadRequest("The uploaded file was not a valid GIF/JPEG/PNG.");
+            if (!fileBytes.IsImage()) return BadRequest("The uploaded file was not a valid GIF/JPEG/PNG.");
 
             var sheriff = await SheriffService.UpdateSheriffPhoto(id, badgeNumber, fileBytes);
             return Ok(sheriff.Adapt<SheriffDto>());
@@ -154,6 +162,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffAwayLocationDto>> AddSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto)
         {
+            await CheckForAccessToSheriffByLocation(sheriffAwayLocationDto.SheriffId);
+
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
             var createdSheriffAwayLocation = await SheriffService.AddSheriffAwayLocation(sheriffAwayLocation);
             return Ok(createdSheriffAwayLocation.Adapt<SheriffAwayLocationDto>());
@@ -164,6 +174,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffAwayLocationDto>> UpdateSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto)
         {
+            await CheckForAccessToSheriffByLocation<SheriffAwayLocation>(sheriffAwayLocationDto.Id);
+
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
             var updatedSheriffAwayLocation = await SheriffService.UpdateSheriffAwayLocation(sheriffAwayLocation);
             return Ok(updatedSheriffAwayLocation.Adapt<SheriffAwayLocationDto>());
@@ -174,6 +186,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult> RemoveSheriffAwayLocation(int id, string expiryReason)
         {
+            await CheckForAccessToSheriffByLocation<SheriffAwayLocation>(id);
+
             await SheriffService.RemoveSheriffAwayLocation(id, expiryReason);
             return NoContent();
         }
@@ -185,6 +199,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffLeaveDto>> AddSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
         {
+            await CheckForAccessToSheriffByLocation(sheriffLeaveDto.SheriffId);
+
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
             var createdSheriffLeave = await SheriffService.AddSheriffLeave(sheriffLeave);
             return Ok(createdSheriffLeave.Adapt<SheriffLeaveDto>());
@@ -195,6 +211,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffLeaveDto>> UpdateSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
         {
+            await CheckForAccessToSheriffByLocation<SheriffLeave>(sheriffLeaveDto.Id);
+
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
             var updatedSheriffLeave = await SheriffService.UpdateSheriffLeave(sheriffLeave);
             return Ok(updatedSheriffLeave.Adapt<SheriffLeaveDto>());
@@ -205,6 +223,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult> RemoveSheriffLeave(int id, string expiryReason)
         {
+            await CheckForAccessToSheriffByLocation<SheriffLeave>(id);
+
             await SheriffService.RemoveSheriffLeave(id, expiryReason);
             return NoContent();
         }
@@ -216,6 +236,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffTrainingDto>> AddSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
+            await CheckForAccessToSheriffByLocation(sheriffTrainingDto.SheriffId);
+
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
             var createdSheriffTraining = await SheriffService.AddSheriffTraining(sheriffTraining);
             return Ok(createdSheriffTraining.Adapt<SheriffTrainingDto>());
@@ -226,6 +248,8 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffTrainingDto>> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
+            await CheckForAccessToSheriffByLocation<SheriffTraining>(sheriffTrainingDto.Id);
+
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
             var updatedSheriffTraining = await SheriffService.UpdateSheriffTraining(sheriffTraining);
             return Ok(updatedSheriffTraining.Adapt<SheriffTrainingDto>());
@@ -236,9 +260,29 @@ namespace SS.Api.controllers.usermanagement
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult> RemoveSheriffTraining(int id, string expiryReason)
         {
+            await CheckForAccessToSheriffByLocation<SheriffTraining>(id);
+
             await SheriffService.RemoveSheriffTraining(id, expiryReason);
             return NoContent();
         }
         #endregion SheriffTraining
+
+        #region Access Helpers
+        private async Task CheckForAccessToSheriffByLocation(Guid? id, string badgeNumber = null)
+        {
+            var savedSheriff = await SheriffService.GetSheriff(id, badgeNumber);
+            if (savedSheriff == null) throw new NotFoundException(CouldNotFindSheriffError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, savedSheriff.HomeLocationId)) throw new NotAuthorizedException();
+        }
+
+        private async Task CheckForAccessToSheriffByLocation<T>(int id) where T : SheriffEvent
+        {
+            var sheriffEvent = await SheriffService.GetSheriffEvent<T>(id);
+            if (sheriffEvent == null) throw new NotFoundException(CouldNotFindSheriffEventError);
+            var savedSheriff = await SheriffService.GetSheriff(sheriffEvent.SheriffId, null);
+            if (savedSheriff == null) throw new NotFoundException(CouldNotFindSheriffError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, savedSheriff.HomeLocationId)) throw new NotAuthorizedException();
+        }
+        #endregion
     }
 }

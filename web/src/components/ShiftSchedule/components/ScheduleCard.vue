@@ -4,10 +4,10 @@
             v-for="block in scheduleBlocks"
             :key="block.key"
             :id="'schCard'+block.key"
-            :style="{ backgroundColor: scheduleColor(block).body, float:'left', position: 'relative', left:block.startTime+'%', width:block.timeDuration+'%', height:'4rem'}"
+            :style="{ backgroundColor: scheduleColor(block).body, float:'left', position: 'relative', left:block.startTime+'%', width:block.timeDuration+'%', height:'3rem'}"
             no-body>
                 <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%"> 
-                    <h6 :style="{ backgroundColor:scheduleColor(block).header, color: 'white', textAlign: 'center', fontSize:'10px', lineHeight: '16px' }"
+                    <h6 class="m-0 mb-1 p-0" :style="{ backgroundColor:scheduleColor(block).header, color: 'white', textAlign: 'center', fontSize:'10px', lineHeight: '16px' }"
                         v-b-tooltip.hover                                
                         :title="block.title + ' ' + block.timeStamp">
                         <font-awesome-icon v-if="block.title.includes('Loaned')" style="transform: rotate(180deg); font-size: .55rem;"  icon="sign-out-alt" /> 
@@ -16,7 +16,7 @@
                         <b-icon-person-fill v-if="block.title=='Shift'"/>
                         <b-icon-calendar2-x v-if="block.title=='Unavailable'"/>
                     </h6>
-                    <span style="text-align: center;font-size:10px; line-height: 12px; display: block;">{{block.timeStamp}}</span>
+                    <div class="m-0 p-0" style="text-align: center;font-size:10px; line-height: 12px; display: block;">{{block.timeStamp}}</div>
                 </span>
                 <span v-else @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%">
                     <h6 

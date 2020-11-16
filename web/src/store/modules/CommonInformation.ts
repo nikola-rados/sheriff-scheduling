@@ -15,8 +15,21 @@ class CommonInformation extends VuexModule {
 
   public userDetails: userInfoType = {roles: [], homeLocationId: 0}
 
+  public displayFooter = true;
+
   public token = '';
   public tokenExpiry: Date = new Date();
+
+
+  @Mutation
+  public setDisplayFooter(displayFooter: boolean): void {   
+    this.displayFooter = displayFooter
+  }
+
+  @Action
+  public UpdateDisplayFooter(newDisplayFooter: boolean): void {
+    this.context.commit('setDisplayFooter', newDisplayFooter)
+  } 
 
   @Mutation
   public setCommonInfo(commonInfo): void {   

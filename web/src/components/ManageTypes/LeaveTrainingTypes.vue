@@ -78,7 +78,18 @@
                             </template>
 
                             <template v-slot:cell(edit)="data" >                                       
-                                <b-button v-if="userIsAdmin && !data.item['_rowVariant']" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeaveTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="userIsAdmin && !data.item['_rowVariant']" 
+                                    class="ml-2 px-1"
+                                    style="padding: 1px 2px 1px 2px;" 
+                                    size="sm"
+                                    v-b-tooltip.hover
+                                    title="Expire"  
+                                    variant="warning" 
+                                    @click="confirmDeleteLeaveTraining(data.item)">
+                                    <b-icon icon="clock" 
+                                        font-scale="1" 
+                                        variant="white"/>
+                                </b-button>
                                 <b-button v-if="userIsAdmin && data.item['_rowVariant']" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireLeaveTraining(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button v-if="userIsAdmin" :disabled="data.item['_rowVariant']?true:false" class="my-0 py-0" size="sm" variant="transparent" @click="editLeaveTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
@@ -95,10 +106,10 @@
 
         <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
             <template v-slot:modal-title>
-                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Delete {{selectedLeaveTrainingType.label}}</h2>
+                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Expire {{selectedLeaveTrainingType.label}}</h2>
                     <h2 v-else class="mb-0 text-light">Confirm Unexpire {{selectedLeaveTrainingType.label}}</h2>                     
             </template>
-            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{selectedLeaveTrainingType.label}}: {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}"?</h4>
+            <h4 v-if="deleteType == 'expire'">Are you sure you want to expire the "{{selectedLeaveTrainingType.label}}: {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}"?</h4>
             <h4 v-else>Are you sure you want to Unexpire the "{{selectedLeaveTrainingType.label}}: {{leaveTrainingToDelete.code?leaveTrainingToDelete.code:''}}"?</h4>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="deleteLeaveTraining()">Confirm</b-button>
@@ -226,7 +237,7 @@
                 this.$http.get(url)
                     .then(response => {
                         if(response.data){
-                            console.log(response.data)
+                            // console.log(response.data)
                             this.extractLeaveTrainings(response.data);                        
                         }
                         this.isLeaveTrainingDataMounted = true;
@@ -255,7 +266,7 @@
                 this.leaveTrainingList.push(leaveTraining)                
             }
 
-            console.log(this.leaveTrainingList)
+            // console.log(this.leaveTrainingList)
             this.refineSortOrders();
         }
 
@@ -289,7 +300,7 @@
 
             this.$http.put(url, body)
                 .then(response => {
-                    console.log(response)
+                    // console.log(response)
                 }, err=>{
                     const errMsg = err.response.data.error;
                     this.leaveTrainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
@@ -328,7 +339,6 @@
             const url = 'api/managetypes/'+this.leaveTrainingToDelete.id+'/'+this.deleteType;
             this.$http.put(url)
                 .then(response => {
-                    //console.log(response);
                     this.saveOrderFlag = true;
                     this.getLeaveTraining();
                 }, err=>{
@@ -341,7 +351,6 @@
         }
 
         public editLeaveTraining(leaveTraining){
-            //console.log(leaveTraining)
             if(this.addNewLeaveTrainingForm){
                 location.href = '#addLeaveTrainingForm'
                 this.addFormColor = 'danger'
@@ -360,7 +369,6 @@
 
         public saveLeaveTraining(body, iscreate){
             this.leaveTrainingError = false;
-            //console.log(body)
             body['type'] = this.selectedLeaveTrainingType.name;
             body['description'] = body.code;
             const method = iscreate? 'post' :'put';            
@@ -394,8 +402,6 @@
         }
 
         public addLeaveTrainingToList(leaveTrainingJson){
-
-            console.log(leaveTrainingJson)
             this.sortIndex++;
             const leaveTraining = {} as leaveTrainingTypeInfoType;
             leaveTraining.id = leaveTrainingJson.id;
@@ -425,8 +431,6 @@
         }
 
         public changeLeaveTraining(){
-            //console.log(this.selectedLeaveTrainingType)
-            //console.log(this.previousSelectedLeaveTrainingType)
             if(this.addNewLeaveTrainingForm){
                 location.href = '#addLeaveTrainingForm'
                 this.addFormColor = 'danger';
@@ -437,6 +441,7 @@
                 this.selectedLeaveTrainingType =  this.previousSelectedLeaveTrainingType;              
             }else{
                 this.previousSelectedLeaveTrainingType = this.selectedLeaveTrainingType;
+                this.expiredViewChecked = false;
                 this.getLeaveTraining();
             }
         }
