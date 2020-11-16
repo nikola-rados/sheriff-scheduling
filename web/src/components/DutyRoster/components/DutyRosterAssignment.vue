@@ -55,23 +55,21 @@
             </b-col>
         </b-row>
 
-
-
-        <!-- <b-modal v-model="showDutyDetails" id="bv-modal-duty-details" header-class="bg-primary text-light">
+		<b-modal v-model="showEditAssignmentDetails" id="bv-modal-edit-assignment-details" header-class="bg-primary text-light">
 			<template v-slot:modal-title>
-				<h2 class="mb-0 text-light"> Edit Assignment </h2>
+				<h2 class="mb-0 text-light"> Editing Assignment </h2>
 			</template>
 
-			<b-card v-if="isDutyDataMounted" no-body style="font-size: 14px;user-select: none;" >
+			<b-card v-if="isAssignmentDataMounted" no-body style="font-size: 14px;user-select: none;" >
 
-				<b-card id="DutyError" no-body>
-					<h2 v-if="dutyError" class="mx-1 mt-2"
+				<b-card id="AssignmentError" no-body>
+					<h2 v-if="assignmentError" class="mx-1 mt-2"
 						><b-badge v-b-tooltip.hover
-							:title="dutyErrorMsg"
-							variant="danger"> {{dutyErrorMsg|truncate(40)}}
+							:title="assignmentErrorMsgDesc"
+							variant="danger"> {{assignmentErrorMsg}}
 							<b-icon class="ml-3"
 								icon = x-square-fill
-								@click="dutyError = false"
+								@click="assignmentError = false"
 					/></b-badge></h2>
 				</b-card>
 
@@ -112,7 +110,7 @@
 						</b-form-select>
 					</b-form-group>
 					<b-form-group class="ml-4" style="width: 14.35rem">
-						<label class="h6 my-0 ml-1 p-0">Assignment Sub caegory<span class="text-danger">*</span></label>
+						<label class="h6 my-0 ml-1 p-0">Assignment Sub category<span class="text-danger">*</span></label>
 						<b-form-select 
 							size="sm"
 							:disabled="!isSubTypeDataReady"
@@ -230,7 +228,7 @@
 				<b-button
 						size="sm"
 						variant="secondary"
-						@click="closeAssignmentWindow()"
+						@click="closeEditAssignmentWindow()"
 				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
 				<b-button
 						size="sm"
@@ -242,12 +240,28 @@
 				<b-button
 					variant="outline-primary"
 					class="text-light closeButton"
-					@click="closeAssignmentWindow()"
+					@click="closeEditAssignmentWindow()"
 					>
 					&times;</b-button>
 			</template>
-		</b-modal> -->
+		</b-modal>
 
+		<b-modal v-model="showEditCancelWarning" id="bv-modal-edit-assignment-cancel-warning" header-class="bg-warning text-light">            
+			<template v-slot:modal-title>
+				<h2 class="mb-0 text-light"> Unsaved Assignment </h2>                                 
+			</template>
+			<p>Are you sure you want to cancel without saving your changes?</p>
+			<template v-slot:modal-footer>
+				<b-button variant="secondary" @click="$bvModal.hide('bv-modal-edit-assignment-cancel-warning')"                   
+				>No</b-button>
+				<b-button variant="success" @click="confirmedCloseEditAssignmentWindow()"
+				>Yes</b-button>
+			</template>            
+			<template v-slot:modal-header-close>                 
+				<b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-edit-assignment-cancel-warning')"
+				>&times;</b-button>
+			</template>
+		</b-modal>
     </div>
 </template>
 
@@ -264,14 +278,14 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import { locationInfoType } from '../../../types/common';
-    import { dutyRangeInfoType, myTeamShiftInfoType} from '../../../types/DutyRoster';
+    import { assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType, myTeamShiftInfoType} from '../../../types/DutyRoster';
     // import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component
     export default class DutyRosterAssignment extends Vue {
 
         @Prop({required: true})
-        assignment!: any;
+        assignment!: assignmentInfoType;
 
         @commonState.State
         public location!: locationInfoType;
@@ -291,10 +305,52 @@
         dutyErrorMsg = '';
         showDutyDetails = false;
 
-        selectedStartTime = '';
+		selectedStartTime = '';
 		selectedEndTime = '';
 		selectedStartDate = '';
 		selectedEndDate = '';
+		selectedDays: number[] = [];
+		showAssignmentDetails = false;
+		showCancelWarning = false;
+		isAssignmentDataMounted = false;
+		isSubTypeDataReady = false;
+		nonReoccuring = false;
+
+		nameState = true;
+		selectedTypeState = true;
+		selectedSubTypeState = true;
+		startDateState = true;
+		endDateState = true;	
+		startTimeState = true;
+		endTimeState = true;
+		selectedDayState = true;		
+		allDaysSelected = false;
+		weekDaysSelected = false;		
+
+		dayOptions = [
+			{name:'Sun', diff:0},
+			{name:'Mon', diff:1},
+			{name:'Tue', diff:2},
+			{name:'Wed', diff:3},
+			{name:'Thu', diff:4},
+			{name:'Fri', diff:5},
+			{name:'Sat', diff:6},
+		]
+
+		assignmentTypeOptions = [
+			{name:'CourtRoom', label:'Court Room'},
+			{name:'CourtRole', label:'Court Assignment'},
+			{name:'JailRole', label:'Jail Assignment'},
+			{name:'EscortRun', label:'Escort Assignment'},
+			{name:'OtherAssignment', label:'Other Assignment'}
+		]
+
+		assignmentSubTypeOptions = [] as assignmentSubTypeInfoType[];
+		assignmentError = false;
+		assignmentErrorMsg = '';
+		assignmentErrorMsgDesc = '';
+
+
 
         mounted()
         {
