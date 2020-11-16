@@ -12,6 +12,8 @@ namespace SS.Api.models.dto.generated
         public Guid? SheriffId { get; set; }
         public int? ShiftId { get; set; }
         public string Timezone { get; set; }
+        public bool IsNotRequired { get; set; }
+        public bool IsNotAvailable { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
