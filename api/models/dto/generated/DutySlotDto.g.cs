@@ -17,6 +17,8 @@ namespace SS.Api.models.dto.generated
         public LocationDto Location { get; set; }
         public int LocationId { get; set; }
         public string Timezone { get; set; }
+        public bool IsNotRequired { get; set; }
+        public bool IsNotAvailable { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
