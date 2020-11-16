@@ -74,7 +74,6 @@ namespace SS.Api.services
             savedLookup.Location = await Db.Location.FindAsync(lookupCode.LocationId);
 
             Db.Entry(savedLookup).CurrentValues.SetValues(lookupCode);
-
             Db.Entry(savedLookup).Property(x => x.ExpiryDate).IsModified = false;
 
             var sortOrder = savedLookup.SortOrder.FirstOrDefault();
@@ -137,8 +136,8 @@ namespace SS.Api.services
             return lookupCodes;
         }
 
-        public async ValueTask<LookupCode> Find(int id) => await Db.LookupCode.FindAsync(id);
-
+        public async Task<LookupCode> Find(int id) => await Db.LookupCode.AsNoTracking().FirstOrDefaultAsync(lc => lc.Id == id);
+        
         public async Task<LookupCode> Expire(int id)
         {
             var entity = await Db.LookupCode.Include(lc => lc.SortOrder)

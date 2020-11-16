@@ -1,4 +1,4 @@
-do $$
+﻿do $$
 declare
 	SystemUserId uuid; 
 	AdministratorId integer;

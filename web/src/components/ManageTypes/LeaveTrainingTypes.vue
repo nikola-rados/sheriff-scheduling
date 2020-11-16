@@ -226,7 +226,7 @@
                 this.$http.get(url)
                     .then(response => {
                         if(response.data){
-                            console.log(response.data)
+                            // console.log(response.data)
                             this.extractLeaveTrainings(response.data);                        
                         }
                         this.isLeaveTrainingDataMounted = true;
@@ -255,7 +255,7 @@
                 this.leaveTrainingList.push(leaveTraining)                
             }
 
-            console.log(this.leaveTrainingList)
+            // console.log(this.leaveTrainingList)
             this.refineSortOrders();
         }
 
@@ -289,7 +289,7 @@
 
             this.$http.put(url, body)
                 .then(response => {
-                    console.log(response)
+                    // console.log(response)
                 }, err=>{
                     const errMsg = err.response.data.error;
                     this.leaveTrainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
@@ -328,7 +328,6 @@
             const url = 'api/managetypes/'+this.leaveTrainingToDelete.id+'/'+this.deleteType;
             this.$http.put(url)
                 .then(response => {
-                    //console.log(response);
                     this.saveOrderFlag = true;
                     this.getLeaveTraining();
                 }, err=>{
@@ -341,7 +340,6 @@
         }
 
         public editLeaveTraining(leaveTraining){
-            //console.log(leaveTraining)
             if(this.addNewLeaveTrainingForm){
                 location.href = '#addLeaveTrainingForm'
                 this.addFormColor = 'danger'
@@ -360,7 +358,6 @@
 
         public saveLeaveTraining(body, iscreate){
             this.leaveTrainingError = false;
-            //console.log(body)
             body['type'] = this.selectedLeaveTrainingType.name;
             body['description'] = body.code;
             const method = iscreate? 'post' :'put';            
@@ -394,8 +391,6 @@
         }
 
         public addLeaveTrainingToList(leaveTrainingJson){
-
-            console.log(leaveTrainingJson)
             this.sortIndex++;
             const leaveTraining = {} as leaveTrainingTypeInfoType;
             leaveTraining.id = leaveTrainingJson.id;
@@ -425,8 +420,6 @@
         }
 
         public changeLeaveTraining(){
-            //console.log(this.selectedLeaveTrainingType)
-            //console.log(this.previousSelectedLeaveTrainingType)
             if(this.addNewLeaveTrainingForm){
                 location.href = '#addLeaveTrainingForm'
                 this.addFormColor = 'danger';
@@ -437,6 +430,7 @@
                 this.selectedLeaveTrainingType =  this.previousSelectedLeaveTrainingType;              
             }else{
                 this.previousSelectedLeaveTrainingType = this.selectedLeaveTrainingType;
+                this.expiredViewChecked = false;
                 this.getLeaveTraining();
             }
         }
