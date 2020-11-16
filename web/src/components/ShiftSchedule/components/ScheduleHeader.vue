@@ -3,7 +3,7 @@
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav>
-					<div style="width:11rem;"/>
+					<div style="width:11rem;" class="text-white ml-2">Shift Schedule</div>
 				</b-navbar-nav>
 
 				<b-navbar-nav class="custom-navbar">
@@ -575,7 +575,7 @@
         public importShift(){
 			const startDate = moment(this.shiftRangeInfo.startDate).subtract(7, 'days').format().substring(0,10);
 			const url = 'api/shift/importweek?locationId=' + this.location.id + '&start=' + startDate;
-			
+			this.importConflictMsg = [];
             this.$http.post(url)
                 .then(response => {
                     this.confirmImport = false;

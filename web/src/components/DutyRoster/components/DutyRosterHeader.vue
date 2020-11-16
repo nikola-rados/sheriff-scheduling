@@ -2,9 +2,12 @@
 	<div>
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
-                <b-navbar-nav class="ml-1 mr-auto">					
+                <b-navbar-nav class="mx-1">					
 					<b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="addAssignment()" class="my-1"><b-icon-plus/>Add Assignment</b-button> 
                 </b-navbar-nav>
+				<b-navbar-nav>
+					<div style="width:11rem;" class="text-white ml-2 mr-auto">Duty Roster</div>
+				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
                         <b-row style="margin:.25rem auto .25rem auto; width:73%;">
@@ -27,6 +30,9 @@
                         </b-row>
                     </b-col>
                 </b-navbar-nav>
+				<b-navbar-nav>
+					<div style="width:11rem;" class="text-white ml-2 mr-auto"></div>
+				</b-navbar-nav>
 			</b-navbar>
 		</header>
 
@@ -614,7 +620,7 @@
 
 	.custom-navbar {
 			float: none;
-			margin:0 auto 0 0;
+			margin:0 auto 0 auto;
 			display: block;
 			text-align: center;
 	}
