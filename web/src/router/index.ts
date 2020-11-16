@@ -26,7 +26,6 @@ const routes: Array<RouteConfig> = [
   {
     path: '/duty-roster',
     name: 'DustyRoster',
-    beforeEnter: displayFooter,
     component: DutyRoster    
   },
   {

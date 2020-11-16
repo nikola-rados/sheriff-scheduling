@@ -142,6 +142,7 @@
         mounted()
         {
             this.isDutyRosterDataMounted = false;
+            this.toggleDisplayMyteam();            
             this.memberNotRequired.sheriffId ='00000-00000-11111';
             this.memberNotAvailable.sheriffId ='00000-00000-22222';
         }
