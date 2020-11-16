@@ -25,7 +25,7 @@ namespace tests.controllers
         public ManageTypesControllerTests() : base(true)
         {
             var locationServices = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            _controller = new ManageTypesController(new ManageTypesService(Db))
+            _controller = new ManageTypesController(new ManageTypesService(Db), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -96,7 +96,7 @@ namespace tests.controllers
             Assert.Equal(LookupTypes.JailRole, result.Type);
             Assert.Equal("gg", result.Code);
             Assert.Equal("gg2", result.SubCode);
-            Assert.Equal(6, result.Location.Id);
+            Assert.Equal(6, result.LocationId);
         }
 
         [Fact]
@@ -136,8 +136,7 @@ namespace tests.controllers
             controllerResult = await _controller.Find(response.Id);
             response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
-            Assert.NotNull(response.Location);
-            Assert.Equal(5, response.Location.Id);
+            Assert.Equal(5, response.LocationId);
         }
 
         [Fact]

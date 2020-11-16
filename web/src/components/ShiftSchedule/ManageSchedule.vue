@@ -9,17 +9,18 @@
                     :key="updateTable"
                     :items="shiftSchedules" 
                     :fields="fields"
+                    small
                     head-row-variant="primary"   
                     bordered
                     fixed>
                         <template v-slot:table-colgroup>
-                            <col style="width:8.5rem">                            
+                            <col style="width:8.5rem;">                            
                         </template>
                         <template v-slot:head() = "data" >
                             <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
                         </template>
                         <template v-slot:head(myteam) = "data" >  
-                            <span> {{data.label}}</span>
+                            <span>{{data.label}}</span>
                         </template>
                         <template v-slot:cell()="data" >
                             <schedule-card :sheriffId="data.item.myteam.sheriffId" :scheduleInfo=" data.value"/>
@@ -81,7 +82,7 @@
         updateTable=0;
 
         fields=[
-            {key:'myteam', label:'My Team', tdClass:'px-0 mx-0'},
+            {key:'myteam', label:'My Team', tdClass:'px-0 mx-0', thClass:'text-center'},
             {key:'Sun', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
             {key:'Mon', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
             {key:'Tue', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},

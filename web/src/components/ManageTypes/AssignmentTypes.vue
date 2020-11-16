@@ -449,8 +449,6 @@
         }
         
         public changeAssignment(){
-            //console.log(this.selectedAssignmentType)
-            //console.log(this.previousSelectedAssignmentType)
             if(this.addNewAssignmentForm){
                 location.href = '#addAssignmentForm'
                 this.addFormColor = 'danger';
@@ -461,6 +459,7 @@
                 this.selectedAssignmentType =  this.previousSelectedAssignmentType;              
             }else{
                 this.previousSelectedAssignmentType = this.selectedAssignmentType;
+                this.expiredViewChecked = false;
                 this.getAssignments();
             }
         }

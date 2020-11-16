@@ -20,7 +20,7 @@ namespace SS.Api.services.scheduling
             Db = db;
         }
 
-        public async Task<List<Duty>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end) =>
+        public async Task<List<Duty>> GetDutiesForLocation(int locationId, DateTimeOffset start, DateTimeOffset end) =>
             await Db.Duty.AsSingleQuery().AsNoTracking()
                 .Include(d => d.DutySlots.Where(ds => ds.ExpiryDate == null))
                 .Include(d=> d.Assignment)
@@ -30,6 +30,12 @@ namespace SS.Api.services.scheduling
                             start < d.EndDate &&
                             d.ExpiryDate == null)
                 .ToListAsync();
+
+        public async Task<List<int>> GetDutiesLocations(List<int> ids) =>
+            await Db.Duty.AsNoTracking().Where(d => ids.Contains(d.Id)).Select(d => d.LocationId).Distinct().ToListAsync();
+
+        public async Task<Duty> GetDuty(int id) =>
+            await Db.Duty.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
 
         /// <summary>
         /// This just creates, there is no assignment of slots. The team has agreed it's just created with the defaults initially.
@@ -66,6 +72,8 @@ namespace SS.Api.services.scheduling
                 savedDuty.ThrowBusinessExceptionIfNull($"{nameof(Duty)} with the id: {duty.Id} could not be found. ");
                 duty.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(duty.Timezone)} must be provided.");
                 Db.Entry(savedDuty!).CurrentValues.SetValues(duty);
+                Db.Entry(savedDuty).Property(x => x.LocationId).IsModified = false;
+                Db.Entry(savedDuty).Property(x => x.ExpiryDate).IsModified = false;
 
                 foreach (var dutySlot in duty.DutySlots)
                 {

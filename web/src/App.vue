@@ -2,7 +2,7 @@
     <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady" style="user-select: none;">
         <navigation-topbar />
         <router-view></router-view>
-        <navigation-footer id="footer" />
+        <navigation-footer id="footer" v-if="displayFooter"/>
     </div>
 </template>
 
@@ -49,6 +49,9 @@
         
         @commonState.Action
         public UpdateLocationList!: (newLocationList: locationInfoType[]) => void
+
+        @commonState.State
+        public displayFooter!: boolean;
 
         errorCode = 0;
         errorText = '';
