@@ -32,5 +32,7 @@ namespace SS.Db.models.scheduling
         [ExcludeFromAddAndUpdateDto]
         public int LocationId { get; set; }
         public string Timezone { get; set; }
+        public bool IsNotRequired { get; set; }
+        public bool IsNotAvailable { get; set; }
     }
 }
