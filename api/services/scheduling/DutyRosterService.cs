@@ -101,8 +101,19 @@ namespace SS.Api.services.scheduling
 
             foreach (var shift in shifts)
             {
-                shift.OriginalEndDate = shift.EndDate;
-                shift.EndDate = shiftDutySlotGroupBy.First(k => k.Key == shift.Id).Max(ds => ds.EndDate);
+                var minStart = shiftDutySlotGroupBy.First(k => k.Key == shift.Id).Min(ds => ds.StartDate);
+                if (minStart < shift.StartDate)
+                {
+                    shift.OriginalStartDate ?= shift.StartDate;
+                    shift.StartDate = minStart;
+                }
+
+                var maxEnd = shiftDutySlotGroupBy.First(k => k.Key == shift.Id).Max(ds => ds.EndDate);
+                if (maxEnd > shift.EndDate)
+                {
+                    shift.OriginalEndDate ?= shift.EndDate;
+                    shift.EndDate = maxEnd;
+                }
             }*/
 
             await Db.SaveChangesAsync();
