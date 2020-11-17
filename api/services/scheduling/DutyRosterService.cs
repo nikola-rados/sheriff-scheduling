@@ -68,7 +68,7 @@ namespace SS.Api.services.scheduling
 
             foreach (var duty in duties)
             {
-                var savedDuty = savedDuties.FirstOrDefault(s => s.Id == duty.Id);
+                var savedDuty = await savedDuties.FirstOrDefaultAsync(s => s.Id == duty.Id);
                 savedDuty.ThrowBusinessExceptionIfNull($"{nameof(Duty)} with the id: {duty.Id} could not be found. ");
                 duty.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(duty.Timezone)} must be provided.");
                 Db.Entry(savedDuty!).CurrentValues.SetValues(duty);
@@ -77,7 +77,8 @@ namespace SS.Api.services.scheduling
 
                 foreach (var dutySlot in duty.DutySlots)
                 {
-                    var savedDutySlot = Db.DutySlot.FirstOrDefault(ds => ds.Id == dutySlot.Id && ds.ExpiryDate == null);
+                    var savedDutySlot = await Db.DutySlot
+                        .FirstOrDefaultAsync(ds => ds.Id == dutySlot.Id && ds.ExpiryDate == null);
                     dutySlot.LocationId = duty.LocationId;
                     dutySlot.DutyId = duty.Id;
                     dutySlot.Timezone = duty.Timezone;
@@ -92,7 +93,20 @@ namespace SS.Api.services.scheduling
                 }
                 Db.RemoveRange(savedDuty.DutySlots.Where(ds => duty.DutySlots.All(d => d.Id != ds.Id)));
             }
+
+            /*var dutySlots = duties.SelectMany(d => d.DutySlots).ToList(); Overtime calculations, with shift adjustments. 
+            var shiftIdsFromDutySlots = dutySlots.SelectDistinctToList(ds => ds.ShiftId);
+            var shifts = Db.Shift.Where(s => shiftIdsFromDutySlots.Contains(s.Id) && s.ExpiryDate == null);
+            var shiftDutySlotGroupBy = dutySlots.GroupBy(ds => ds.ShiftId).ToList();
+
+            foreach (var shift in shifts)
+            {
+                shift.OriginalEndDate = shift.EndDate;
+                shift.EndDate = shiftDutySlotGroupBy.First(k => k.Key == shift.Id).Max(ds => ds.EndDate);
+            }*/
+
             await Db.SaveChangesAsync();
+
             return await savedDuties.ToListAsync();
         }
 
