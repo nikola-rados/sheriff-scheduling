@@ -85,7 +85,18 @@
                             </template>
 
                             <template v-slot:cell(edit)="data" >                                  
-                                <b-button v-if="userIsAdmin && !data.item['_rowVariant']" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteAssignment(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="userIsAdmin && !data.item['_rowVariant']" 
+                                    class="ml-2 px-1"
+                                    style="padding: 1px 2px 1px 2px;" 
+                                    size="sm" 
+                                    v-b-tooltip.hover
+                                    title="Expire" 
+                                    variant="warning" 
+                                    @click="confirmDeleteAssignment(data.item)">
+                                    <b-icon icon="clock" 
+                                        font-scale="1" 
+                                        variant="white"/>
+                                </b-button>
                                 <b-button v-if="userIsAdmin && data.item['_rowVariant']" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireAssignment(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button v-if="userIsAdmin && selectedAssignmentType.name != 'CourtRoom'" :disabled="data.item['_rowVariant']?true:false" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
@@ -102,10 +113,10 @@
 
         <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
             <template v-slot:modal-title>
-                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Delete Assignment</h2>
+                    <h2 v-if="deleteType == 'expire'" class="mb-0 text-light">Confirm Expire Assignment</h2>
                     <h2 v-else class="mb-0 text-light">Confirm Unexpire Assignment</h2>                     
             </template>
-            <h4 v-if="deleteType == 'expire'">Are you sure you want to delete the "{{selectedAssignmentType.label}}: {{assignmentToDelete.code?assignmentToDelete.code:''}}"  assignment type?</h4>
+            <h4 v-if="deleteType == 'expire'">Are you sure you want to Expire the "{{selectedAssignmentType.label}}: {{assignmentToDelete.code?assignmentToDelete.code:''}}"  assignment type?</h4>
             <h4 v-else>Are you sure you want to Unexpire the "{{selectedAssignmentType.label}}: {{assignmentToDelete.code?assignmentToDelete.code:''}}"  assignment type?</h4>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="deleteAssignment()">Confirm</b-button>
@@ -449,8 +460,6 @@
         }
         
         public changeAssignment(){
-            //console.log(this.selectedAssignmentType)
-            //console.log(this.previousSelectedAssignmentType)
             if(this.addNewAssignmentForm){
                 location.href = '#addAssignmentForm'
                 this.addFormColor = 'danger';
@@ -461,6 +470,7 @@
                 this.selectedAssignmentType =  this.previousSelectedAssignmentType;              
             }else{
                 this.previousSelectedAssignmentType = this.selectedAssignmentType;
+                this.expiredViewChecked = false;
                 this.getAssignments();
             }
         }

@@ -18,10 +18,7 @@
           />
       </b-navbar-brand>
       <b-navbar-nav class="mt-1 mx-5">
-          <b-nav-item-dropdown text="Duty Roster" dropdown >
-            <b-dropdown-item to="/duty-roster">Duty Roster</b-dropdown-item>
-            <b-dropdown-item to="/duty-roster-setup">Set-Up</b-dropdown-item>
-          </b-nav-item-dropdown>
+        <b-nav-item to="/duty-roster" ><div style="display: inline-block; white-space: nowrap;">Duty Roster</div></b-nav-item>         
           <b-nav-item-dropdown text="Shift Schedule" dropdown >
             <b-dropdown-item to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
             <b-dropdown-item to="/distribute-shift-schedule">Distribute Schedule</b-dropdown-item>

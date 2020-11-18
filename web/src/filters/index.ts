@@ -10,6 +10,13 @@ Vue.filter('beautify-date', function(date){
 		return ''
 })
 
+Vue.filter('beautify-date-weekday', function(date){
+	if(date)
+		return	moment(date).format('ddd DD MMM YYYY');
+	else
+		return ''
+})
+
 Vue.filter('beautify-date-time', function(date){
 	enum MonthList {'Jan' = 1, 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'}
 	if(date)
@@ -37,6 +44,10 @@ Vue.filter('capitalize', function(str: string){
 
 Vue.filter('truncate', function (text: string, stop: number) {
     return (stop+3 < text.length) ? text.slice(0, stop)+'...' : text
+})
+
+Vue.filter('truncateleft', function (text: string, stop: number) {
+    return (stop+3 < text.length) ? '...'+text.slice(0, stop) : text
 })
 
 Vue.filter('convertDate', function(date: string, time: string, type: string, timezone: string){

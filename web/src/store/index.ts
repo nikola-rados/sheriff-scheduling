@@ -4,6 +4,7 @@ import CommonInformation from '@/store/modules/CommonInformation'
 import TeamMemberInformation from '@/store/modules/TeamMemberInformation'
 import ManageTypesInformation from '@/store/modules/ManageTypesInformation'
 import ShiftScheduleInformation from '@/store/modules/ShiftScheduleInformation'
+import DutyRosterInformation from '@/store/modules/DutyRosterInformation'
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
@@ -11,7 +12,8 @@ const store = new Vuex.Store({
     CommonInformation,
     TeamMemberInformation,
     ManageTypesInformation,
-    ShiftScheduleInformation
+    ShiftScheduleInformation,
+    DutyRosterInformation
   }
 })
 
