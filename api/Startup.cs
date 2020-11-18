@@ -139,13 +139,11 @@ namespace SS.Api
                 app.UseDeveloperExceptionPage();
             }
 
-     
-
             var baseUrl = Configuration.GetNonEmptyValue("WebBaseHref");
             app.Use((context, next) =>
             {
                 context.Request.Scheme = "https";
-                if (context.Request.Headers["X-Forwarded-Host"].Count > 0)
+                if (context.Request.Headers.ContainsKey("X-Forwarded-Host"))
                     context.Request.PathBase = new PathString(baseUrl.Remove(baseUrl.Length - 1));
                 return next();
             });
