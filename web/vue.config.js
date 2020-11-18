@@ -1,17 +1,28 @@
 const path = require("path");
 const vueSrc = "src";
+
+const webBaseHref = process.env.WEB_BASE_HREF || '/sheriff-scheduling/';
 module.exports = {
+	publicPath: webBaseHref,
 	configureWebpack: {
 		devServer: {
 			open: true,
 			https: true,
-			historyApiFallback: true,
 			host: 'localhost',
+			port: 1338,
 			proxy: {
-				'^/api': {
-					target: "https://localhost:44370",
+				//Development purposes, if WEB_BASE_HREF changes, this will have to change as well. 
+				'^/sheriff-scheduling/api': {
+					target: 'https://localhost:44370',
+					pathRewrite: { '^/sheriff-scheduling/api': '/api' },
 					headers: {
-						Connection: 'keep-alive'
+						Connection: 'keep-alive',
+						'X-Forwarded-Host': 'localhost:1338'
+					},
+					cookiePathRewrite: {
+						"/api/auth": "/sheriff-scheduling/api/auth",
+						"/api/auth/signin-oidc": "/sheriff-scheduling/api/auth/signin-oidc",
+						"*": ""
 					},
 					changeOrigin: true
 				}

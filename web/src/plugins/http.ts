@@ -7,8 +7,8 @@ import createAuthRefreshInterceptor from 'axios-auth-refresh';
 import {AxiosAuthRefreshOptions} from 'axios-auth-refresh';
 
 const refreshAuthLogic = failedRequest => axios.get('api/auth/token').then(response => {
-    if (response!.status == 200 && response.data.access_token == null) {
-        location.replace('/api/auth/login?redirectUri=/');
+    if (response.status == 200 && response.data.access_token == null) {
+        location.replace(`${process.env.BASE_URL}api/auth/login?redirectUri=${process.env.BASE_URL}`);
         return Promise.resolve();
     }
     store.commit('CommonInformation/setToken',response.data.access_token);
@@ -28,7 +28,7 @@ function configureInstance(){
     createAuthRefreshInterceptor(axios, refreshAuthLogic, options);    
     
     axios.interceptors.request.use(async config => {
-        if (config.url != 'api/auth/token' && new Date() > new Date(store.state.CommonInformation.tokenExpiry))
+        if (!config.url?.endsWith('api/auth/token') && new Date() > new Date(store.state.CommonInformation.tokenExpiry))
         {
             console.log("Refreshing token, without 401.");
             await refreshAuthLogic(null);
@@ -37,6 +37,7 @@ function configureInstance(){
         config.headers['Authorization'] = 'Bearer ' +  token;    
         return config;
     });
+    axios.defaults.baseURL = process.env.BASE_URL;
     return axios;
 }
 

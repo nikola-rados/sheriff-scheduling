@@ -61,6 +61,13 @@ namespace SS.Api.Controllers
             return Redirect(redirectUri);
         }
 
+        //Testing only. 
+        [HttpGet("Headers")]
+        public IActionResult Headers()
+        {
+            return Ok(Request.Headers);
+        }
+
         /// <summary>
         /// Logout function, should wipe out all cookies. 
         /// </summary>
