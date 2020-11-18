@@ -157,6 +157,17 @@ namespace SS.Api
             app.UseSwagger(options =>
             {
                 options.RouteTemplate = "api/swagger/{documentname}/swagger.json";
+                options.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
+                {
+                    if (!httpReq.Headers.ContainsKey("X-Forwarded-Host"))
+                        return;
+
+                    var serverUrl = $"https://{httpReq.Headers["X-Forwarded-Host"]}{baseUrl}";
+                    swaggerDoc.Servers = new List<OpenApiServer>()
+                    {
+                        new OpenApiServer { Url = serverUrl }
+                    };
+                });
             });
 
             app.UseSwaggerUI(options =>
