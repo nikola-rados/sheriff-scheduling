@@ -1,5 +1,6 @@
 #!/bin/bash
 
+export WEB_BASE_HREF="${WEB_BASE_HREF:-/}"
 getListenConfigSection () {
 # ================================================================================
 # Generate the listen configuration section.
@@ -58,7 +59,7 @@ read -r -d '' _CONFIG_SECTION << EOF
             proxy_buffer_size       128k;
             proxy_buffers           4 256k;
             proxy_busy_buffers_size 256k;
-			proxy_cookie_path /api/auth /sheriff-scheduling/api/auth;
+			proxy_cookie_path /api/auth ${WEB_BASE_HREF}api/auth;
         }
 EOF
 
@@ -150,7 +151,7 @@ if [ -n "$HTTP_BASIC_USERNAME" ] && [ -n "$HTTP_BASIC_PASSWORD" ]; then
 fi
 
 export RealIpFrom="${RealIpFrom:-172.51.0.0/16}"
-export WEB_BASE_HREF="${WEB_BASE_HREF:-/}"
+
 export REMOVE_BASE_HREF=$(getRemoveBaseHref ${WEB_BASE_HREF})
 export API_URL=$(getApiUrl)
 if [ ! -z "${API_URL}" ]; then
