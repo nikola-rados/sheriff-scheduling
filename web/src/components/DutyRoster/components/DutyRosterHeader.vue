@@ -92,7 +92,7 @@
 						</b-form-select>
 					</b-form-group>
 					<b-form-group class="ml-4" style="width: 14.35rem">
-						<label class="h6 my-0 ml-1 p-0">Assignment Sub caegory<span class="text-danger">*</span></label>
+						<label class="h6 my-0 ml-1 p-0">Assignment Sub category<span class="text-danger">*</span></label>
 						<b-form-select 
 							size="sm"
 							:disabled="!isSubTypeDataReady"

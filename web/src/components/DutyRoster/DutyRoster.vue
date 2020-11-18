@@ -230,26 +230,26 @@
                if(dutyRostersForThisAssignment.length>0){
                     for(const rosterInx in dutyRostersForThisAssignment){
                         this.dutyRosterAssignments.push({
-                            assignment:('00' + sortOrder).slice(-3)+'EFT'+('0'+ rosterInx).slice(-2) ,
+                            assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
                             assignmentDetail: assignment,
                             name:assignment.name,
                             code:assignment.lookupCode.code,
                             type: this.getType(assignment.lookupCode.type),
                             attachedDuty: dutyRostersForThisAssignment[rosterInx],
-                            EFTnumber: Number(rosterInx),
-                            totalEFT: dutyRostersForThisAssignment.length
+                            FTEnumber: Number(rosterInx),
+                            totalFTE: dutyRostersForThisAssignment.length
                         })
                     }
                 }else{                
                     this.dutyRosterAssignments.push({
-                        assignment:('00' + sortOrder).slice(-3)+'EFT00' ,
+                        assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
                         assignmentDetail: assignment,
                         name:assignment.name,
                         code:assignment.lookupCode.code,
                         type: this.getType(assignment.lookupCode.type),
                         attachedDuty: null,
-                        EFTnumber: 0,
-                        totalEFT: 0
+                        FTEnumber: 0,
+                        totalFTE: 0
                     })
                 }
             }
