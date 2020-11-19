@@ -94,28 +94,6 @@ namespace SS.Api.services.scheduling
                 Db.RemoveRange(savedDuty.DutySlots.Where(ds => duty.DutySlots.All(d => d.Id != ds.Id)));
             }
 
-            /*var dutySlots = duties.SelectMany(d => d.DutySlots).ToList(); Overtime calculations, with shift adjustments. 
-            var shiftIdsFromDutySlots = dutySlots.SelectDistinctToList(ds => ds.ShiftId);
-            var shifts = Db.Shift.Where(s => shiftIdsFromDutySlots.Contains(s.Id) && s.ExpiryDate == null);
-            var shiftDutySlotGroupBy = dutySlots.GroupBy(ds => ds.ShiftId).ToList();
-
-            foreach (var shift in shifts)
-            {
-                var minStart = shiftDutySlotGroupBy.First(k => k.Key == shift.Id).Min(ds => ds.StartDate);
-                if (minStart < shift.StartDate)
-                {
-                    shift.OriginalStartDate ?= shift.StartDate;
-                    shift.StartDate = minStart;
-                }
-
-                var maxEnd = shiftDutySlotGroupBy.First(k => k.Key == shift.Id).Max(ds => ds.EndDate);
-                if (maxEnd > shift.EndDate)
-                {
-                    shift.OriginalEndDate ?= shift.EndDate;
-                    shift.EndDate = maxEnd;
-                }
-            }*/
-
             await Db.SaveChangesAsync();
 
             return await savedDuties.ToListAsync();

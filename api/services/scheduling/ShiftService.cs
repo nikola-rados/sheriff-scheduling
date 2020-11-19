@@ -117,10 +117,12 @@ namespace SS.Api.services.scheduling
 
             var shiftsToImport = Db.Shift
                 .Include(s => s.Location)
+                .Include(s => s.Sheriff)
                 .AsNoTracking()
                 .Where(s => s.LocationId == locationId &&
                             s.ExpiryDate == null &&
-                            s.StartDate < targetEndDate && targetStartDate < s.EndDate);  
+                            s.StartDate < targetEndDate && targetStartDate < s.EndDate &&
+                            s.Sheriff != null && s.Sheriff.IsEnabled);  
 
             var importedShifts = await shiftsToImport.Select(shift => Db.DetachedClone(shift)).ToListAsync();
             foreach (var shift in importedShifts)
@@ -146,6 +148,7 @@ namespace SS.Api.services.scheduling
                 Shifts = filteredImportedShifts
             };
         }
+
 
         public async Task<List<ShiftAvailability>> GetShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
@@ -200,7 +203,10 @@ namespace SS.Api.services.scheduling
                 Sheriff = s,
                 SheriffId = s.Id,
                 Conflicts = allShiftConflicts.WhereToList(asc => asc.SheriffId == s.Id)
-            }).ToList();
+            })
+            .OrderBy(s => s.Sheriff.LastName)
+            .ThenBy(s => s.Sheriff.FirstName)
+            .ToList();
         }
 
         #region Helpers
@@ -211,7 +217,7 @@ namespace SS.Api.services.scheduling
         {
             var overlappingShifts = await CheckForShiftOverlap(shifts);
             var sheriffEventOverlaps = await CheckSheriffEventsOverlap(shifts);
-            return overlappingShifts.Concat(sheriffEventOverlaps).ToList();
+            return overlappingShifts.Concat(sheriffEventOverlaps).OrderBy(o => o.Shift.StartDate).ToList();
         }
 
         private async Task<List<ShiftConflict>> CheckForShiftOverlap(List<Shift> shifts)
@@ -271,9 +277,9 @@ namespace SS.Api.services.scheduling
                 var sheriff = sheriffs.FirstOrDefault();
                 sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}, they might not be active in location for the shift.");
                 var validationErrors = new List<string>();
-                validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId).Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate)));
-                validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(aw.Sheriff, aw.StartDate, aw.EndDate)));
-                validationErrors.AddRange(sheriff.Training.Select(aw => PrintSheriffEventConflict<SheriffTraining>(aw.Sheriff, aw.StartDate, aw.EndDate)));
+                validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId).Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
+                validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
+                validationErrors.AddRange(sheriff.Training.Select(aw => PrintSheriffEventConflict<SheriffTraining>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
 
                 if (validationErrors.Any())
                     sheriffEventConflicts.Add(new ShiftConflict
@@ -299,10 +305,11 @@ namespace SS.Api.services.scheduling
 
         #region String Helpers
         private static string ConflictingSheriffAndSchedule(Sheriff sheriff, Shift shift)
-            => $"Conflict - {nameof(Sheriff)}: {sheriff.LastName}, {sheriff.FirstName} - Existing Shift conflicts: {shift.StartDate.ConvertToTimezone(shift.Timezone)} -> {shift.EndDate.ConvertToTimezone(shift.Timezone)}";
+        => 
+                $"{sheriff.LastName}, {sheriff.FirstName} has a shift {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatDate()} {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatTime()} to {shift.EndDate.ConvertToTimezone(shift.Timezone).PrintFormatTime()}";
 
-        private static string PrintSheriffEventConflict<T>(Sheriff sheriff, DateTimeOffset start, DateTimeOffset end)
-            => $"{sheriff.LastName}, {sheriff.FirstName} has {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} from: {start} to: {end}";
+        private static string PrintSheriffEventConflict<T>(Sheriff sheriff, DateTimeOffset start, DateTimeOffset end, string timezone)
+            => $"{sheriff.LastName}, {sheriff.FirstName} has {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} {start.ConvertToTimezone(timezone).PrintFormatDateTime()} to {end.ConvertToTimezone(timezone).PrintFormatDateTime()}";
 
         #endregion String Helpers
 
