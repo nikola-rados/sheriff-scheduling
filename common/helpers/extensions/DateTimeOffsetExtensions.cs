@@ -18,6 +18,17 @@ namespace SS.Common.helpers.extensions
             return movedZoned.ToDateTimeOffset();
         }
 
+        public static double HourDifference(this DateTimeOffset start, DateTimeOffset end, string timezone)
+        {
+            var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone];
+            var instantStart = Instant.FromDateTimeOffset(start);
+            var instantEnd = Instant.FromDateTimeOffset(end);
+            var zonedStart = instantStart.InZone(locationTimeZone);
+            var zonedEnd = instantEnd.InZone(locationTimeZone);
+            var duration =  ZonedDateTime.Subtract(zonedEnd, zonedStart);
+            return duration.TotalHours;
+        }
+
         public static DateTimeOffset ConvertToTimezone(this DateTimeOffset date, string timezone)
         {
             var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone];
@@ -25,5 +36,9 @@ namespace SS.Common.helpers.extensions
             var zoned = instant.InZone(locationTimeZone);
             return zoned.ToDateTimeOffset();
         }
+
+        public static string PrintFormatDateTime(this DateTimeOffset date) => date.ToString("ddd dd MMM yyyy HH:mm zz");
+        public static string PrintFormatDate(this DateTimeOffset date) => date.ToString("ddd dd MMM yyyy");
+        public static string PrintFormatTime(this DateTimeOffset date) => date.ToString("HH:mmzz");
     }
 }

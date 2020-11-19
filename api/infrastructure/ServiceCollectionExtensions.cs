@@ -71,6 +71,7 @@ namespace SS.Api.infrastructure
             services.AddScoped<ShiftService>();
             services.AddScoped<DutyRosterService>();
             services.AddScoped<AssignmentService>();
+            services.AddScoped<DistributeScheduleService>();
             services.AddScoped<JCDataUpdaterService>();
 
             services.AddHostedService<TimedDataUpdaterService>();
