@@ -20,28 +20,28 @@
                                    
                 <b-row                                  
                     style="text-transform: capitalize;" 
-                    class="h6 p-0 mt-2 mb-0 ml-0">
+                    class="h6 p-0 mt-2 mb-0 ml-1">
 					<div 
                         v-b-tooltip.hover                            
-                        :title="assignment.code.length>7? assignment.code:''"> 
-                        <div style="float:left">{{assignment.type.name}} </div> - {{assignment.code|truncate(7)}} 
+                        :title="assignmentTitle.length>15? assignmentTitle:''">
+						{{assignmentTitle|truncate(12)}} 
                     </div>                    
                 </b-row>
                 <b-row v-if="dutyError" >
 					<h6 class="ml-3 my-0 p-0"
 						><b-badge v-b-tooltip.hover
 							:title="dutyErrorMsg"
-							variant="danger"> {{dutyErrorMsg|truncate(15)}}
+							variant="danger"> {{dutyErrorMsg|truncate(14)}}
 							<b-icon class="ml-2"
 								icon = x-square-fill
 								@click="dutyError = false"
 					/></b-badge></h6>
 				</b-row>     
-                <b-row v-else class="h7 p-0 m-0 ml-1">
+                <b-row v-else class="h7 p-0 m-0 ml-2">
 					<div 
                         v-b-tooltip.hover                            
-                        :title="assignment.name.length>10? assignment.name:''"> 
-                            {{assignment.name|truncate(10)}} 
+                        :title="assignment.name.length>17? assignment.name:''"> 
+                            {{assignment.name|truncate(14)}} 
                     </div>                    
                 </b-row>
             </b-col>
@@ -329,7 +329,9 @@
         public location!: locationInfoType;
 
         @dutyState.State
-        public dutyRangeInfo!: dutyRangeInfoType;
+		public dutyRangeInfo!: dutyRangeInfoType;
+		
+		assignmentTitle = '';
 
         dutyError = false;
         dutyErrorMsg = '';
@@ -394,6 +396,7 @@
 
         mounted()
         {
+			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
             //this.isDutyDataMounted = false;
 			// console.log(this.assignment)
 		}
@@ -483,12 +486,12 @@
         }
 		
 		public loadAssignmentDetails() {
-
+console.log(this.assignment.assignmentDetail)
 			const assignmentInfo = this.assignment.assignmentDetail;
 			this.originalAssignmentToEdit.id = this.assignmentToEdit.id = assignmentInfo.id;
 			this.originalAssignmentToEdit.name = this.assignmentToEdit.name = assignmentInfo.name;			
-			this.originalAssignmentToEdit.start = this.selectedStartTime = assignmentInfo.start;
-			this.originalAssignmentToEdit.end = this.selectedEndTime = assignmentInfo.end;
+			this.originalAssignmentToEdit.start = this.selectedStartTime = assignmentInfo.start.substring(0,5);
+			this.originalAssignmentToEdit.end = this.selectedEndTime = assignmentInfo.end.substring(0,5);
 			this.originalAssignmentToEdit.locationId = this.assignmentToEdit.locationId = assignmentInfo.locationId;
 			this.originalAssignmentToEdit.timezone = this.assignmentToEdit.timezone = assignmentInfo.timezone;
 			if (assignmentInfo.adhocStartDate) {
