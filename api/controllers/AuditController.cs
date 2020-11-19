@@ -9,7 +9,6 @@ using SS.Api.infrastructure.authorization;
 using SS.Api.models.dto.generated;
 using SS.Api.services.usermanagement;
 using SS.Db.models;
-using SS.Db.models.audit;
 using SS.Db.models.auth;
 
 namespace SS.Api.controllers

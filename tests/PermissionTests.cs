@@ -14,6 +14,7 @@ using SS.Common.authorization;
 using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
+using tests.api.helpers;
 using Xunit;
 using static System.String;
 
@@ -81,7 +82,7 @@ namespace tests
                 .UseInMemoryDatabase("SheriffTestDb")
                 .Options;
 
-            await using var db = new SheriffDbContext(options);
+            await using var db = new MemorySheriffDbContext(options);
 
             await db.Sheriff.AddAsync(new Sheriff { Id = new Guid(), HomeLocation = new Location { Id = 1 } });
             await db.Sheriff.AddAsync(new Sheriff { Id = new Guid(), HomeLocation = new Location { Id = 2 } });
@@ -179,7 +180,7 @@ namespace tests
                 .UseInMemoryDatabase("SheriffTestDb")
                 .Options;
 
-            await using var db = new SheriffDbContext(options);
+            await using var db = new MemorySheriffDbContext(options);
             await db.Location.AddAsync(new Location { Id = 1 });
             await db.Location.AddAsync(new Location { Id = 2 });
             await db.Location.AddAsync(new Location { Id = 4, Region = new Region { Id = 1 } });
