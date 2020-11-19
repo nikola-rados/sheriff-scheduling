@@ -125,10 +125,11 @@
         ]
 
         dutyColors = [
-            {name:'court' , colorCode:'#189fd4'},
-            {name:'jail' ,  colorCode:'#A22BB9'},
-            {name:'escort', colorCode:'#ffb007'},
-            {name:'other',  colorCode:'#0cc97e'}                       
+            {name:'courtroom',  colorCode:'#189fd4'},
+            {name:'court',      colorCode:'#189fd4'},
+            {name:'jail' ,      colorCode:'#A22BB9'},
+            {name:'escort',     colorCode:'#ffb007'},
+            {name:'other',      colorCode:'#0cc97e'}                       
         ]
 
         @Watch('location.id', { immediate: true })
