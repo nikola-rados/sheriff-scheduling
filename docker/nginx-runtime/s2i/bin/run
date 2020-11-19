@@ -1,6 +1,5 @@
 #!/bin/bash
 
-export WEB_BASE_HREF="${WEB_BASE_HREF:-/}"
 getListenConfigSection () {
 # ================================================================================
 # Generate the listen configuration section.
@@ -151,7 +150,7 @@ if [ -n "$HTTP_BASIC_USERNAME" ] && [ -n "$HTTP_BASIC_PASSWORD" ]; then
 fi
 
 export RealIpFrom="${RealIpFrom:-172.51.0.0/16}"
-
+export WEB_BASE_HREF="${WEB_BASE_HREF:-/}"
 export REMOVE_BASE_HREF=$(getRemoveBaseHref ${WEB_BASE_HREF})
 export API_URL=$(getApiUrl)
 if [ ! -z "${API_URL}" ]; then

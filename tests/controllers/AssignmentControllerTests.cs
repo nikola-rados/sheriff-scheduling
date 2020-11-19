@@ -54,6 +54,7 @@ namespace tests.controllers
 
             var duty = new Duty
             {
+                Id = 1,
                 AssignmentId = assignment.Id,
                 ExpiryDate = null,
                 LocationId = 1,
@@ -70,6 +71,7 @@ namespace tests.controllers
 
             var duty2 = new Duty
             {
+                Id = 2,
                 AssignmentId = assignment.Id,
                 ExpiryDate = null,
                 LocationId = 1,
@@ -86,7 +88,7 @@ namespace tests.controllers
 
             await Db.Duty.AddAsync(duty);
 
-            await Db.Duty.AddAsync(duty);
+            await Db.Duty.AddAsync(duty2);
             await Db.SaveChangesAsync();
 
             var controllerResult3 = await _controller.GetAssignments(1, DateTimeOffset.UtcNow, assignment.AdhocEndDate);

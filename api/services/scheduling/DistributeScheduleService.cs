@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using SS.Api.helpers.extensions;
 using SS.Api.models;
-using SS.Common.helpers.extensions;
 using SS.Db.models;
+using SS.Db.models.scheduling.notmapped;
 
 namespace SS.Api.services.scheduling
 {
@@ -18,30 +15,22 @@ namespace SS.Api.services.scheduling
             Db = db;
         }
 
-        public async Task<List<DistributeSchedule>> GetDistributeSchedule(DateTimeOffset start, DateTimeOffset end, int locationId, bool includeWorkSection)
+        public async Task<List<DistributeSchedule>> GetDistributeSchedule(List<ShiftAvailability> shiftAvailability, bool includeWorkSection)
         {
-            //Get the sheriffs that are loaned in / out.
-            var sheriffs = Db.Sheriff.Where(s => s.IsEnabled &&
-                                  s.HomeLocationId == locationId ||
-                                  s.AwayLocation.Any(al =>
-                                      al.LocationId == locationId && !(al.StartDate > end || start > al.EndDate)
-                                                                  && al.ExpiryDate == null))
-                .IncludeSheriffEventsBetweenDates(start,end);
+            foreach (var sa in shiftAvailability)
+            {
 
-            //Look at shifts by day, if same sheriff.. combine 
-            //Get the shifts currently scheduled
-            var shifts = await Db.Shift
-                .Include(s => s.Duties).ThenInclude(d => d.DutySlots)
-                .Where(s => s.LocationId == locationId && start < s.EndDate && s.StartDate < end && s.SheriffId != null)
-                .ToListAsync();
+            }
 
             //Combine duties, earliest sets the type. 
+            var workSection = GetWorkSectionFromDuties();
+            //var shifts = CombineShifts();
 
-            var sheriffByDatesAndId =
+            /*var sheriffByDatesAndId =
                 shifts.GroupBy(s => new {s.StartDate.ConvertToTimezone(s.Timezone).Date, s.SheriffId});
 
             //includeWorkSection
-
+            WIP
             foreach (var sheriffByDateAndId in sheriffByDatesAndId)
             {
                // sh
@@ -60,8 +49,18 @@ namespace SS.Api.services.scheduling
                 };
 
 
-            }
+            }*/
             return new List<DistributeSchedule>();
+        }
+
+        private string GetWorkSectionFromDuties()
+        {
+            return "";
+        }
+
+        private void CombineShifts()
+        {
+
         }
     }
 }
