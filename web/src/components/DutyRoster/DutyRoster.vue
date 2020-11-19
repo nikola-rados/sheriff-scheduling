@@ -178,9 +178,19 @@
                 shiftInfo.timezone = shiftJson.timezone;
                 shiftInfo.sheriffId = shiftJson.sheriffId;
                 shiftInfo.locationId = shiftJson.locationId;
+                const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, this.location.timezone);
+
+                let duties = Array(96).fill(0)
+                for(const duty of shiftJson.duties){
+                   const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
+                   duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
+                }
+
                 const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
                 
                 if (index != -1) {
+                    this.shiftAvailabilityInfo[index].duties = this.addArrays(this.shiftAvailabilityInfo[index].duties, duties);
+                    this.shiftAvailabilityInfo[index].availability = this.fillInArray(this.shiftAvailabilityInfo[index].availability, shiftJson.id , rangeBin.startBin,rangeBin.endBin)
                     this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
                 } else {
                     availabilityInfo.shifts = [shiftInfo];
@@ -189,8 +199,8 @@
                     availabilityInfo.firstName = shiftJson.sheriff.firstName;
                     availabilityInfo.lastName = shiftJson.sheriff.lastName;
                     availabilityInfo.rank = shiftJson.sheriff.rank;
-                    availabilityInfo.availability = [];
-                    availabilityInfo.duties = [];
+                    availabilityInfo.availability = this.fillInArray(Array(96).fill(0), shiftJson.id , rangeBin.startBin,rangeBin.endBin)
+                    availabilityInfo.duties = duties;
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
             }
@@ -227,7 +237,7 @@
             for(const assignment of assignments){
                 sortOrder++;
                 const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                //console.log(dutyRostersForThisAssignment)
+                console.log(dutyRostersForThisAssignment)
                
                if(dutyRostersForThisAssignment.length>0){
                     for(const rosterInx in dutyRostersForThisAssignment){
@@ -271,6 +281,24 @@
             if(this.displayFooter) this.UpdateDisplayFooter(false)
             else this.UpdateDisplayFooter(true)
         }
+
+        public fillInArray(array, fillInNum, startBin, endBin){
+            return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
+        }
+
+        public addArrays(arrayA, arrayB){
+            return arrayA.map((arr,index) =>{return arr+arrayB[index]});
+        }
+
+        public getTimeRangeBins(startDate, endDate, timezone){
+            const startTime = moment(startDate).tz(timezone);
+            const endTime = moment(endDate).tz(timezone);
+            const startOfDay = moment(startTime).startOf("day");
+            const startBin = moment.duration(startTime.diff(startOfDay)).asMinutes()/15;
+            const endBin = moment.duration(endTime.diff(startOfDay)).asMinutes()/15;
+            return( {startBin: startBin, endBin:endBin } )
+        }
+
     }
 </script>
 

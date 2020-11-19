@@ -112,7 +112,7 @@ export interface dutySlotInfoType {
     endDate: string,
     dutyId: number,
     sheriffId: string,
-    shiftId: number,
+    shiftId: number|null,
     timezone: string,
     isNotRequired: boolean,
     isNotAvailable: boolean
