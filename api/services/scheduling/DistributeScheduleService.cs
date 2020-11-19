@@ -40,6 +40,7 @@ namespace SS.Api.services.scheduling
             var sheriffByDatesAndId =
                 shifts.GroupBy(s => new {s.StartDate.ConvertToTimezone(s.Timezone).Date, s.SheriffId});
 
+            //includeWorkSection
 
             foreach (var sheriffByDateAndId in sheriffByDatesAndId)
             {

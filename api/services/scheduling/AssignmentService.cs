@@ -69,10 +69,10 @@ namespace SS.Api.services.scheduling
         public async Task ExpireAssignment(int id, string expiryReason)
         {
             var savedAssignment = await Db.Assignment.FindAsync(id);
-            savedAssignment.ExpiryDate = DateTimeOffset.UtcNow;
+            var convertedTime = DateTimeOffset.UtcNow.ConvertToTimezone(savedAssignment.Timezone);
+            savedAssignment.ExpiryDate = convertedTime.Date;
             savedAssignment.ExpiryReason = expiryReason;
 
-            var convertedTime = DateTimeOffset.UtcNow.ConvertToTimezone(savedAssignment.Timezone);
             var duties = await Db.Duty.Where(d => d.AssignmentId == savedAssignment.Id &&
                                             d.StartDate >=
                                             convertedTime.Date
