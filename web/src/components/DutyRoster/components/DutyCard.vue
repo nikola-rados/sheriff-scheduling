@@ -12,6 +12,32 @@
                 </div>     
         </div>    
         <!-- <div :style="{gridColumnStart: 6,gridColumnEnd:9, gridRow:'4/6', backgroundColor: 'blue' }"></div>     -->
+    
+        <b-modal v-model="assignDutyError" size="lg" id="bv-modal-assign-duty-error" header-class="bg-primary text-light">
+			<!-- <b-table
+            :items="assignDutyErrorMsg"
+			:fields="importConflictFields"        
+            thead-class="d-none"
+            responsive="sm"
+            borderless 
+            small              
+            striped
+            >
+            </b-table> -->
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Assign Duty Issues</h2>                   
+            </template>
+            
+            <template v-slot:modal-footer>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-assign-duty-error')">Ok</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-assign-duty-error')"
+                >&times;</b-button>
+            </template>
+        </b-modal>
+
+
     </div>
 </template>
 
@@ -20,12 +46,13 @@
    
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
+import { assignDutyInfoType, assignmentCardInfoType } from '../../../types/DutyRoster';
 
     @Component
     export default class DutyCard extends Vue {
 
         @Prop({required: true})
-        dutyRosterInfo!: any;
+        dutyRosterInfo!: assignmentCardInfoType;
 
         
 
@@ -44,7 +71,7 @@
 
         mounted()
         {
-            // console.log(this.dutyRosterInfo)
+            console.log(this.dutyRosterInfo)
             this.isMounted = false;
             this.dutyBlocks = []
 
@@ -94,6 +121,47 @@
         }
 
 
+        public assignDuty() {
+            const dutyInfo = this.dutyRosterInfo.attachedDuty;
+            
+            const body: assignDutyInfoType[] = [
+                {
+                    id: dutyInfo.id,
+                    startDate: dutyInfo.startDate,
+                    endDate: dutyInfo.endDate,
+                    locationId: dutyInfo.locationId,
+                    assignmentId: dutyInfo.assignmentId,
+                    dutySlots: [ {                        
+                            startDate: "2020-11-19T16:49:11.488Z",
+                            endDate: "2020-11-19T16:49:11.488Z",
+                            dutyId: dutyInfo.id,
+                            sheriffId: "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            shiftId: 0,
+                            timezone: dutyInfo.timezone,
+                            isNotRequired: false,
+                            isNotAvailable: false
+                        }
+                    ],
+                    timezone: dutyInfo.timezone
+                }
+            ];
+
+			const url = 'api/dutyroster';
+			this.$http.put(url, body )
+				.then(response => {
+					if(response.data){
+							// Update the duty bar with name;
+							// this.$emit('change');
+					}
+				}, err => {
+                    const errMsg = err.response.data.error;
+                    // add window to display issue 
+                    // define variables
+					// this.assignDutyErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+					// this.assignDutyErrorMsgDesc = errMsg;
+					// this.assignDutyError = true;
+				})
+        }
     }
 </script>
 

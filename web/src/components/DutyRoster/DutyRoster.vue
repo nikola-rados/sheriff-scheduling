@@ -189,6 +189,8 @@
                     availabilityInfo.firstName = shiftJson.sheriff.firstName;
                     availabilityInfo.lastName = shiftJson.sheriff.lastName;
                     availabilityInfo.rank = shiftJson.sheriff.rank;
+                    availabilityInfo.availability = [];
+                    availabilityInfo.duties = [];
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
             }

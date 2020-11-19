@@ -16,6 +16,8 @@ export interface myTeamShiftInfoType {
     firstName: string;
     lastName: string;
     rank: string;
+    availability: number[];
+    duties: number[];
 }
 
 export interface assignmentInfoType {
@@ -93,5 +95,26 @@ export interface attachedDutyInfoType {
 export interface assignmentCardTypeInfoType {
     colorCode: string;
     name: string;
+}
+
+export interface assignDutyInfoType {
+    id: number,
+    startDate: string,
+    endDate: string,
+    locationId: number,
+    assignmentId: number,
+    dutySlots: dutySlotInfoType[],
+    timezone: string,
+}
+
+export interface dutySlotInfoType {                        
+    startDate: string,
+    endDate: string,
+    dutyId: number,
+    sheriffId: string,
+    shiftId: number,
+    timezone: string,
+    isNotRequired: boolean,
+    isNotAvailable: boolean
 }
 
