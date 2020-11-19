@@ -36,8 +36,7 @@ namespace SS.Api.controllers
             if (sheriff == null) return NotFound(CouldNotFindSheriffError);
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriff.HomeLocationId)) return Forbid();
 
-            var userRole = Db.UserRole.AsNoTracking().Where(ur => ur.UserId == sheriffId);
-            var userRoleIds = Db.UserRole.Where(ur => ur.UserId == sheriffId).Select(ur => ur.Id);
+            var userRoleIds = Db.UserRole.AsNoTracking().Where(ur => ur.UserId == sheriffId).Select(ur => ur.Id);
             var roleHistory = Db.Audit.AsNoTracking().Where(e => e.TableName == "UserRole" &&
                                                   userRoleIds.Contains(e.KeyValues.RootElement.GetProperty("Id")
                                                       .GetInt32()))
