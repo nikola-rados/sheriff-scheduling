@@ -107,7 +107,7 @@
             <h4 >Are you sure you want to import shifts from the previous week?</h4>
             <template v-slot:modal-footer>
                 <b-button variant="success" @click="importShift()">Confirm</b-button>
-                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-import')">Cancel</b-button>
+                <b-button variant="primary" @click="confirmedCloseImportForm(false)">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-import')"
@@ -356,8 +356,8 @@
                     if(response.data){						
 						this.shiftsToEdit = response.data.filter(shift=>{if(this.selectedShifts.indexOf(shift.id) != -1) return true});						
 						for (const shift of this.shiftsToEdit) {							
-							startTimes.push(this.extractTime(shift.startDate));
-							endTimes.push(this.extractTime(shift.endDate));
+							startTimes.push(this.extractTime(shift.startDate, shift.timezone));
+							endTimes.push(this.extractTime(shift.endDate, shift.timezone));
 						}
 						
 						numberOfStartTimes = (new Set(startTimes)).size;
@@ -515,8 +515,8 @@
 			return value
 		}
 
-		public extractTime(dateTime: string) {
-			return moment(dateTime).format("HH:mm")
+		public extractTime(dateTime: string, timezone: string) {
+			return moment(dateTime).tz(timezone).format("HH:mm")
 		}
 
 		public closeShiftEditWindow(){
@@ -525,6 +525,19 @@
             else {
 				this.confirmedCloseForm();
 			}			
+		}
+
+		public confirmedCloseImportForm(refresh: boolean) {
+			this.confirmImport = false;
+			this.resetImportWindowState();
+			if (refresh) this.$emit('change');
+		}
+
+		public resetImportWindowState() {
+			this.importConflictMsg = [];
+			this.importErrorMsg = '';
+            this.importErrorMsgDesc = '';
+            this.importError = false;
 		}
 
 		public confirmedCloseForm() {
@@ -578,8 +591,7 @@
 			this.importConflictMsg = [];
             this.$http.post(url)
                 .then(response => {
-                    this.confirmImport = false;
-					this.$emit('change'); 
+					this.confirmedCloseImportForm(true);                     
 					if (response.data.conflictMessages.length> 0) {
 						for (const message of response.data.conflictMessages) {
 							this.importConflictMsg.push({ConflictFieldName: message});

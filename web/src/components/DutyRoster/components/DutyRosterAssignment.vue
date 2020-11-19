@@ -5,7 +5,7 @@
 				borderTop: '0px solid #BBBBBB',
 				borderBottom: getBorderBottom,
 				height:'2.925rem',
-				backgroundColor:'#EEEEEE',
+				backgroundColor: assignment.type.colorCode,
 				borderRadius:getBorderRadius,
 				margin:'0rem 0.1rem 0 0.1rem'}">
         </b-row>
@@ -13,19 +13,19 @@
 				borderTop: '1px solid #BBBBBB',
 				borderBottom: getBorderBottom,
 				height:'2.785rem',
-				backgroundColor:'#EEEEEE',
+				backgroundColor:assignment.type.colorCode,
 				borderRadius:getBorderRadius,
 				margin:'0.15rem 0.1rem 0 0.1rem'}" > 
-            <b-col cols="10" class="m-0 p-0" @click="editAssignment()">
+            <b-col cols="10" class="m-0 p-0 text-white" @click="editAssignment()">
                                    
                 <b-row                                  
                     style="text-transform: capitalize;" 
-                    class="h6 p-0 mt-2 mb-0 ml-1">
-                    <div 
+                    class="h6 p-0 mt-2 mb-0 ml-0">
+					<div 
                         v-b-tooltip.hover                            
-                        :title="assignment.name.length>10? assignment.name:''"> 
-                            {{assignment.name|truncate(10)}} 
-                    </div>
+                        :title="assignment.code.length>7? assignment.code:''"> 
+                        <div style="float:left">{{assignment.type.name}} </div> - {{assignment.code|truncate(7)}} 
+                    </div>                    
                 </b-row>
                 <b-row v-if="dutyError" >
 					<h6 class="ml-3 my-0 p-0"
@@ -38,20 +38,20 @@
 					/></b-badge></h6>
 				</b-row>     
                 <b-row v-else class="h7 p-0 m-0 ml-1">
-                    <div 
+					<div 
                         v-b-tooltip.hover                            
-                        :title="assignment.code.length>8? assignment.code:''"> 
-                        <div :style="{float:'left', color:assignment.type.colorCode}"> ({{assignment.type.name}}</div>-{{assignment.code|truncate(8)}}) 
-                    </div>
+                        :title="assignment.name.length>10? assignment.name:''"> 
+                            {{assignment.name|truncate(10)}} 
+                    </div>                    
                 </b-row>
             </b-col>
             <b-col cols="2" class="m-0 p-0"> 
                 <b-button
-                    :variant="assignment.type.name"
+                    class="bg-white"
                     style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0" 
                     @click="addDuty();"
                     size="sm"> 
-                        <b-icon-plus font-scale="1" style="transform:translate(0,-3px);"/></b-button>
+                        <b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
             </b-col>
         </b-row>
 
@@ -137,6 +137,7 @@
 							placeholder="Start Date*"
 							:state = "startDateState?null:false"
 							:date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+							@context="startDatePicked"
 							locale="en-US">
 						</b-form-datepicker>
 					</b-form-group>
@@ -150,6 +151,7 @@
 							placeholder="End Date*"
 							:state = "endDateState?null:false"                                    
 							:date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+							@context="endDatePicked"
 							locale="en-US">
 						</b-form-datepicker>
 					</b-form-group>
@@ -162,14 +164,16 @@
 							<b-form-checkbox
 								size="sm"
 								class="ml-auto mr-4 text-jail"									
-								v-model="weekDaysSelected"
+								v-model="weekDaysSelected"								
+                                :disabled="selectWeekDisabled"
 								@change="toggleWeekDays">
 									Select Week Days
 							</b-form-checkbox>    
 							<b-form-checkbox
 								size="sm"
 								class="ml-auto mr-4 text-court"									
-								v-model="allDaysSelected"
+								v-model="allDaysSelected"								
+                                :disabled="selectAllDisabled"
 								@change="toggleAllDays">
 									Select All
 							</b-form-checkbox>
@@ -182,6 +186,7 @@
 									@change="weekdaysChanged"									
 									:class="day.diff? 'ml-2 pl-3' :'ml-1 pl-4' +'align-middle'"
 									v-for="day in dayOptions"
+									:disabled="!day.enabled"
 									:key="day.diff"
 									:value="day.diff">
 										{{day.name}}
@@ -226,6 +231,12 @@
 			<template v-slot:modal-footer>
 				<b-button
 						size="sm"
+						variant="danger"
+						class="mr-auto"
+						@click="confirmDeleteAssignment()"
+				><b-icon-trash-fill style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-trash-fill>Delete</b-button>
+				<b-button
+						size="sm"
 						variant="secondary"
 						@click="closeEditAssignmentWindow()"
 				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
@@ -244,6 +255,36 @@
 					&times;</b-button>
 			</template>
 		</b-modal>
+
+		<b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Confirm Delete Assignment</h2>                    
+            </template>
+            <h4>Are you sure you want to delete the "{{assignmentToEdit.name}}" assignment?</h4>
+            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+                <b-form-select
+                    size = "sm"
+                    v-model="assignmentDeleteReason">
+                        <b-form-select-option value="OPERDEMAND">
+                            Cover Operational Demands
+                        </b-form-select-option>
+                        <b-form-select-option value="PERSONAL">
+                            Personal Decision
+                        </b-form-select-option>
+                        <b-form-select-option value="ENTRYERR">
+                            Entry Error
+                        </b-form-select-option>     
+                </b-form-select>
+            </b-form-group>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteAssignment()" :disabled="assignmentDeleteReason.length == 0">Confirm</b-button>
+                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="cancelDeletion()"
+                >&times;</b-button>
+            </template>
+        </b-modal> 
 
 		<b-modal v-model="showEditCancelWarning" id="bv-modal-edit-assignment-cancel-warning" header-class="bg-warning text-light">            
 			<template v-slot:modal-title>
@@ -276,13 +317,13 @@
 	const dutyState = namespace("DutyRosterInformation");
 	import * as _ from 'underscore';
     import { locationInfoType } from '../../../types/common';
-    import { assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType, myTeamShiftInfoType} from '../../../types/DutyRoster';
+    import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
 
     @Component
     export default class DutyRosterAssignment extends Vue {
 
         @Prop({required: true})
-        assignment!: any;
+        assignment!: assignmentCardInfoType;
 
         @commonState.State
         public location!: locationInfoType;
@@ -304,6 +345,8 @@
 		showEditAssignmentDetails = false;
 		showEditCancelWarning = false;
 		isAssignmentDataMounted = false;
+		confirmDelete = false;
+		assignmentDeleteReason = '';
 		initialLoad = false;
 		isSubTypeDataReady = false;
 		nonReoccuring = false;
@@ -320,13 +363,13 @@
 		weekDaysSelected = false;		
 
 		dayOptions = [
-			{name:'Sun', diff:0},
-			{name:'Mon', diff:1},
-			{name:'Tue', diff:2},
-			{name:'Wed', diff:3},
-			{name:'Thu', diff:4},
-			{name:'Fri', diff:5},
-			{name:'Sat', diff:6},
+			{name:'Sun', diff:0, enabled: true},
+			{name:'Mon', diff:1, enabled: true},
+			{name:'Tue', diff:2, enabled: true},
+			{name:'Wed', diff:3, enabled: true},
+			{name:'Thu', diff:4, enabled: true},
+			{name:'Fri', diff:5, enabled: true},
+			{name:'Sat', diff:6, enabled: true},
 		]
 
 		assignmentTypeOptions = [
@@ -345,21 +388,99 @@
 		assignmentToEdit = {} as assignmentInfoType;
 		originalAssignmentToEdit = {} as assignmentInfoType;
 
+		deleteErrorMsg = '';
+        deleteErrorMsgDesc = '';
+		deleteError = true;
+
         mounted()
         {
             //this.isDutyDataMounted = false;
-			//console.log(this.assignment)
+			// console.log(this.assignment)
+		}
+		
+		public confirmDeleteAssignment(){
+			this.deleteError = false;
+			this.confirmDelete = true;
+		}
+		
+		public cancelDeletion() {
+			this.confirmDelete = false;
+            this.assignmentDeleteReason = '';
         }
 
-        public editAssignment(){
-			console.log('edit')
-            console.log('edit')           
-			console.log('edit')
-			console.log(this.assignment);
+        public deleteAssignment(){
+			if (this.assignmentDeleteReason.length) {
+				this.confirmDelete = false;
+				this.deleteError = false;
+				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason;
+			
+				this.$http.delete(url)
+					.then(response => {
+						// console.log(response);
+						this.confirmDelete = false;
+						this.$emit('change');                    
+					}, err=>{
+						const errMsg = err.response.data.error;
+						console.log(err.response)
+						this.deleteErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+						this.deleteErrorMsgDesc = errMsg;
+						this.deleteError = true;
+					});
+					this.assignmentDeleteReason = '';
+			}
+			
+		}
+
+        public editAssignment(){			
 			this.isSubTypeDataReady = false;
+			this.enableAllDayOptions();
 			this.initialLoad = true; 
 			this.loadAssignmentDetails();					           
 		}
+
+		public startDatePicked(){            
+            if (this.selectedEndDate.length) {
+				this.disableOutOfRangeDays();
+			}
+		}
+
+		public endDatePicked(){            
+            if (this.selectedStartDate.length) {
+				this.disableOutOfRangeDays();
+			}
+		}
+
+		public disableOutOfRangeDays() {
+			const numberOfDaysInRange = moment(this.selectedEndDate).diff(moment(this.selectedStartDate), 'days');
+			if (numberOfDaysInRange < 7) {
+				const daysInRange: number[] = [];					
+
+				for (let i = 0; i <= numberOfDaysInRange; i++) {
+					const dayOfWeek = moment(this.selectedStartDate).add(i, 'days').day();
+					daysInRange.push(dayOfWeek)
+				}
+
+				for (let dayOfWeek = 0; dayOfWeek < this.dayOptions.length; dayOfWeek++) {
+					if (!daysInRange.includes(dayOfWeek)) {
+						this.dayOptions[dayOfWeek].enabled = false;
+					} else {
+						this.dayOptions[dayOfWeek].enabled = true;
+					}
+				}
+			}
+		}
+		
+		get selectAllDisabled(){
+            for(const day of this.dayOptions)
+                if(!day.enabled) return true;
+            return false;
+        }
+
+        get selectWeekDisabled(){
+            for(const day in this.dayOptions)
+                if(!this.dayOptions[day].enabled && this.dayOptions[day].diff !=0 && this.dayOptions[day].diff !=6) return true;
+            return false;
+        }
 		
 		public loadAssignmentDetails() {
 
@@ -372,16 +493,18 @@
 			this.originalAssignmentToEdit.timezone = this.assignmentToEdit.timezone = assignmentInfo.timezone;
 			if (assignmentInfo.adhocStartDate) {
 				this.nonReoccuring = true;
-				this.selectedStartDate = assignmentInfo.adhocStartDate;
-				this.selectedEndDate = assignmentInfo.adhocEndDate;
+				this.selectedStartDate = assignmentInfo.adhocStartDate? assignmentInfo.adhocStartDate: '';
+				this.selectedEndDate = assignmentInfo.adhocEndDate? assignmentInfo.adhocEndDate: '';
+				this.originalAssignmentToEdit.adhocStartDate = moment.tz(this.selectedStartDate, this.originalAssignmentToEdit.timezone).utc().format();
+				this.originalAssignmentToEdit.adhocEndDate = moment.tz(this.selectedEndDate, this.originalAssignmentToEdit.timezone).utc().format();
 			} else {
 				this.nonReoccuring = false;
 				this.selectedStartDate = '';
 				this.selectedEndDate = '';
+				this.originalAssignmentToEdit.adhocStartDate = null;
+				this.originalAssignmentToEdit.adhocEndDate = null;
 			}
-			this.originalAssignmentToEdit.reoccuring = !this.nonReoccuring;
-			this.originalAssignmentToEdit.adhocStartDate = moment.tz(this.selectedStartDate, this.originalAssignmentToEdit.timezone).utc().format();
-			this.originalAssignmentToEdit.adhocEndDate = moment.tz(this.selectedEndDate, this.originalAssignmentToEdit.timezone).utc().format();
+			this.originalAssignmentToEdit.reoccuring = !this.nonReoccuring;			
 			this.originalAssignmentToEdit.sunday = assignmentInfo.sunday;
 			this.originalAssignmentToEdit.monday = assignmentInfo.monday;
 			this.originalAssignmentToEdit.tuesday = assignmentInfo.tuesday;
@@ -424,8 +547,20 @@
 			this.selectedDays = checked ? [1,2,3,4,5] : [];
 		}
 
-		public toggleReoccurring(checked) {
-			this.nonReoccuring = true;
+		public toggleReoccurring(checked) {			
+			this.nonReoccuring = checked;
+			if (checked) {
+				this.selectedDays = [];				
+			} else {
+				if (this.originalAssignmentToEdit.sunday) this.selectedDays.push(0)
+				if (this.originalAssignmentToEdit.monday) this.selectedDays.push(1)
+				if (this.originalAssignmentToEdit.tuesday) this.selectedDays.push(2)
+				if (this.originalAssignmentToEdit.wednesday) this.selectedDays.push(3)
+				if (this.originalAssignmentToEdit.thursday) this.selectedDays.push(4)
+				if (this.originalAssignmentToEdit.friday) this.selectedDays.push(5)
+				if (this.originalAssignmentToEdit.saturday) this.selectedDays.push(6)
+				this.enableAllDayOptions();
+			}
 		}
 		
 		public loadSubTypes(type) {
@@ -458,12 +593,10 @@
 				this.isAssignmentDataMounted = true;
 				this.showEditAssignmentDetails = true;
 				this.initialLoad = false;
-			}		
-			
+			}
 		}
 
 		public saveAssignment() {
-			console.log('saving')
 			let requiredError = false;
 			if (!this.assignmentToEdit.name) {
 				this.nameState = false;
@@ -540,20 +673,8 @@
 		}
 		
 		public isChanged(){
-			//TODO: make changes for edit
 			this.readEditedAssignment();
-			console.log(this.assignmentToEdit)
-			console.log(this.originalAssignmentToEdit)
-
-			return !_.isEqual(this.originalAssignmentToEdit, this.assignmentToEdit)		
-		
-			
-
-			// if( this.assignment.name ||
-			// 	this.assignment.type ||
-			// 	this.selectedStartTime || this.selectedEndTime ||
-            //     this.nonReoccuring || this.selectedDays.length >0) return true;
-            // return false;           
+			return !_.isEqual(this.originalAssignmentToEdit, this.assignmentToEdit);
 		}
 
 		public closeEditAssignmentWindow(){
@@ -597,6 +718,13 @@
             this.assignmentErrorMsg = '';
 			this.assignmentErrorMsgDesc = '';
 			this.nonReoccuring = false;
+			this.enableAllDayOptions();
+		}
+
+		public enableAllDayOptions() {
+			for (let dayOfWeek = 0; dayOfWeek < this.dayOptions.length; dayOfWeek++) {
+				this.dayOptions[dayOfWeek].enabled = true;
+			}
 		}
 
 		public readEditedAssignment() {
@@ -627,29 +755,8 @@
 		public saveAssignmentChanges() {
 
 			this.readEditedAssignment();
-
-			// this.assignmentToEdit.sunday = this.selectedDays.includes(0)
-			// this.assignmentToEdit.monday = this.selectedDays.includes(1)
-			// this.assignmentToEdit.tuesday = this.selectedDays.includes(2)
-			// this.assignmentToEdit.wednesday = this.selectedDays.includes(3)
-			// this.assignmentToEdit.thursday = this.selectedDays.includes(4)
-			// this.assignmentToEdit.friday = this.selectedDays.includes(5)
-			// this.assignmentToEdit.saturday = this.selectedDays.includes(6);
-
-			// if (this.nonReoccuring) {
-			// 	this.assignmentToEdit.adhocStartDate = moment.tz(this.selectedStartDate, this.location.timezone).utc().format();
-			// 	this.assignmentToEdit.adhocEndDate = moment.tz(this.selectedEndDate, this.location.timezone).utc().format();
-			// } else {
-			// 	this.assignmentToEdit.adhocStartDate = null;
-			// 	this.assignmentToEdit.adhocEndDate = null;
-			// }
-
-			// this.assignmentToEdit.start = this.selectedStartTime;
-			// this.assignmentToEdit.end = this.selectedEndTime;	
-
 			const body = this.assignmentToEdit;
 
-			console.log(body)
 			const url = 'api/assignment';
 			this.$http.put(url, body )
 				.then(response => {
@@ -667,8 +774,6 @@
 
 
         public addDuty(){
-            console.log('add')
-            console.log(this.assignment)
             this.createDuty();
         }
 
@@ -686,7 +791,6 @@
                 concurrencyToken: 0
             }
 
-			console.log(body)
 			const url = 'api/dutyroster';
 			this.$http.post(url, body )
 				.then(response => {

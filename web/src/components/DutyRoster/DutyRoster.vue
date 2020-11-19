@@ -79,7 +79,7 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import { locationInfoType } from '../../types/common';
-    import { dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
+    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component({
@@ -115,9 +115,9 @@
         memberNotAvailable = {} as myTeamShiftInfoType;
         isDutyRosterDataMounted = false;
 
-        dutyRosterAssignments: any[] =[]
+        dutyRosterAssignments: assignmentCardInfoType[] = [];
 
-        dutyRostersJson
+        dutyRostersJson: attachedDutyInfoType[] = [];
 
         fields =[
             {key:'assignment', label:'Assignments', thClass:' m-0 px-2 py-0', tdClass:'p-0 m-0', thStyle:''},
@@ -128,7 +128,7 @@
             {name:'court' , colorCode:'#189fd4'},
             {name:'jail' ,  colorCode:'#A22BB9'},
             {name:'escort', colorCode:'#ffb007'},
-            {name:'other',  colorCode:'#c91a5d'}                       
+            {name:'other',  colorCode:'#0cc97e'}                       
         ]
 
         @Watch('location.id', { immediate: true })
@@ -224,8 +224,8 @@
             let sortOrder = 0;
             for(const assignment of assignments){
                 sortOrder++;
-                const dutyRostersForThisAssignment = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                console.log(dutyRostersForThisAssignment)
+                const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
+                //console.log(dutyRostersForThisAssignment)
                
                if(dutyRostersForThisAssignment.length>0){
                     for(const rosterInx in dutyRostersForThisAssignment){

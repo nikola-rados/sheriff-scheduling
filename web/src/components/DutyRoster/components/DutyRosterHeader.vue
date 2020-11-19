@@ -133,6 +133,7 @@
 							placeholder="End Date*"
 							:state = "endDateState?null:false"                                    
 							:date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+							@context="endDatePicked"
 							locale="en-US">
 						</b-form-datepicker>
 					</b-form-group>
@@ -145,14 +146,16 @@
 							<b-form-checkbox
 								size="sm"
 								class="ml-auto mr-4 text-jail"									
-								v-model="weekDaysSelected"
+								v-model="weekDaysSelected"								
+                                :disabled="selectWeekDisabled"
 								@change="toggleWeekDays">
 									Select Week Days
 							</b-form-checkbox>    
 							<b-form-checkbox
 								size="sm"
 								class="ml-auto mr-4 text-court"									
-								v-model="allDaysSelected"
+								v-model="allDaysSelected"								
+                                :disabled="selectAllDisabled"
 								@change="toggleAllDays">
 									Select All
 							</b-form-checkbox>
@@ -165,6 +168,7 @@
 									@change="weekdaysChanged"									
 									:class="day.diff? 'ml-2 pl-3' :'ml-1 pl-4' +'align-middle'"
 									v-for="day in dayOptions"
+									:disabled="!day.enabled"
 									:key="day.diff"
 									:value="day.diff">
 										{{day.name}}
@@ -302,13 +306,13 @@
 		weekDaysSelected = false;		
 
 		dayOptions = [
-			{name:'Sun', diff:0},
-			{name:'Mon', diff:1},
-			{name:'Tue', diff:2},
-			{name:'Wed', diff:3},
-			{name:'Thu', diff:4},
-			{name:'Fri', diff:5},
-			{name:'Sat', diff:6},
+			{name:'Sun', diff:0, enabled: true},
+			{name:'Mon', diff:1, enabled: true},
+			{name:'Tue', diff:2, enabled: true},
+			{name:'Wed', diff:3, enabled: true},
+			{name:'Thu', diff:4, enabled: true},
+			{name:'Fri', diff:5, enabled: true},
+			{name:'Sat', diff:6, enabled: true},
 		]
 
 		assignmentTypeOptions = [
@@ -349,19 +353,62 @@
 			this.selectedDays = checked ? [1,2,3,4,5] : [];
 		}
 
+		get selectAllDisabled(){
+            for(const day of this.dayOptions)
+                if(!day.enabled) return true;
+            return false;
+        }
+
+        get selectWeekDisabled(){
+            for(const day in this.dayOptions)
+                if(!this.dayOptions[day].enabled && this.dayOptions[day].diff !=0 && this.dayOptions[day].diff !=6) return true;
+            return false;
+        }
+
 		public toggleReoccurring(checked) {
-			this.nonReoccuring = true;
+			this.nonReoccuring = checked;
+			if (checked) {
+				this.selectedDays = [];				
+			} else {
+				this.enableAllDayOptions();
+			}
 		}
 
 		public startDatePicked(){
             this.startDateState = true;
             this.endDateState = true;
-            this.selectedEndDate = this.selectedStartDate;
-        }
+			this.selectedEndDate = this.selectedStartDate;			
+		}
+		
+		public endDatePicked(){            
+            if (this.selectedStartDate.length) {
+				this.disableOutOfRangeDays();
+			}
+		}
+		
+		public disableOutOfRangeDays() {
+			const numberOfDaysInRange = moment(this.selectedEndDate).diff(moment(this.selectedStartDate), 'days');
+			if (numberOfDaysInRange < 7) {
+				const daysInRange: number[] = [];					
+
+				for (let i = 0; i <= numberOfDaysInRange; i++) {
+					const dayOfWeek = moment(this.selectedStartDate).add(i, 'days').day();
+					daysInRange.push(dayOfWeek)
+				}
+
+				for (let dayOfWeek = 0; dayOfWeek < this.dayOptions.length; dayOfWeek++) {
+					if (!daysInRange.includes(dayOfWeek)) {
+						this.dayOptions[dayOfWeek].enabled = false;
+					} else {
+						this.dayOptions[dayOfWeek].enabled = true;
+					}
+				}
+			}
+		}
 
         public addAssignment(){
-			console.log('add assignment')
 			this.isSubTypeDataReady = false;
+			this.enableAllDayOptions();
 			this.isAssignmentDataMounted = true;
 			this.showAssignmentDetails = true;           
 		}
@@ -391,7 +438,6 @@
 		}
 
 		public saveAssignment() {
-			console.log('saving')
 			let requiredError = false;
 			if (!this.assignment.name) {
 				this.nameState = false;
@@ -515,6 +561,13 @@
             this.assignmentErrorMsg = '';
 			this.assignmentErrorMsgDesc = '';
 			this.nonReoccuring = false;
+			this.enableAllDayOptions();
+		}
+
+		public enableAllDayOptions() {
+			for (let dayOfWeek = 0; dayOfWeek < this.dayOptions.length; dayOfWeek++) {
+				this.dayOptions[dayOfWeek].enabled = true;
+			}
 		}
 
 
@@ -542,9 +595,7 @@
 			this.assignment.start = this.selectedStartTime;
 			this.assignment.end = this.selectedEndTime;	
 
-			const body = this.assignment;
-
-			console.log(body)
+			const body = this.assignment;	
 			const url = 'api/assignment';
 			this.$http.post(url, body )
 				.then(response => {

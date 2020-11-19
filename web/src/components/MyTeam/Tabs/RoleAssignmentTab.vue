@@ -98,10 +98,13 @@
     import moment from 'moment-timezone';
     import {roleOptionInfoType, teamMemberInfoType, userRoleInfoType} from '../../../types/MyTeam';
     import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation"); 
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
     import AddRoleForm from './AddForms/AddRoleForm.vue'
     import { userRoleJsonType } from '../../../types/MyTeam/jsonTypes';
+    import { locationInfoType } from '../../../types/common';
 
     @Component({
         components: {
@@ -111,7 +114,10 @@
     export default class RoleAssignmentTab extends Vue {
 
         @TeamMemberState.State
-        public userToEdit!: teamMemberInfoType;                
+        public userToEdit!: teamMemberInfoType;
+        
+        @commonState.State
+        public location!: locationInfoType;
 
         roleTabDataReady = false;       
 
@@ -189,12 +195,21 @@
 
         public populateRolesDropdown() {
             this.roles=[];
+            console.log(this.assignedRoles)
+            const today = moment().tz(this.location.timezone);
+            
             for(const role of this.rolesJson)
-            {
+            {                
                 const index = this.assignedRoles.findIndex(assignrole =>{if(assignrole.value == role.id) return true;else return false});
                 if(index < 0)
                 {             
                     this.roles.push({text:role.name, desc: role.description, value:role.id})           
+                } else {
+                    const expiryDate = this.assignedRoles[index].expiryDate;
+                     
+                    if (expiryDate.length && today.isAfter(moment(expiryDate).tz(this.location.timezone))) {
+                        this.roles.push({text:role.name, desc: role.description, value:role.id})
+                    }                   
                 }
             }
             this.roleTabDataReady = true;
