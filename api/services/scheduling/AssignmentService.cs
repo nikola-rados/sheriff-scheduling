@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 using SS.Api.helpers.extensions;
+using SS.Common.helpers.extensions;
 using SS.Db.models;
 using SS.Db.models.scheduling;
 
@@ -24,7 +26,7 @@ namespace SS.Api.services.scheduling
                 .Include(a => a.Location)
                 .Include(a => a.LookupCode)
                 .ThenInclude(lc => lc.SortOrder.Where(so => so.LocationId == locationId))
-                .Where(a => a.LocationId == locationId && a.ExpiryDate == null)
+                .Where(a => a.LocationId == locationId && (a.ExpiryDate == null || a.ExpiryDate > start))
                 .OrderBy(a => (int)a.LookupCode.Type)
                 .ThenBy(a => a.LookupCode.SortOrder.First().SortOrder)
                 .ThenBy(a => !a.LookupCode.SortOrder.Any())
@@ -66,11 +68,20 @@ namespace SS.Api.services.scheduling
 
         public async Task ExpireAssignment(int id, string expiryReason)
         {
-            //TODO remove duties?
-            //But still persist the assignment.
             var savedAssignment = await Db.Assignment.FindAsync(id);
             savedAssignment.ExpiryDate = DateTimeOffset.UtcNow;
             savedAssignment.ExpiryReason = expiryReason;
+
+            var convertedTime = DateTimeOffset.UtcNow.ConvertToTimezone(savedAssignment.Timezone);
+            var duties = await Db.Duty.Where(d => d.AssignmentId == savedAssignment.Id &&
+                                            d.StartDate >=
+                                            convertedTime.Date
+                                            )
+                .ToListAsync();
+
+            duties.ForEach(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            duties.SelectMany(d => d.DutySlots).ToList().ForEach(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+
             await Db.SaveChangesAsync();
         }
     }
