@@ -13,24 +13,15 @@
                 <b style="text-transform: capitalize; margin:  0 padding:0; color:white;">
                     {{block.title|truncate(block.endTime - block.startTime-1)}}
                 </b>     
-        </div>    
-        <!-- <div :style="{gridColumnStart: 6,gridColumnEnd:9, gridRow:'4/6', backgroundColor: 'blue' }"></div>     -->
+        </div>
     
-        <b-modal v-model="assignDutyError" size="lg" id="bv-modal-assign-duty-error" header-class="bg-primary text-light">
-			<!-- <b-table
-            :items="assignDutyErrorMsg"
-			:fields="importConflictFields"        
-            thead-class="d-none"
-            responsive="sm"
-            borderless 
-            small              
-            striped
-            >
-            </b-table> -->
+        <b-modal v-model="assignDutyError" size="lg" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
+            <b-row id="AssignDutyError" class="h4 mx-2 py-2">
+				<span class="p-0">{{assignDutyErrorMsg}}</span>
+            </b-row>
             <template v-slot:modal-title>
                 <h2 class="mb-0 text-light">Assign Duty Issues</h2>                   
-            </template>
-            
+            </template>            
             <template v-slot:modal-footer>
                 <b-button variant="primary" @click="$bvModal.hide('bv-modal-assign-duty-error')">Ok</b-button>
             </template>            
@@ -39,6 +30,32 @@
                 >&times;</b-button>
             </template>
         </b-modal>
+
+        <b-modal v-model="confirmAssignOverTimeDuty" id="bv-modal-confirm-assign-overtime" header-class="bg-warning text-light">
+			<b-row v-if="assignDutyError" id="AssignDutyError" class="h4 mx-2">
+				<b-badge class="mx-1 mt-2"
+					style="width: 20rem;"
+					v-b-tooltip.hover
+					:title="assignDutyErrorMsg"
+					variant="danger"> {{assignDutyErrorMsg | truncate(40)}}
+					<b-icon class="ml-3"
+						icon = x-square-fill
+						@click="assignDutyError = false"
+				/></b-badge>                    
+            </b-row>            
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Confirm Assign Overtime</h2>                   
+            </template>
+            <h4 >Are you sure you want to assign a duty that extends the team member's shift?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="confirmedAssignOverTimeDuty()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-assign-overtime')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-assign-overtime')"
+                >&times;</b-button>
+            </template>
+        </b-modal>  
 
 
     </div>
@@ -67,8 +84,13 @@
         dutyBlocks: any[]=[] 
 
         assignDutyError = false;
+        assignDutyErrorMsg = '';
 
         isMounted = false;
+
+        overTimeSheriffId = '';
+        overTimeTimeRangeDate = {startTime: '', endTime: ''}
+        confirmAssignOverTimeDuty = false;
 
         assignedArray: number[] = [];
         unassignedArray: number[][] = [];
@@ -135,7 +157,6 @@
                     }
 
                 
-                //console.log(this.dutyBlocks)
             }
 
             this.isMounted = true; 
@@ -206,37 +227,39 @@
                 // console.log(sheriff)
                 // console.log(unassignedArray)
                 // console.log(availability)
-                // console.log(duties)
-                
+                // console.log(duties)                
 
                 const unionUnassignAvail = this.unionArrays(unassignedArray, availability)
                 console.log(unionUnassignAvail)
-
                 
                 if(this.sumOfArrayElements(unionUnassignAvail)>0){
                     console.log('call assign')
                     const timeRangeBins = this.getArrayRangeBins(unionUnassignAvail);
                     const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
-                    // console.log(timeRangeBins)
                     this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime, timeRangeBins.binValue)
                     
                 }else{
                     const unionUnassignDuties = this.unionArrays(unassignedArray, duties)
                     if(this.sumOfArrayElements(unionUnassignDuties)>0){
                         console.log('overtime conflicts')
-                        // add window to display issue 
-                        // define variables
-                        // this.assignDutyErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                        // this.assignDutyErrorMsgDesc = errMsg;
-                        // this.assignDutyError = true;
+                        this.assignDutyErrorMsg = "This team member is already assigned to conflicting duties.";
+                        this.assignDutyError = true;
                     }else{
                         console.log('call assign overtime')
                         const timeRangeBins = this.getArrayRangeBins(unassignedArray);
-                        const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
-                        this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime, null)
+                        this.overTimeTimeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
+                        this.overTimeSheriffId = sheriffId;
+                        this.assignDutyError = false;
+                        this.assignDutyErrorMsg = '';
+                        this.confirmAssignOverTimeDuty = true;
                     }
                 }
             }
+        }
+
+        public confirmedAssignOverTimeDuty() {
+
+            this.assignDuty(this.overTimeSheriffId, this.overTimeTimeRangeDate.startTime, this.overTimeTimeRangeDate.endTime, null);
         }
 
         public unionArrays(arrayA, arrayB){
@@ -350,16 +373,13 @@
                 this.$http.put(url, body )
                     .then(response => {
                         if(response.data){
-                                // Update the duty bar with name;
+                            // Update the duty bar with name;
                             this.$emit('change');
                         }
                     }, err => {
                         const errMsg = err.response.data.error;
-                        // add window to display issue 
-                        // define variables
-                        // this.assignDutyErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-                        // this.assignDutyErrorMsgDesc = errMsg;
-                        // this.assignDutyError = true;
+                        this.assignDutyErrorMsg = errMsg;
+                        this.assignDutyError = true;
                     })
             }
         }
