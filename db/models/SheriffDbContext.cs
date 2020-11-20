@@ -76,7 +76,7 @@ namespace SS.Db.models
         {
             var auditEntries = OnBeforeSaveChanges();
             HandleSaveChanges();
-            var result=  await base.SaveChangesAsync(cancellationToken);
+            var result = await base.SaveChangesAsync(cancellationToken);
             await OnAfterSaveChanges(auditEntries);
             return result;
         }

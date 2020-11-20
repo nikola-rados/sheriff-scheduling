@@ -12,7 +12,6 @@ namespace SS.Api.models.dto.generated
         public int DutyId { get; set; }
         public SheriffDto Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
-        public ShiftDto Shift { get; set; }
         public int? ShiftId { get; set; }
         public LocationDto Location { get; set; }
         public int LocationId { get; set; }

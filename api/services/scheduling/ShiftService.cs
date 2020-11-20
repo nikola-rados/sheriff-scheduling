@@ -26,12 +26,13 @@ namespace SS.Api.services.scheduling
             SheriffService = sheriffService;
         }
 
-        public async Task<List<Shift>> GetShiftsForLocation(int locationId, DateTimeOffset start, DateTimeOffset end)
+        public async Task<List<Shift>> GetShiftsForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeDuties)
         {
             return await Db.Shift.AsSingleQuery().AsNoTracking()
                 .Include( s=> s.Location)
                 .Include(s => s.Sheriff)
                 .Include(s => s.AnticipatedAssignment)
+                .Include(d => d.DutySlots.Where(ds => includeDuties))
                 .Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
                             s.StartDate < end && start < s.EndDate)
                 .ToListAsync();
@@ -49,7 +50,6 @@ namespace SS.Api.services.scheduling
             {
                 if (shift.StartDate > shift.EndDate) throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
                 shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(shift.Timezone)} needs to be included in the {nameof(Shift)}.");
-                shift.Duties = null;
                 shift.ExpiryDate = null;
                 shift.Sheriff = await Db.Sheriff.FindAsync(shift.SheriffId);
                 shift.AnticipatedAssignment = await Db.Assignment.FindAsync(shift.AnticipatedAssignmentId);
@@ -304,12 +304,19 @@ namespace SS.Api.services.scheduling
         #endregion Availability
 
         #region String Helpers
-        private static string ConflictingSheriffAndSchedule(Sheriff sheriff, Shift shift)
-        => 
-                $"{sheriff.LastName}, {sheriff.FirstName} has a shift {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatDate()} {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatTime()} to {shift.EndDate.ConvertToTimezone(shift.Timezone).PrintFormatTime()}";
 
-        private static string PrintSheriffEventConflict<T>(Sheriff sheriff, DateTimeOffset start, DateTimeOffset end, string timezone)
-            => $"{sheriff.LastName}, {sheriff.FirstName} has {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} {start.ConvertToTimezone(timezone).PrintFormatDateTime()} to {end.ConvertToTimezone(timezone).PrintFormatDateTime()}";
+        private static string ConflictingSheriffAndSchedule(Sheriff sheriff, Shift shift)
+        {
+            shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull("Shift - Timezone was invalid.");
+            return $"{sheriff.LastName}, {sheriff.FirstName} has a shift {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatDate()} {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatTime()} to {shift.EndDate.ConvertToTimezone(shift.Timezone).PrintFormatTime()}";
+        }
+
+        private static string PrintSheriffEventConflict<T>(Sheriff sheriff, DateTimeOffset start, DateTimeOffset end,
+            string timezone)
+        {
+            timezone.GetTimezone().ThrowBusinessExceptionIfNull("SheriffEvent - Timezone was invalid.");
+            return $"{sheriff.LastName}, {sheriff.FirstName} has {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} {start.ConvertToTimezone(timezone).PrintFormatDateTime()} to {end.ConvertToTimezone(timezone).PrintFormatDateTime()}";
+        }
 
         #endregion String Helpers
 

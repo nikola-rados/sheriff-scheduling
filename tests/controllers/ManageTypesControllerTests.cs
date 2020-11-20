@@ -16,7 +16,7 @@ namespace tests.controllers
     /// <summary>
     /// I've created one test here, because the manage types are very similar in controller / service structure. 
     /// </summary>
-    public class ManageTypesControllerTests : WrapInTransactionScope
+    public class ManageTypesControllerTests : WrapTransactionScopeInMemory
     {
         #region Variables
         private readonly ManageTypesController _controller;

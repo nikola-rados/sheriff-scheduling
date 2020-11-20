@@ -21,7 +21,7 @@ namespace SS.Db.models.scheduling
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
         [ExcludeFromAddAndUpdateDto]
-        public ICollection<Duty> Duties { get; set; } = new List<Duty>();
+        public ICollection<DutySlot> DutySlots { get; set; } = new List<DutySlot>();
         [ExcludeFromAddAndUpdateDto]
         public Assignment AnticipatedAssignment { get; set; }
         public int? AnticipatedAssignmentId { get; set; }
