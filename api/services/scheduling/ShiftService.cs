@@ -287,7 +287,7 @@ namespace SS.Api.services.scheduling
                 var locationId = shift.LocationId;
                 var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, shift.StartDate, shift.EndDate, shift.SheriffId);
                 var sheriff = sheriffs.FirstOrDefault();
-                sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}, they might not be active in location for the shift.");
+                sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}:{shift.SheriffId}, they might not be active in location for the shift.");
                 var validationErrors = new List<string>();
                 validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId).Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
                 validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
