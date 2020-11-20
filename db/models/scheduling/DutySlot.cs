@@ -25,6 +25,7 @@ namespace SS.Db.models.scheduling
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
         [ExcludeFromAddAndUpdateDto]
+        [AdaptIgnore]
         public Shift Shift { get; set; }
         public int? ShiftId { get; set; }
         [ExcludeFromAddAndUpdateDto]
@@ -34,5 +35,6 @@ namespace SS.Db.models.scheduling
         public string Timezone { get; set; }
         public bool IsNotRequired { get; set; }
         public bool IsNotAvailable { get; set; }
+        public bool IsOvertime { get; set; }
     }
 }

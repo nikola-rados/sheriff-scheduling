@@ -11,6 +11,7 @@ namespace SS.Api.models.dto.generated
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string Timezone { get; set; }
+        public bool IsOvertime { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

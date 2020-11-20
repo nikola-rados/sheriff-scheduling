@@ -38,11 +38,11 @@ namespace SS.Api.controllers.scheduling
         [HttpGet]
         [PermissionClaimAuthorize(AuthorizeOperation.Or, Permission.ViewAllShifts, Permission.ViewMyShifts,
             Permission.ViewAllShiftsAtMyLocation)]
-        public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end)
+        public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeDuties = false)
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
-
-            var shifts = await ShiftService.GetShiftsForLocation(locationId, start, end);
+            if (!User.HasPermission(Permission.ViewDuties)) includeDuties = false;
+            var shifts = await ShiftService.GetShiftsForLocation(locationId, start, end, includeDuties);
             return Ok(shifts.Adapt<List<ShiftDto>>());
         }
 

@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -10,9 +11,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201120001011_ShiftTweakForDutySlots")]
+    partial class ShiftTweakForDutySlots
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,7 +181,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 1,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(3237), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(2237), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Allows the user to login.",
                             Name = "Login"
                         },
@@ -187,7 +189,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 2,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4536), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3188), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View their own profile",
                             Name = "ViewOwnProfile"
                         },
@@ -195,7 +197,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 3,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4578), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3221), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View profiles in their own location",
                             Name = "ViewProfilesInOwnLocation"
                         },
@@ -203,7 +205,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 4,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4580), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3222), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View profiles in all locations",
                             Name = "ViewProfilesInAllLocation"
                         },
@@ -211,7 +213,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 5,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4581), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3224), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Create Profile (User)",
                             Name = "CreateUsers"
                         },
@@ -219,7 +221,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 6,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4583), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3225), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Expire Profile (User)",
                             Name = "ExpireUsers"
                         },
@@ -227,7 +229,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 7,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4584), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3227), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Edit Profile (User)",
                             Name = "EditUsers"
                         },
@@ -235,7 +237,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 8,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4586), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3229), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View all Roles",
                             Name = "ViewRoles"
                         },
@@ -243,7 +245,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 9,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4587), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3230), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Create and Assign Roles",
                             Name = "CreateAndAssignRoles"
                         },
@@ -251,7 +253,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 10,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4589), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3232), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Expire Roles",
                             Name = "ExpireRoles"
                         },
@@ -259,7 +261,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 11,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4590), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3233), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Edit Roles",
                             Name = "EditRoles"
                         },
@@ -267,7 +269,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 12,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4592), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3235), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Manage Types",
                             Name = "ViewManageTypes"
                         },
@@ -275,7 +277,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 13,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4593), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3236), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Create Types",
                             Name = "CreateTypes"
                         },
@@ -283,7 +285,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 14,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4595), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3238), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Edit Types",
                             Name = "EditTypes"
                         },
@@ -291,7 +293,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 15,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4596), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3239), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Expire Types",
                             Name = "ExpireTypes"
                         },
@@ -299,7 +301,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 16,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4598), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3240), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View their own shifts",
                             Name = "ViewMyShifts"
                         },
@@ -307,7 +309,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 17,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4599), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3242), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Shifts at their location",
                             Name = "ViewAllShiftsAtMyLocation"
                         },
@@ -315,7 +317,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 18,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4601), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3243), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View all Shifts",
                             Name = "ViewAllShifts"
                         },
@@ -323,7 +325,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 19,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4602), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3245), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Create and Assign Shifts",
                             Name = "CreateAndAssignShifts"
                         },
@@ -331,7 +333,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 20,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4604), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3246), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Expire Shifts",
                             Name = "ExpireShifts"
                         },
@@ -339,7 +341,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 21,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4605), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3248), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Edit Shifts",
                             Name = "EditShifts"
                         },
@@ -347,7 +349,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 22,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4607), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3249), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Distribute Schedule",
                             Name = "ViewDistributeSchedule"
                         },
@@ -355,7 +357,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 23,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4608), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3251), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Assigned Location",
                             Name = "ViewAssignedLocation"
                         },
@@ -363,7 +365,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 24,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4610), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3252), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Region (all locations within region)",
                             Name = "ViewRegion"
                         },
@@ -371,7 +373,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 25,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4611), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3254), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Province (all regions, all locations)",
                             Name = "ViewProvince"
                         },
@@ -379,7 +381,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 26,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4612), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3255), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Expire Location",
                             Name = "ExpireLocation"
                         },
@@ -387,7 +389,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 27,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4614), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3257), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Home Location",
                             Name = "ViewHomeLocation"
                         },
@@ -395,7 +397,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 28,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4615), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3258), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Import Shifts",
                             Name = "ImportShifts"
                         },
@@ -403,7 +405,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 29,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4617), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3260), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Assignments",
                             Name = "ViewAssignments"
                         },
@@ -411,7 +413,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 30,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4618), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3261), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Create Assignments",
                             Name = "CreateAssignments"
                         },
@@ -419,7 +421,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 31,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4620), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3263), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Edit Assignments",
                             Name = "EditAssignments"
                         },
@@ -427,7 +429,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 32,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4621), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3264), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Expire Assignments",
                             Name = "ExpireAssignments"
                         },
@@ -435,7 +437,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 33,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4623), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3266), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Duties",
                             Name = "ViewDuties"
                         },
@@ -443,7 +445,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 34,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4624), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3267), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Create Duties",
                             Name = "CreateAndAssignDuties"
                         },
@@ -451,7 +453,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 35,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4626), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3300), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Edit Duties",
                             Name = "EditDuties"
                         },
@@ -459,7 +461,7 @@ namespace SS.Db.Migrations
                         {
                             Id = 36,
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 741, DateTimeKind.Unspecified).AddTicks(4627), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 796, DateTimeKind.Unspecified).AddTicks(3302), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Expire Duties",
                             Name = "ExpireDuties"
                         });
@@ -511,7 +513,7 @@ namespace SS.Db.Migrations
                             Id = 1,
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 743, DateTimeKind.Unspecified).AddTicks(8343), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 798, DateTimeKind.Unspecified).AddTicks(7227), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Administrator",
                             Name = "Administrator"
                         },
@@ -520,7 +522,7 @@ namespace SS.Db.Migrations
                             Id = 2,
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 743, DateTimeKind.Unspecified).AddTicks(9219), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 798, DateTimeKind.Unspecified).AddTicks(8131), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Manager",
                             Name = "Manager"
                         },
@@ -529,7 +531,7 @@ namespace SS.Db.Migrations
                             Id = 3,
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 743, DateTimeKind.Unspecified).AddTicks(9240), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 798, DateTimeKind.Unspecified).AddTicks(8156), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Sheriff",
                             Name = "Sheriff"
                         });
@@ -653,7 +655,7 @@ namespace SS.Db.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 753, DateTimeKind.Unspecified).AddTicks(113), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 808, DateTimeKind.Unspecified).AddTicks(437), new TimeSpan(0, 0, 0, 0, 0)),
                             FirstName = "SYSTEM",
                             IsEnabled = false,
                             LastName = "SYSTEM"
@@ -947,9 +949,6 @@ namespace SS.Db.Migrations
                     b.Property<bool>("IsNotRequired")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("IsOvertime")
-                        .HasColumnType("boolean");
-
                     b.Property<int>("LocationId")
                         .HasColumnType("integer");
 
@@ -1016,9 +1015,6 @@ namespace SS.Db.Migrations
 
                     b.Property<DateTimeOffset?>("ExpiryDate")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsOvertime")
-                        .HasColumnType("boolean");
 
                     b.Property<int>("LocationId")
                         .HasColumnType("integer");
@@ -1358,7 +1354,7 @@ namespace SS.Db.Migrations
                             Code = "Chief Sheriff",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(6235), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(4079), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Chief Sheriff",
                             Type = 7
                         },
@@ -1368,7 +1364,7 @@ namespace SS.Db.Migrations
                             Code = "Superintendent",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8804), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6827), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Superintendent",
                             Type = 7
                         },
@@ -1378,7 +1374,7 @@ namespace SS.Db.Migrations
                             Code = "Staff Inspector",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8856), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6873), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Staff Inspector",
                             Type = 7
                         },
@@ -1388,7 +1384,7 @@ namespace SS.Db.Migrations
                             Code = "Inspector",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8858), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6876), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Inspector",
                             Type = 7
                         },
@@ -1398,7 +1394,7 @@ namespace SS.Db.Migrations
                             Code = "Staff Sergeant",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8860), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6877), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Staff Sergeant",
                             Type = 7
                         },
@@ -1408,7 +1404,7 @@ namespace SS.Db.Migrations
                             Code = "Sergeant",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8862), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6879), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Sergeant",
                             Type = 7
                         },
@@ -1418,7 +1414,7 @@ namespace SS.Db.Migrations
                             Code = "Deputy Sheriff",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8864), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6881), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Deputy Sheriff",
                             Type = 7
                         },
@@ -1428,7 +1424,7 @@ namespace SS.Db.Migrations
                             Code = "CEW (Taser)",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8866), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6883), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "CEW (Taser)",
                             Type = 6
                         },
@@ -1438,7 +1434,7 @@ namespace SS.Db.Migrations
                             Code = "DNA",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8868), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6886), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "DNA",
                             Type = 6
                         },
@@ -1448,7 +1444,7 @@ namespace SS.Db.Migrations
                             Code = "FRO",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8869), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6887), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "FRO",
                             Type = 6
                         },
@@ -1458,7 +1454,7 @@ namespace SS.Db.Migrations
                             Code = "Fire Arm",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8871), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6889), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Fire Arm",
                             Type = 6
                         },
@@ -1468,7 +1464,7 @@ namespace SS.Db.Migrations
                             Code = "First Aid",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8873), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6891), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "First Aid",
                             Type = 6
                         },
@@ -1478,7 +1474,7 @@ namespace SS.Db.Migrations
                             Code = "Advanced Escort SPC (AESOC)",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8875), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6893), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Advanced Escort SPC (AESOC)",
                             Type = 6
                         },
@@ -1488,7 +1484,7 @@ namespace SS.Db.Migrations
                             Code = "Extenuating Circumstances SPC (EXSPC)",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8876), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6895), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Extenuating Circumstances SPC (EXSPC)",
                             Type = 6
                         },
@@ -1498,7 +1494,7 @@ namespace SS.Db.Migrations
                             Code = "Search Gate",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8878), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6896), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Search Gate",
                             Type = 6
                         },
@@ -1508,7 +1504,7 @@ namespace SS.Db.Migrations
                             Code = "Other",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8880), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6951), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Other",
                             Type = 6
                         },
@@ -1518,7 +1514,7 @@ namespace SS.Db.Migrations
                             Code = "STIP",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8882), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6953), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "STIP",
                             Type = 5
                         },
@@ -1528,7 +1524,7 @@ namespace SS.Db.Migrations
                             Code = "Annual",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8883), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6955), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Annual",
                             Type = 5
                         },
@@ -1538,7 +1534,7 @@ namespace SS.Db.Migrations
                             Code = "Illness",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8885), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6957), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Illness",
                             Type = 5
                         },
@@ -1548,7 +1544,7 @@ namespace SS.Db.Migrations
                             Code = "Special",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 46, 54, 737, DateTimeKind.Unspecified).AddTicks(8887), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 20, 0, 10, 10, 792, DateTimeKind.Unspecified).AddTicks(6958), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Special",
                             Type = 5
                         });

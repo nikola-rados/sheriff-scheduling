@@ -76,7 +76,7 @@ namespace SS.Db.models
         {
             var auditEntries = OnBeforeSaveChanges();
             HandleSaveChanges();
-            var result=  await base.SaveChangesAsync(cancellationToken);
+            var result = await base.SaveChangesAsync(cancellationToken);
             await OnAfterSaveChanges(auditEntries);
             return result;
         }
@@ -182,10 +182,10 @@ namespace SS.Db.models
             return SaveChangesAsync();
         }
 
-    /// <summary>
-    /// Save the entities with who created them or updated them.
-    /// </summary>
-    private void HandleSaveChanges()
+        /// <summary>
+        /// Save the entities with who created them or updated them.
+        /// </summary>
+        private void HandleSaveChanges()
         {
             var modifiedEntries = ChangeTracker.Entries()
                 .Where(x => (x.State == EntityState.Added || x.State == EntityState.Modified));
