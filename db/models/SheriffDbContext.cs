@@ -11,6 +11,8 @@ using ss.db.models;
 using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SS.Common.authorization;
 using SS.Db.models.audit;
 using SS.Db.models.audit.notmapped;
@@ -116,7 +118,7 @@ namespace SS.Db.models
                     string propertyName = property.Metadata.Name;
                     if (propertyName == "Photo")
                         continue;
-                    if (property.Metadata.IsPrimaryKey())
+                    if (IsKeyValue(property))
                     {
                         auditEntry.KeyValues[propertyName] = property.CurrentValue;
                         continue;
@@ -153,6 +155,13 @@ namespace SS.Db.models
             return auditEntries.Where(_ => _.HasTemporaryProperties).ToList();
         }
 
+        private bool IsKeyValue(PropertyEntry property)
+        {
+            if (property.Metadata.Name == "CreatedById" || property.Metadata.Name == "UpdatedById")
+                return false;
+            return property.Metadata.IsPrimaryKey() || property.Metadata.IsForeignKey();
+        }
+
         private Task OnAfterSaveChanges(List<AuditEntry> auditEntries)
         {
             if (auditEntries == null || auditEntries.Count == 0)
@@ -165,7 +174,7 @@ namespace SS.Db.models
                 {
                     if (prop.Metadata.Name == "Photo")
                         continue;
-                    if (prop.Metadata.IsPrimaryKey())
+                    if (IsKeyValue(prop))
                     {
                         auditEntry.KeyValues[prop.Metadata.Name] = prop.CurrentValue;
                     }

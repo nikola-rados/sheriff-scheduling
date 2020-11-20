@@ -6,6 +6,8 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.infrastructure.authorization;
+using SS.Api.models;
+using SS.Api.models.dto;
 using SS.Api.models.dto.generated;
 using SS.Api.services.usermanagement;
 using SS.Db.models;
@@ -36,12 +38,20 @@ namespace SS.Api.controllers
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriff.HomeLocationId)) return Forbid();
 
             var userRoleIds = Db.UserRole.AsNoTracking().Where(ur => ur.UserId == sheriffId).Select(ur => ur.Id);
-            var roleHistory = Db.Audit.AsNoTracking().Where(e => e.TableName == "UserRole" &&
+            var roleHistory = Db.Audit.AsNoTracking().Include(a => a.CreatedBy).Where(e => e.TableName == "UserRole" &&
                                                   userRoleIds.Contains(e.KeyValues.RootElement.GetProperty("Id")
                                                       .GetInt32()))
                 .ToList();
 
-            return Ok(roleHistory.Adapt<List<AuditDto>>());
+            //Have to select, because we have adapt ignore on these properties. 
+            return Ok(roleHistory.Select(s =>
+            {
+                var audit = s.Adapt<AuditDto>();
+                audit.CreatedBy = s.CreatedBy.Adapt<SheriffDto>();
+                audit.CreatedOn = s.CreatedOn;
+                audit.CreatedById = s.CreatedById;
+                return audit;
+            }));
         }
     }
 }

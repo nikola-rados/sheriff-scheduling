@@ -10,6 +10,7 @@ using SS.Db.models.auth;
 
 namespace SS.Api.controllers.scheduling
 {
+    [Route("api/[controller]")]
     public class DistributeScheduleController : ControllerBase
     {
         private DistributeScheduleService DistributeScheduleService { get; }
@@ -24,7 +25,6 @@ namespace SS.Api.controllers.scheduling
         }
 
         [HttpGet]
-        [Route("distributeSchedule")]
         [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
         public async Task<ActionResult<ShiftDto>> GetDistributeSchedule(DateTimeOffset start, DateTimeOffset end, int locationId, bool includeWorkSection)
         {

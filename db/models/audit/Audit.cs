@@ -8,7 +8,6 @@ using Newtonsoft.Json.Linq;
 
 namespace SS.Db.models.audit
 {
-    [AdaptTo("[name]Dto")]
     public class Audit : BaseEntity
     {
         [Key]
