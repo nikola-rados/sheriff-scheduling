@@ -107,7 +107,8 @@ export interface assignDutyInfoType {
     timezone: string,
 }
 
-export interface dutySlotInfoType {                        
+export interface dutySlotInfoType {
+    id: number|null,                        
     startDate: string,
     endDate: string,
     dutyId: number,
@@ -115,6 +116,7 @@ export interface dutySlotInfoType {
     shiftId: number|null,
     timezone: string,
     isNotRequired: boolean,
-    isNotAvailable: boolean
+    isNotAvailable: boolean,
+    isOvertime: boolean
 }
 
