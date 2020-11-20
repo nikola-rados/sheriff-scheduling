@@ -27,7 +27,8 @@ namespace tests.controllers
 
         public DutyRosterControllerTests() : base(false)
         {
-            _controller = new DutyRosterController(new DutyRosterService(Db), Db)
+            var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
+            _controller = new DutyRosterController(new DutyRosterService(Db, environment.Configuration), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };

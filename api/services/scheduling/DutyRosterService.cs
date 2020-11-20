@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using SS.Api.helpers;
 using SS.Api.infrastructure.exceptions;
 using SS.Common.helpers.extensions;
 using SS.Db.models.sheriff;
@@ -15,9 +17,11 @@ namespace SS.Api.services.scheduling
     public class DutyRosterService
     {
         private SheriffDbContext Db { get; }
-        public DutyRosterService(SheriffDbContext db)
+        public double OvertimeHours { get; }
+        public DutyRosterService(SheriffDbContext db, IConfiguration configuration)
         {
             Db = db;
+            OvertimeHours = double.Parse(configuration.GetNonEmptyValue("OvertimeHours"));
         }
 
         public async Task<List<Duty>> GetDutiesForLocation(int locationId, DateTimeOffset start, DateTimeOffset end) =>
@@ -66,6 +70,9 @@ namespace SS.Api.services.scheduling
                 .Include(d => d.DutySlots)
                 .Where(s => dutyIds.Contains(s.Id) && s.ExpiryDate == null);
 
+
+            var shiftIds = duties.SelectMany(d => d.DutySlots).SelectDistinctToList(ds => ds.ShiftId);
+            var shifts = Db.Shift.Where(s => shiftIds.Contains(s.Id));
             foreach (var duty in duties)
             {
                 var savedDuty = await savedDuties.FirstOrDefaultAsync(s => s.Id == duty.Id);
@@ -86,9 +93,30 @@ namespace SS.Api.services.scheduling
                     dutySlot.Sheriff = null;
                     dutySlot.Shift = null;
                     dutySlot.Location = null;
-                    if (savedDutySlot == null) 
+                    dutySlot.IsOvertime = false;
+
+                    var shift = shifts.FirstOrDefault(s => s.Id == dutySlot.ShiftId && s.ExpiryDate == null);
+                    if (shift != null)
+                    {
+                        if (shift.StartDate > dutySlot.StartDate)
+                        {
+                            shift.StartDate = dutySlot.StartDate;
+                            shift.IsOvertime = ShiftService.IsShiftOvertime(shift.StartDate, shift.EndDate,
+                                shift.Timezone, OvertimeHours);
+                            dutySlot.IsOvertime = shift.IsOvertime;
+                        }
+                        if (shift.EndDate < dutySlot.EndDate)
+                        {
+                            shift.EndDate = dutySlot.EndDate;
+                            shift.IsOvertime = ShiftService.IsShiftOvertime(shift.StartDate, shift.EndDate,
+                                shift.Timezone, OvertimeHours);
+                            dutySlot.IsOvertime = shift.IsOvertime;
+                        }
+                    }
+
+                    if (savedDutySlot == null)
                         await Db.DutySlot.AddAsync(dutySlot);
-                    else 
+                    else
                         Db.Entry(savedDutySlot).CurrentValues.SetValues(dutySlot);
                 }
                 Db.RemoveRange(savedDuty.DutySlots.Where(ds => duty.DutySlots.All(d => d.Id != ds.Id)));

@@ -21,7 +21,7 @@ namespace SS.Db.models.scheduling
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
         [ExcludeFromAddAndUpdateDto]
-        public ICollection<Duty> Duties { get; set; } = new List<Duty>();
+        public ICollection<DutySlot> DutySlots { get; set; } = new List<DutySlot>();
         [ExcludeFromAddAndUpdateDto]
         public Assignment AnticipatedAssignment { get; set; }
         public int? AnticipatedAssignmentId { get; set; }
@@ -30,5 +30,6 @@ namespace SS.Db.models.scheduling
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string Timezone { get; set; }
+        public bool IsOvertime { get; set; }
     }
 }
