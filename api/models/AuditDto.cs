@@ -1,4 +1,8 @@
-namespace SS.Api.models.dto.generated
+using System;
+using SS.Api.models.dto.generated;
+using SS.Db.models.auth;
+
+namespace SS.Api.models.dto
 {
     public partial class AuditDto
     {
@@ -8,5 +12,8 @@ namespace SS.Api.models.dto.generated
         public dynamic OldValuesJson { get; set; }
         public dynamic NewValuesJson { get; set; }
         public uint ConcurrencyToken { get; set; }
+        public Guid? CreatedById { get; set; }
+        public SheriffDto CreatedBy { get; set; }
+        public DateTimeOffset CreatedOn { get; set; }
     }
 }
