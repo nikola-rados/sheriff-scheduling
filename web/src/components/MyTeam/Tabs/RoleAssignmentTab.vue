@@ -6,7 +6,7 @@
                 <h2 v-if="roleError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="roleErrorMsgDesc"  variant="danger"> {{roleErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="roleError = false" /></b-badge></h2>
             </b-card>
             <b-card  v-if="!addNewRoleForm">                
-                <b-button size="sm" variant="success" :disabled="roles.length==0" @click="addNewRole"> <b-icon icon="plus" /> Add </b-button>
+                <b-button v-if="allowChanges" size="sm" variant="success" :disabled="roles.length==0" @click="addNewRole"> <b-icon icon="plus" /> Add </b-button>
             </b-card>
 
             <b-card v-if="addNewRoleForm" id="addRoleForm" class="my-3" :border-variant="addFormColor" style="border:2px solid" body-class="m-0 px-0 py-1">
@@ -20,7 +20,7 @@
 
                 <b-card v-else no-body border-variant="light" bg-variant="white">
                     <b-table
-                        :items="assignedRoles"
+                        :items="filteredAssignedRoles"
                         :fields="roleFields"
                         :key="refreshTable"
                         head-row-variant="primary"
@@ -29,7 +29,22 @@
                         small
                         sort-by="effectiveDate"
                         responsive="sm"
-                        >  
+                        >
+                            <template v-slot:head(editRole)>
+                                <b-form-group style="margin: 0; padding: 0; width: 7.30rem;"> 
+                                    <b-form-select
+                                        size = "sm"
+                                        v-model="selectedRoleView">
+                                            <b-form-select-option value="active">
+                                                Active Roles
+                                            </b-form-select-option>
+                                            <b-form-select-option value="history">
+                                                History
+                                            </b-form-select-option>     
+                                    </b-form-select>
+                                </b-form-group>
+                            </template>  
+
                             <template v-slot:cell(effectiveDate)="data" >
                                 <span>{{data.value | beautify-date}}</span> 
                             </template>
@@ -42,13 +57,22 @@
                                                 size="sm"
                                                 v-b-tooltip.hover
                                                 title="Expire" 
-                                                variant="warning" 
+                                                variant="warning"
+                                                v-if="allowChanges" 
                                                 @click="confirmDeleteRole(data.item)">
                                                 <b-icon icon="clock" 
                                                         font-scale="1.25" 
                                                         variant="white"/>
                                 </b-button></span>
-                                <span><b-button class="my-0 py-0" size="sm" variant="transparent" @click="editRole(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button></span> 
+                                <span><b-button class="my-0 py-0" 
+                                                size="sm" 
+                                                variant="transparent"
+                                                v-if="allowChanges" 
+                                                @click="editRole(data)">
+                                                <b-icon icon="pencil-square" 
+                                                        font-scale="1.25" 
+                                                        variant="primary"/>
+                                </b-button></span> 
                             </template>
 
                             <template v-slot:row-details="data">
@@ -103,7 +127,7 @@
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
     import AddRoleForm from './AddForms/AddRoleForm.vue'
-    import { userRoleJsonType } from '../../../types/MyTeam/jsonTypes';
+    import { userRoleHistoryJsonType, userRoleJsonType } from '../../../types/MyTeam/jsonTypes';
     import { locationInfoType } from '../../../types/common';
 
     @Component({
@@ -127,10 +151,12 @@
         roleAssignError = false;
 
         rolesJson;
+        historicRolesJson;
         addNewRoleForm = false;
         addFormColor = 'secondary';
         latestEditData;
         isEditOpen = false;
+        allowChanges = true;
 
         roleError = false;
         roleErrorMsg = '';
@@ -140,7 +166,9 @@
         confirmDelete = false;
         roleToDelete = {} as userRoleInfoType;
         assignedRoles: userRoleInfoType[] = [];
+        historicAssignedRoles: userRoleInfoType[] = [];
         roleDeleteReason = '';
+        selectedRoleView = 'active';
 
         timezone = 'UTC';
 
@@ -156,6 +184,7 @@
         {
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.roleTabDataReady = false;
+            this.allowChanges = true;
             this.loadRoles();
         }
    
@@ -212,7 +241,55 @@
                     }                   
                 }
             }
+            this.loadHistoricRoles();            
+        }
+
+        public loadHistoricRoles(){
+            const url = '/api/audit/rolehistory?sheriffId='+ this.userToEdit.id;
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.historicRolesJson = response.data
+                        this.extractHistoricRoles();                        
+                    }                                   
+                })
+        }
+
+        public extractHistoricRoles(){
+           
+            this.historicAssignedRoles = [];
+            // console.log(this.historicRolesJson)
+            // console.log(this.rolesJson)
+
+            if (this.historicRolesJson && this.historicRolesJson.length>0) {
+                let userRole: userRoleHistoryJsonType;
+                for(userRole of this.historicRolesJson) 
+                {
+                    if (userRole.oldValuesJson.ExpiryDate && userRole.keyValuesJson.RoleId) {
+                        const roleId = userRole.keyValuesJson.RoleId;
+                        const role = this.rolesJson.filter(role =>{if(role.id == roleId ) return true})[0]
+                        // console.log(role)                   
+                        this.historicAssignedRoles.push({
+                            text:role.name, 
+                            desc: role.description, 
+                            value:roleId.toString(), 
+                            effectiveDate:userRole.oldValuesJson.EffectiveDate? moment(userRole.oldValuesJson.effectiveDate).tz(this.timezone).format():'', 
+                            expiryDate:userRole.oldValuesJson.ExpiryDate?moment(userRole.oldValuesJson.expiryDate).tz(this.timezone).format():''
+                        })
+                    }                     
+                }
+            }            
             this.roleTabDataReady = true;
+        }
+
+        get filteredAssignedRoles(){
+            if (this.selectedRoleView == 'active') {
+                this.allowChanges = true;
+                return this.assignedRoles;
+            } else {
+                this.allowChanges = false;
+                return this.historicAssignedRoles;
+            }
         }
         
         public addNewRole(){

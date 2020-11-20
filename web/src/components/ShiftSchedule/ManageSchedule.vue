@@ -17,7 +17,7 @@
                             <col style="width:8.5rem;">                            
                         </template>
                         <template v-slot:head() = "data" >
-                            <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
+                            <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
                         </template>
                         <template v-slot:head(myteam) = "data" >  
                             <span>{{data.label}}</span>

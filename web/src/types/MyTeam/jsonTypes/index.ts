@@ -1,3 +1,4 @@
+import { any } from 'underscore';
 import {} from '../../common';
 
 export interface teamMemberJsonType {
@@ -53,6 +54,23 @@ export interface userRoleJsonType {
     };
     effectiveDate: string;
     expiryDate: string;  
+}
+
+export interface userRoleHistoryJsonType {
+  id: number,
+  tableName: string,
+  concurrencyToken: number,
+  createdById: string,
+  createdBy: teamMemberJsonType,
+  createdOn: string,
+  keyValuesJson: {
+    Id: number
+    RoleId: number
+    UserId: string
+  }
+  newValuesJson: any,
+  oldValuesJson: any
+
 }
 
 export interface rolePermissionsJsonType {
