@@ -30,5 +30,6 @@ namespace SS.Db.models.scheduling
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string Timezone { get; set; }
+        public bool IsOvertime { get; set; }
     }
 }

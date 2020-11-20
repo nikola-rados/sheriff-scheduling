@@ -35,5 +35,6 @@ namespace SS.Db.models.scheduling
         public string Timezone { get; set; }
         public bool IsNotRequired { get; set; }
         public bool IsNotAvailable { get; set; }
+        public bool IsOvertime { get; set; }
     }
 }

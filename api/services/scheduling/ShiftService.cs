@@ -5,14 +5,17 @@ using SS.Api.Models.DB;
 using SS.Api.services.usermanagement;
 using SS.Common.helpers.extensions;
 using SS.Db.models;
-using SS.Db.models.scheduling;
 using SS.Db.models.scheduling.notmapped;
 using SS.Db.models.sheriff;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+using SS.Api.helpers;
 using SS.Api.models;
+using SS.Db.Migrations;
+using Shift = SS.Db.models.scheduling.Shift;
 
 namespace SS.Api.services.scheduling
 {
@@ -20,10 +23,12 @@ namespace SS.Api.services.scheduling
     {
         private SheriffDbContext Db { get; }
         private SheriffService SheriffService { get; }
-        public ShiftService(SheriffDbContext db, SheriffService sheriffService)
+        public double OvertimeHours { get; }
+        public ShiftService(SheriffDbContext db, SheriffService sheriffService, IConfiguration configuration)
         {
             Db = db;
             SheriffService = sheriffService;
+            OvertimeHours = double.Parse(configuration.GetNonEmptyValue("OvertimeHours"));
         }
 
         public async Task<List<Shift>> GetShiftsForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeDuties)
@@ -54,6 +59,7 @@ namespace SS.Api.services.scheduling
                 shift.Sheriff = await Db.Sheriff.FindAsync(shift.SheriffId);
                 shift.AnticipatedAssignment = await Db.Assignment.FindAsync(shift.AnticipatedAssignmentId);
                 shift.Location = await Db.Location.FindAsync(shift.LocationId);
+                shift.IsOvertime = IsShiftOvertime(shift.StartDate, shift.EndDate, shift.Timezone, OvertimeHours);
                 await Db.Shift.AddAsync(shift);
             }
             await Db.SaveChangesAsync();
@@ -75,6 +81,7 @@ namespace SS.Api.services.scheduling
                 if (shift.StartDate > shift.EndDate) throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
                 shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(shift.Timezone)} needs to be included in the {nameof(Shift)}.");
 
+                shift.IsOvertime = IsShiftOvertime(shift.StartDate, shift.EndDate, shift.Timezone, OvertimeHours);
                 Db.Entry(savedShift!).CurrentValues.SetValues(shift);
                 Db.Entry(savedShift).Property(x => x.LocationId).IsModified = false;
                 Db.Entry(savedShift).Property(x => x.ExpiryDate).IsModified = false;
@@ -210,6 +217,11 @@ namespace SS.Api.services.scheduling
         }
 
         #region Helpers
+
+        public static bool IsShiftOvertime(DateTimeOffset start, DateTimeOffset end, string timezone, double overtimeHours)
+        {
+            return start.HourDifference(end, timezone) > overtimeHours;
+        }
 
         #region Availability
 
