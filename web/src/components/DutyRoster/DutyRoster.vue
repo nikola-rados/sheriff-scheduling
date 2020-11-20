@@ -3,7 +3,7 @@
 
         <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
-                <duty-roster-header v-on:change="getShifts()"  />
+                <duty-roster-header v-on:change="getDutyRosters()"  />
                 <loading-spinner v-if="!isDutyRosterDataMounted" />
                 <b-table 
                     v-else              
@@ -19,7 +19,7 @@
                         </template>
                        
                         <template v-slot:cell(assignment) ="data"  >
-                            <duty-roster-assignment v-on:change="getShifts()" :assignment="data.item"/>
+                            <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item"/>
                         </template>
 
                         <template v-slot:head(h0) >
@@ -29,7 +29,7 @@
                         </template>
 
                         <template v-slot:cell(h0)="data" >
-                            <duty-card :dutyRosterInfo="data.item"/>
+                            <duty-card v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/>
                         </template>
                 </b-table>                
                 <b-card><br></b-card>  
@@ -129,14 +129,14 @@
             {name:'court',      colorCode:'#189fd4'},
             {name:'jail' ,      colorCode:'#A22BB9'},
             {name:'escort',     colorCode:'#ffb007'},
-            {name:'other',      colorCode:'#0cc97e'}                       
+            {name:'other',      colorCode:'#7a4528'}                       
         ]
 
         @Watch('location.id', { immediate: true })
         locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                this.getShifts();                                
+                this.getDutyRosters();                                
             }            
         } 
 
@@ -152,22 +152,50 @@
             return( hour>9? hour+':00': '0'+hour+':00')
         }
 
+        public getDutyRosters(){
+            const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.dutyRostersJson = response.data; 
+                        console.log(response.data)
+                        this.getShifts();                                            
+                    }                                   
+                })      
+        }
+
         public getShifts(){
 
             this.isDutyRosterDataMounted = false;
-            const url = 'api/shift?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
+            const url = 'api/shift?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate +'&includeDuties=true';
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
                         console.log(response.data)                        
                         this.extractTeamShiftInfo(response.data);
-                        this.getDutyRosters();                                               
+                        this.getAssignments();                                               
+                    }                                   
+                })      
+        }
+
+        public getAssignments(){
+            const url = 'api/assignment?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)                        
+                        this.extractAssignmentsInfo(response.data);                                               
                     }                                   
                 })      
         }
 
         public extractTeamShiftInfo(shiftsJson){
             this.UpdateShiftAvailabilityInfo([]);
+            const allDutySlots: any[] = []
+            for(const dutyRoster of this.dutyRostersJson){
+                allDutySlots.push(...dutyRoster.dutySlots)
+            }
+            //console.log(allDutySlots)
             for(const shiftJson of shiftsJson)
             {
                 //console.log(shiftJson)
@@ -181,10 +209,12 @@
                 shiftInfo.locationId = shiftJson.locationId;
                 const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, this.location.timezone);
 
+                const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId)return true})
                 let duties = Array(96).fill(0)
-                for(const duty of shiftJson.duties){
-                   const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
-                   duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
+                for(const duty of dutySlots){
+                    //console.log(duty)
+                    const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
+                    duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
                 }
 
                 const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
@@ -206,29 +236,6 @@
                 }
             }
             this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
-        }
-
-        public getDutyRosters(){
-            const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        this.dutyRostersJson = response.data; 
-                        console.log(response.data)
-                        this.getAssignments()                                                                       
-                    }                                   
-                })      
-        }
-
-        public getAssignments(){
-            const url = 'api/assignment?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
-                        this.extractAssignmentsInfo(response.data);                                               
-                    }                                   
-                })      
         }
 
         public extractAssignmentsInfo(assignments){

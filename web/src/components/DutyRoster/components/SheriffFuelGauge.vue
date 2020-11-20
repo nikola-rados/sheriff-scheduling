@@ -41,6 +41,9 @@
 
                          <template v-slot:cell(name)="data" >
                             <div
+                                :id="'gauge--'+data.item.sheriff.sheriffId"
+                                :draggable="true" 
+                                v-on:dragstart="DragStart"
                                 style="height:1rem; font-size:9px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
                                 v-b-tooltip.hover.right                             
                                 :title="data.item.fullName">
@@ -118,15 +121,15 @@
             {name:'court' , colorCode:'#189fd4'},
             {name:'jail' ,  colorCode:'#A22BB9'},
             {name:'escort', colorCode:'#ffb007'},
-            {name:'other',  colorCode:'#0cc97e'},
-            {name:'overtime',colorCode:'#c91a5d'},
+            {name:'other',  colorCode:'#7a4528'},
+            {name:'overtime',colorCode:'#e85a0e'},
             {name:'free',   colorCode:'#e6d9e2'}            
         ]
             
         public extractSheriffAvailability(){
             this.myTeamMembers = [];
             for(const sheriff of this.shiftAvailabilityInfo){
-                console.log(sheriff)
+                //console.log(sheriff)
                 this.myTeamMembers.push({                     
                     name: Vue.filter('truncate')(sheriff.lastName,10) + ', '+ sheriff.firstName.charAt(0).toUpperCase(),
                     fullName: sheriff.firstName + ' ' + sheriff.lastName,
@@ -152,8 +155,13 @@
                 const end = moment(shift.endDate);
                 freeTime += moment.duration(end.diff(start)).asMinutes()
             }
-            console.log(freeTime)
+            //console.log(freeTime)
             return freeTime;
+        }
+
+        public DragStart(event: any) 
+        { 
+            event.dataTransfer.setData('text', event.target.id);
         }
 
     }

@@ -4,14 +4,15 @@
         <div
             v-for="block in dutyBlocks" 
             :key="block.id"
+            :id="block.id"
             :style="{gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
             v-b-tooltip.hover                            
             :title="block.title" 
             @dragover.prevent
             @drop.prevent="drop" >
-                <div style="text-transform: capitalize; margin:  0 padding:0; color:white;">
+                <b style="text-transform: capitalize; margin:  0 padding:0; color:white;">
                     {{block.title|truncate(block.endTime - block.startTime-1)}}
-                </div>     
+                </b>     
         </div>    
         <!-- <div :style="{gridColumnStart: 6,gridColumnEnd:9, gridRow:'4/6', backgroundColor: 'blue' }"></div>     -->
     
@@ -65,101 +66,175 @@
 
         dutyBlocks: any[]=[] 
 
-        blockDrop = false;
-        updateBoxes =0;
-
         assignDutyError = false;
 
         isMounted = false;
 
         assignedArray: number[] = [];
-        unassignedArray: number[] = [];
+        unassignedArray: number[][] = [];
         dutyDate ='';
 
         mounted()
         {
             console.log(this.dutyRosterInfo)
             this.isMounted = false;
-            this.dutyBlocks = []
+            this.dutyBlocks = [];
+            this.extractDuty();
+        }
 
+        public extractDuty(){
             if(this.dutyRosterInfo.attachedDuty){
+                const dutyInfo = this.dutyRosterInfo.attachedDuty;
 
-                const dutyStartTime = moment(this.dutyRosterInfo.attachedDuty.startDate).tz(this.dutyRosterInfo.attachedDuty.timezone);
-                const dutyEndTime = moment(this.dutyRosterInfo.attachedDuty.endDate).tz(this.dutyRosterInfo.attachedDuty.timezone);
+                const dutyStartTime = moment(dutyInfo.startDate).tz(dutyInfo.timezone);
                 const startOfDay = moment(dutyStartTime).startOf("day");
-                const dutyStartBin = moment.duration(dutyStartTime.diff(startOfDay)).asMinutes()/15;
-                const dutyEndBin = moment.duration(dutyEndTime.diff(startOfDay)).asMinutes()/15;
-
                 this.dutyDate = startOfDay.format();
 
-                this.unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyStartBin, dutyEndBin); 
-                // console.log(dutyStart)
-                this.dutyBlocks.push({
-                    id:this.dutyRosterInfo.attachedDuty.id,                    
-                    startTime: 1+ dutyStartBin,
-                    endTime: 1+ dutyEndBin,                    
-                    color: this.dutyRosterInfo.type.colorCode,
-                    height: '2/6',
-                    title: ''
-                })
+                const dutyBin = this.getTimeRangeBins(dutyInfo.startDate, dutyInfo.endDate,startOfDay, dutyInfo.timezone);
+                let unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyBin.startBin, dutyBin.endBin); 
+                              
+                for(const dutySlot of dutyInfo.dutySlots){
+                    //console.log(dutySlot)
+                    let id = 1000;
+                    const assignedDutyBin = this.getTimeRangeBins(dutySlot.startDate, dutySlot.endDate,startOfDay, dutySlot.timezone)
+                    unassignedArray = this.fillInArray(unassignedArray,0,assignedDutyBin.startBin, assignedDutyBin.endBin);
+                    const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==dutySlot.sheriffId)return true})[0];
+                    const isOvertime = this.getOverTime(dutySlot.shiftId, dutySlot.isNotAvailable, dutySlot.isNotRequired, dutySlot.isOvertime);                    
+                    this.dutyBlocks.push({
+                        id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'n'+id++,                    
+                        startTime: 1+ assignedDutyBin.startBin,
+                        endTime: 1+ assignedDutyBin.endBin,                    
+                        color: this.getDutyColor(this.dutyRosterInfo.type.colorCode,dutySlot.isNotAvailable,dutySlot.isNotRequired, isOvertime),
+                        height: '2/6',
+                        title: this.getTitle(sheriff,dutySlot.isNotAvailable,dutySlot.isNotRequired)
+                    })                
+                }
+
+                this.extractUnassignedArrays(unassignedArray);
+
+                for(const unassignInx in this.unassignedArray){
+                    //console.log(unassignInx)
+                    //console.log(this.unassignedArray[unassignInx])
+                    const unassignedBin = this.getArrayRangeBins(this.unassignedArray[unassignInx]);
+                    this.dutyBlocks.push({
+                        id:'dutySlot'+dutyInfo.id+'n'+unassignInx,                    
+                        startTime: 1+ unassignedBin.startBin,
+                        endTime: 1+ unassignedBin.endBin,                    
+                        color: this.dutyRosterInfo.type.colorCode,
+                        height: '2/6',
+                        title: ''
+                    })                
+                }
+
+                this.dutyBlocks = _.sortBy(this.dutyBlocks,'startTime')
+                //console.log(unassignedArray)
+
+                if(this.dutyBlocks.length>1)
+                    for(const dutyBlockInx in this.dutyBlocks){
+                        this.dutyBlocks[dutyBlockInx].height = (Number(dutyBlockInx)%2)?'2/4':'4/6'; 
+                    }
+
+                
                 //console.log(this.dutyBlocks)
             }
 
             this.isMounted = true; 
         }
 
-        public getDutyColor(type) {
-            const color = {court:'#189fd4',jail:'#A22BB9',escort:'#ffb007',other:'#0cc97e',free:'#e6e9e2',overtime:'#0cc97e'};
-            return color[type];
+        public extractUnassignedArrays(unassignedArray){
+            let startBin = 0;
+            for(let valueInx=0; valueInx<unassignedArray.length; valueInx++){
+
+                if((unassignedArray[valueInx]>0 && valueInx==0)||(unassignedArray[valueInx]>0 && unassignedArray[valueInx-1]==0)) startBin = valueInx;
+                
+                if((unassignedArray[valueInx]>0 && valueInx==(unassignedArray.length-1))||(unassignedArray[valueInx]>0 && unassignedArray[valueInx+1]==0)){
+                    //console.log(startBin)
+                    //console.log(valueInx)
+                    const array = this.fillInArray(Array(96).fill(0),1, startBin, valueInx+1)
+                    //console.log(array)
+                    this.unassignedArray.push(array)
+                    //console.log(this.unassignedArray)
+                } 
+            }
         }
 
-         public drop(event: any) 
+        public getDutyColor(color, isNotAvailable, isNotRequired, isOverTime) {
+            if(isOverTime) return '#e85a0e';
+            else if(isNotRequired) return  '#28a745';
+            else if(isNotAvailable) return '#dc3545';
+            else return color;
+        }
+
+        public getTitle(sheriff,isNotAvailable,isNotRequired){
+            if(isNotAvailable) return 'isNotAvailable';
+            else if(isNotRequired) return  'isNotRequired';
+            else if(sheriff) return sheriff.lastName+', '+sheriff.firstName;
+            else return ' ';
+        }
+
+        public getOverTime(shiftId, isNotAvailable, isNotRequired, isOverTime) {
+            if(isOverTime) return true;
+            else if(isNotRequired || isNotAvailable) return  false;
+            else if(!shiftId) return true;
+            else return false;
+        }
+        
+        public drop(event: any) 
         {
-            this.blockDrop = false;
-            const cardid = event.dataTransfer.getData('text');
-            console.log(cardid)
-            const sheriffId = cardid.slice(7)
-            console.log(sheriffId)
-            // console.log(this.unionArrays([0,2,2],[1,0,1]))
-            // console.log(this.addArrays([0,0,2],[-1,0,0]))
-            // console.log(this.sumOfArrayElements([0,1,2]))
+            console.log(event.target.id)
+            if(event.target.id){
+                const cardid = event.dataTransfer.getData('text');
+                const blockId: string = event.target.id;
+                const unassignedBlockId = Number(blockId.substring(blockId.indexOf('n')+1));
+                console.log(unassignedBlockId)
+                if(unassignedBlockId>=1000) return
+                // console.log(cardid)
+                const sheriffId = cardid.slice(7)
+                // console.log(sheriffId)
+                const unassignedArray = this.unassignedArray[unassignedBlockId]
 
-            // console.log(this.fillInArray(Array(6).fill(0), 5 , 2,4))
-            // console.log(this.subtractUnionOfArrays([1,1,1,1,0],[0,2,2,0,0]))
-
-            const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
-
-            const availability = sheriff.availability
-            const duties = sheriff.duties
-            console.log(sheriff)
-            // console.log(Array(3).fill(0))
-
-            console.log(this.unassignedArray)
-            console.log(availability)
-            const unionUnassignAvail = this.unionArrays(this.unassignedArray, availability)
-            console.log(unionUnassignAvail)
-
-            
-            if(this.sumOfArrayElements(unionUnassignAvail)>0){
-                console.log('call assign')
-                const timeRangeBins = this.getArrayRangeBins(unionUnassignAvail);
-                const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
-                this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime)
-                
-            }else{
-                const unionUnassignDuties = this.unionArrays(this.unassignedArray, duties)
-                if(this.sumOfArrayElements(unionUnassignDuties)>0){
-                    console.log('overtime conflicts')
-                    // add window to display issue 
-                    // define variables
-					// this.assignDutyErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-					// this.assignDutyErrorMsgDesc = errMsg;
-					// this.assignDutyError = true;
-                }else{
-                    console.log('call assign overtime')
-                    const timeRangeBins = this.getArrayRangeBins(this.unassignedArray);
+                if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'){
+                    const timeRangeBins = this.getArrayRangeBins(unassignedArray);
                     const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
-                    this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime)
+                    this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime, null);
+                    return
+                }
+
+                const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
+                const availability = sheriff.availability
+                const duties = sheriff.duties
+                // console.log(sheriff)
+                // console.log(unassignedArray)
+                // console.log(availability)
+                // console.log(duties)
+                
+
+                const unionUnassignAvail = this.unionArrays(unassignedArray, availability)
+                console.log(unionUnassignAvail)
+
+                
+                if(this.sumOfArrayElements(unionUnassignAvail)>0){
+                    console.log('call assign')
+                    const timeRangeBins = this.getArrayRangeBins(unionUnassignAvail);
+                    const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
+                    // console.log(timeRangeBins)
+                    this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime, timeRangeBins.binValue)
+                    
+                }else{
+                    const unionUnassignDuties = this.unionArrays(unassignedArray, duties)
+                    if(this.sumOfArrayElements(unionUnassignDuties)>0){
+                        console.log('overtime conflicts')
+                        // add window to display issue 
+                        // define variables
+                        // this.assignDutyErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        // this.assignDutyErrorMsgDesc = errMsg;
+                        // this.assignDutyError = true;
+                    }else{
+                        console.log('call assign overtime')
+                        const timeRangeBins = this.getArrayRangeBins(unassignedArray);
+                        const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
+                        this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime, null)
+                    }
                 }
             }
         }
@@ -168,13 +243,13 @@
             return arrayA.map((arr,index) =>{return arr*arrayB[index]});
         }
 
-        public subtractUnionOfArrays(arrayA, arrayB){
-            return arrayA.map((arr,index) =>{return arr&&(arrayB[index]>0?0:1)});
-        }
+        // public subtractUnionOfArrays(arrayA, arrayB){
+        //     return arrayA.map((arr,index) =>{return arr&&(arrayB[index]>0?0:1)});
+        // }
 
-        public addArrays(arrayA, arrayB){
-            return arrayA.map((arr,index) =>{return arr+arrayB[index]});
-        }
+        // public addArrays(arrayA, arrayB){
+        //     return arrayA.map((arr,index) =>{return arr+arrayB[index]});
+        // }
 
         public sumOfArrayElements(arrayA){
             return arrayA.reduce((acc, arr) => acc + arr, 0)
@@ -186,28 +261,77 @@
 
         public getArrayRangeBins(arrayOriginal){
             const array = _.clone(arrayOriginal);
+            const startBin: number = array.findIndex(arr=>{if(arr>0) return true });
+            const binValue: number = startBin>=0? array[startBin]: 1;
+            //console.log(startBin)
+            //console.log(array[startBin])
             return({
-                startBin: array.findIndex(arr=>{if(arr>0) return true }),
-                endBin: (96-array.reverse().findIndex(arr=>{if(arr>0) return true }))
+                startBin: startBin ,
+                endBin: (96-array.reverse().findIndex(arr=>{if(arr>0) return true })),
+                binValue: binValue
             })
         }
 
-        public convertTimeRangeBinsToTime(dutyDate, startBin, endBin){
-            
+        public convertTimeRangeBinsToTime(dutyDate, startBin, endBin){            
             const startTime = moment(dutyDate).add(startBin*15, 'minutes').format();
             const endTime = moment(dutyDate).add(endBin*15, 'minutes').format();
-
             return( {startTime: startTime, endTime:endTime } )
         }
 
-        public assignDuty(sheriffId, startDate, endDate ) {
+        public getTimeRangeBins(startDate, endDate, startOfDay, timezone){
+            const startTime = moment(startDate).tz(timezone);
+            const endTime = moment(endDate).tz(timezone);
+            const startBin = moment.duration(startTime.diff(startOfDay)).asMinutes()/15;
+            const endBin = moment.duration(endTime.diff(startOfDay)).asMinutes()/15;
+            return( {startBin: startBin, endBin:endBin } )
+        }
+
+        public assignDuty(sheriffId, startDate, endDate, shiftId ) {
 
             if(this.dutyRosterInfo.attachedDuty){
                 const dutyInfo = this.dutyRosterInfo.attachedDuty;
-
+                let isNotRequired = false;
+                let isNotAvailable = false;
+                if(sheriffId=='00000-00000-11111'){
+                    sheriffId = null;
+                    isNotRequired = true;
+                }else if(sheriffId=='00000-00000-22222'){
+                    sheriffId = null;
+                    isNotAvailable = true;
+                }
                 console.log(startDate)
                 console.log(endDate)
+                console.log(shiftId)
                 console.log(dutyInfo)
+
+                const dutySlots = [ { 
+                        id: null,                      
+                        startDate: startDate,
+                        endDate: endDate,
+                        dutyId: dutyInfo.id,
+                        sheriffId: sheriffId,
+                        shiftId: shiftId,
+                        timezone: dutyInfo.timezone,
+                        isNotRequired: isNotRequired,
+                        isNotAvailable: isNotAvailable,
+                        isOvertime: false
+                    }
+                ]
+
+                for(const dutySlot of dutyInfo.dutySlots){
+                    dutySlots.push({  
+                        id: dutySlot.id,                                              
+                        startDate: dutySlot.startDate,
+                        endDate: dutySlot.endDate,
+                        dutyId: dutySlot.dutyId,
+                        sheriffId: dutySlot.sheriffId,
+                        shiftId: dutySlot.shiftId,
+                        timezone: dutySlot.timezone,
+                        isNotRequired: dutySlot.isNotRequired,
+                        isNotAvailable: dutySlot.isNotAvailable,
+                        isOvertime: dutySlot.isOvertime                           
+                    })                    
+                }
                 
                 const body: assignDutyInfoType[] = [
                     {
@@ -216,17 +340,7 @@
                         endDate: dutyInfo.endDate,
                         locationId: dutyInfo.locationId,
                         assignmentId: dutyInfo.assignmentId,
-                        dutySlots: [ {                        
-                                startDate: startDate,
-                                endDate: endDate,
-                                dutyId: dutyInfo.id,
-                                sheriffId: sheriffId,
-                                shiftId: null,
-                                timezone: dutyInfo.timezone,
-                                isNotRequired: false,
-                                isNotAvailable: false
-                            }
-                        ],
+                        dutySlots: dutySlots,
                         timezone: dutyInfo.timezone
                     }
                 ];
@@ -237,7 +351,7 @@
                     .then(response => {
                         if(response.data){
                                 // Update the duty bar with name;
-                                // this.$emit('change');
+                            this.$emit('change');
                         }
                     }, err => {
                         const errMsg = err.response.data.error;
@@ -249,6 +363,14 @@
                     })
             }
         }
+        
+            // console.log(this.unionArrays([0,2,2],[1,0,1]))
+            // console.log(this.addArrays([0,0,2],[-1,0,0]))
+            // console.log(this.sumOfArrayElements([0,1,2]))
+
+            // console.log(this.fillInArray(Array(6).fill(0), 5 , 2,4))
+            // console.log(this.subtractUnionOfArrays([1,1,1,1,0],[0,2,2,0,0]))
+
     }
 </script>
 
