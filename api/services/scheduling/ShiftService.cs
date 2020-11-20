@@ -122,6 +122,9 @@ namespace SS.Api.services.scheduling
             var targetStartDate = start.ConvertToTimezone(timezone);
             var targetEndDate = targetStartDate.TranslateDateIfDaylightSavings(timezone, 7);
 
+            var sheriffsAvailableAtLocation = await SheriffService.GetSheriffsForShiftAvailability(locationId, targetStartDate, targetEndDate);
+            var sheriffIds = sheriffsAvailableAtLocation.SelectDistinctToList(s => s.Id);
+
             var shiftsToImport = Db.Shift
                 .Include(s => s.Location)
                 .Include(s => s.Sheriff)
@@ -129,7 +132,8 @@ namespace SS.Api.services.scheduling
                 .Where(s => s.LocationId == locationId &&
                             s.ExpiryDate == null &&
                             s.StartDate < targetEndDate && targetStartDate < s.EndDate &&
-                            s.Sheriff != null && s.Sheriff.IsEnabled);  
+                            s.SheriffId != null &&
+                            sheriffIds.Contains(s.SheriffId.Value));
 
             var importedShifts = await shiftsToImport.Select(shift => Db.DetachedClone(shift)).ToListAsync();
             foreach (var shift in importedShifts)
