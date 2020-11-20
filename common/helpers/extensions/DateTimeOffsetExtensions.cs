@@ -37,7 +37,7 @@ namespace SS.Common.helpers.extensions
             return zoned.ToDateTimeOffset();
         }
 
-        public static string PrintFormatDateTime(this DateTimeOffset date) => date.ToString("ddd dd MMM yyyy HH:mm zz");
+        public static string PrintFormatDateTime(this DateTimeOffset date) => date.ToString("ddd dd MMM yyyy HH:mmzz");
         public static string PrintFormatDate(this DateTimeOffset date) => date.ToString("ddd dd MMM yyyy");
         public static string PrintFormatTime(this DateTimeOffset date) => date.ToString("HH:mmzz");
     }
