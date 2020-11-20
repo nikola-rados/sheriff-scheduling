@@ -24,7 +24,6 @@ namespace tests.controllers
 
         public ManageTypesControllerTests() : base(true)
         {
-            var locationServices = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
             _controller = new ManageTypesController(new ManageTypesService(Db), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
