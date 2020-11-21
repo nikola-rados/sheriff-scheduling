@@ -265,7 +265,7 @@
                 let userRole: userRoleHistoryJsonType;
                 for(userRole of this.historicRolesJson) 
                 {
-                    if (userRole.oldValuesJson.ExpiryDate && userRole.keyValuesJson.RoleId) {
+                    if (userRole.oldValuesJson && userRole.oldValuesJson.ExpiryDate && userRole.keyValuesJson && userRole.keyValuesJson.RoleId) {
                         const roleId = userRole.keyValuesJson.RoleId;
                         const role = this.rolesJson.filter(role =>{if(role.id == roleId ) return true})[0]
                         // console.log(role)                   
