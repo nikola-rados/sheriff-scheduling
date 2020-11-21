@@ -120,3 +120,17 @@ export interface dutySlotInfoType {
     isOvertime: boolean
 }
 
+export interface dutyBlockInfoType {
+    color: string,
+    endTime: number,
+    endTimeString: string,
+    height: string,
+    id: string,
+    firstName: string,
+    lastName: string,
+    sheriffId: string,
+    startTime: number,
+    startTimeString: string,
+    title: string,
+    timezone: string
+}

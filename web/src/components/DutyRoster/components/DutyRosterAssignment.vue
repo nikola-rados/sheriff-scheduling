@@ -257,9 +257,22 @@
 		</b-modal>
 
 		<b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
-            <template v-slot:modal-title>
+            
+			<template v-slot:modal-title>
                     <h2 class="mb-0 text-light">Confirm Delete Assignment</h2>                    
             </template>
+
+			<b-card id="DeleteError" no-body>
+					<h2 v-if="deleteError" class="mx-1 mt-2"
+						><b-badge v-b-tooltip.hover
+							:title="deleteErrorMsg"
+							variant="danger"> {{deleteErrorMsg | truncate(40)}}
+							<b-icon class="ml-3"
+								icon = x-square-fill
+								@click="deleteError = false"
+					/></b-badge></h2>
+			</b-card>
+
             <h4>Are you sure you want to delete the "{{assignmentToEdit.name}}" assignment?</h4>
             <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
                 <b-form-select
@@ -392,7 +405,7 @@
 
 		deleteErrorMsg = '';
         deleteErrorMsgDesc = '';
-		deleteError = true;
+		deleteError = false;
 
         mounted()
         {
@@ -425,8 +438,7 @@
 					}, err=>{
 						const errMsg = err.response.data.error;
 						console.log(err.response)
-						this.deleteErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
-						this.deleteErrorMsgDesc = errMsg;
+						this.deleteErrorMsg = errMsg;
 						this.deleteError = true;
 					});
 					this.assignmentDeleteReason = '';
@@ -486,7 +498,7 @@
         }
 		
 		public loadAssignmentDetails() {
-console.log(this.assignment.assignmentDetail)
+			console.log(this.assignment.assignmentDetail)
 			const assignmentInfo = this.assignment.assignmentDetail;
 			this.originalAssignmentToEdit.id = this.assignmentToEdit.id = assignmentInfo.id;
 			this.originalAssignmentToEdit.name = this.assignmentToEdit.name = assignmentInfo.name;			
