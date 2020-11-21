@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Routing;
@@ -8,19 +5,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Protocols.OpenIdConnect;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -46,7 +37,7 @@ namespace SS.Api
             Configuration = configuration;
             CurrentEnvironment = env;
             DevelopmentMode = CurrentEnvironment.IsDevelopment() &&
-                               Configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
+                              Configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
         }
 
         private IConfiguration Configuration { get; }
@@ -71,124 +62,7 @@ namespace SS.Api
                 .UseXmlEncryptor(s => new AesGcmXmlEncryptor(s))
                 .SetApplicationName("SS");
 
-            services.AddAuthentication(options =>
-            {
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddCookie(options =>
-            {
-                if (DevelopmentMode)
-                    options.Cookie.Name = "SS.Development";
-
-                options.Cookie.HttpOnly = true;
-                //Important to be None, otherwise a redirect loop will occur.
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                //This should prevent resending this cookie on every request.
-                options.Cookie.Path = "/api/auth";
-                options.Events = new CookieAuthenticationEvents
-                {
-                    // After the auth cookie has been validated, this event is called.
-                    // In it we see if the access token is close to expiring.  If it is
-                    // then we use the refresh token to get a new access token and save them.
-                    // If the refresh token does not work for some reason then we redirect to 
-                    // the login screen.
-                    OnValidatePrincipal = async cookieCtx =>
-                    {
-                        var accessTokenExpiration = DateTimeOffset.Parse(cookieCtx.Properties.GetTokenValue("expires_at"));
-                        var timeRemaining = accessTokenExpiration.Subtract(DateTimeOffset.UtcNow);
-                        var refreshThreshold = TimeSpan.Parse(Configuration.GetNonEmptyValue("TokenRefreshThreshold"));
-
-                        if (timeRemaining > refreshThreshold)
-                            return;
-
-                        var refreshToken = cookieCtx.Properties.GetTokenValue("refresh_token");
-                        var httpClientFactory = cookieCtx.HttpContext.RequestServices.GetRequiredService<IHttpClientFactory>();
-                        var httpClient = httpClientFactory.CreateClient(nameof(CookieAuthenticationEvents));
-                        var response = await httpClient.RequestRefreshTokenAsync(new RefreshTokenRequest
-                        {
-                            Address = Configuration.GetNonEmptyValue("Keycloak:Authority") + "/protocol/openid-connect/token",
-                            ClientId = Configuration.GetNonEmptyValue("Keycloak:Client"),
-                            ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret"),
-                            RefreshToken = refreshToken
-                        });
-
-                        if (response.IsError)
-                        {
-                            cookieCtx.RejectPrincipal();
-                            await cookieCtx.HttpContext.SignOutAsync(CookieAuthenticationDefaults
-                                .AuthenticationScheme);
-                        }
-                        else 
-                        {
-                            var expiresInSeconds = response.ExpiresIn;
-                            var updatedExpiresAt = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds);
-                            cookieCtx.Properties.UpdateTokenValue("expires_at", updatedExpiresAt.ToString());
-                            cookieCtx.Properties.UpdateTokenValue("access_token", response.AccessToken);
-                            cookieCtx.Properties.UpdateTokenValue("refresh_token", response.RefreshToken);
-
-                            // Indicate to the cookie middleware that the cookie should be remade (since we have updated it)
-                            cookieCtx.ShouldRenew = true;
-                        }
-                    }
-                };
-            }
-            )
-            .AddOpenIdConnect(OpenIdConnectDefaults.AuthenticationScheme, options =>
-            {
-                options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.Authority = Configuration.GetNonEmptyValue("Keycloak:Authority");
-                options.ClientId = Configuration.GetNonEmptyValue("Keycloak:Client");
-                options.ClientSecret = Configuration.GetNonEmptyValue("Keycloak:Secret");
-                options.RequireHttpsMetadata = true; 
-                options.GetClaimsFromUserInfoEndpoint = true;
-                options.ResponseType = OpenIdConnectResponseType.Code;
-                options.UsePkce = true;
-                options.SaveTokens = true;
-                options.CallbackPath = "/api/auth/signin-oidc";
-                options.Events = new OpenIdConnectEvents
-                {
-                    OnRedirectToIdentityProvider = context =>
-                    {
-                        context.ProtocolMessage.SetParameter("kc_idp_hint", "idir");
-                        return Task.FromResult(0);
-                    }
-                };
-            }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
-            {
-                var key = Encoding.ASCII.GetBytes(Configuration.GetNonEmptyValue("Keycloak:Secret"));
-                options.Authority = Configuration.GetNonEmptyValue("Keycloak:Authority");
-                options.Audience = Configuration.GetNonEmptyValue("Keycloak:Audience");
-                options.RequireHttpsMetadata = true;
-                options.SaveToken = true;
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    ClockSkew = TimeSpan.FromSeconds(5)
-                };
-                if (key.Length > 0) options.TokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(key);
-                options.Events = new JwtBearerEvents
-                {
-                    OnAuthenticationFailed = context =>
-                    {
-                        context.NoResult();
-                        context.Response.StatusCode = 401;
-                        return Task.CompletedTask;
-                    },
-                    OnForbidden = context =>
-                    {
-                        context.NoResult();
-                        context.Response.StatusCode = 403;
-                        return Task.CompletedTask;
-                    }
-                };
-            });
-
-            services.AddAuthorization();
+            services.AddAuthorizationAndAuthentication(CurrentEnvironment, Configuration);
 
             services.AddMapster();
             services.AddMemoryCache();
@@ -261,9 +135,13 @@ namespace SS.Api
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            var baseUrl = Configuration.GetNonEmptyValue("WebBaseHref");
             app.Use((context, next) =>
             {
                 context.Request.Scheme = "https";
+                if (context.Request.Headers.ContainsKey("X-Forwarded-Host"))
+                    context.Request.PathBase = new PathString(baseUrl.Remove(baseUrl.Length - 1));
                 return next();
             });
 
@@ -276,7 +154,14 @@ namespace SS.Api
                 options.RouteTemplate = "api/swagger/{documentname}/swagger.json";
                 options.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
                 {
-                    swaggerDoc.Servers = new List<OpenApiServer>();
+                    if (!httpReq.Headers.ContainsKey("X-Forwarded-Host"))
+                        return;
+
+                    var serverUrl = $"https://{httpReq.Headers["X-Forwarded-Host"]}:{httpReq.Headers["X-Forwarded-Port"]}{baseUrl}";
+                    swaggerDoc.Servers = new List<OpenApiServer>()
+                    {
+                        new OpenApiServer { Url = serverUrl }
+                    };
                 });
             });
 
