@@ -44,7 +44,7 @@
 
         mounted()
         {
-            console.log(this.dutyRosterInfo)
+            // console.log(this.dutyRosterInfo)
             this.isMounted = false;
             this.dutyBlocks = []
 
@@ -60,7 +60,7 @@
                     endTime: 1+ moment.duration(dutyEnd.diff(startOfDay)).asMinutes()/15,                    
                     color: this.dutyRosterInfo.type.colorCode,
                     height: '2/6',
-                    title: 'Unassigned'
+                    title: ''
                 })
                 //console.log(this.dutyBlocks)
             }
@@ -89,7 +89,7 @@
         }
 
         public getDutyColor(type) {
-            const color = {court:'#189fd4',jail:'#A22BB9',escort:'#ffb007',other:'#c91a5d',free:'#e6e9e2',overtime:'#0cc97e'};
+            const color = {court:'#189fd4',jail:'#A22BB9',escort:'#ffb007',other:'#0cc97e',free:'#e6e9e2',overtime:'#0cc97e'};
             return color[type];
         }
 

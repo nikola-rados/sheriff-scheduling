@@ -47,8 +47,6 @@ namespace SS.Api.services.usermanagement
             return sheriff;
         }
 
-        public async Task<Sheriff> GetSheriff(Guid id) => await Db.Sheriff.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
-
         public async Task<Sheriff> GetSheriff(Guid? id,
             string badgeNumber) =>
             await Db.Sheriff.AsNoTracking()

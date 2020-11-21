@@ -29,7 +29,8 @@ namespace tests.controllers
         private ShiftController ShiftController { get; }
         public ShiftControllerTests() : base(false)
         {
-            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db)), Db)
+            var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
+            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db), environment.Configuration), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -554,7 +555,6 @@ namespace tests.controllers
             shift.ExpiryDate = DateTimeOffset.UtcNow; // this shouldn't change
             shift.SheriffId = sheriffId;
             shift.Sheriff = new SheriffDto(); // shouldn't change
-            shift.Duties = new List<DutyDto>(); // shouldn't change
             shift.AnticipatedAssignment = new AssignmentDto(); //this shouldn't create new. 
             shift.AnticipatedAssignmentId = 5;
             shift.Location = new LocationDto(); // shouldn't change
@@ -651,7 +651,6 @@ namespace tests.controllers
                 AnticipatedAssignment = null,
                 Location = new LocationDto { Id = 55, AgencyId = "55" },
                 LocationId = 1,
-                Duties = new List<DutyDto>(),
                 Timezone = "America/Edmonton"
             };
             return shiftDto;

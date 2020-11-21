@@ -11,6 +11,7 @@ export interface locationJsonType {
     regionId: number|null;
     concurrencyToken: number;
     timezone: string;
+    justinCode: string;
 }
 
 export interface leaveTypeJson {
