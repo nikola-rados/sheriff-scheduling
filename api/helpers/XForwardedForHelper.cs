@@ -4,7 +4,7 @@
     {
         public static string BuildUrlString(string forwardedHost, string forwardedPort, string baseUrl)
         {
-            var portComponent = forwardedPort == "80" || forwardedPort == "443" ? "" : $":{forwardedPort}";
+            var portComponent = string.IsNullOrEmpty(forwardedPort) || forwardedPort == "80" || forwardedPort == "443" ? "" : $":{forwardedPort}";
             return $"https://{forwardedHost}{portComponent}{baseUrl}";
         }
     }
