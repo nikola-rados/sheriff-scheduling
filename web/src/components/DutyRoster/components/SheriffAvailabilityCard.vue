@@ -1,14 +1,24 @@
 <template>
-    <div v-if="isMounted" class="gridsheriff">
+    <div class="gridsheriff">
         <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F1FEF1', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/2'}"></div>
         <div 
-            v-for="block in dutyShiftBlocks"
-            :key="block.id"
-            :style="{gridColumnStart: (97-block.startTime),gridColumnEnd:(97-block.endTime), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0 }"
+            v-for="(block,index) in sheriffInfo.availabilityDetail"
+            :key="index+2000"
+            :style="{gridColumnStart: (97-block.startBin),gridColumnEnd:(97-block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0 }"
             v-b-tooltip.hover.right                             
-            :title="block.assignment">
+            :title="block.name">
                 <div style="text-transform: capitalize; margin:0 padding: 0;">
-                    {{block.assignment|truncateleft(block.endTime - block.startTime-1)}}
+                    {{block.name|truncateleft(block.endTime - block.startTime-1)}}
+                </div>                
+        </div>
+        <div 
+            v-for="(block,index) in sheriffInfo.sheriff.dutiesDetail"
+            :key="index+1000"
+            :style="{gridColumnStart: (97-block.startBin),gridColumnEnd:(97-block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0, color:'white' }"
+            v-b-tooltip.hover.right                             
+            :title="block.name +'-'+ block.code">
+                <div style="text-transform: capitalize; margin:0 padding: 0;">
+                    {{getBlockTitle(block.name,block.code,block.endTime - block.startTime-1)}}
                 </div>                
         </div>
     </div>
@@ -27,50 +37,8 @@
         @Prop({required: true})
         sheriffInfo!: myTeamShiftInfoType;
 
-        dutyShiftBlocks: any[]=[] 
-
-        blockDrop = false;
-        updateBoxes =0;
-
-        isMounted = false;
-
-        mounted()
-        {
-            // console.log(this.scheduleInfo)
-            this.isMounted = false;
-
-            const sortedShifts = _.sortBy(this.sheriffInfo.shifts,'startDate');           
-            this.dutyShiftBlocks = []
-
-            for(const shift of sortedShifts){ 
-                const start = moment(shift.startDate);
-                const end = moment(shift.endDate);
-                const startOfDay = moment(shift.startDate).startOf('day');
-                const startTime = moment.duration(start.diff(startOfDay)).asMinutes()
-                const endTime = moment.duration(end.diff(startOfDay)).asMinutes()
-
-                this.dutyShiftBlocks.push({
-                    id:shift.id,                    
-                    startTime: startTime/15,
-                    endTime: endTime/15,                    
-                    color: this.getDutyColor('free'),
-                    type: 'court',
-                    assignment: 'free'
-                })
-            }
-            this.isMounted = true; 
-        }
-
-        
-
-        public getDutyColor(type) {
-            const color = {court:'#189fd4',jail:'#A22BB9',escort:'#ffb007',other:'#7a4528',free:'#e6e9e2',overtime:'#e85a0e'};
-            return color[type];
-        }
-
-        //Wrapper function, the markup wouldn't bind to getScheduleColor. 
-        public dutyColor(block){
-            return this.getDutyColor(block);
+        public getBlockTitle(name,code,len){
+           return Vue.filter('truncateleft')( name+'-'+code,len)
         }
 
     }

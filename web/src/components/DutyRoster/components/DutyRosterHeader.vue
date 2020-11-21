@@ -2,9 +2,9 @@
 	<div>
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
-                <b-navbar-nav class="mx-1">					
+                <!-- <b-navbar-nav class="mx-1">					
 					<b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="addAssignment()" class="my-1"><b-icon-plus/>Add Assignment</b-button> 
-                </b-navbar-nav>
+                </b-navbar-nav> -->
 				<b-navbar-nav>
 					<div style="width:11rem;" class="text-white ml-2 mr-auto">Duty Roster</div>
 				</b-navbar-nav>
@@ -254,7 +254,7 @@
 
 <script lang="ts">
  
-	import { Component, Vue } from 'vue-property-decorator';
+	import { Component, Vue, Prop, Emit } from 'vue-property-decorator';
 	import moment from 'moment-timezone';	
 	import { namespace } from "vuex-class";   
     import "@store/modules/CommonInformation";
@@ -274,7 +274,10 @@
         public UpdateDutyRangeInfo!: (newDutyRangeInfo: dutyRangeInfoType) => void
 
 		@commonState.State
-        public userDetails!: userInfoType;
+		public userDetails!: userInfoType;
+		
+		@Prop({required: true})
+		runMethod!: any
 		
 		selectedDate = '';
 		datePickerOpened = false;
@@ -328,8 +331,12 @@
 		assignmentErrorMsg = '';
 		assignmentErrorMsgDesc = '';
 
+		
+
         mounted() {
 			this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+			this.runMethod.$on('addassign', this.addAssignment)
+			console.log(this.runMethod)
 			this.selectedDate = moment().format().substring(0,10);			
 			this.loadNewDateRange();
 		}
