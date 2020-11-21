@@ -157,10 +157,11 @@ namespace SS.Api
                     if (!httpReq.Headers.ContainsKey("X-Forwarded-Host"))
                         return;
 
-                    var serverUrl = $"https://{httpReq.Headers["X-Forwarded-Host"]}:{httpReq.Headers["X-Forwarded-Port"]}{baseUrl}";
+                    var forwardedHost = httpReq.Headers["X-Forwarded-Host"];
+                    var forwardedPort = httpReq.Headers["X-Forwarded-Port"];
                     swaggerDoc.Servers = new List<OpenApiServer>()
                     {
-                        new OpenApiServer { Url = serverUrl }
+                        new OpenApiServer { Url = XForwardedForHelper.BuildUrlString(forwardedHost, forwardedPort, baseUrl) }
                     };
                 });
             });
