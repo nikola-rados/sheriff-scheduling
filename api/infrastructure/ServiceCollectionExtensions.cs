@@ -167,7 +167,13 @@ namespace SS.Api.infrastructure
                     {
                         context.ProtocolMessage.SetParameter("kc_idp_hint", "idir");
                         if (context.HttpContext.Request.Headers["X-Forwarded-Host"].Count > 0)
-                            context.ProtocolMessage.RedirectUri = $"https://{context.HttpContext.Request.Headers["X-Forwarded-Host"]}:{context.HttpContext.Request.Headers["X-Forwarded-Port"]}{baseUrl}{options.CallbackPath}";
+                        {
+                            var forwardedHost = context.HttpContext.Request.Headers["X-Forwarded-Host"];
+                            var forwardedPort = context.HttpContext.Request.Headers["X-Forwarded-Port"];
+                            context.ProtocolMessage.RedirectUri =
+                                $"{XForwardedForHelper.BuildUrlString(forwardedHost, forwardedPort, baseUrl)}{options.CallbackPath}";
+                        }
+
                         return Task.CompletedTask;
                     }
                 };
