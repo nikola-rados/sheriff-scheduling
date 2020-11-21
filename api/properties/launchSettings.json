@@ -3,7 +3,7 @@
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:9877",
+      "applicationUrl": "http://localhost:9878",
       "sslPort": 44370
     }
   },
@@ -30,7 +30,6 @@
     },
     "IIS Express (launchBrowser = false)": {
       "commandName": "IISExpress",
-      "launchBrowser": false,
       "launchUrl": "api/",
       "environmentVariables": {
         "CORS_DOMAIN": "http://localhost:1338",

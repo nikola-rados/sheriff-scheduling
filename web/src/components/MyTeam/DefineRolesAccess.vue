@@ -60,7 +60,7 @@
                 </b-row>
                 <h2 class="mx-1 mt-0"><b-badge v-if="duplicateRole" variant="danger"> Duplicate Role</b-badge></h2>
                 <b-row class="mx-1 mt-1">
-                    <b-card no-body style="height:300px;width: 66rem;overflow: auto;">
+                    <b-card no-body style="height:300px;width: 66rem;overflow-y: auto; overflow-x:hidden;">
                         <b-form-checkbox-group :state="permissionState?null:false" v-model="selectedPermissions"><label>Permissions<span class="text-danger">*</span></label>
                             <b-row class="mb-2 text-primary" style="font-weight:bold">
                                 <b-col cols="4"> Name </b-col>

@@ -79,7 +79,7 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import { locationInfoType } from '../../types/common';
-    import { dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
+    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component({
@@ -115,9 +115,9 @@
         memberNotAvailable = {} as myTeamShiftInfoType;
         isDutyRosterDataMounted = false;
 
-        dutyRosterAssignments: any[] =[]
+        dutyRosterAssignments: assignmentCardInfoType[] = [];
 
-        dutyRostersJson
+        dutyRostersJson: attachedDutyInfoType[] = [];
 
         fields =[
             {key:'assignment', label:'Assignments', thClass:' m-0 px-2 py-0', tdClass:'p-0 m-0', thStyle:''},
@@ -125,10 +125,11 @@
         ]
 
         dutyColors = [
-            {name:'court' , colorCode:'#189fd4'},
-            {name:'jail' ,  colorCode:'#A22BB9'},
-            {name:'escort', colorCode:'#ffb007'},
-            {name:'other',  colorCode:'#c91a5d'}                       
+            {name:'courtroom',  colorCode:'#189fd4'},
+            {name:'court',      colorCode:'#189fd4'},
+            {name:'jail' ,      colorCode:'#A22BB9'},
+            {name:'escort',     colorCode:'#ffb007'},
+            {name:'other',      colorCode:'#0cc97e'}                       
         ]
 
         @Watch('location.id', { immediate: true })
@@ -224,32 +225,32 @@
             let sortOrder = 0;
             for(const assignment of assignments){
                 sortOrder++;
-                const dutyRostersForThisAssignment = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                console.log(dutyRostersForThisAssignment)
+                const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
+                //console.log(dutyRostersForThisAssignment)
                
                if(dutyRostersForThisAssignment.length>0){
                     for(const rosterInx in dutyRostersForThisAssignment){
                         this.dutyRosterAssignments.push({
-                            assignment:('00' + sortOrder).slice(-3)+'EFT'+('0'+ rosterInx).slice(-2) ,
+                            assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
                             assignmentDetail: assignment,
                             name:assignment.name,
                             code:assignment.lookupCode.code,
                             type: this.getType(assignment.lookupCode.type),
                             attachedDuty: dutyRostersForThisAssignment[rosterInx],
-                            EFTnumber: Number(rosterInx),
-                            totalEFT: dutyRostersForThisAssignment.length
+                            FTEnumber: Number(rosterInx),
+                            totalFTE: dutyRostersForThisAssignment.length
                         })
                     }
                 }else{                
                     this.dutyRosterAssignments.push({
-                        assignment:('00' + sortOrder).slice(-3)+'EFT00' ,
+                        assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
                         assignmentDetail: assignment,
                         name:assignment.name,
                         code:assignment.lookupCode.code,
                         type: this.getType(assignment.lookupCode.type),
                         attachedDuty: null,
-                        EFTnumber: 0,
-                        totalEFT: 0
+                        FTEnumber: 0,
+                        totalFTE: 0
                     })
                 }
             }

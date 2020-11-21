@@ -118,8 +118,8 @@
             {name:'court' , colorCode:'#189fd4'},
             {name:'jail' ,  colorCode:'#A22BB9'},
             {name:'escort', colorCode:'#ffb007'},
-            {name:'other',  colorCode:'#c91a5d'},
-            {name:'overtime',colorCode:'#0cc97e'},
+            {name:'other',  colorCode:'#0cc97e'},
+            {name:'overtime',colorCode:'#c91a5d'},
             {name:'free',   colorCode:'#e6d9e2'}            
         ]
             

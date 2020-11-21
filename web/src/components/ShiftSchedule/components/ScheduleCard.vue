@@ -4,7 +4,7 @@
             v-for="block in scheduleBlocks"
             :key="block.key"
             :id="'schCard'+block.key"
-            :style="{ backgroundColor: scheduleColor(block).body, float:'left', position: 'relative', left:block.startTime+'%', width:block.timeDuration+'%', height:'3rem'}"
+            :style="{ border: '1px solid white', backgroundColor: scheduleColor(block).body, float:'left', position: 'relative', left:block.startTime+'%', width:block.timeDuration+'%', height:'3rem'}"
             no-body>
                 <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%"> 
                     <h6 class="m-0 mb-1 p-0" :style="{ backgroundColor:scheduleColor(block).header, color: 'white', textAlign: 'center', fontSize:'10px', lineHeight: '16px' }"
