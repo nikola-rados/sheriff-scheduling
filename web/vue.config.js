@@ -17,7 +17,8 @@ module.exports = {
 					pathRewrite: { '^/sheriff-scheduling/api': '/api' },
 					headers: {
 						Connection: 'keep-alive',
-						'X-Forwarded-Host': 'localhost:1338'
+						'X-Forwarded-Host': 'localhost',
+						'X-Forwarded-Port': '1338'
 					},
 					cookiePathRewrite: {
 						"/api/auth": "/sheriff-scheduling/api/auth",
