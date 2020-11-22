@@ -3,7 +3,7 @@
 
         <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
-                <duty-roster-header v-on:change="getShifts()"  />
+                <duty-roster-header v-on:change="getDutyRosters()"  />
                 <loading-spinner v-if="!isDutyRosterDataMounted" />
                 <b-table 
                     v-else              
@@ -19,7 +19,7 @@
                         </template>
                        
                         <template v-slot:cell(assignment) ="data"  >
-                            <duty-roster-assignment v-on:change="getShifts()" :assignment="data.item"/>
+                            <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item"/>
                         </template>
 
                         <template v-slot:head(h0) >
@@ -29,7 +29,7 @@
                         </template>
 
                         <template v-slot:cell(h0)="data" >
-                            <duty-card :dutyRosterInfo="data.item"/>
+                            <duty-card v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/>
                         </template>
                 </b-table>                
                 <b-card><br></b-card>  
@@ -79,7 +79,7 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import { locationInfoType } from '../../types/common';
-    import { dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
+    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component({
@@ -115,9 +115,9 @@
         memberNotAvailable = {} as myTeamShiftInfoType;
         isDutyRosterDataMounted = false;
 
-        dutyRosterAssignments: any[] =[]
+        dutyRosterAssignments: assignmentCardInfoType[] = [];
 
-        dutyRostersJson
+        dutyRostersJson: attachedDutyInfoType[] = [];
 
         fields =[
             {key:'assignment', label:'Assignments', thClass:' m-0 px-2 py-0', tdClass:'p-0 m-0', thStyle:''},
@@ -125,17 +125,18 @@
         ]
 
         dutyColors = [
-            {name:'court' , colorCode:'#189fd4'},
-            {name:'jail' ,  colorCode:'#A22BB9'},
-            {name:'escort', colorCode:'#ffb007'},
-            {name:'other',  colorCode:'#c91a5d'}                       
+            {name:'courtroom',  colorCode:'#189fd4'},
+            {name:'court',      colorCode:'#189fd4'},
+            {name:'jail' ,      colorCode:'#A22BB9'},
+            {name:'escort',     colorCode:'#ffb007'},
+            {name:'other',      colorCode:'#7a4528'}                       
         ]
 
         @Watch('location.id', { immediate: true })
         locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                this.getShifts();                                
+                this.getDutyRosters();                                
             }            
         } 
 
@@ -151,50 +152,6 @@
             return( hour>9? hour+':00': '0'+hour+':00')
         }
 
-        public getShifts(){
-
-            this.isDutyRosterDataMounted = false;
-            const url = 'api/shift?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
-                        this.extractTeamShiftInfo(response.data);
-                        this.getDutyRosters();                                               
-                    }                                   
-                })      
-        }
-
-        public extractTeamShiftInfo(shiftsJson){
-            this.UpdateShiftAvailabilityInfo([]);
-            for(const shiftJson of shiftsJson)
-            {
-                //console.log(shiftJson)
-                const availabilityInfo = {} as myTeamShiftInfoType;
-                const shiftInfo = {} as shiftInfoType;
-                shiftInfo.id = shiftJson.id;
-                shiftInfo.startDate =  moment(shiftJson.startDate).tz(this.location.timezone).format();
-                shiftInfo.endDate = moment(shiftJson.endDate).tz(this.location.timezone).format();
-                shiftInfo.timezone = shiftJson.timezone;
-                shiftInfo.sheriffId = shiftJson.sheriffId;
-                shiftInfo.locationId = shiftJson.locationId;
-                const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
-                
-                if (index != -1) {
-                    this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
-                } else {
-                    availabilityInfo.shifts = [shiftInfo];
-                    availabilityInfo.sheriffId = shiftJson.sheriff.id;
-                    availabilityInfo.badgeNumber = shiftJson.sheriff.badgeNumber;
-                    availabilityInfo.firstName = shiftJson.sheriff.firstName;
-                    availabilityInfo.lastName = shiftJson.sheriff.lastName;
-                    availabilityInfo.rank = shiftJson.sheriff.rank;
-                    this.shiftAvailabilityInfo.push(availabilityInfo);
-                }
-            }
-            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
-        }
-
         public getDutyRosters(){
             const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
             this.$http.get(url)
@@ -202,7 +159,21 @@
                     if(response.data){
                         this.dutyRostersJson = response.data; 
                         console.log(response.data)
-                        this.getAssignments()                                                                       
+                        this.getShifts();                                            
+                    }                                   
+                })      
+        }
+
+        public getShifts(){
+
+            this.isDutyRosterDataMounted = false;
+            const url = 'api/shift?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate +'&includeDuties=true';
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        console.log(response.data)                        
+                        this.extractTeamShiftInfo(response.data);
+                        this.getAssignments();                                               
                     }                                   
                 })      
         }
@@ -218,38 +189,87 @@
                 })      
         }
 
+        public extractTeamShiftInfo(shiftsJson){
+            this.UpdateShiftAvailabilityInfo([]);
+            const allDutySlots: any[] = []
+            for(const dutyRoster of this.dutyRostersJson){
+                allDutySlots.push(...dutyRoster.dutySlots)
+            }
+            //console.log(allDutySlots)
+            for(const shiftJson of shiftsJson)
+            {
+                //console.log(shiftJson)
+                const availabilityInfo = {} as myTeamShiftInfoType;
+                const shiftInfo = {} as shiftInfoType;
+                shiftInfo.id = shiftJson.id;
+                shiftInfo.startDate =  moment(shiftJson.startDate).tz(this.location.timezone).format();
+                shiftInfo.endDate = moment(shiftJson.endDate).tz(this.location.timezone).format();
+                shiftInfo.timezone = shiftJson.timezone;
+                shiftInfo.sheriffId = shiftJson.sheriffId;
+                shiftInfo.locationId = shiftJson.locationId;
+                const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, this.location.timezone);
+
+                const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId)return true})
+                let duties = Array(96).fill(0)
+                for(const duty of dutySlots){
+                    //console.log(duty)
+                    const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
+                    duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
+                }
+
+                const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
+                
+                if (index != -1) {
+                    this.shiftAvailabilityInfo[index].duties = this.addArrays(this.shiftAvailabilityInfo[index].duties, duties);
+                    this.shiftAvailabilityInfo[index].availability = this.fillInArray(this.shiftAvailabilityInfo[index].availability, shiftJson.id , rangeBin.startBin,rangeBin.endBin)
+                    this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
+                } else {
+                    availabilityInfo.shifts = [shiftInfo];
+                    availabilityInfo.sheriffId = shiftJson.sheriff.id;
+                    availabilityInfo.badgeNumber = shiftJson.sheriff.badgeNumber;
+                    availabilityInfo.firstName = shiftJson.sheriff.firstName;
+                    availabilityInfo.lastName = shiftJson.sheriff.lastName;
+                    availabilityInfo.rank = shiftJson.sheriff.rank;
+                    availabilityInfo.availability = this.fillInArray(Array(96).fill(0), shiftJson.id , rangeBin.startBin,rangeBin.endBin)
+                    availabilityInfo.duties = duties;
+                    this.shiftAvailabilityInfo.push(availabilityInfo);
+                }
+            }
+            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
+        }
+
         public extractAssignmentsInfo(assignments){
 
             this.dutyRosterAssignments =[]
             let sortOrder = 0;
             for(const assignment of assignments){
                 sortOrder++;
-                const dutyRostersForThisAssignment = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
+                const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
                 console.log(dutyRostersForThisAssignment)
                
                if(dutyRostersForThisAssignment.length>0){
                     for(const rosterInx in dutyRostersForThisAssignment){
                         this.dutyRosterAssignments.push({
-                            assignment:('00' + sortOrder).slice(-3)+'EFT'+('0'+ rosterInx).slice(-2) ,
+                            assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
                             assignmentDetail: assignment,
                             name:assignment.name,
                             code:assignment.lookupCode.code,
                             type: this.getType(assignment.lookupCode.type),
                             attachedDuty: dutyRostersForThisAssignment[rosterInx],
-                            EFTnumber: Number(rosterInx),
-                            totalEFT: dutyRostersForThisAssignment.length
+                            FTEnumber: Number(rosterInx),
+                            totalFTE: dutyRostersForThisAssignment.length
                         })
                     }
                 }else{                
                     this.dutyRosterAssignments.push({
-                        assignment:('00' + sortOrder).slice(-3)+'EFT00' ,
+                        assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
                         assignmentDetail: assignment,
                         name:assignment.name,
                         code:assignment.lookupCode.code,
                         type: this.getType(assignment.lookupCode.type),
                         attachedDuty: null,
-                        EFTnumber: 0,
-                        totalEFT: 0
+                        FTEnumber: 0,
+                        totalFTE: 0
                     })
                 }
             }
@@ -269,6 +289,24 @@
             if(this.displayFooter) this.UpdateDisplayFooter(false)
             else this.UpdateDisplayFooter(true)
         }
+
+        public fillInArray(array, fillInNum, startBin, endBin){
+            return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
+        }
+
+        public addArrays(arrayA, arrayB){
+            return arrayA.map((arr,index) =>{return arr+arrayB[index]});
+        }
+
+        public getTimeRangeBins(startDate, endDate, timezone){
+            const startTime = moment(startDate).tz(timezone);
+            const endTime = moment(endDate).tz(timezone);
+            const startOfDay = moment(startTime).startOf("day");
+            const startBin = moment.duration(startTime.diff(startOfDay)).asMinutes()/15;
+            const endBin = moment.duration(endTime.diff(startOfDay)).asMinutes()/15;
+            return( {startBin: startBin, endBin:endBin } )
+        }
+
     }
 </script>
 

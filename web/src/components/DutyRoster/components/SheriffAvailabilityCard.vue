@@ -64,7 +64,7 @@
         
 
         public getDutyColor(type) {
-            const color = {court:'#189fd4',jail:'#A22BB9',escort:'#ffb007',other:'#c91a5d',free:'#e6e9e2',overtime:'#0cc97e'};
+            const color = {court:'#189fd4',jail:'#A22BB9',escort:'#ffb007',other:'#7a4528',free:'#e6e9e2',overtime:'#e85a0e'};
             return color[type];
         }
 
