@@ -29,6 +29,8 @@
                             <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
                         </template>
                 </b-table>
+                <div v-if="!isManageScheduleDataMounted" style="min-height:115.6px;">
+                </div>
             </b-overlay>
         <b-card><br></b-card>
            
