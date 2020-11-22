@@ -31,8 +31,8 @@ namespace SS.Api.controllers.scheduling
         [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
         public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetDistributeScheduleForSheriffs(List<Guid> sheriffIds, DateTimeOffset start, DateTimeOffset end, bool includeWorkSection)
         {
-            if (start >= end) throw new BusinessLayerException("Start date was on or after end date.");
-            if (end.Subtract(start).TotalDays > 30) throw new BusinessLayerException("End date and start date are more than 30 days apart.");
+            if (start >= end) return BadRequest("Start date was on or after end date.");
+            if (end.Subtract(start).TotalDays > 30) return BadRequest("End date and start date are more than 30 days apart.");
             if (!User.HasPermission(Permission.ViewDuties)) includeWorkSection = false;
 
             //Note: This has built in filtering for Sheriffs, based on permissions. 
@@ -45,8 +45,8 @@ namespace SS.Api.controllers.scheduling
         [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
         public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetDistributeScheduleForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeWorkSection)
         {
-            if (start >= end) throw new BusinessLayerException("Start date was on or after end date.");
-            if (end.Subtract(start).TotalDays > 30) throw new BusinessLayerException("End date and start date are more than 30 days apart.");
+            if (start >= end) return BadRequest("Start date was on or after end date.");
+            if (end.Subtract(start).TotalDays > 30) return BadRequest("End date and start date are more than 30 days apart.");
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
             if (!User.HasPermission(Permission.ViewDuties)) includeWorkSection = false;
 
