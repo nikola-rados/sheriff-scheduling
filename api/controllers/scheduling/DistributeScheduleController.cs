@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Mapster;
 using Microsoft.AspNetCore.Mvc;
+using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto.generated;
@@ -24,18 +27,32 @@ namespace SS.Api.controllers.scheduling
             Db = db;
         }
 
-        [HttpGet]
+        [HttpGet("sheriffs")]
         [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
-        public async Task<ActionResult<ShiftDto>> GetDistributeSchedule(DateTimeOffset start, DateTimeOffset end, int locationId, bool includeWorkSection)
+        public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetDistributeScheduleForSheriffs(List<Guid> sheriffIds, DateTimeOffset start, DateTimeOffset end, bool includeWorkSection)
         {
             if (start >= end) throw new BusinessLayerException("Start date was on or after end date.");
             if (end.Subtract(start).TotalDays > 30) throw new BusinessLayerException("End date and start date are more than 30 days apart.");
+            if (!User.HasPermission(Permission.ViewDuties)) includeWorkSection = false;
 
-            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
-
-            var shiftAvailability = await ShiftService.GetShiftAvailability(locationId, start, end);
+            //Note: This has built in filtering for Sheriffs, based on permissions. 
+            var shiftAvailability = await ShiftService.GetShiftAvailability(start, end, sheriffIds);
             var shiftsWithDuties = await DistributeScheduleService.GetDistributeSchedule(shiftAvailability, includeWorkSection);
-            return Ok(shiftsWithDuties);
+            return Ok(shiftsWithDuties.Adapt<List<ShiftAvailabilityDto>>());
+        }
+
+        [HttpGet("location")]
+        [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
+        public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetDistributeScheduleForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeWorkSection)
+        {
+            if (start >= end) throw new BusinessLayerException("Start date was on or after end date.");
+            if (end.Subtract(start).TotalDays > 30) throw new BusinessLayerException("End date and start date are more than 30 days apart.");
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
+            if (!User.HasPermission(Permission.ViewDuties)) includeWorkSection = false;
+
+            var shiftAvailability = await ShiftService.GetShiftAvailability(start, end, locationId: locationId);
+            var shiftsWithDuties = await DistributeScheduleService.GetDistributeSchedule(shiftAvailability, includeWorkSection);
+            return Ok(shiftsWithDuties.Adapt<List<ShiftAvailabilityDto>>());
         }
     }
 }

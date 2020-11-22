@@ -12,6 +12,7 @@ namespace SS.Api.models.dto.generated
         public DateTimeOffset? ExpiryDate { get; set; }
         public string Timezone { get; set; }
         public bool IsOvertime { get; set; }
+        public string WorkSection { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

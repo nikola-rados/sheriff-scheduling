@@ -42,6 +42,7 @@ namespace SS.Api.controllers.scheduling
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
             if (!User.HasPermission(Permission.ViewDuties)) includeDuties = false;
+
             var shifts = await ShiftService.GetShiftsForLocation(locationId, start, end, includeDuties);
             return Ok(shifts.Adapt<List<ShiftDto>>());
         }
@@ -109,7 +110,7 @@ namespace SS.Api.controllers.scheduling
 
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
 
-            var shiftAvailability = await ShiftService.GetShiftAvailability(locationId, start, end);
+            var shiftAvailability = await ShiftService.GetShiftAvailability( start, end, locationId: locationId);
             return Ok(shiftAvailability.Adapt<List<ShiftAvailabilityDto>>());
         }
     }
