@@ -1,10 +1,11 @@
+import { sortOrderForLocationJsonType } from '@/types/common/jsonTypes';
 import {} from '../../common';
 
-export interface placeHolderType {
-    "Id": string,
-    "fullNm": string,
-    "phoneNumberTxt": string,
-    "additionalProp1": {},
-    "additionalProp2": {},
-    "additionalProp3": {}
+export interface lookupCodeJsonType {
+    code: string;
+    concurrencyToken: number;
+    id: number;
+    locationId: number;
+    sortOrderForLocation: sortOrderForLocationJsonType;
+    type: string;  
 }
