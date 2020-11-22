@@ -24,7 +24,7 @@
                         </template>
 
                         <template v-slot:cell(availability)="data" >
-                            <sheriff-availability-card class="m-0 p-0" :sheriffInfo="data.item.sheriff" />
+                            <sheriff-availability-card class="m-0 p-0" :sheriffInfo="data.item" />
                         </template>
 
                         <template v-slot:head(name) >                           
@@ -77,7 +77,7 @@
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
     import SheriffAvailabilityCard from './SheriffAvailabilityCard.vue'
-    import { myTeamShiftInfoType} from '../../../types/DutyRoster';
+    import { myTeamShiftInfoType, dutiesDetailInfoType} from '../../../types/DutyRoster';
 
     import moment from 'moment-timezone';
 
@@ -129,16 +129,54 @@
         public extractSheriffAvailability(){
             this.myTeamMembers = [];
             for(const sheriff of this.shiftAvailabilityInfo){
-                //console.log(sheriff)
+                //console.log(sheriff.availability)
+                //this.findIsland(sheriff.availability)
                 this.myTeamMembers.push({                     
                     name: Vue.filter('truncate')(sheriff.lastName,10) + ', '+ sheriff.firstName.charAt(0).toUpperCase(),
                     fullName: sheriff.firstName + ' ' + sheriff.lastName,
-                    availability: this.getSheriffFreeTime(sheriff),
-                    sheriff: sheriff
+                    availability: this.sumOfArrayElements(sheriff.availability),
+                    sheriff: sheriff,
+                    availabilityDetail: this.findAvailabilitySlots(sheriff.availability)
                 })
             }
             this.isSheriffFuelGauge = true;
         }
+
+        public findAvailabilitySlots(array){
+            const availabilityDetail: dutiesDetailInfoType[] =[]
+            const discontinuity = this.findDiscontinuity(array);
+            const iterationNum = Math.floor((this.sumOfArrayElements(discontinuity) +1)/2);
+            //console.log(iterationNum)
+            for(let i=0; i< iterationNum; i++){
+                const inx1 = discontinuity.indexOf(1)
+                let inx2 = discontinuity.indexOf(2)
+                discontinuity[inx1]=0
+                if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
+                //console.error(inx1 + ' ' +inx2)
+                availabilityDetail.push({
+                        id: 10000+inx1 , 
+                        startBin:inx1, 
+                        endBin: inx2,
+                        name: 'free' ,
+                        colorCode: '#e6d9e2',
+                        color: '#e6d9e2',
+                        type: '',
+                        code: ''
+                    })
+            }
+
+            return availabilityDetail            
+        }
+
+
+        public findDiscontinuity(array){
+            return array.map((arr,index)=>{
+                if((index==0 && arr>0)||(arr>0 && array[index-1]==0)) return 1 ;
+                else if(index>0 && arr==0 && array[index-1]>0) return 2 ;
+                else return 0
+            })
+        }
+
 
         public getBeautifyTime(hour: number){
             return( hour>9? hour+':00': '0'+hour+':00')
@@ -148,15 +186,8 @@
             this.UpdateDisplayFooter(true)
         }
 
-        public getSheriffFreeTime(sheriff){
-            let freeTime = 0;
-            for(const shift of sheriff.shifts){ 
-                const start = moment(shift.startDate);
-                const end = moment(shift.endDate);
-                freeTime += moment.duration(end.diff(start)).asMinutes()
-            }
-            //console.log(freeTime)
-            return freeTime;
+        public sumOfArrayElements(arrayA){
+            return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)
         }
 
         public DragStart(event: any) 

@@ -18,6 +18,18 @@ export interface myTeamShiftInfoType {
     rank: string;
     availability: number[];
     duties: number[];
+    dutiesDetail: dutiesDetailInfoType[];
+}
+
+export interface dutiesDetailInfoType{
+    id: number , 
+    startBin: number, 
+    endBin: number,
+    name: string,
+    colorCode: string,
+    color: string,
+    type: string,
+    code: string
 }
 
 export interface assignmentInfoType {
