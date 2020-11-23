@@ -220,7 +220,7 @@ namespace SS.Db.models
                     else if (entry.State != EntityState.Deleted)
                     {
                         entity.UpdatedById = userId;
-                        entity.UpdatedOn = DateTime.UtcNow;
+                        entity.UpdatedOn = DateTimeOffset.Now;
                     }
                 }
             }
