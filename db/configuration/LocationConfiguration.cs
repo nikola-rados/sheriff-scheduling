@@ -19,7 +19,7 @@ namespace SS.Db.configuration
                 new Location { Id = 3, AgencyId = "SS3", CreatedById = User.SystemUser, Name = "Central Float Pool", Timezone = "America/Vancouver" },
                 new Location { Id = 4, AgencyId = "SS4", CreatedById = User.SystemUser, Name = "ITAU", Timezone = "America/Vancouver" },
                 new Location { Id = 5, AgencyId = "SS5", CreatedById = User.SystemUser, Name = "Office of the Chief Sheriff", Timezone = "America/Vancouver" },
-                new Location { Id = 6, AgencyId = "4882", CreatedById = User.SystemUser, Name = "South Okanagan Escort Centre", Timezone = "America/Vancouver" }
+                new Location { Id = 6, AgencyId = "SS6", JustinCode = "4882", CreatedById = User.SystemUser, Name = "South Okanagan Escort Centre", Timezone = "America/Vancouver" }
             );
 
             builder.HasOne(b => b.Region).WithMany().HasForeignKey(m => m.RegionId).OnDelete(DeleteBehavior.SetNull);
