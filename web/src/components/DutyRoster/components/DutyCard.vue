@@ -58,7 +58,7 @@
             </template>
         </b-modal>
 
-        <b-modal v-model="showEditDutyDetails" id="bv-modal-edit-duty-details" header-class="bg-primary text-light">
+        <b-modal v-model="showEditDutyDetails" id="bv-modal-edit-duty-details" centered header-class="bg-primary text-light">
 			<template v-slot:modal-title>
 				<div class="h2 mb-2 text-light"> Editing Duty: </div> 
                 <div style="float:left;" class="h4 ml-4 p-0 mb-0">{{assignmentName}}</div>             
