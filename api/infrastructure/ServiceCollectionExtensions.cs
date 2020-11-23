@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using IdentityModel.Client;
@@ -26,6 +29,7 @@ using SS.Api.services;
 using SS.Api.services.jc;
 using SS.Api.services.scheduling;
 using SS.Api.services.usermanagement;
+using SS.Common.authorization;
 using BasicAuthenticationHeaderValue = SS.Api.helpers.BasicAuthenticationHeaderValue;
 
 namespace SS.Api.infrastructure
@@ -156,13 +160,26 @@ namespace SS.Api.infrastructure
                 options.ClientId = configuration.GetNonEmptyValue("Keycloak:Client");
                 options.ClientSecret = configuration.GetNonEmptyValue("Keycloak:Secret");
                 options.RequireHttpsMetadata = true;
-                options.GetClaimsFromUserInfoEndpoint = true;
                 options.ResponseType = OpenIdConnectResponseType.Code;
                 options.UsePkce = true;
                 options.SaveTokens = true;
                 options.CallbackPath = "/api/auth/signin-oidc";
                 options.Events = new OpenIdConnectEvents
                 {
+                    OnTicketReceived = context =>
+                    {
+                        context.Properties.Items.Remove(".Token.id_token");
+                        context.Properties.Items[".TokenNames"] = "access_token;refresh_token;token_type;expires_at";
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        var identity = context.Principal.Identity as ClaimsIdentity;
+                        var usedClaimTypes = ClaimsTransformer.UsedProviderClaimTypes;
+                        foreach (var claim in identity.Claims.WhereToList(c=> !usedClaimTypes.Contains(c.Type)))
+                            identity.RemoveClaim(claim);
+                        return Task.CompletedTask;
+                    },
                     OnRedirectToIdentityProvider = context =>
                     {
                         context.ProtocolMessage.SetParameter("kc_idp_hint", "idir");
