@@ -411,9 +411,7 @@
 
                     const startTime = this.completeDate(day.diff, this.selectedStartTime);
                     const endTime = this.completeDate(day.diff, this.selectedEndTime);
-                    const shifts = this.takeoutConflicts(day.diff, startTime, endTime )
-                    console.log(shifts)
-                    console.log(shifts.length)
+                    const shifts = [{start:startTime, end:endTime}]
                     if(shifts.length==0){
                         this.shiftErrorMsg = 'Too many shift conflicts on '+day.name +'.';
                         this.shiftErrorMsgDesc = '';
@@ -434,41 +432,8 @@
                     }
                 }                
 			}
-			console.log(listOfDates)
 			return listOfDates;
-        }
-
-        public takeoutConflicts(dayOffset, shiftStart, shiftEnd){
-            let numberOfConflicts=0
-            const shifts: any[]=[];            
-            
-            for(const conflict of this.sheriffInfo.conflicts){
-                if(conflict.dayOffset == dayOffset){
-                    const conflictStart = moment(conflict.date).add(conflict.startTime).format()
-                    const conflictEnd = moment(conflict.date).add(conflict.endTime).format()                   
-                    if(shiftEnd>conflictEnd && shiftStart<conflictStart){
-                        shifts.push({start:shiftStart, end: this.roundTime(conflictStart,true)});
-                        shifts.push({start:this.roundTime(conflictEnd,false), end:shiftEnd});
-                        numberOfConflicts++;
-                    }else if(shiftEnd>conflictStart && shiftStart<conflictStart){
-                        shifts.push({start:shiftStart, end:this.roundTime(conflictStart,true)});
-                        numberOfConflicts++;
-                    }else if(shiftEnd>conflictEnd && shiftStart<conflictEnd){
-                        shifts.push({start:this.roundTime(conflictEnd,false), end:shiftEnd});
-                        numberOfConflicts++;
-                    }else if(shiftEnd<=conflictEnd && shiftStart>=conflictStart){                        
-                        numberOfConflicts++;
-                    }                    
-                }
-            }
-            if(numberOfConflicts == 0){
-                shifts.push({start:shiftStart, end:shiftEnd});
-            }else if(numberOfConflicts >=2){
-                return [];
-            } 
-
-            return shifts
-        }
+        }      
 
         public roundTime(time, floor){
             const minutes = moment(time).minutes()

@@ -17,7 +17,7 @@
                             <col style="width:8.5rem;">                            
                         </template>
                         <template v-slot:head() = "data" >
-                            <span class="text-danger">{{data.column}}</span> <span> {{data.label}}</span>
+                            <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
                         </template>
                         <template v-slot:head(myteam) = "data" >  
                             <span>{{data.label}}</span>
@@ -29,6 +29,8 @@
                             <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
                         </template>
                 </b-table>
+                <div v-if="!isManageScheduleDataMounted && this.shiftSchedules.length == 0" style="min-height:115.6px;">
+                </div>
             </b-overlay>
         <b-card><br></b-card>
            
