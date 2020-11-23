@@ -174,9 +174,9 @@ namespace SS.Api.infrastructure
                     },
                     OnTokenValidated = context =>
                     {
-                        var identity = context.Principal.Identity as ClaimsIdentity;
-                        var usedClaimTypes = ClaimsTransformer.UsedProviderClaimTypes;
-                        foreach (var claim in identity.Claims.WhereToList(c=> !usedClaimTypes.Contains(c.Type)))
+                        if (!(context.Principal.Identity is ClaimsIdentity identity)) return Task.CompletedTask;
+                        foreach (var claim in identity.Claims.WhereToList(c =>
+                            !ClaimsTransformer.UsedProviderClaimTypes.Contains(c.Type)))
                             identity.RemoveClaim(claim);
                         return Task.CompletedTask;
                     },
