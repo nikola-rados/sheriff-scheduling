@@ -17,6 +17,7 @@ namespace SS.DB.Configuration
         {
             builder.HasOne(m => m.CreatedBy).WithMany().HasForeignKey(m => m.CreatedById).OnDelete(DeleteBehavior.SetNull);
             builder.HasOne(m => m.UpdatedBy).WithMany().HasForeignKey(m => m.UpdatedById).OnDelete(DeleteBehavior.SetNull);
+            builder.Property(b => b.CreatedOn).HasDefaultValueSql("now()");
         }
 
         public virtual void Configure(EntityTypeBuilder<TBase> builder)

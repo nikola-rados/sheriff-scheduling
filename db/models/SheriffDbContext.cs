@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SS.Common.authorization;
 using SS.Db.models.audit;
 using SS.Db.models.audit.notmapped;
+using SS.Db.models.jc;
 using SS.Db.models.lookupcodes;
 using SS.Db.models.scheduling;
 
@@ -57,9 +58,11 @@ namespace SS.Db.models
         #endregion Scheduling
 
         // This maps to the table that stores keys.
-        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+        public virtual DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
-        public DbSet<Audit> Audit { get; set; }
+        public virtual DbSet<Audit> Audit { get; set; }
+
+        public virtual DbSet<JcSynchronization> JcSynchronization { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyAllConfigurations();
@@ -208,7 +211,6 @@ namespace SS.Db.models
                     if (entry.State == EntityState.Added)
                     {
                         entity.CreatedById = userId;
-                        entity.CreatedOn = DateTime.UtcNow;
                     }
                     else if (entry.State != EntityState.Deleted)
                     {
