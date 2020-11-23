@@ -141,7 +141,7 @@
             </template>
         </b-modal>  
 
-		<b-modal  v-model="showEditShiftDetails" id="bv-modal-shift-edit-details" header-class="bg-primary text-light">
+		<b-modal  v-model="showEditShiftDetails" id="bv-modal-shift-edit-details" centered header-class="bg-primary text-light">
             <template v-slot:modal-title>
                 <span class="mb-0 text-light"> 
                     <h3 class="m-0 p-0" >Updating Shift </h3>                   

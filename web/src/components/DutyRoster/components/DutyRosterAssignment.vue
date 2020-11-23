@@ -1,6 +1,7 @@
 <template>
     <div> 
-        <b-row v-if="assignment.FTEnumber>0" 
+        <b-row v-if="assignment.FTEnumber>0"
+			@click="editAssignment()" 
 			:style="{
 				borderTop: '0px solid #BBBBBB',
 				borderBottom: getBorderBottom,
@@ -55,7 +56,7 @@
             </b-col>
         </b-row>
 
-		<b-modal v-model="showEditAssignmentDetails" id="bv-modal-edit-assignment-details" header-class="bg-primary text-light">
+		<b-modal v-model="showEditAssignmentDetails" id="bv-modal-edit-assignment-details" centered header-class="bg-primary text-light">
 			<template v-slot:modal-title>
 				<h2 class="mb-0 text-light"> Editing Assignment </h2>
 			</template>
@@ -290,8 +291,8 @@
                 </b-form-select>
             </b-form-group>
             <template v-slot:modal-footer>
-                <b-button variant="danger" @click="deleteAssignment()" :disabled="assignmentDeleteReason.length == 0">Confirm</b-button>
-                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
+				<b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
+                <b-button variant="danger" @click="deleteAssignment()" :disabled="assignmentDeleteReason.length == 0">Confirm</b-button>                
             </template>            
             <template v-slot:modal-header-close>                 
                 <b-button variant="outline-warning" class="text-light closeButton" @click="cancelDeletion()"
@@ -657,6 +658,11 @@
 				this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);					
 				this.endTimeState = true;
 			}
+			if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
+				this.startTimeState = false;
+				this.endTimeState = false;
+				requiredError = true;
+            } 
 			if (this.selectedDays.length < 1) {
 				this.selectedDayState = false;
 				requiredError = true;
@@ -766,12 +772,9 @@
 			this.assignmentToEdit.end = this.selectedEndTime;	
 		}
 
-
 		public saveAssignmentChanges() {
-
 			this.readEditedAssignment();
 			const body = this.assignmentToEdit;
-
 			const url = 'api/assignment';
 			this.$http.put(url, body )
 				.then(response => {
@@ -780,13 +783,12 @@
 							this.$emit('change');
 					}
 				}, err => {
-					const errMsg = err.response.data.error;
+					const errMsg = err.response.data;
 					this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
 					this.assignmentErrorMsgDesc = errMsg;
 					this.assignmentError = true;
 				})
 		}
-
 
         public addDuty(){
             this.createDuty();
@@ -857,14 +859,6 @@
 			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
 			return value
 		}
-
-        // public getDutyDetails(){
-            
-        //     this.selectedStartTime = this.assignment.assignmentDetail.start;
-        //     this.selectedEndTime = this.assignment.assignmentDetail.end;
-        //     this.selectedStartDate = '';
-        //     this.selectedEndDate = '';
-        // }
     }
 </script>
 
