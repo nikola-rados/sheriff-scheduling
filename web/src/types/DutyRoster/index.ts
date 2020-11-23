@@ -124,7 +124,7 @@ export interface dutySlotInfoType {
     startDate: string,
     endDate: string,
     dutyId: number,
-    sheriffId: string,
+    sheriffId: string|null,
     shiftId: number|null,
     timezone: string,
     isNotRequired: boolean,
@@ -144,5 +144,15 @@ export interface dutyBlockInfoType {
     startTime: number,
     startTimeString: string,
     title: string,
-    timezone: string
+    timezone: string,
+    shiftId: number|null,
+    dutySlotId: number|null,
+    note: string,
+}
+
+export interface assignDutySlotsInfoType{
+    startDate: string,
+    endDate: string,
+    shiftId: number|null,
+    dutySlotId: number|null,    
 }
