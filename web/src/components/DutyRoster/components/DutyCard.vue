@@ -111,7 +111,6 @@
                             </template>
 
                             <template v-slot:row-details="data">
-                                {{data.item}}
                                 <b-card :id="'Le-Date-'+data.item.startTimeString.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
                                     <add-duty-slot-form 
                                         :formData="data.item" 
