@@ -151,7 +151,7 @@ namespace SS.Db.models
             // Save audit entities that have all the modifications
             foreach (var auditEntry in auditEntries.Where(_ => !_.HasTemporaryProperties))
             {
-                Audit.Add(auditEntry.ToAudit());
+                Audit.Add(auditEntry.ToAudit(GetUserIdFromContext()));
             }
 
             // keep a list of entries where the value of some properties are unknown at this step
@@ -193,7 +193,7 @@ namespace SS.Db.models
                 }
 
                 // Save the Audit entry
-                Audit.Add(auditEntry.ToAudit());
+                Audit.Add(auditEntry.ToAudit(GetUserIdFromContext()));
             }
 
             return SaveChangesAsync();
@@ -207,23 +207,29 @@ namespace SS.Db.models
             var modifiedEntries = ChangeTracker.Entries()
                 .Where(x => (x.State == EntityState.Added || x.State == EntityState.Modified));
 
-            var userId = GetUserId(_httpContextAccessor?.HttpContext?.User.FindFirst(CustomClaimTypes.UserId)?.Value);
-            userId ??= auth.User.SystemUser;
             foreach (var entry in modifiedEntries)
             {
                 if (entry.Entity is BaseEntity entity)
                 {
                     if (entry.State == EntityState.Added)
                     {
-                        entity.CreatedById = userId;
+                        entity.CreatedById = GetUserIdFromContext();
                     }
                     else if (entry.State != EntityState.Deleted)
                     {
-                        entity.UpdatedById = userId;
+                        entity.UpdatedById = GetUserIdFromContext();
                         entity.UpdatedOn = DateTimeOffset.Now;
                     }
                 }
             }
+        }
+
+
+        private Guid? GetUserIdFromContext()
+        {
+            var userId = GetUserId(_httpContextAccessor?.HttpContext?.User.FindFirst(CustomClaimTypes.UserId)?.Value);
+            userId ??= auth.User.SystemUser;
+            return userId;
         }
 
         public TEntity DetachedClone<TEntity>(TEntity entity) where TEntity : class
