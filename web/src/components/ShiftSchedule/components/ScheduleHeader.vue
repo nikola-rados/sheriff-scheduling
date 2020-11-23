@@ -3,7 +3,7 @@
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav>
-					<div style="width:11rem;" class="text-white ml-2">Shift Schedule</div>
+					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2">Shift Schedule</h3>
 				</b-navbar-nav>
 
 				<b-navbar-nav class="custom-navbar">

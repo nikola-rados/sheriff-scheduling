@@ -1,9 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
 using SS.Common.attributes.mapping;
+using ss.db.models;
 using SS.Db.models.sheriff;
 
 namespace SS.Db.models.scheduling
@@ -36,5 +38,8 @@ namespace SS.Db.models.scheduling
         public bool IsNotRequired { get; set; }
         public bool IsNotAvailable { get; set; }
         public bool IsOvertime { get; set; }
+        [NotMapped]
+        [ExcludeFromAddAndUpdateDto]
+        public LookupCode AssignmentLookupCode => Duty?.Assignment?.LookupCode;
     }
 }
