@@ -79,8 +79,8 @@ namespace SS.Db.models
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            var auditEntries = OnBeforeSaveChanges();
             HandleSaveChanges();
+            var auditEntries = OnBeforeSaveChanges();
             var result = await base.SaveChangesAsync(cancellationToken);
             await OnAfterSaveChanges(auditEntries);
             return result;
@@ -89,8 +89,8 @@ namespace SS.Db.models
         //Only used in tests. 
         public override int SaveChanges()
         {
-            var auditEntries = OnBeforeSaveChanges();
             HandleSaveChanges();
+            var auditEntries = OnBeforeSaveChanges();
             var result = base.SaveChanges();
             OnAfterSaveChanges(auditEntries);
             return result;
@@ -119,7 +119,7 @@ namespace SS.Db.models
                     }
 
                     string propertyName = property.Metadata.Name;
-                    if (propertyName == "Photo")
+                    if (SkipProperty(property))
                         continue;
                     if (IsKeyValue(property))
                     {
@@ -165,6 +165,11 @@ namespace SS.Db.models
             return property.Metadata.IsPrimaryKey() || property.Metadata.IsForeignKey();
         }
 
+        private bool SkipProperty(PropertyEntry property)
+        {
+            return property.Metadata.Name == "CreatedOn" || property.Metadata.Name == "Photo";
+        }
+
         private Task OnAfterSaveChanges(List<AuditEntry> auditEntries)
         {
             if (auditEntries == null || auditEntries.Count == 0)
@@ -175,7 +180,7 @@ namespace SS.Db.models
                 // Get the final value of the temporary properties
                 foreach (var prop in auditEntry.TemporaryProperties)
                 {
-                    if (prop.Metadata.Name == "Photo")
+                    if (SkipProperty(prop))
                         continue;
                     if (IsKeyValue(prop))
                     {
