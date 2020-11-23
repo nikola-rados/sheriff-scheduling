@@ -371,7 +371,8 @@ namespace SS.Api.services.usermanagement
                 await LookForSheriffEventConflictAsync(Db.SheriffAwayLocation, data, updateOnlyId)
             }.WhereToList(se => se != null);
 
-            var shiftConflict = await Db.Shift.AsNoTracking().FirstOrDefaultAsync(sal =>
+            var shiftConflict = await Db.Shift.AsNoTracking().Include(d => d.Location)
+                .FirstOrDefaultAsync(sal =>
                 sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
                 sal.ExpiryDate == null);
 
@@ -384,16 +385,16 @@ namespace SS.Api.services.usermanagement
                 {
                     //Calculate the start and end date for the away location.
                     var awayLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffAwayLocation.LocationId)?.Timezone;
-                    startDate = sheriffAwayLocation.StartDate.ConvertToTimezone(awayLocationTimezone).ToString();
-                    endDate = sheriffAwayLocation.EndDate.ConvertToTimezone(awayLocationTimezone).ToString();
+                    startDate = sheriffAwayLocation.StartDate.ConvertToTimezone(awayLocationTimezone).PrintFormatDateTime();
+                    endDate = sheriffAwayLocation.EndDate.ConvertToTimezone(awayLocationTimezone).PrintFormatDateTime();
                 }
                 else
                 {
                     //Calculate the start and end date for the user's home location id. 
                     var sheriffId = Db.Sheriff.AsNoTracking().FirstOrDefault(s => s.Id == data.SheriffId)?.HomeLocationId;
                     var homeLocationTimezone = Db.Location.AsNoTracking().FirstOrDefault(al => al.Id == sheriffId.Value)?.Timezone;
-                    startDate = eventConflict.StartDate.ConvertToTimezone(homeLocationTimezone).ToString();
-                    endDate = eventConflict.EndDate.ConvertToTimezone(homeLocationTimezone).ToString();
+                    startDate = eventConflict.StartDate.ConvertToTimezone(homeLocationTimezone).PrintFormatDateTime();
+                    endDate = eventConflict.EndDate.ConvertToTimezone(homeLocationTimezone).PrintFormatDateTime();
                 }
                 throw new BusinessLayerException(
                     $"Overlaps with existing {eventConflict.GetType().Name.ConvertCamelCaseToMultiWord()}: {startDate} to {endDate}");
@@ -401,10 +402,11 @@ namespace SS.Api.services.usermanagement
 
             if (shiftConflict != null)
             {
-                startDate = shiftConflict.StartDate.ConvertToTimezone(shiftConflict.Timezone).ToString();
-                endDate = shiftConflict.EndDate.ConvertToTimezone(shiftConflict.Timezone).ToString();
+                var date = shiftConflict.StartDate.ConvertToTimezone(shiftConflict.Timezone).PrintFormatDate();
+                startDate = shiftConflict.StartDate.ConvertToTimezone(shiftConflict.Timezone).PrintFormatTime();
+                endDate = shiftConflict.EndDate.ConvertToTimezone(shiftConflict.Timezone).PrintFormatTime();
                 throw new BusinessLayerException(
-                    $"Overlaps with existing {nameof(Shift).ConvertCamelCaseToMultiWord()}: {startDate} to {endDate}");
+                    $"Overlaps with existing {nameof(Shift).ConvertCamelCaseToMultiWord()} @ {shiftConflict.Location.Name}: {date} {startDate} to {endDate}");
             }
         }
 

@@ -2,7 +2,7 @@
     <div>
         <b-card  style="height:400px;overflow: auto;" no-body> 
             <b-card id="LocationError" no-body>                                       
-                <h2 v-if="locationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
+                <h2 v-if="locationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc" style="word-break: break-word;white-space: normal;"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
             </b-card>
             
             <b-card v-if="!addNewLocationForm">
@@ -204,7 +204,7 @@
                         this.$emit('change');
                     }, err=>{
                         const errMsg = err.response.data.error;
-                        this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.locationErrorMsg = errMsg;//.slice(0,60) + (errMsg.length>60?' ...':'');
                         this.locationErrorMsgDesc = errMsg;
                         this.locationError = true;
                         location.href = '#LocationError'
@@ -260,7 +260,7 @@
                 }, err=>{   
                     console.log(err.response.data);
                     const errMsg = err.response.data.error;
-                    this.locationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.locationErrorMsg = errMsg;//.slice(0,60) + (errMsg.length>60?' ...':'');
                     this.locationErrorMsgDesc = errMsg;
                     this.locationError = true;
                     location.href = '#LocationError'
