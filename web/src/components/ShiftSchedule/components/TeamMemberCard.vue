@@ -35,7 +35,7 @@
                 </b-col>
         </b-row>
 
-        <b-modal  v-model="showShiftDetails" id="bv-modal-shift-details" header-class="bg-primary text-light">
+        <b-modal  v-model="showShiftDetails" id="bv-modal-shift-details" centered header-class="bg-primary text-light">
             <template v-slot:modal-title>                
                 <span class="m-0 p-0" > 
                     <h3 class="m-0 p-0" >Creating Shift for </h3>

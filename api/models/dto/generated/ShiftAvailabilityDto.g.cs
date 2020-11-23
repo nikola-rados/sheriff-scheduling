@@ -12,6 +12,5 @@ namespace SS.Api.models.dto.generated
         public List<ShiftAvailabilityConflict> Conflicts { get; set; }
         public SheriffDto Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
-        public string Timezone { get; set; }
     }
 }
