@@ -18,6 +18,8 @@
                                     @shown = "datePickerOpened = true"
                                     @hidden = "datePickerOpened = false"
                                     button-only
+									today-button
+									close-button
                                     locale="en-US">
                             </b-form-datepicker>
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
