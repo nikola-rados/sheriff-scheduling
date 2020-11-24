@@ -221,6 +221,11 @@ namespace SS.Api.services.scheduling
                 Timezone = s.Timezone
             });
 
+            //We've already included this information in the conflicts. 
+            sheriffs.ForEach(s => s.AwayLocation = null);
+            sheriffs.ForEach(s => s.Leave = null);
+            sheriffs.ForEach(s => s.Training = null);
+
             var allShiftConflicts = sheriffEventConflicts.Concat(existingShiftConflicts).ToList();
 
             var lookupCode = await Db.LookupCode.AsNoTracking()
