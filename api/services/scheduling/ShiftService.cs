@@ -223,7 +223,11 @@ namespace SS.Api.services.scheduling
 
             var allShiftConflicts = sheriffEventConflicts.Concat(existingShiftConflicts).ToList();
 
-            var lookupCode = Db.LookupCode.AsNoTracking().Where(lc => lc.Type == LookupTypes.SheriffRank).Include(s=> s.SortOrder);
+            var lookupCode = await Db.LookupCode.AsNoTracking()
+                .Where(lc => lc.Type == LookupTypes.SheriffRank)
+                .Include(s => s.SortOrder)
+                .ToListAsync();
+
             return sheriffs.SelectToList(s => new ShiftAvailability
             {
                 Start = start,
@@ -232,8 +236,9 @@ namespace SS.Api.services.scheduling
                 SheriffId = s.Id,
                 Conflicts = allShiftConflicts.WhereToList(asc => asc.SheriffId == s.Id)
             })
-                //Ranks shouldn't be sorted per location basis. 
-                .OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff.Rank)?.SortOrder.First().SortOrder) 
+                .OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff.Rank)
+                    ?.SortOrder.FirstOrDefault()
+                    ?.SortOrder) 
                 .ThenBy(s => s.Sheriff.LastName)
                 .ThenBy(s => s.Sheriff.FirstName)
                 .ToList();
