@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using db.models;
 using Mapster;
 using SS.Api.Models.DB;
@@ -31,5 +33,9 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset? ExpiryDate { get; set; }
         public string Timezone { get; set; }
         public bool IsOvertime { get; set; }
+        [ExcludeFromAddAndUpdateDto]
+        [NotMapped]
+        public string WorkSection => DutySlots.FirstOrDefault(ds =>
+            ds.StartDate == DutySlots.Min(ds => ds.StartDate))?.AssignmentLookupCode?.Code?.Substring(0,1);
     }
 }

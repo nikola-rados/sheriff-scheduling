@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using SS.Api.helpers;
 using SS.Api.models;
-using SS.Db.Migrations;
 using Shift = SS.Db.models.scheduling.Shift;
 
 namespace SS.Api.services.scheduling
@@ -38,6 +37,9 @@ namespace SS.Api.services.scheduling
                 .Include(s => s.Sheriff)
                 .Include(s => s.AnticipatedAssignment)
                 .Include(d => d.DutySlots.Where(ds => includeDuties))
+                .ThenInclude(ds => ds.Duty)
+                .ThenInclude(d => d.Assignment)
+                .ThenInclude(a => a.LookupCode)
                 .Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
                             s.StartDate < end && start < s.EndDate)
                 .ToListAsync();
@@ -122,7 +124,7 @@ namespace SS.Api.services.scheduling
             var targetStartDate = start.ConvertToTimezone(timezone);
             var targetEndDate = targetStartDate.TranslateDateIfDaylightSavings(timezone, 7);
 
-            var sheriffsAvailableAtLocation = await SheriffService.GetSheriffsForShiftAvailability(locationId, targetStartDate, targetEndDate);
+            var sheriffsAvailableAtLocation = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId, targetStartDate, targetEndDate);
             var sheriffIds = sheriffsAvailableAtLocation.SelectDistinctToList(s => s.Id);
 
             var shiftsToImport = Db.Shift
@@ -160,10 +162,19 @@ namespace SS.Api.services.scheduling
             };
         }
 
-
-        public async Task<List<ShiftAvailability>> GetShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
+        /// <summary>
+        /// This is used for Distribute Schedule, as well as the Shift Schedule page. 
+        /// </summary>
+        public async Task<List<ShiftAvailability>> GetShiftAvailability(DateTimeOffset start, DateTimeOffset end, List<Guid> sheriffIds = null, int? locationId = null)
         {
-            var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, start, end);
+            List<Sheriff> sheriffs;
+            if (sheriffIds != null)
+                sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityById(sheriffIds, start, end);
+            else if (locationId.HasValue)
+                sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId.Value, start, end);
+            else
+                throw new InvalidOperationException("GetShiftAvailability must include either a locationId or sheriffIds.");
+
             var shiftsForSheriffs = await GetShiftsForSheriffs(sheriffs.Select(s => s.Id), start, end);
 
             var sheriffEventConflicts = new List<ShiftAvailabilityConflict>();
@@ -176,21 +187,24 @@ namespace SS.Api.services.scheduling
                     Start = s.StartDate,
                     End = s.EndDate, 
                     LocationId = s.LocationId,
-                    Location = s.Location
+                    Location = s.Location,
+                    Timezone = s.Timezone
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Leave.Select(s => new ShiftAvailabilityConflict
                 {
                     Conflict = ShiftConflictType.Leave, 
                     SheriffId = sheriff.Id, 
                     Start = s.StartDate, 
-                    End = s.EndDate
+                    End = s.EndDate,
+                    Timezone = s.Timezone
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Training.Select(s => new ShiftAvailabilityConflict
                 {
                     Conflict = ShiftConflictType.Training, 
                     SheriffId = sheriff.Id, 
                     Start = s.StartDate, 
-                    End = s.EndDate
+                    End = s.EndDate,
+                    Timezone = s.Timezone
                 }));
             });
 
@@ -202,7 +216,8 @@ namespace SS.Api.services.scheduling
                 LocationId = s.LocationId, 
                 Start = s.StartDate, 
                 End = s.EndDate, 
-                ShiftId = s.Id
+                ShiftId = s.Id,
+                Timezone = s.Timezone
             });
 
             var allShiftConflicts = sheriffEventConflicts.Concat(existingShiftConflicts).ToList();
@@ -289,7 +304,7 @@ namespace SS.Api.services.scheduling
             foreach (var shift in shifts)
             {
                 var locationId = shift.LocationId;
-                var sheriffs = await SheriffService.GetSheriffsForShiftAvailability(locationId, shift.StartDate, shift.EndDate, shift.SheriffId);
+                var sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId, shift.StartDate, shift.EndDate, shift.SheriffId);
                 var sheriff = sheriffs.FirstOrDefault();
                 sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}:{shift.SheriffId}, they might not be active in location for the shift.");
                 var validationErrors = new List<string>();
