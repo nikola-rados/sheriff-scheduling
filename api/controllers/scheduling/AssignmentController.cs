@@ -47,6 +47,7 @@ namespace SS.Api.controllers.scheduling
         public async Task<ActionResult<AssignmentDto>> AddAssignment(AddAssignmentDto assignmentDto)
         {
             if (assignmentDto == null) return BadRequest(InvalidAssignmentError);
+            if (assignmentDto.Start >= assignmentDto.End) return BadRequest("Start time was on or after end time.");
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, assignmentDto.LocationId)) return Forbid();
 
             var assignment = assignmentDto.Adapt<Assignment>();
@@ -59,6 +60,7 @@ namespace SS.Api.controllers.scheduling
         public async Task<ActionResult<AssignmentDto>> UpdateAssignment(UpdateAssignmentDto assignmentDto)
         {
             if (assignmentDto == null) return BadRequest(InvalidAssignmentError);
+            if (assignmentDto.Start >= assignmentDto.End) return BadRequest("Start time was on or after end time.");
             var savedAssignment = await AssignmentService.GetAssignment(assignmentDto.Id);
             if (savedAssignment == null) return NotFound();
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, savedAssignment.LocationId)) return Forbid();

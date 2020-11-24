@@ -2,6 +2,7 @@
     <div class="grid">
         <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/7'}"></div>
         <div
+            @click="editDuty()"
             v-for="block in dutyBlocks" 
             :key="block.id"
             :id="block.id"
@@ -15,7 +16,7 @@
                 </b>     
         </div>
     
-        <b-modal v-model="assignDutyError" size="lg" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
+        <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
             <b-row id="AssignDutyError" class="h4 mx-2 py-2">
 				<span class="p-0">{{assignDutyErrorMsg}}</span>
             </b-row>
@@ -46,13 +47,151 @@
             <template v-slot:modal-title>
                 <h2 class="mb-0 text-light">Confirm Assign Overtime</h2>                   
             </template>
-            <h4 >Are you sure you want to assign a duty that extends the team member's shift?</h4>
+            <h4 style="line-height:1.5rem" >Are you sure you want to assign a duty that extends the team member's shift?</h4>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="confirmedAssignOverTimeDuty()">Confirm</b-button>
                 <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-assign-overtime')">Cancel</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-assign-overtime')"
+                >&times;</b-button>
+            </template>
+        </b-modal>
+
+        <b-modal v-model="showEditDutyDetails" id="bv-modal-edit-duty-details" centered header-class="bg-primary text-light">
+			<template v-slot:modal-title>
+				<div class="h2 mb-2 text-light"> Editing Duty: </div> 
+                <div style="float:left;" class="h4 ml-4 p-0 mb-0">{{assignmentName}}</div>             
+                <div style="float:left;" class="h4 text-warning ml-2 p-0 mb-0"> {{fullDutyStartTime}} - {{fullDutyEndTime}}</div>                 
+            </template>
+
+			<b-card v-if="isDutyDataMounted" no-body style="font-size: 14px;user-select: none;" >
+
+				<b-card id="EditDutyError" no-body>
+					<h2 v-if="editDutyError" class="mx-1 mt-2"
+						><b-badge v-b-tooltip.hover
+							:title="editDutyMsg"
+							variant="danger"> {{editDutyMsg | truncate(40)}}
+							<b-icon class="ml-3"
+								icon = x-square-fill
+								@click="editDutyError = false"
+					/></b-badge></h2>
+				</b-card>
+
+                <div>
+                    <b-card no-body border-variant="light" bg-variant="white">
+                        <b-table
+                            :items="dutyBlocks"
+                            :fields="fields"
+                            head-row-variant="primary"
+                            striped
+                            borderless
+                            small
+                            sort-by="startTimeString"
+                            responsive="sm"
+                            >  
+                                
+                            <template v-slot:cell(title)="data" >
+                                <div
+                                    :style="(data.value=='Not Available'||data.value=='Not Required')?'color:'+data.item.color:''"
+                                    v-b-tooltip.hover.right                                
+                                    :title="data.item.title>20? data.item.title:''">
+                                    {{data.item.title | truncate(20)}}</div>
+                            </template>
+
+                            <template v-slot:cell(note)="data" >
+                                <div                                                                        
+                                    :style="{fontSize:'12px',margin:'.11rem 0', color:data.item.color }">
+                                    {{data.value}}</div>
+                            </template>
+
+                            <template v-slot:cell(editDutySlot)="data" >          
+                                <b-button style="width:1.2rem;float:right" class="ml-1 mr-0 my-0 py-0" size="sm" :disabled="data.item.sheriffId?false:true" variant="transparent" @click="confirmUnassignDutySlot(data.item)"><b-icon v-if="data.item.sheriffId" icon="trash-fill" font-scale="1.25" variant="danger" style="transform: translate(-8px,0);"/></b-button>
+                                <b-button style="width:.75rem;float:right" class="mx-1 my-0 py-0" size="sm" :disabled="data.item.note?true:false" variant="transparent" @click="editDutySlotInfo(data)"><b-icon v-if="!data.item.note" icon="pencil-square" font-scale="1.25" variant="primary" style="transform: translate(-8px,0);"/></b-button>
+                            </template>
+
+                            <template v-slot:row-details="data">
+                                <b-card :id="'Le-Date-'+data.item.startTimeString.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
+                                    <add-duty-slot-form 
+                                        :formData="data.item" 
+                                        :dutyBlocks="dutyBlocks"
+                                        :fullDutyStartTime="fullDutyStartTime"
+                                        :fullDutyEndTime="fullDutyEndTime"
+                                        :startOfDay="dutyDate"
+                                        :timezone="dutyTimezone" 
+                                        v-on:submit="assignDuty" 
+                                        v-on:cancel="closeDutySlotForm" />
+                                </b-card>
+                            </template>
+                        </b-table> 
+                    </b-card> 
+                </div>
+			</b-card>
+
+			<template v-slot:modal-footer>
+				<b-button
+						size="sm"
+						variant="danger"
+						class="mr-auto"
+						@click="confirmDeleteDuty()"
+				><b-icon-trash-fill style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-trash-fill>Delete</b-button>
+				<b-button
+						size="sm"
+						variant="secondary"
+						@click="closeEditDutyWindow()"
+				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
+			</template>
+			<template v-slot:modal-header-close>
+				<b-button
+					variant="outline-primary"
+					class="text-light closeButton"
+					@click="closeEditDutyWindow()"
+					>
+					&times;</b-button>
+			</template>
+		</b-modal>
+
+        <b-modal v-model="confirmDelete" id="bv-modal-confirm-delete" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Confirm Delete Duty</h2>                    
+            </template>
+
+            <b-card id="DeleteError" no-body>
+					<h2 v-if="deleteError" class="mx-1 mt-2"
+						><b-badge v-b-tooltip.hover
+							:title="deleteErrorMsg"
+							variant="danger"> {{deleteErrorMsg | truncate(40)}}
+							<b-icon class="ml-3"
+								icon = x-square-fill
+								@click="deleteError = false"
+					/></b-badge></h2>
+			</b-card>
+
+            <h4>Are you sure you want to delete the "{{assignmentName}}" duty?</h4>
+            
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="deleteDuty()">Confirm</b-button>
+                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="cancelDeletion()"
+                >&times;</b-button>
+            </template>
+        </b-modal>
+
+        <b-modal v-model="confirmUnassign" id="bv-modal-confirm-unassign" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Confirm Unassign Duty</h2>                    
+            </template>
+            
+            <h4>Are you sure you want to unassign the "{{assignmentName}}" duty from {{dutySlotToUnassign.lastName}}, {{dutySlotToUnassign.firstName}}?</h4>
+            
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="unassignDutySlot()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-unassign')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-unassign')"
                 >&times;</b-button>
             </template>
         </b-modal>  
@@ -66,13 +205,18 @@
    
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
-    import { assignDutyInfoType, assignmentCardInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
+    import AddDutySlotForm from './AddDutySlotForm.vue'
+    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
 
     import { namespace } from "vuex-class"; 
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    @Component
+    @Component({
+        components: {
+            AddDutySlotForm
+        }        
+    })  
     export default class DutyCard extends Vue {
 
         @Prop({required: true})
@@ -81,7 +225,16 @@
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
-        dutyBlocks: any[]=[] 
+        dutyBlocks: dutyBlockInfoType[] = []; 
+
+        fullDutyStartTime=''
+        fullDutyEndTime=''
+
+        addNewDutySlotForm = false;
+        addFormColor = 'secondary';
+
+        isEditOpen = false;
+        updateTable=0;
 
         assignDutyError = false;
         assignDutyErrorMsg = '';
@@ -95,13 +248,137 @@
         assignedArray: number[] = [];
         unassignedArray: number[][] = [];
         dutyDate ='';
+        dutyTimezone='';
+
+        assignmentName = '';
+        dutyId = 0;
+
+        showEditDutyDetails = false;
+        isDutyDataMounted = false;
+        showEditCancelWarning = false;
+        confirmDelete = false;
+        dutySlotToDelete = {} as dutyBlockInfoType;
+        latestEditData;
+        timezone = 'UTC';
+
+        editDutyError = false;
+        editDutyErrorMsg = '';
+
+        deleteErrorMsg = '';
+        deleteError = false; 
+        
+        confirmUnassign = false;
+        dutySlotToUnassign = {} as dutyBlockInfoType;
+
+        fields = [      
+            {key:'title', label:'Sheriff',sortable:false, tdClass: 'border-top'  },
+            {key:'startTimeString', label:'Start Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},
+            {key:'endTimeString',   label:'End Time',  sortable:false, tdClass: 'border-top', thClass:'h6 align-middle',},  
+            {key:'note', label:'Note',sortable:false, tdClass: 'border-top', thClass:'h6 align-middle'  },
+            {key:'editDutySlot', label:'',  sortable:false, tdClass: 'border-top', thClass:'',},       
+        ];
 
         mounted()
         {
-            console.log(this.dutyRosterInfo)
+            //console.log(this.dutyRosterInfo)
+            this.assignmentName = this.getDutyName()
+            this.dutyId = (this.dutyRosterInfo && this.dutyRosterInfo.attachedDuty)? this.dutyRosterInfo.attachedDuty.id:0;
             this.isMounted = false;
             this.dutyBlocks = [];
             this.extractDuty();
+        }
+
+        public getDutyName(){
+            if (this.dutyRosterInfo)
+                return Vue.filter('capitalize')(this.dutyRosterInfo.type.name +' - '+this.dutyRosterInfo.code) +' ('+this.dutyRosterInfo.name+')'; 
+            else return '';
+        }
+
+        public editDuty(){			
+			this.isDutyDataMounted = false;
+            console.log(this.dutyBlocks);
+            this.showEditDutyDetails = true;
+            this.isDutyDataMounted = true;					           
+        }
+
+        public confirmDeleteDuty(){
+			this.deleteError = false;
+			this.confirmDelete = true;
+        }
+        
+        public cancelDeletion() {
+            this.deleteError = false;
+			this.confirmDelete = false;
+        }
+
+        public deleteDuty(){
+			
+            this.confirmDelete = false;
+            this.deleteError = false;
+            const url = 'api/dutyroster?id=' + this.dutyId;
+        
+            this.$http.delete(url)
+                .then(response => {
+                    // console.log(response);
+                    this.confirmDelete = false;
+                    this.$emit('change');                    
+                }, err=>{
+                    const errMsg = err.response.data.error;
+                    console.log(err.response)
+                    this.deleteErrorMsg = errMsg;
+                    this.deleteError = true;
+                });		
+			
+		}
+        
+        public confirmUnassignDutySlot(slotinfo){
+            console.log(slotinfo)
+            this.dutySlotToUnassign = slotinfo
+            this.confirmUnassign = true;
+        }
+
+        public unassignDutySlot(){
+            this.confirmUnassign = false;
+            if(this.dutySlotToUnassign){
+                const editedDutySlots: assignDutySlotsInfoType[] =[{
+                    startDate: '',
+                    endDate: '',
+                    shiftId:null,
+                    dutySlotId:this.dutySlotToUnassign.dutySlotId
+                }]
+                this.assignDuty(this.dutySlotToUnassign.sheriffId, editedDutySlots, true);        
+            }
+        }
+
+		public closeEditDutyWindow(){
+			this.closeDutySlotForm();
+			this.showEditDutyDetails = false;
+		}
+
+        public closeDutySlotForm() {                     
+            this.addNewDutySlotForm= false; 
+            this.addFormColor = 'secondary';
+            if(this.isEditOpen){
+                this.latestEditData.toggleDetails();
+                this.isEditOpen = false;
+            } 
+        }
+
+        public editDutySlotInfo(data) {
+            if(this.addNewDutySlotForm){
+                location.href = '#addDutySlotForm'
+                this.addFormColor = 'danger'
+            }else if(this.isEditOpen){
+                location.href = '#Ds-Time-'+this.latestEditData.item.startTimeString.substring(0,10)
+                this.addFormColor = 'danger'               
+            }else if(!this.isEditOpen && !data.detailsShowing){
+                data.toggleDetails();
+                this.isEditOpen = true;
+                this.latestEditData = data
+                Vue.nextTick().then(()=>{
+                    location.href = '#Ds-Time-'+this.latestEditData.item.startTimeString.substring(0,10)
+                });
+            }   
         }
 
         public extractDuty(){
@@ -111,24 +388,42 @@
                 const dutyStartTime = moment(dutyInfo.startDate).tz(dutyInfo.timezone);
                 const startOfDay = moment(dutyStartTime).startOf("day");
                 this.dutyDate = startOfDay.format();
+                this.dutyTimezone = dutyInfo.timezone;
+
+                this.fullDutyStartTime  = dutyStartTime.format('HH:mm')
+                this.fullDutyEndTime = moment(dutyInfo.endDate).tz(dutyInfo.timezone).format('HH:mm')
 
                 const dutyBin = this.getTimeRangeBins(dutyInfo.startDate, dutyInfo.endDate,startOfDay, dutyInfo.timezone);
                 let unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyBin.startBin, dutyBin.endBin); 
                               
                 for(const dutySlot of dutyInfo.dutySlots){
-                    //console.log(dutySlot)
+                    // console.log(dutySlot)
                     let id = 1000;
                     const assignedDutyBin = this.getTimeRangeBins(dutySlot.startDate, dutySlot.endDate,startOfDay, dutySlot.timezone)
                     unassignedArray = this.fillInArray(unassignedArray,0,assignedDutyBin.startBin, assignedDutyBin.endBin);
                     const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==dutySlot.sheriffId)return true})[0];
                     const isOvertime = this.getOverTime(dutySlot.shiftId, dutySlot.isNotAvailable, dutySlot.isNotRequired, dutySlot.isOvertime);                    
+                    const isNotRequiredOrAvailable = (dutySlot.isNotAvailable || dutySlot.isNotRequired)
+                    const isNotRequiredOrAvailableTitle = dutySlot.isNotRequired? 'Not Required':'Not Available'
+                    const isNotRequiredOrAvailableSheriffId = dutySlot.isNotRequired? '00000-00000-11111':'00000-00000-22222'
+                    //console.log(isNotRequiredOrAvailable)                    
+
                     this.dutyBlocks.push({
                         id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'n'+id++,                    
                         startTime: 1+ assignedDutyBin.startBin,
                         endTime: 1+ assignedDutyBin.endBin,                    
-                        color: this.getDutyColor(this.dutyRosterInfo.type.colorCode,dutySlot.isNotAvailable,dutySlot.isNotRequired, isOvertime),
+                        color: this.getDutyColor(this.dutyRosterInfo.type.colorCode, dutySlot.isNotAvailable,dutySlot.isNotRequired, isOvertime),
                         height: '2/6',
-                        title: this.getTitle(sheriff,dutySlot.isNotAvailable,dutySlot.isNotRequired)
+                        title: this.getTitle(sheriff,dutySlot.isNotAvailable,dutySlot.isNotRequired),
+                        lastName: isNotRequiredOrAvailable? isNotRequiredOrAvailableTitle: Vue.filter('capitalize')(sheriff.lastName),
+                        firstName: isNotRequiredOrAvailable? '' : Vue.filter('capitalize')(sheriff.firstName),
+                        sheriffId: isNotRequiredOrAvailable? isNotRequiredOrAvailableSheriffId: sheriff.sheriffId,
+                        startTimeString: moment(dutySlot.startDate).tz(dutySlot.timezone).format('HH:mm'),
+                        endTimeString: moment(dutySlot.endDate).tz(dutySlot.timezone).format('HH:mm'),
+                        timezone: dutySlot.timezone, 
+                        shiftId: dutySlot.shiftId, 
+                        dutySlotId: dutySlot.id,
+                        note: isOvertime? 'Overtime' :''
                     })                
                 }
 
@@ -136,15 +431,25 @@
 
                 for(const unassignInx in this.unassignedArray){
                     //console.log(unassignInx)
-                    //console.log(this.unassignedArray[unassignInx])
+                    // console.log(this.unassignedArray[unassignInx])
                     const unassignedBin = this.getArrayRangeBins(this.unassignedArray[unassignInx]);
+                    const unassignedSlotTime = this.convertTimeRangeBinsToTime(startOfDay, unassignedBin.startBin, unassignedBin.endBin);
                     this.dutyBlocks.push({
                         id:'dutySlot'+dutyInfo.id+'n'+unassignInx,                    
                         startTime: 1+ unassignedBin.startBin,
                         endTime: 1+ unassignedBin.endBin,                    
                         color: this.dutyRosterInfo.type.colorCode,
                         height: '2/6',
-                        title: ''
+                        title: '',
+                        sheriffId: '',
+                        firstName: '',
+                        lastName: '',
+                        startTimeString: unassignedSlotTime.startTime.substring(11,16),
+                        endTimeString: unassignedSlotTime.endTime.substring(11,16),
+                        timezone: '',
+                        shiftId: null,
+                        dutySlotId: null,
+                        note: ''
                     })                
                 }
 
@@ -158,6 +463,7 @@
 
                 
             }
+            //console.log(this.dutyBlocks)
 
             this.isMounted = true; 
         }
@@ -187,9 +493,9 @@
         }
 
         public getTitle(sheriff,isNotAvailable,isNotRequired){
-            if(isNotAvailable) return 'isNotAvailable';
-            else if(isNotRequired) return  'isNotRequired';
-            else if(sheriff) return sheriff.lastName+', '+sheriff.firstName;
+            if(isNotAvailable) return 'Not Available';
+            else if(isNotRequired) return  'Not Required';
+            else if(sheriff) return Vue.filter('capitalize')(sheriff.lastName)+', '+Vue.filter('capitalize')(sheriff.firstName);
             else return ' ';
         }
 
@@ -217,7 +523,13 @@
                 if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'){
                     const timeRangeBins = this.getArrayRangeBins(unassignedArray);
                     const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
-                    this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime, null);
+                    const editedDutySlots: assignDutySlotsInfoType[] =[{
+                        startDate: timeRangeDate.startTime,
+                        endDate: timeRangeDate.endTime,
+                        shiftId:null,
+                        dutySlotId:null
+                    }]
+                    this.assignDuty(sheriffId, editedDutySlots, false);
                     return
                 }
 
@@ -234,9 +546,31 @@
                 
                 if(this.sumOfArrayElements(unionUnassignAvail)>0){
                     console.log('call assign')
-                    const timeRangeBins = this.getArrayRangeBins(unionUnassignAvail);
-                    const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
-                    this.assignDuty(sheriffId, timeRangeDate.startTime, timeRangeDate.endTime, timeRangeBins.binValue)
+                    const editedDutySlots: assignDutySlotsInfoType[] =[]
+
+                    const discontinuity = this.findDiscontinuity(unionUnassignAvail);
+                    const iterationNum = Math.floor((this.sumOfArrayElements(discontinuity) +1)/2);
+                    console.log(iterationNum);
+                    console.log(discontinuity);
+
+                    for(let i=0; i< iterationNum; i++){
+                        const inx1 = discontinuity.indexOf(1)
+                        let inx2 = discontinuity.indexOf(2)
+                        discontinuity[inx1]=0
+                        if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
+                        console.error(inx1 + ' ' +inx2) 
+                        //console.log(unionSelectedRangeAvail.slice(inx1,inx2).includes(1))
+                        //console.log(unionSelectedRangeAvail[inx1])
+                        const slotTime = this.convertTimeRangeBinsToTime(this.dutyDate, inx1, inx2)
+                        editedDutySlots.push({
+                            startDate: slotTime.startTime,
+                            endDate: slotTime.endTime,                        
+                            shiftId: unionUnassignAvail[inx1],
+                            dutySlotId: null,
+                        })
+                    }
+                    console.log(editedDutySlots)
+                    this.assignDuty(sheriffId, editedDutySlots, false)
                     
                 }else{
                     const unionUnassignDuties = this.unionArrays(unassignedArray, duties)
@@ -259,27 +593,34 @@
 
         public confirmedAssignOverTimeDuty() {
 
-            this.assignDuty(this.overTimeSheriffId, this.overTimeTimeRangeDate.startTime, this.overTimeTimeRangeDate.endTime, null);
+            const editedDutySlots: assignDutySlotsInfoType[] =[{
+                startDate: this.overTimeTimeRangeDate.startTime,
+                endDate: this.overTimeTimeRangeDate.endTime,
+                shiftId:null,
+                dutySlotId:null
+            }]
+
+            this.assignDuty(this.overTimeSheriffId, editedDutySlots, false);
         }
 
         public unionArrays(arrayA, arrayB){
             return arrayA.map((arr,index) =>{return arr*arrayB[index]});
         }
 
-        // public subtractUnionOfArrays(arrayA, arrayB){
-        //     return arrayA.map((arr,index) =>{return arr&&(arrayB[index]>0?0:1)});
-        // }
-
-        // public addArrays(arrayA, arrayB){
-        //     return arrayA.map((arr,index) =>{return arr+arrayB[index]});
-        // }
-
         public sumOfArrayElements(arrayA){
-            return arrayA.reduce((acc, arr) => acc + arr, 0)
+            return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)
         }
 
         public fillInArray(array, fillInNum, startBin, endBin){
             return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
+        }
+
+        public findDiscontinuity(array){
+            return array.map((arr,index)=>{
+                if((index==0 && arr>0)||(arr>0 && array[index-1]==0)) return 1 ;
+                else if(index>0 && arr==0 && array[index-1]>0) return 2 ;
+                else return 0
+            })
         }
 
         public getArrayRangeBins(arrayOriginal){
@@ -309,7 +650,7 @@
             return( {startBin: startBin, endBin:endBin } )
         }
 
-        public assignDuty(sheriffId, startDate, endDate, shiftId ) {
+        public assignDuty(sheriffId: string|null, editedDutySlots: assignDutySlotsInfoType[], unassignSheriff: boolean ) {
 
             if(this.dutyRosterInfo.attachedDuty){
                 const dutyInfo = this.dutyRosterInfo.attachedDuty;
@@ -322,26 +663,38 @@
                     sheriffId = null;
                     isNotAvailable = true;
                 }
-                console.log(startDate)
-                console.log(endDate)
-                console.log(shiftId)
+                
+                const dutySlots: dutySlotInfoType[] = [];
+                const dutySlotIds: number[] = [];
                 console.log(dutyInfo)
+                
+                for(const dutySlot of editedDutySlots){
+                    console.log(dutySlot.startDate)
+                    console.log(dutySlot.endDate)
+                    console.log(dutySlot.shiftId)
+                    console.log(dutySlot.dutySlotId)
+                    if(dutySlot.dutySlotId) dutySlotIds.push(dutySlot.dutySlotId)
 
-                const dutySlots = [ { 
-                        id: null,                      
-                        startDate: startDate,
-                        endDate: endDate,
-                        dutyId: dutyInfo.id,
-                        sheriffId: sheriffId,
-                        shiftId: shiftId,
-                        timezone: dutyInfo.timezone,
-                        isNotRequired: isNotRequired,
-                        isNotAvailable: isNotAvailable,
-                        isOvertime: false
-                    }
-                ]
+                    if(!unassignSheriff)
+                        dutySlots.push( { 
+                            id: dutySlot.dutySlotId,                      
+                            startDate: dutySlot.startDate,
+                            endDate: dutySlot.endDate,
+                            dutyId: dutyInfo.id,
+                            sheriffId: sheriffId,
+                            shiftId: dutySlot.shiftId,
+                            timezone: dutyInfo.timezone,
+                            isNotRequired: isNotRequired,
+                            isNotAvailable: isNotAvailable,
+                            isOvertime: false
+                        })
+                    
+                }
 
                 for(const dutySlot of dutyInfo.dutySlots){
+                    if(dutySlotIds.includes(dutySlot.id)){
+                        continue;
+                    }
                     dutySlots.push({  
                         id: dutySlot.id,                                              
                         startDate: dutySlot.startDate,
@@ -383,15 +736,10 @@
                     })
             }
         }
-        
-            // console.log(this.unionArrays([0,2,2],[1,0,1]))
-            // console.log(this.addArrays([0,0,2],[-1,0,0]))
-            // console.log(this.sumOfArrayElements([0,1,2]))
-
-            // console.log(this.fillInArray(Array(6).fill(0), 5 , 2,4))
-            // console.log(this.subtractUnionOfArrays([1,1,1,1,0],[0,2,2,0,0]))
 
     }
+
+    
 </script>
 
 <style scoped>   

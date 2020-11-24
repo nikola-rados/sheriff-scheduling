@@ -612,8 +612,11 @@ namespace tests.controllers
         public async Task ImportWeeklyShifts()
         {
             var sheriffId = Guid.NewGuid();
+            var sheriffId2 = Guid.NewGuid();
             var shiftDto = await CreateShift();
             await Db.Sheriff.AddAsync(new Sheriff {Id = sheriffId, IsEnabled = true, HomeLocationId = 1});
+            await Db.Location.AddAsync(new Location { Id = 2, AgencyId = "3z", Timezone = "America/Vancouver" });
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId2, IsEnabled = true, HomeLocationId = 2 });
             await Db.SaveChangesAsync();
             shiftDto.LocationId = 1;
             shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6).AddYears(5); //Last week monday
@@ -623,14 +626,21 @@ namespace tests.controllers
             var shiftDtos = new List<ShiftDto> {shiftDto};
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));
 
+            //Add in shift at a location, with a Sheriff that has no away location or home location.. to simulate a move. This shift shouldn't be picked up. 
+            shiftDto.LocationId = 1;
+            shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6).AddYears(5); //Last week monday
+            shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5).AddYears(5); //Last week tuesday
+            shiftDto.SheriffId = sheriffId2;
+
             var importedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
                 await ShiftController.ImportWeeklyShifts(1, shiftDto.StartDate));
 
             Assert.NotNull(importedShifts);
+            Assert.True(importedShifts.Shifts.Count == 1);
             var importedShift = importedShifts.Shifts.First();
             Assert.Equal(shiftDto.StartDate.AddDays(7).DateTime,importedShift.StartDate.DateTime, TimeSpan.FromSeconds(10)); //This week monday
             Assert.Equal(shiftDto.EndDate.AddDays(7).DateTime, importedShift.EndDate.DateTime, TimeSpan.FromSeconds(10)); //This week monday
-            Assert.Equal(shiftDto.SheriffId, importedShift.SheriffId);
+            Assert.Equal(sheriffId, importedShift.SheriffId);
         }
 
 

@@ -124,7 +124,7 @@ export interface dutySlotInfoType {
     startDate: string,
     endDate: string,
     dutyId: number,
-    sheriffId: string,
+    sheriffId: string|null,
     shiftId: number|null,
     timezone: string,
     isNotRequired: boolean,
@@ -132,3 +132,27 @@ export interface dutySlotInfoType {
     isOvertime: boolean
 }
 
+export interface dutyBlockInfoType {
+    color: string,
+    endTime: number,
+    endTimeString: string,
+    height: string,
+    id: string,
+    firstName: string,
+    lastName: string,
+    sheriffId: string,
+    startTime: number,
+    startTimeString: string,
+    title: string,
+    timezone: string,
+    shiftId: number|null,
+    dutySlotId: number|null,
+    note: string,
+}
+
+export interface assignDutySlotsInfoType{
+    startDate: string,
+    endDate: string,
+    shiftId: number|null,
+    dutySlotId: number|null,    
+}
