@@ -54,8 +54,8 @@ namespace SS.Api.services.usermanagement
                     (badgeNumber == null && id.HasValue && s.Id == id) ||
                     (!id.HasValue && s.BadgeNumber == badgeNumber));
 
-        //Used for the Shift scheduling screen.
-        public async Task<List<Sheriff>> GetSheriffsForShiftAvailability(int locationId, DateTimeOffset start, DateTimeOffset end, Guid? sheriffId = null)
+        //Used for the Shift scheduling screen, while considering a location. 
+        public async Task<List<Sheriff>> GetSheriffsForShiftAvailabilityForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, Guid? sheriffId = null)
         {
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
@@ -66,6 +66,18 @@ namespace SS.Api.services.usermanagement
                     s.AwayLocation.Any(al =>
                         al.LocationId == locationId && !(al.StartDate > end || start > al.EndDate)
                                                     && al.ExpiryDate == null))
+                .IncludeSheriffEventsBetweenDates(start, end);
+
+            return await sheriffQuery.ToListAsync();
+        }
+
+        //Used for distribute schedule, when trying to get the availability for a sheriff without considering a location. 
+        public async Task<List<Sheriff>> GetSheriffsForShiftAvailabilityById(List<Guid> sheriffIds, DateTimeOffset start, DateTimeOffset end)
+        {
+            var sheriffQuery = Db.Sheriff.AsNoTracking()
+                .AsSplitQuery()
+                .Where(s => sheriffIds.Contains(s.Id))
+                .ApplyPermissionFilters(User, start,end)
                 .IncludeSheriffEventsBetweenDates(start, end);
 
             return await sheriffQuery.ToListAsync();
