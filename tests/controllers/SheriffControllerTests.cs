@@ -124,9 +124,9 @@ namespace tests.controllers
         {
             var sheriffObject = await CreateSheriffUsingDbContext();
 
-            var newLocation = new Location { Name = "5", Id = 5 , AgencyId = "645646464646464"};
+            var newLocation = new Location { Name = "5", Id = 50005 , AgencyId = "645646464646464"};
             await Db.Location.AddAsync(newLocation);
-            var newLocation2 = new Location { Name = "6", Id = 6, AgencyId = "6456456464" };
+            var newLocation2 = new Location { Name = "6", Id = 50006, AgencyId = "6456456464" };
             await Db.Location.AddAsync(newLocation2);
             await Db.SaveChangesAsync();
 
@@ -141,7 +141,7 @@ namespace tests.controllers
 
             //This object is only used for fetching.
             //updateSheriff.HomeLocation = new LocationDto { Name = "Als place2", Id = 5};
-            updateSheriff.HomeLocationId = 5;
+            updateSheriff.HomeLocationId = newLocation.Id;
 
             Detach();
 
@@ -165,7 +165,7 @@ namespace tests.controllers
 
             Detach();
 
-            updateSheriff.HomeLocationId = 6;
+            updateSheriff.HomeLocationId = newLocation2.Id;
             updateSheriff.HomeLocation = newLocation2.Adapt<LocationDto>();
             controllerResult = await _controller.UpdateSheriff(updateSheriff);
             response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
@@ -175,7 +175,7 @@ namespace tests.controllers
             var controllerResult2 = await _controller.GetSheriffForTeam(sheriffResponse.Id);
             var response2 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.NotNull(response2.HomeLocation);
-            Assert.Equal(6, response.HomeLocation.Id);
+            Assert.Equal(newLocation2.Id, response.HomeLocation.Id);
         }
 
 
