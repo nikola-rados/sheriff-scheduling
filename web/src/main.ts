@@ -34,8 +34,6 @@ const router = new VueRouter({
 	routes: routes
 });
 
-history.pushState({ page: "home" }, "", process.env.BASE_URL);
-
 new Vue({
 	router,
 	store,
