@@ -37,7 +37,7 @@ namespace tests.controllers
         [Fact]
         public async Task GetDuties()
         {
-            var location = new Location {Id = 1, AgencyId = "5555", Name = "dfd"};
+            var location = new Location {Id = 50000, AgencyId = "5555", Name = "dfd"};
             await Db.Location.AddAsync(location);
 
             var startDate = DateTimeOffset.UtcNow;
@@ -62,7 +62,7 @@ namespace tests.controllers
             await Db.Duty.AddAsync(addDutyExpiryDate);
             await Db.SaveChangesAsync();
 
-            var controllerResult = await _controller.GetDuties(1, startDate, startDate.AddDays(1));
+            var controllerResult = await _controller.GetDuties(location.Id, startDate, startDate.AddDays(1));
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.Single(response);
             Assert.Equal(1, response.First().Id);
@@ -71,7 +71,7 @@ namespace tests.controllers
         [Fact]
         public async Task AddDuty()
         {
-            var location = new Location { Id = 1, AgencyId = "5555", Name = "dfd" };
+            var location = new Location { Id = 50000, AgencyId = "5555", Name = "dfd" };
             await Db.Location.AddAsync(location);
             await Db.SaveChangesAsync();
 
@@ -80,7 +80,7 @@ namespace tests.controllers
             {
                 StartDate = startDate,
                 EndDate = startDate.AddDays(5),
-                LocationId = 1,
+                LocationId = location.Id,
                 Timezone = "America/Vancouver"
             };
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddDuty(addDuty));
@@ -92,7 +92,7 @@ namespace tests.controllers
         [Fact]
         public async Task ExpireDuty()
         {
-            var location = new Location { Id = 1, AgencyId = "5555", Name = "dfd" };
+            var location = new Location { Id = 50000, AgencyId = "5555", Name = "dfd" };
             await Db.Location.AddAsync(location);
 
             var startDate = DateTimeOffset.UtcNow.AddYears(5);
@@ -101,14 +101,14 @@ namespace tests.controllers
                 Id = 1,
                 StartDate = startDate,
                 EndDate = startDate.AddDays(5),
-                LocationId = 1
+                LocationId = location.Id
             };
             await Db.Duty.AddAsync(addDuty);
             await Db.SaveChangesAsync();
 
             HttpResponseTest.CheckForNoContentResponse(await _controller.ExpireDuty(1));
 
-            var controllerResult = await _controller.GetDuties(1, startDate, startDate.AddDays(1));
+            var controllerResult = await _controller.GetDuties(location.Id, startDate, startDate.AddDays(1));
             var getDuties = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.Empty(getDuties);
         }
@@ -116,7 +116,7 @@ namespace tests.controllers
         [Fact]
         public async Task DutySlotOverlapSelf()
         {
-            var location = new Location { Id = 1, AgencyId = "5555", Name = "dfd" };
+            var location = new Location { Id = 50000, AgencyId = "5555", Name = "dfd" };
             await Db.Location.AddAsync(location);
 
             var newSheriff = new Sheriff
@@ -133,7 +133,7 @@ namespace tests.controllers
             var startDate = DateTimeOffset.UtcNow.AddYears(5);
             var addDuty = new AddDutyDto
             {
-                LocationId = 1,
+                LocationId = location.Id,
                 StartDate = startDate, 
                 EndDate = startDate.AddDays(5),
                 Timezone = "America/Vancouver"
@@ -190,7 +190,7 @@ namespace tests.controllers
         [Fact]
         public async Task DutySlotOverlap()
         {
-            var location = new Location { Id = 1, AgencyId = "5555", Name = "dfd" };
+            var location = new Location { Id = 50000, AgencyId = "5555", Name = "dfd" };
             await Db.Location.AddAsync(location);
 
             var newSheriff = new Sheriff
@@ -209,7 +209,7 @@ namespace tests.controllers
             var duty = new Duty
             {
                 Id = 1,
-                LocationId = 1,
+                LocationId = location.Id,
                 StartDate = startDate,
                 EndDate = startDate.AddDays(5),
                 Timezone = "America/Vancouver"
@@ -218,7 +218,7 @@ namespace tests.controllers
             var duty2 = new Duty
             {
                 Id = 2,
-                LocationId = 1,
+                LocationId = location.Id,
                 StartDate = startDate,
                 EndDate = startDate.AddDays(5),
                 Timezone = "America/Vancouver"
@@ -267,7 +267,7 @@ namespace tests.controllers
         [Fact]
         public async Task AddUpdateRemoveDutySlots()
         {
-            var location = new Location { Id = 1, AgencyId = "5555", Name = "dfd" };
+            var location = new Location { Id = 50000, AgencyId = "5555", Name = "dfd" };
             await Db.Location.AddAsync(location);
 
             var newSheriff = new Sheriff
@@ -286,7 +286,7 @@ namespace tests.controllers
             var duty = new Duty
             {
                 Id = 1,
-                LocationId = 1,
+                LocationId = location.Id,
                 StartDate = startDate,
                 EndDate = startDate.AddDays(5),
                 Timezone = "America/Vancouver"
