@@ -4,7 +4,16 @@
         <distribute-header v-on:change="loadScheduleInformation" />
 
         <b-row>
-            <b-card>B.C. Sheriff Service</b-card>
+            <b-card>B.C. Sheriff Service
+                <img 
+              class="img-fluid d-none d-lg-block"          
+              src="../../../public/images/bcss-crest.png"
+              width="177"
+              height="44"
+              alt="B.C. Government Logo"
+            />
+          <img>
+            </b-card>
             <b-card>{{location.name}}</b-card>
 
         </b-row>
