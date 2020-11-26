@@ -25,9 +25,29 @@
 				</b-navbar-nav>
 
 				<b-navbar-nav class="mr-2">
+					<b-input-group v-if="teamDataReady" class="mr-2 mt-1" style="height: 40px">
+						<b-input-group-prepend is-text>
+							<b-icon icon="globe"></b-icon>
+						</b-input-group-prepend>
+						<b-form-select
+							style="height: 100%;"
+							v-model="selectedTeamMember"
+							@change="getSchedule()"                
+							>
+							<b-form-select-option value="">All</b-form-select-option>
+							<b-form-select-option
+								v-for="member in teamMemberList"
+								:key="member.id"                  
+								:value="member">{{member.name}}
+							</b-form-select-option>                  
+						</b-form-select>
+					</b-input-group>
+				</b-navbar-nav>
+
+				<b-navbar-nav class="mr-2">
 					<b-nav-form>
-						<div :class="hideWorkSectionChecked?'':'bg-success'" :style="(hideWorkSectionChecked?'width: 3rem;':'width: 6rem;')">
-							<b-form-checkbox class="ml-2 my-2" v-model="hideWorkSectionChecked"  @change="getSchedule()" size="lg" switch>
+						<div :class="showWorkSectionChecked?'bg-success':''" :style="(showWorkSectionChecked?'width: 6rem;':'width: 3rem;')">
+							<b-form-checkbox class="ml-2 my-2" v-model="showWorkSectionChecked" @change="getSchedule()" size="lg" switch>
 								{{viewStatus}}
 							</b-form-checkbox>
 						</div>
@@ -51,7 +71,7 @@
 
 <script lang="ts">
  
-	import { Component, Vue } from 'vue-property-decorator';
+	import { Component, Vue, Watch } from 'vue-property-decorator';
 	import { namespace } from "vuex-class";
 	import moment from 'moment-timezone';
 	import "@store/modules/ShiftScheduleInformation";
@@ -74,12 +94,24 @@
 		public UpdateShiftRangeInfo!: (newShiftRangeInfo: shiftRangeInfoType) => void	
 
 		selectedDate = '';
-		isShiftDataMounted = false;	
+		isShiftDataMounted = false;
+		teamDataReady = false;	
 		datePickerOpened = false;
-		hideWorkSectionChecked = false;
+		showWorkSectionChecked = false;
+		selectedTeamMember = '';
+
+		@Watch('location.id', { immediate: true })
+        locationChange()
+        {
+            if (this.teamDataReady) {
+                this.getSheriffs();
+            }            
+        }
 
 		mounted() {
 			console.log('header')
+			this.showWorkSectionChecked = false;
+			this.getSheriffs();
 			
 			if(!this.shiftRangeInfo.startDate){
 				this.selectedDate = moment().format().substring(0,10);
@@ -95,10 +127,23 @@
 			// 	this.EditShift();
 			// });
 		}
+
+		public getSheriffs() {            
+			this.teamDataReady = true;
+			console.log('getting list')
+            // const url = 'api/sheriff';
+            // this.$http.get(url)
+            //     .then(response => {
+            //         if(response.data){
+            //             this.extractMyTeamFromSheriffs(response.data);                        
+            //         }
+            //         this.teamDataReady = true;
+            //     })
+        }
 		
 		public getSchedule() {
-			console.log(this.hideWorkSectionChecked);
-			this.$emit('change', this.hideWorkSectionChecked);
+			console.log(this.showWorkSectionChecked);
+			this.$emit('change', this.showWorkSectionChecked, this.selectedTeamMember);
 		}
 
 		public printSchedule() { 
@@ -106,7 +151,7 @@
         }
 		
 		get viewStatus() {
-            if(!this.hideWorkSectionChecked) return 'WS';else return ''
+            if(this.showWorkSectionChecked) return 'WS';else return ''
         }		
 		
 		public dateChanged(event) {

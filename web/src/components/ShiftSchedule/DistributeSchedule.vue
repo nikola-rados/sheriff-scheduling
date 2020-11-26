@@ -52,6 +52,24 @@
                     </template>
                     <template v-slot:cell(myteam) = "data" >  
                         <span >{{data.item.myteam.name}}</span>
+                        <div style="height:1rem;"                    
+                            v-if="data.item.myteam.homeLocation != location.name"> 
+                                <b-icon-box-arrow-in-right style="transform:translate(0,-5px)"/>
+                                <span>Loaned in from {{data.item.myteam.homeLocation}}</span> 
+                        </div>
+                    </template>
+                    <template v-slot:cell() = "data">                        
+                        <b-row class="ml-4" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
+                            <span v-if="event.type == 'Shift'">{{event.workSection}} {{event.startTime}} - {{event.endTime}}</span>
+                            <span v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</span>
+                            <span v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</span>
+                            <span v-else>
+                                <font-awesome-icon icon="suitcase" v-if="event.type == 'Leave'" style="font-size: 1.5rem;"></font-awesome-icon>
+                                <font-awesome-icon icon="graduation-cap" v-if="event.type == 'Training'" style="font-size: 1.5rem;"></font-awesome-icon>
+                                <span v-if="event.type == 'Loaned'"><b-icon-box-arrow-left/> {{event.location}}</span>
+                                <span> {{event.startTime}} - {{event.endTime}}</span>                                
+                            </span>                          
+                        </b-row>
                     </template>
                     
             </b-table>
@@ -112,8 +130,8 @@
         locationChange()
         {
             if (this.isDistributeDataMounted) {
-                this.loadScheduleInformation(false); 
-                //console.log('watch')               
+                this.loadScheduleInformation(false, ''); 
+                // console.log('watch')               
             }            
         }
 
@@ -122,19 +140,27 @@
             this.today = moment().tz(this.location.timezone).format();
         }
 
-        public loadScheduleInformation(includeWS: boolean) {
+        public loadScheduleInformation(includeWS: boolean, sheriffId: string) {
+            console.log(includeWS)
             
             this.isDistributeDataMounted=false;
             this.headerDate();
             const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
-
+            
             const url = 'api/distributeschedule/location?locationId='
                         +this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+endDate + '&includeWorkSection='+includeWS;
+            
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
-                        this.extractTeamScheduleInfo(response.data);                        
+                        let info = [];
+                        if (sheriffId.length == 0) {
+                            info = response.data;
+                        } else {
+                            info = response.data.filter(data =>{if(data.sheriffId == sheriffId ) return true})
+                        }
+                        console.log(info)
+                        this.extractTeamScheduleInfo(info);                        
                     }                                   
                 })            
         }
@@ -157,6 +183,7 @@
             for(const sheriffScheduleJson of sheriffsScheduleJson) {
                 const sheriffSchedule = {} as distributeScheduleInfoType;
                 sheriffSchedule.sheriffId = sheriffScheduleJson.sheriffId;
+                sheriffSchedule.homeLocation = sheriffScheduleJson.sheriff.homeLocation.name;
                 sheriffSchedule.name = Vue.filter('capitalize')(sheriffScheduleJson.sheriff.lastName) 
                                         + ', ' + Vue.filter('capitalize')(sheriffScheduleJson.sheriff.firstName);                
                 const isInLoanLocation = (sheriffScheduleJson.sheriff.homeLocation.id !=this.location.id)

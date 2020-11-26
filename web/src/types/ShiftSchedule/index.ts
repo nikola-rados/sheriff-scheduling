@@ -102,6 +102,7 @@ export interface distributeScheduleInfoType {
     sheriffId: string;
     conflicts: scheduleInfoType[];
     name: string;
+    homeLocation: string;
 }
 
 export interface scheduleInfoType {
