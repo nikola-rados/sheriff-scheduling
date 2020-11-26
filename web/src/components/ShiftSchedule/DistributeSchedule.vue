@@ -3,21 +3,33 @@
 
         <distribute-header v-on:change="loadScheduleInformation" />
 
-        <b-row>
-            <b-card>B.C. Sheriff Service
-                <img 
-              class="img-fluid d-none d-lg-block"          
-              src="../../../public/images/bcss-crest.png"
-              width="177"
-              height="44"
-              alt="B.C. Government Logo"
-            />
-          <img>
-            </b-card>
-            <b-card>{{location.name}}</b-card>
+        <b-row class="mt-4 mb-0 mx-4">
+            <b-col>
+                <b-row>
+                    <b-col cols="3" class="mr-0">
+                        <img class="mx-4 mt-3 mb-0 img-fluid d-none d-lg-block" src="../../../public/images/bcss-crest.png"
+                            width="88.5"
+                            height="22"
+                            alt="B.C. Sheriff Logo"
+                        /><img>
+                    </b-col>
+                    <b-col cols="9" class="ml-0">
+                            <h2 class="mt-5">B.C. Sheriff Service</h2>
+                            <h3 class="text-secondary font-italic">Honour - Integrity - Commitment</h3>
+                    </b-col>
+                </b-row>
+            </b-col>
+            
+            <b-col>
+                <b-card class="mt-4 mx-5 border border-dark text-center">
+                    <b-card-sub-title class="mb-2 h4">{{location.name}} Schedule</b-card-sub-title>
+                    <b-card-title class="h3">{{this.shiftRangeInfo.startDate | beautify-full-date}} - {{this.shiftRangeInfo.endDate | beautify-full-date}}</b-card-title>
+                    <b-card-text class="text-secondary h5">Summary as of: <i class="h6">{{today | beautify-date-time-weekday}}</i></b-card-text>
+                </b-card>
+            </b-col>            
 
         </b-row>
-        <b-card><br></b-card>
+        <b-card no-body ><br></b-card>
 
         <b-overlay opacity="0.6" :show="!isDistributeDataMounted">
             <template #overlay>
@@ -79,6 +91,7 @@
 
         isDistributeDataMounted = false;
         headerDates: string[] = [];
+        today = '';
         numberOfheaderDates = 7;
         updateTable=0;
 
@@ -102,6 +115,11 @@
                 this.loadScheduleInformation(false); 
                 //console.log('watch')               
             }            
+        }
+
+        mounted() {			
+			
+            this.today = moment().tz(this.location.timezone).format();
         }
 
         public loadScheduleInformation(includeWS: boolean) {
@@ -343,10 +361,9 @@
     }
 </script>
 
-<style scoped>   
-
+<style scoped>    
     .card {
         border: white;
-    }
+    }   
 
 </style>
