@@ -380,11 +380,18 @@
 
 		public startDatePicked(){
             this.startDateState = true;
-            this.endDateState = true;
-			this.selectedEndDate = this.selectedStartDate;			
+			this.endDateState = true;
+			this.toggleAllDays(false);
+			this.toggleWeekDays(false);
+			this.selectedDays = [] ;
+			this.selectedEndDate = this.selectedStartDate;
+			this.disableOutOfRangeDays();			
 		}
 		
-		public endDatePicked(){            
+		public endDatePicked(){
+			this.toggleAllDays(false);
+			this.toggleWeekDays(false);
+			this.selectedDays = [] ;            
             if (this.selectedStartDate.length) {
 				this.disableOutOfRangeDays();
 			}
@@ -407,6 +414,8 @@
 						this.dayOptions[dayOfWeek].enabled = true;
 					}
 				}
+			} else {
+				this.enableAllDayOptions();
 			}
 		}
 
