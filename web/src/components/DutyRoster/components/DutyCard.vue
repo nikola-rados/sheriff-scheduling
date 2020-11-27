@@ -11,7 +11,7 @@
             :title="block.title" 
             @dragover.prevent
             @drop.prevent="drop" >
-                <b style="text-transform: capitalize; margin:  0 padding:0; color:white;">
+                <b :style="dutyBlocks.length>1?dutyBlockStyle:(dutyBlockStyle + 'font-size: 16px;')">
                     {{block.title|truncate(block.endTime - block.startTime-1)}}
                 </b>     
         </div>
@@ -140,7 +140,7 @@
 						size="sm"
 						variant="secondary"
 						@click="closeEditDutyWindow()"
-				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
+				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Close</b-button>
 			</template>
 			<template v-slot:modal-header-close>
 				<b-button
@@ -232,6 +232,12 @@
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
+        @dutyState.State
+        public dutyToBeEdited!: string;
+
+        @dutyState.Action
+        public UpdateDutyToBeEdited!: (newDutyToBeEdited: string) => void
+
         dutyBlocks: dutyBlockInfoType[] = []; 
 
         fullDutyStartTime=''
@@ -239,6 +245,8 @@
 
         addNewDutySlotForm = false;
         addFormColor = 'secondary';
+
+        dutyBlockStyle = 'text-transform: capitalize; margin:  0 padding:0; color:white;';
 
         isEditOpen = false;
         updateTable=0;
@@ -294,7 +302,7 @@
             this.dutyBlocks = [];
             this.extractDuty();
             console.log(this.dutyRosterInfo.assignment)
-            //if(this.dutyRosterInfo.assignment == store) Vue.nextTick(()=>this.editDuty())
+            if(this.dutyRosterInfo.assignment == this.dutyToBeEdited) Vue.nextTick(()=>this.editDuty())
             
         }
 
@@ -307,6 +315,7 @@
         public editDuty(){			
 			this.isDutyDataMounted = false;
             console.log(this.dutyBlocks);
+            this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
             this.showEditDutyDetails = true;
             this.isDutyDataMounted = true;					           
         }
@@ -361,7 +370,8 @@
         }
 
 		public closeEditDutyWindow(){
-			this.closeDutySlotForm();
+            this.closeDutySlotForm();
+            this.UpdateDutyToBeEdited('');
 			this.showEditDutyDetails = false;
 		}
 
