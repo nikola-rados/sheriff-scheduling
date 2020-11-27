@@ -1,4 +1,4 @@
-import {commonInfoType, locationInfoType, userInfoType} from '../../types/common';
+import {localTimeInfoType, commonInfoType, locationInfoType, userInfoType} from '../../types/common';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 
 
@@ -19,6 +19,19 @@ class CommonInformation extends VuexModule {
 
   public token = '';
   public tokenExpiry: Date = new Date();
+
+  public localTime = {} as localTimeInfoType;
+
+
+  @Mutation
+  public setLocalTime(localTime: localTimeInfoType): void {   
+    this.localTime = localTime
+  }
+
+  @Action
+  public UpdateLocalTime(newLocalTime: localTimeInfoType): void {
+    this.context.commit('setLocalTime', newLocalTime)
+  } 
 
 
   @Mutation

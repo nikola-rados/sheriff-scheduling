@@ -90,7 +90,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import { locationInfoType } from '../../types/common';
+    import {localTimeInfoType, locationInfoType } from '../../types/common';
     import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
@@ -104,6 +104,13 @@
         }
     })
     export default class DutyRoster extends Vue {
+
+        @commonState.State
+        public localTime!: localTimeInfoType;
+
+        @commonState.Action
+        public UpdateLocalTime!: (newLocalTime: localTimeInfoType) => void
+
 
         @commonState.State
         public location!: locationInfoType;
@@ -163,6 +170,7 @@
             this.toggleDisplayMyteam();            
             this.memberNotRequired.sheriffId ='00000-00000-11111';
             this.memberNotAvailable.sheriffId ='00000-00000-22222';
+            window.setTimeout(this.updateCurrentTime, 1000);
         }
 
         public getBeautifyTime(hour: number){
@@ -362,6 +370,15 @@
 
         public addAssignment(){ 
             this.headerAddAssignment.$emit('addassign');
+        }
+
+        public updateCurrentTime() {
+            const currentTime = moment();
+            const startOfDay = moment(currentTime).startOf('day')
+            const timeBin = (moment.duration(currentTime.diff(startOfDay)).asMinutes()/15 +0.5)
+            const currentTimeObject = { timeString: currentTime.format(), timeSlot: Math.floor(timeBin)}
+            this.UpdateLocalTime(currentTimeObject);      
+            window.setTimeout(this.updateCurrentTime, 60000);
         }
 
     }

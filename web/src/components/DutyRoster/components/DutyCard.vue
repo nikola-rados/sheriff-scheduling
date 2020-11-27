@@ -1,6 +1,6 @@
 <template>
     <div class="grid">
-        <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/7'}"></div>
+        <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/7'}"></div>       
         <div
             @click="editDuty()"
             v-for="block in dutyBlocks" 
@@ -15,6 +15,7 @@
                     {{block.title|truncate(block.endTime - block.startTime-1)}}
                 </b>     
         </div>
+        <span :style="{borderLeft:'3px solid red', gridColumnStart: localTime.timeSlot+1,gridColumnEnd:(localTime.timeSlot+2), gridRow:'1/7'}"></span>
     
         <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
             <b-row id="AssignDutyError" class="h4 mx-2 py-2">
@@ -207,8 +208,11 @@
     import moment from 'moment-timezone';
     import AddDutySlotForm from './AddDutySlotForm.vue'
     import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
+    import {localTimeInfoType} from '../../../types/common';
 
-    import { namespace } from "vuex-class"; 
+    import { namespace } from "vuex-class";
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation"); 
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
@@ -218,6 +222,9 @@
         }        
     })  
     export default class DutyCard extends Vue {
+
+        @commonState.State
+        public localTime!: localTimeInfoType;
 
         @Prop({required: true})
         dutyRosterInfo!: assignmentCardInfoType;
@@ -762,7 +769,7 @@
            
     }
 
-    .grid > * { 
+    .grid > div { 
         padding: 0 0;
         border: 1px dotted rgb(212, 212, 212);
     }
