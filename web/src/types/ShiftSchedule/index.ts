@@ -10,6 +10,11 @@ export interface shiftInfoType {
     sheriffId: string;
 }
 
+export interface distributeTeamMemberInfoType {        
+    sheriffId: string;
+    name: string;
+}
+
 export interface weekShiftInfoType {
 
     myteam:sheriffAvailabilityInfoType;

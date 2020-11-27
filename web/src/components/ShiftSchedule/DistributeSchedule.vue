@@ -3,80 +3,83 @@
 
         <distribute-header v-on:change="loadScheduleInformation" />
 
-        <b-row class="mt-4 mb-0 mx-4">
-            <b-col>
-                <b-row>
-                    <b-col cols="3" class="mr-0">
-                        <img class="mx-4 mt-3 mb-0 img-fluid d-none d-lg-block" src="../../../public/images/bcss-crest.png"
-                            width="88.5"
-                            height="22"
-                            alt="B.C. Sheriff Logo"
-                        /><img>
-                    </b-col>
-                    <b-col cols="9" class="ml-0">
-                            <h2 class="mt-5">B.C. Sheriff Service</h2>
-                            <h3 class="text-secondary font-italic">Honour - Integrity - Commitment</h3>
-                    </b-col>
-                </b-row>
-            </b-col>
-            
-            <b-col>
-                <b-card class="mt-4 mx-5 border border-dark text-center">
-                    <b-card-sub-title class="mb-2 h4">{{location.name}} Schedule</b-card-sub-title>
-                    <b-card-title class="h3">{{this.shiftRangeInfo.startDate | beautify-full-date}} - {{this.shiftRangeInfo.endDate | beautify-full-date}}</b-card-title>
-                    <b-card-text class="text-secondary h5">Summary as of: <i class="h6">{{today | beautify-date-time-weekday}}</i></b-card-text>
-                </b-card>
-            </b-col>            
+        <div id="pdf">
 
-        </b-row>
-        <b-card no-body ><br></b-card>
+            <b-row class="mt-4 mb-0 mx-4">
+                <b-col>
+                    <b-row>
+                        <b-col cols="3" class="mr-0">
+                            <img class="mx-4 mt-3 mb-0 img-fluid d-none d-lg-block" src="../../../public/images/bcss-crest.png"
+                                width="88.5"
+                                height="22"
+                                alt="B.C. Sheriff Logo"
+                            /><img>
+                        </b-col>
+                        <b-col cols="9" class="ml-0">
+                                <h2 class="mt-5">B.C. Sheriff Service</h2>
+                                <h3 class="text-secondary font-italic">Honour - Integrity - Commitment</h3>
+                        </b-col>
+                    </b-row>
+                </b-col>
+                
+                <b-col>
+                    <b-card class="mt-4 mx-5 border border-dark text-center">
+                        <b-card-sub-title class="mb-2 h4">{{location.name}} Schedule</b-card-sub-title>
+                        <b-card-title class="h3">{{this.shiftRangeInfo.startDate | beautify-full-date}} - {{this.shiftRangeInfo.endDate | beautify-full-date}}</b-card-title>
+                        <b-card-text class="text-secondary h5">Summary as of: <i class="h6">{{today | beautify-date-time-weekday}}</i></b-card-text>
+                    </b-card>
+                </b-col>            
 
-        <b-overlay opacity="0.6" :show="!isDistributeDataMounted">
-            <template #overlay>
-                <loading-spinner :inline="true"/>
-            </template>    
-            <b-table
-                :key="updateTable"
-                :items="sheriffSchedules" 
-                :fields="fields"
-                small
-                head-row-variant="primary"   
-                bordered
-                fixed>
-                    
-                    <template v-slot:head() = "data" >
-                        <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
-                    </template>
-                    <template v-slot:head(myteam) = "data" >  
-                        <span>{{data.label}}</span>
-                    </template>
-                    <template v-slot:cell(myteam) = "data" >  
-                        <span >{{data.item.myteam.name}}</span>
-                        <div style="height:1rem;"                    
-                            v-if="data.item.myteam.homeLocation != location.name"> 
-                                <b-icon-box-arrow-in-right style="transform:translate(0,-5px)"/>
-                                <span>Loaned in from {{data.item.myteam.homeLocation}}</span> 
-                        </div>
-                    </template>
-                    <template v-slot:cell() = "data">                        
-                        <b-row class="ml-4" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
-                            <span v-if="event.type == 'Shift'">{{event.workSection}} {{event.startTime}} - {{event.endTime}}</span>
-                            <span v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</span>
-                            <span v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</span>
-                            <span v-else>
-                                <font-awesome-icon icon="suitcase" v-if="event.type == 'Leave'" style="font-size: 1.5rem;"></font-awesome-icon>
-                                <font-awesome-icon icon="graduation-cap" v-if="event.type == 'Training'" style="font-size: 1.5rem;"></font-awesome-icon>
-                                <span v-if="event.type == 'Loaned'"><b-icon-box-arrow-left/> {{event.location}}</span>
-                                <span> {{event.startTime}} - {{event.endTime}}</span>                                
-                            </span>                          
-                        </b-row>
-                    </template>
-                    
-            </b-table>
-            <div v-if="!isDistributeDataMounted && this.sheriffSchedules.length == 0" style="min-height:115.6px;">
-            </div>
-        </b-overlay>
-        <b-card><br></b-card>        
+            </b-row>
+            <b-card no-body ><br></b-card>
+
+            <b-overlay opacity="0.6" :show="!isDistributeDataMounted">
+                <template #overlay>
+                    <loading-spinner :inline="true"/>
+                </template>    
+                <b-table
+                    :key="updateTable"
+                    :items="sheriffSchedules" 
+                    :fields="fields"
+                    small
+                    head-row-variant="primary"   
+                    bordered
+                    fixed>
+                        
+                        <template v-slot:head() = "data" >
+                            <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
+                        </template>
+                        <template v-slot:head(myteam) = "data" >  
+                            <span>{{data.label}}</span>
+                        </template>
+                        <template v-slot:cell(myteam) = "data" >  
+                            <span >{{data.item.myteam.name}}</span>
+                            <div style="height:1rem;"                    
+                                v-if="data.item.myteam.homeLocation != location.name"> 
+                                    <b-icon-box-arrow-in-right style="transform:translate(0,-5px)"/>
+                                    <span>Loaned in from {{data.item.myteam.homeLocation}}</span> 
+                            </div>
+                        </template>
+                        <template v-slot:cell() = "data">                        
+                            <b-row class="ml-4" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
+                                <span v-if="event.type == 'Shift'">{{event.workSection}} {{event.startTime}} - {{event.endTime}}</span>
+                                <span v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</span>
+                                <span v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</span>
+                                <span v-else>
+                                    <font-awesome-icon icon="suitcase" v-if="event.type == 'Leave'" style="font-size: 1.5rem;"></font-awesome-icon>
+                                    <font-awesome-icon icon="graduation-cap" v-if="event.type == 'Training'" style="font-size: 1.5rem;"></font-awesome-icon>
+                                    <span v-if="event.type == 'Loaned'"><b-icon-box-arrow-left/> {{event.location}}</span>
+                                    <span> {{event.startTime}} - {{event.endTime}}</span>                                
+                                </span>                          
+                            </b-row>
+                        </template>
+                        
+                </b-table>
+                <div v-if="!isDistributeDataMounted && this.sheriffSchedules.length == 0" style="min-height:115.6px;">
+                </div>
+            </b-overlay>
+            <b-card><br></b-card> 
+        </div>       
     </b-card>
 </template>
 
@@ -89,7 +92,7 @@
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");    
     import { locationInfoType } from '../../types/common';
-    import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,scheduleInfoType, weekScheduleInfoType, distributeScheduleInfoType } from '../../types/ShiftSchedule/index'
+    import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,scheduleInfoType, weekScheduleInfoType, distributeScheduleInfoType, distributeTeamMemberInfoType } from '../../types/ShiftSchedule/index'
     import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
     import moment from 'moment-timezone';
     import * as _ from 'underscore';
@@ -107,11 +110,16 @@
         @shiftState.State
         public shiftRangeInfo!: shiftRangeInfoType;
 
+        @shiftState.Action
+        public UpdateTeamMemberList!: (newTeamMemberList: distributeTeamMemberInfoType[]) => void
+
         isDistributeDataMounted = false;
         headerDates: string[] = [];
         today = '';
         numberOfheaderDates = 7;
         updateTable=0;
+
+        teamMembers: distributeTeamMemberInfoType[] = [];
 
         fields=[
             {key:'myteam', label:'Name', tdClass:'px-0 mx-0', thClass:'text-center'},
@@ -135,8 +143,9 @@
             }            
         }
 
-        mounted() {			
-			
+        mounted() {
+            this.isDistributeDataMounted=false;			
+			this.loadScheduleInformation(false, '');
             this.today = moment().tz(this.location.timezone).format();
         }
 
@@ -153,6 +162,8 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
+                        this.extractTeamInfo(response.data);
+
                         let info = [];
                         if (sheriffId.length == 0) {
                             info = response.data;
@@ -163,6 +174,19 @@
                         this.extractTeamScheduleInfo(info);                        
                     }                                   
                 })            
+        }
+
+        public extractTeamInfo (teamJson) {
+            this.teamMembers = [];
+            
+            for(const sheriffJson of teamJson) {
+                const sheriff = {} as distributeTeamMemberInfoType;
+                sheriff.sheriffId = sheriffJson.sheriffId;                
+                sheriff.name = Vue.filter('capitalize')(sheriffJson.sheriff.lastName) 
+                                        + ', ' + Vue.filter('capitalize')(sheriffJson.sheriff.firstName);
+                this.teamMembers.push(sheriff);
+            }
+            this.UpdateTeamMemberList(this.teamMembers);
         }
 
         public headerDate() {
@@ -182,10 +206,10 @@
             
             for(const sheriffScheduleJson of sheriffsScheduleJson) {
                 const sheriffSchedule = {} as distributeScheduleInfoType;
-                sheriffSchedule.sheriffId = sheriffScheduleJson.sheriffId;
-                sheriffSchedule.homeLocation = sheriffScheduleJson.sheriff.homeLocation.name;
+                sheriffSchedule.sheriffId = sheriffScheduleJson.sheriffId;                
                 sheriffSchedule.name = Vue.filter('capitalize')(sheriffScheduleJson.sheriff.lastName) 
-                                        + ', ' + Vue.filter('capitalize')(sheriffScheduleJson.sheriff.firstName);                
+                                        + ', ' + Vue.filter('capitalize')(sheriffScheduleJson.sheriff.firstName);
+                sheriffSchedule.homeLocation = sheriffScheduleJson.sheriff.homeLocation.name;                                        
                 const isInLoanLocation = (sheriffScheduleJson.sheriff.homeLocation.id !=this.location.id)
                 sheriffSchedule.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffScheduleJson.conflicts) :this.extractSchedules(sheriffScheduleJson.conflicts, false);        
                 
@@ -200,7 +224,7 @@
                     Fri: sheriffSchedule.conflicts.filter(conflict=>{if(conflict.dayOffset ==5) return true}),
                     Sat: sheriffSchedule.conflicts.filter(conflict=>{if(conflict.dayOffset ==6) return true})
                 })
-            }
+            }          
            
             this.isDistributeDataMounted = true;
             this.updateTable++;

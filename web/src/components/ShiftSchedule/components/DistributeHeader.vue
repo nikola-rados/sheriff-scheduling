@@ -1,5 +1,5 @@
 <template>
-	<div v-on:edit-shifts="EditShifts()">
+	<div>
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav>
@@ -25,16 +25,16 @@
 				</b-navbar-nav>
 
 				<b-navbar-nav class="mr-2">
-					<b-input-group v-if="teamDataReady" class="mr-2 mt-1" style="height: 40px">
+					<b-input-group class="mr-2 mt-1" style="height: 40px">
 						<b-input-group-prepend is-text>
-							<b-icon icon="globe"></b-icon>
+							<b-icon icon="person-fill"></b-icon>
 						</b-input-group-prepend>
 						<b-form-select
 							style="height: 100%;"
 							v-model="selectedTeamMember"
 							@change="getSchedule()"                
 							>
-							<b-form-select-option value="">All</b-form-select-option>
+							<b-form-select-option :value="{sheriffId: '', name: 'All'}">All</b-form-select-option>
 							<b-form-select-option
 								v-for="member in teamMemberList"
 								:key="member.id"                  
@@ -78,14 +78,31 @@
 	const shiftState = namespace("ShiftScheduleInformation");
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-	import { importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
+	import { distributeTeamMemberInfoType, importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
 	import { locationInfoType } from '../../../types/common';
+	import VueHtmlToPaper from 'vue-html-to-paper';
+
+	const options = {
+		name: '_blank',
+		specs: [
+			'fullscreen=yes',
+			'titlebar=yes',
+			'scrollbars=yes'
+		],
+		styles: [
+			"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
+		]
+	}
+	Vue.use(VueHtmlToPaper, options);
 	
 	@Component
 	export default class DistributeHeader extends Vue {		
 
 		@commonState.State
 		public location!: locationInfoType;
+
+		@shiftState.State
+		public teamMemberList!: distributeTeamMemberInfoType[];
 				
 		@shiftState.State
 		public shiftRangeInfo!: shiftRangeInfoType;
@@ -94,24 +111,20 @@
 		public UpdateShiftRangeInfo!: (newShiftRangeInfo: shiftRangeInfoType) => void	
 
 		selectedDate = '';
-		isShiftDataMounted = false;
-		teamDataReady = false;	
 		datePickerOpened = false;
 		showWorkSectionChecked = false;
-		selectedTeamMember = '';
+		selectedTeamMember = {sheriffId: '', name: 'All'} as distributeTeamMemberInfoType;
 
 		@Watch('location.id', { immediate: true })
         locationChange()
         {
-            if (this.teamDataReady) {
-                this.getSheriffs();
-            }            
+            this.selectedTeamMember = {sheriffId: '', name: 'All'};            
         }
 
 		mounted() {
-			console.log('header')
+
 			this.showWorkSectionChecked = false;
-			this.getSheriffs();
+			
 			
 			if(!this.shiftRangeInfo.startDate){
 				this.selectedDate = moment().format().substring(0,10);
@@ -119,35 +132,18 @@
 			} else {
 				this.selectedDate = this.shiftRangeInfo.startDate;
 				this.getSchedule();
-			}
-			console.log(this.selectedDate)
-			
-
-			// this.$root.$on('editShifts', () => {
-			// 	this.EditShift();
-			// });
-		}
-
-		public getSheriffs() {            
-			this.teamDataReady = true;
-			console.log('getting list')
-            // const url = 'api/sheriff';
-            // this.$http.get(url)
-            //     .then(response => {
-            //         if(response.data){
-            //             this.extractMyTeamFromSheriffs(response.data);                        
-            //         }
-            //         this.teamDataReady = true;
-            //     })
-        }
+			}			
+		}		
 		
 		public getSchedule() {
 			console.log(this.showWorkSectionChecked);
-			this.$emit('change', this.showWorkSectionChecked, this.selectedTeamMember);
+			console.log(this.selectedTeamMember);
+			this.$emit('change', this.showWorkSectionChecked, this.selectedTeamMember.sheriffId);
 		}
 
 		public printSchedule() { 
 			console.log('print')
+            this.$htmlToPaper('pdf');
         }
 		
 		get viewStatus() {
