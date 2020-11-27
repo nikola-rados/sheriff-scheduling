@@ -37,4 +37,6 @@ export interface sheriffRankInfoType {
 export interface localTimeInfoType {
     timeString: string,
     timeSlot: number,
+    dayOfWeek: number,
+    isTodayInView: boolean
 }

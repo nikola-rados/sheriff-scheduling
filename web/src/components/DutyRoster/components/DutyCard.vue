@@ -15,7 +15,7 @@
                     {{block.title|truncate(block.endTime - block.startTime-1)}}
                 </b>     
         </div>
-        <span :style="{borderLeft:'3px solid red', gridColumnStart: localTime.timeSlot+1,gridColumnEnd:(localTime.timeSlot+2), gridRow:'1/7'}"></span>
+        <span v-if="localTime.isTodayInView" :style="{borderLeft:'3px solid red', gridColumnStart: localTime.timeSlot+1,gridColumnEnd:(localTime.timeSlot+2), gridRow:'1/7'}"></span>
     
         <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
             <b-row id="AssignDutyError" class="h4 mx-2 py-2">
@@ -293,6 +293,9 @@
             this.isMounted = false;
             this.dutyBlocks = [];
             this.extractDuty();
+            console.log(this.dutyRosterInfo.assignment)
+            //if(this.dutyRosterInfo.assignment == store) Vue.nextTick(()=>this.editDuty())
+            
         }
 
         public getDutyName(){
@@ -472,7 +475,7 @@
             }
             //console.log(this.dutyBlocks)
 
-            this.isMounted = true; 
+            this.isMounted = true;           
         }
 
         public extractUnassignedArrays(unassignedArray){

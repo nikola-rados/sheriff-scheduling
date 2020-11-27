@@ -170,7 +170,7 @@
             this.toggleDisplayMyteam();            
             this.memberNotRequired.sheriffId ='00000-00000-11111';
             this.memberNotAvailable.sheriffId ='00000-00000-22222';
-            window.setTimeout(this.updateCurrentTime, 1000);
+            window.setTimeout(this.updateCurrentTimeCallBack, 1000);
         }
 
         public getBeautifyTime(hour: number){
@@ -178,6 +178,7 @@
         }
 
         public getDutyRosters(){
+            this.updateCurrentTime();
             const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
             this.$http.get(url)
                 .then(response => {
@@ -375,9 +376,19 @@
         public updateCurrentTime() {
             const currentTime = moment();
             const startOfDay = moment(currentTime).startOf('day')
-            const timeBin = (moment.duration(currentTime.diff(startOfDay)).asMinutes()/15 +0.5)
-            const currentTimeObject = { timeString: currentTime.format(), timeSlot: Math.floor(timeBin)}
-            this.UpdateLocalTime(currentTimeObject);      
+            const timeBin = (moment.duration(currentTime.diff(startOfDay)).asMinutes()/15 +0.5)            
+            const currentTimeObject = { 
+                timeString: currentTime.format(), 
+                timeSlot: Math.floor(timeBin),                
+                dayOfWeek: currentTime.weekday(),
+                isTodayInView: currentTime.isBetween(this.dutyRangeInfo.startDate, this.dutyRangeInfo.endDate),
+            }
+            //console.log(currentTimeObject)
+            this.UpdateLocalTime(currentTimeObject);
+        }
+
+        public updateCurrentTimeCallBack() {
+            this.updateCurrentTime();
             window.setTimeout(this.updateCurrentTime, 60000);
         }
 
