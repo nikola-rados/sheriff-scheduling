@@ -46,8 +46,8 @@
 
 				<b-navbar-nav class="mr-2">
 					<b-nav-form>
-						<div :class="showWorkSectionChecked?'bg-success':''" :style="(showWorkSectionChecked?'width: 6rem;':'width: 3rem;')">
-							<b-form-checkbox class="ml-2 my-2" v-model="showWorkSectionChecked" @change="getSchedule()" size="lg" switch>
+						<div :class="showWorkSectionChecked?'bg-success':''" :style="'border-radius:5px;'+(showWorkSectionChecked?'width: 6rem;':'width: 6rem;')">
+							<b-form-checkbox class="ml-2 my-1" v-model="showWorkSectionChecked" @change="getSchedule()" size="lg" switch>
 								{{viewStatus}}
 							</b-form-checkbox>
 						</div>
@@ -80,23 +80,32 @@
     const commonState = namespace("CommonInformation");
 	import { distributeTeamMemberInfoType, importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
 	import { locationInfoType } from '../../../types/common';
-	import VueHtmlToPaper from 'vue-html-to-paper';
 
-	const options = {
-		name: '_blank',
-		specs: [
-			'fullscreen=yes',
-			'titlebar=yes',
-			'scrollbars=yes'
-		],
-		styles: [
-			"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
-		]
-	}
-	Vue.use(VueHtmlToPaper, options);
-	
+	import { Printd } from 'printd'
+
+// 	import VueHtmlToPaper from 'vue-html-to-paper';
+// 	const options = {
+// 		name: '_blank',
+// 		specs: [
+// 			'fullscreen=yes',
+// 			'titlebar=yes',
+// 			'scrollbars=yes'
+// 		],
+// 		styles: [
+// 			"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
+// 				`@media print {
+// 					@page {
+// 						size: landscape
+// 					}
+// 				}`
+// 		]
+// 	}
+// 	Vue.use(VueHtmlToPaper, options);
+	//import z from 'node_modules/'
 	@Component
-	export default class DistributeHeader extends Vue {		
+	export default class DistributeHeader extends Vue {	
+		
+		
 
 		@commonState.State
 		public location!: locationInfoType;
@@ -138,12 +147,24 @@
 		public getSchedule() {
 			console.log(this.showWorkSectionChecked);
 			console.log(this.selectedTeamMember);
-			this.$emit('change', this.showWorkSectionChecked, this.selectedTeamMember.sheriffId);
+			Vue.nextTick(()=>this.$emit('change', this.showWorkSectionChecked, this.selectedTeamMember.sheriffId))
 		}
 
 		public printSchedule() { 
 			console.log('print')
-            this.$htmlToPaper('pdf');
+			//this.$htmlToPaper('pdf');
+			const pdfPage: Printd = new Printd()
+			const styles = [				
+				"https://unpkg.com/bootstrap/dist/css/bootstrap.min.css",
+				`@media print {
+					@page {
+						size:16.5in 11.7in;
+					}
+				}`,
+				`.card {border: white;}`
+			]
+			const pageToPrint = document.getElementById("pdf")
+			if(pageToPrint) pdfPage.print(pageToPrint, styles)
         }
 		
 		get viewStatus() {
@@ -191,5 +212,6 @@
 			display: inline-block;
 			float:none;
 	}
+	
 
 </style>

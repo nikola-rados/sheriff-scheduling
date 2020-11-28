@@ -9,11 +9,13 @@
                 <b-col>
                     <b-row>
                         <b-col cols="3" class="mr-0">
-                            <img class="mx-4 mt-3 mb-0 img-fluid d-none d-lg-block" src="../../../public/images/bcss-crest.png"
-                                width="88.5"
-                                height="22"
-                                alt="B.C. Sheriff Logo"
-                            /><img>
+                            <b-img 
+                                class="img-fluid"
+                                width="100rem"
+                                height="40rem"
+                                :src="require('../../../public/images/bcss-crest.png')" 
+                               alt="B.C. Government Logo">
+                            </b-img>
                         </b-col>
                         <b-col cols="9" class="ml-0">
                                 <h2 class="mt-5">B.C. Sheriff Service</h2>
@@ -49,29 +51,41 @@
                         <template v-slot:head() = "data" >
                             <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
                         </template>
+
                         <template v-slot:head(myteam) = "data" >  
                             <span>{{data.label}}</span>
                         </template>
+
                         <template v-slot:cell(myteam) = "data" >  
                             <span >{{data.item.myteam.name}}</span>
                             <div style="height:1rem;"                    
-                                v-if="data.item.myteam.homeLocation != location.name"> 
-                                    <b-icon-box-arrow-in-right style="transform:translate(0,-5px)"/>
-                                    <span>Loaned in from {{data.item.myteam.homeLocation}}</span> 
+                                v-if="data.item.myteam.homeLocation != location.name">
+                                <div class="m-0 p-0 text-jail"> 
+                                    <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
+                                    <div style="font-size:12px;">Loaned in from </div>
+                                </div> 
+                                <div class=" m-0 p-0 text-jail" style="font-size:10px">{{data.item.myteam.homeLocation|truncate(25)}} </div>
                             </div>
                         </template>
-                        <template v-slot:cell() = "data">                        
-                            <b-row class="ml-4" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
-                                <span v-if="event.type == 'Shift'">{{event.workSection}} {{event.startTime}} - {{event.endTime}}</span>
+                        
+                        <template v-slot:cell() = "data">                     
+                            <b-card class="ml-auto" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
+                                <b-row v-if="event.type == 'Shift'" class="m-0 p-0">
+                                    <div v-if="event.workSection" :style="{backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
+                                    <div v-else style="background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0;"></div>
+                                    <div class="ml-1 p-0">{{event.startTime}} - {{event.endTime}}</div>
+                                </b-row>
                                 <span v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</span>
                                 <span v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</span>
-                                <span v-else>
-                                    <font-awesome-icon icon="suitcase" v-if="event.type == 'Leave'" style="font-size: 1.5rem;"></font-awesome-icon>
-                                    <font-awesome-icon icon="graduation-cap" v-if="event.type == 'Training'" style="font-size: 1.5rem;"></font-awesome-icon>
-                                    <span v-if="event.type == 'Loaned'"><b-icon-box-arrow-left/> {{event.location}}</span>
-                                    <span> {{event.startTime}} - {{event.endTime}}</span>                                
+                                <span v-else>                                    
+                                    <b-badge v-if="event.type == 'Leave'" class="bg-primary">Leave</b-badge>       
+                                    <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge>
+                                    <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
+                                    <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
+                                    <span v-else > FullDay </span>   
+                                    <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
                                 </span>                          
-                            </b-row>
+                            </b-card>
                         </template>
                         
                 </b-table>
@@ -122,7 +136,7 @@
         teamMembers: distributeTeamMemberInfoType[] = [];
 
         fields=[
-            {key:'myteam', label:'Name', tdClass:'px-0 mx-0', thClass:'text-center'},
+            {key:'myteam', label:'Name', tdClass:'px-1 mx-0', thClass:'text-center'},
             {key:'Sun', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
             {key:'Mon', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
             {key:'Tue', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
@@ -131,6 +145,14 @@
             {key:'Fri', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
             {key:'Sat', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'}
         ]
+
+        WSColors = {
+            'C':'#189fd4',
+            'J':'#A22BB9',
+            'E':'#ffb007',
+            'O':'#7a4528'
+        }                       
+        
 
         sheriffSchedules: weekScheduleInfoType[] =[];
 
@@ -233,7 +255,8 @@
         public extractInLoanLocationConflicts(conflictsJson){
             let conflictsJsonAwayLocation: any[] = []
             const conflicts: scheduleInfoType[] = []
-            for(const conflict of conflictsJson){  
+            for(const conflict of conflictsJson){ 
+                console.log(conflict) 
                 conflict.start = moment(conflict.start).tz(this.location.timezone).format();
                 conflict.end = moment(conflict.end).tz(this.location.timezone).format();              
                 if(conflict.conflict !='AwayLocation' || conflict.locationId != this.location.id) continue;
@@ -270,7 +293,8 @@
                                     startTime:Vue.filter('beautify-time')(previousConflictEndDate), 
                                     endTime:Vue.filter('beautify-time')(conflict.start),
                                     type:'Unavailable',
-                                    workSection: ''
+                                    workSection: '',
+                                    workSectionColor:''
                                 })
                             previousConflictEndDate = conflict.end;  
                         }
@@ -286,7 +310,8 @@
                         startTime:'', 
                         endTime:'',
                         type:'Unavailable', 
-                        workSection: ''
+                        workSection: '',
+                        workSectionColor:''
                     })
                 } else if( numberOfConflictsPerDay > 1){
                     const start = moment(previousConflictEndDate)
@@ -301,7 +326,8 @@
                             startTime:Vue.filter('beautify-time')(previousConflictEndDate), 
                             endTime:Vue.filter('beautify-time')(end.format()),
                             type:'Unavailable', 
-                            workSection:''
+                            workSection:'',
+                            workSectionColor:''
                         })
                 }
             }
@@ -321,10 +347,11 @@
         public getWorkSection(conflict){
             if(conflict.conflict =='Scheduled') {
                 const WS = conflict.workSection?conflict.workSection: '';
-                return WS;
+                return {WS:WS, color:this.WSColors[WS]};
             } 
-            else return '';
+            else return {WS:'', color:''};
         }
+
         
         public extractSchedules(conflictsJson, onlyShedules){
 
@@ -349,7 +376,8 @@
                                 startTime:'', 
                                 endTime:'',
                                 type:this.getConflictsType(conflict), 
-                                workSection: this.getWorkSection(conflict)
+                                workSection: this.getWorkSection(conflict).WS,
+                                workSectionColor: this.getWorkSection(conflict).color
                             })        
                         }                       
                     }
@@ -372,7 +400,8 @@
                                 startTime:Vue.filter('beautify-time')(conflict.start), 
                                 endTime:Vue.filter('beautify-time')(conflict.end), 
                                 type:this.getConflictsType(conflict), 
-                                workSection:this.getWorkSection(conflict)
+                                workSection:this.getWorkSection(conflict).WS,
+                                workSectionColor: this.getWorkSection(conflict).color
                             })        
                         } else if(date == conflict.start.substring(0,10) && nextDate == conflict.end.substring(0,10))
                         {  
@@ -389,7 +418,8 @@
                                 startTime:Vue.filter('beautify-time')(conflict.start), 
                                 endTime:Vue.filter('beautify-time')(midnight.format()),
                                 type:this.getConflictsType(conflict), 
-                                workSection:this.getWorkSection(conflict)
+                                workSection:this.getWorkSection(conflict).WS,
+                                workSectionColor: this.getWorkSection(conflict).color
                             })
                             schedules.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
@@ -399,7 +429,8 @@
                                 startTime:'00:00', 
                                 endTime:Vue.filter('beautify-time')(conflict.end),
                                 type:this.getConflictsType(conflict), 
-                                workSection:this.getWorkSection(conflict)
+                                workSection:this.getWorkSection(conflict).WS,
+                                workSectionColor: this.getWorkSection(conflict).color
                             })        
                         }                       
                     }

@@ -121,5 +121,6 @@ export interface scheduleInfoType {
     // timeDuration: number; 
     type: string;
     workSection: string; 
+    workSectionColor: string;
     // fullday: boolean;   
 }
