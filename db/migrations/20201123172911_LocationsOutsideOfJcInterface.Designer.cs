@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -10,9 +11,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201123172911_LocationsOutsideOfJcInterface")]
+    partial class LocationsOutsideOfJcInterface
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,11 +157,10 @@ namespace SS.Db.Migrations
                         new
                         {
                             Id = 6,
-                            AgencyId = "SS6",
+                            AgencyId = "4882",
                             ConcurrencyToken = 0u,
                             CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            JustinCode = "4882",
                             Name = "South Okanagan Escort Centre",
                             Timezone = "America/Vancouver"
                         });
@@ -728,7 +729,7 @@ namespace SS.Db.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            CreatedOn = new DateTimeOffset(new DateTime(2020, 11, 23, 17, 29, 10, 30, DateTimeKind.Unspecified).AddTicks(2268), new TimeSpan(0, 0, 0, 0, 0)),
                             FirstName = "SYSTEM",
                             IsEnabled = false,
                             LastName = "SYSTEM"
@@ -792,28 +793,12 @@ namespace SS.Db.Migrations
                     b.ToTable("UserRole");
                 });
 
-            modelBuilder.Entity("SS.Db.models.jc.JcSynchronization", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn();
-
-                    b.Property<DateTimeOffset>("LastSynchronization")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("JcSynchronization");
-                });
-
             modelBuilder.Entity("SS.Db.models.lookupcodes.LookupSortOrder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .UseIdentityByDefaultColumn()
-                        .HasIdentityOptions(1000L, null, null, null, null, null);
+                        .UseIdentityByDefaultColumn();
 
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
@@ -858,71 +843,6 @@ namespace SS.Db.Migrations
                         .IsUnique();
 
                     b.ToTable("LookupSortOrder");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ConcurrencyToken = 0u,
-                            CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            LookupCodeId = 1,
-                            SortOrder = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ConcurrencyToken = 0u,
-                            CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            LookupCodeId = 2,
-                            SortOrder = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ConcurrencyToken = 0u,
-                            CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            LookupCodeId = 3,
-                            SortOrder = 3
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ConcurrencyToken = 0u,
-                            CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            LookupCodeId = 4,
-                            SortOrder = 4
-                        },
-                        new
-                        {
-                            Id = 5,
-                            ConcurrencyToken = 0u,
-                            CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            LookupCodeId = 5,
-                            SortOrder = 5
-                        },
-                        new
-                        {
-                            Id = 6,
-                            ConcurrencyToken = 0u,
-                            CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            LookupCodeId = 6,
-                            SortOrder = 6
-                        },
-                        new
-                        {
-                            Id = 7,
-                            ConcurrencyToken = 0u,
-                            CreatedById = new Guid("00000000-0000-0000-0000-000000000001"),
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            LookupCodeId = 7,
-                            SortOrder = 7
-                        });
                 });
 
             modelBuilder.Entity("SS.Db.models.scheduling.Assignment", b =>

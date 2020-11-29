@@ -32,10 +32,11 @@ namespace tests.controllers
         [Fact]
         public async Task TestExpireAssignment()
         {
+            var newLocation = new Location {Id = 50000, AgencyId = "44"};
             var assignment = new Assignment
             {
                 LookupCode =  new LookupCode { Id = 5000000 },
-                Location = new Location {Id = 1, AgencyId = "44"},
+                Location = newLocation,
                 Monday = true,
                 Tuesday = true,
                 Wednesday = true,
@@ -43,7 +44,7 @@ namespace tests.controllers
                 Friday = true,
                 Saturday = true,
                 Sunday = true,
-                LocationId = 1,
+                LocationId = newLocation.Id,
                 AdhocStartDate = DateTimeOffset.UtcNow.AddDays(-1),
                 AdhocEndDate = DateTimeOffset.UtcNow.AddDays(7),
                 Timezone = "America/Edmonton"
@@ -57,13 +58,13 @@ namespace tests.controllers
                 Id = 1,
                 AssignmentId = assignment.Id,
                 ExpiryDate = null,
-                LocationId = 1,
+                LocationId = newLocation.Id,
                 StartDate = DateTimeOffset.UtcNow.AddDays(1),
                 DutySlots = new List<DutySlot>
                 {
                     new DutySlot
                     {
-                        LocationId = 1,
+                        LocationId = newLocation.Id,
                         ExpiryDate = null
                     }
                 }
@@ -74,13 +75,13 @@ namespace tests.controllers
                 Id = 2,
                 AssignmentId = assignment.Id,
                 ExpiryDate = null,
-                LocationId = 1,
+                LocationId = newLocation.Id,
                 StartDate = DateTimeOffset.UtcNow,
                 DutySlots = new List<DutySlot>
                     {
                         new DutySlot
                         {
-                            LocationId = 1,
+                            LocationId = newLocation.Id,
                             ExpiryDate = null
                         }
                     }
@@ -91,16 +92,16 @@ namespace tests.controllers
             await Db.Duty.AddAsync(duty2);
             await Db.SaveChangesAsync();
 
-            var controllerResult3 = await _controller.GetAssignments(1, DateTimeOffset.UtcNow, assignment.AdhocEndDate);
+            var controllerResult3 = await _controller.GetAssignments(newLocation.Id, DateTimeOffset.UtcNow, assignment.AdhocEndDate);
             var hasCount1 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult3);
             Assert.NotEmpty(hasCount1);
 
             HttpResponseTest.CheckForNoContentResponse(await _controller.ExpireAssignment(assignment.Id, "EXPIRED"));
-            var controllerResult = await _controller.GetAssignments(1, DateTimeOffset.UtcNow, assignment.AdhocEndDate);
+            var controllerResult = await _controller.GetAssignments(newLocation.Id, DateTimeOffset.UtcNow, assignment.AdhocEndDate);
             var zeroCount = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.Empty(zeroCount);
 
-            var controllerResult2 = await _controller.GetAssignments(1, assignment.AdhocStartDate.Value.AddDays(-1), assignment.AdhocEndDate);
+            var controllerResult2 = await _controller.GetAssignments(newLocation.Id, assignment.AdhocStartDate.Value.AddDays(-1), assignment.AdhocEndDate);
             var hasCount2 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult2);
             Assert.NotEmpty(hasCount2);
         }
