@@ -2,7 +2,7 @@
     <div>
         <b-card v-if="trainingTabDataReady"  style="height:400px;overflow: auto;" no-body>
             <b-card id="TrainingError" no-body>
-                <h2 v-if="trainingError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="trainingErrorMsgDesc"  variant="danger"> {{trainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="trainingError = false" /></b-badge></h2>
+                <h2 v-if="trainingError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="trainingErrorMsgDesc" style="word-break: break-word;white-space: normal;" variant="danger"> {{trainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="trainingError = false" /></b-badge></h2>
             </b-card>
             <b-card v-if="!addNewTrainingForm">
                 <b-button size="sm" variant="success" @click="addNewTraining"><b-icon icon="plus"/> Add </b-button>
@@ -271,7 +271,7 @@
                         this.$emit('change');
                     }, err=>{
                         const errMsg = err.response.data.error;
-                        this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.trainingErrorMsg = errMsg;
                         this.trainingErrorMsgDesc = errMsg;
                         this.trainingError = true;                       
                     });
@@ -313,7 +313,7 @@
                         this.closeTrainingForm();
                     }, err=>{
                         const errMsg = err.response.data.error;
-                        this.trainingErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.trainingErrorMsg = errMsg;
                         this.trainingErrorMsgDesc = errMsg;
                         this.trainingError = true;
                         location.href = '#TrainingError'

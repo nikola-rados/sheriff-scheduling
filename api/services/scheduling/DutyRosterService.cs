@@ -93,7 +93,6 @@ namespace SS.Api.services.scheduling
                     dutySlot.Sheriff = null;
                     dutySlot.Shift = null;
                     dutySlot.Location = null;
-                    dutySlot.IsOvertime = false;
 
                     var shift = shifts.FirstOrDefault(s => s.Id == dutySlot.ShiftId && s.ExpiryDate == null);
                     if (shift != null)

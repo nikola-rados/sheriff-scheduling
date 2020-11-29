@@ -33,3 +33,10 @@ export interface sheriffRankInfoType {
     id: number,
     name: string
 }
+
+export interface localTimeInfoType {
+    timeString: string,
+    timeSlot: number,
+    dayOfWeek: number,
+    isTodayInView: boolean
+}

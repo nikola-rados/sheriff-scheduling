@@ -2,7 +2,7 @@
     <div>
         <b-card v-if="leaveTabDataReady" style="height:400px;overflow: auto;" no-body>                                        
             <b-card id="LeaveError" no-body>
-                <h2 v-if="leaveError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc"  variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
+                <h2 v-if="leaveError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc" style="word-break: break-word;white-space: normal;" variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
             </b-card>
             <b-card  v-if="!addNewLeaveForm">                
                 <b-button size="sm" variant="success" @click="addNewLeave"> <b-icon icon="plus" /> Add </b-button>
@@ -232,7 +232,7 @@
                     this.closeLeaveForm();
                 }, err=>{
                     const errMsg = err.response.data.error;
-                    this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.leaveErrorMsg = errMsg;//.slice(0,60) + (errMsg.length>60?' ...':'');
                     this.leaveErrorMsgDesc = errMsg;
                     this.leaveError = true;
                     location.href = '#LeaveError'
@@ -341,7 +341,7 @@
                         this.$emit('change');
                     }, err=>{
                         const errMsg = err.response.data.error;
-                        this.leaveErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
+                        this.leaveErrorMsg = errMsg;//.slice(0,60) + (errMsg.length>60?' ...':'');
                         this.leaveErrorMsgDesc = errMsg;
                         this.leaveError = true;
                     });

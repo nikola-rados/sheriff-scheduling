@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using SS.Api.helpers;
 using SS.Api.models;
+using SS.Db.models.lookupcodes;
 using Shift = SS.Db.models.scheduling.Shift;
 
 namespace SS.Api.services.scheduling
@@ -220,8 +221,18 @@ namespace SS.Api.services.scheduling
                 Timezone = s.Timezone
             });
 
+            //We've already included this information in the conflicts. 
+            sheriffs.ForEach(s => s.AwayLocation = null);
+            sheriffs.ForEach(s => s.Leave = null);
+            sheriffs.ForEach(s => s.Training = null);
+
             var allShiftConflicts = sheriffEventConflicts.Concat(existingShiftConflicts).ToList();
-            
+
+            var lookupCode = await Db.LookupCode.AsNoTracking()
+                .Where(lc => lc.Type == LookupTypes.SheriffRank)
+                .Include(s => s.SortOrder)
+                .ToListAsync();
+
             return sheriffs.SelectToList(s => new ShiftAvailability
             {
                 Start = start,
@@ -230,9 +241,12 @@ namespace SS.Api.services.scheduling
                 SheriffId = s.Id,
                 Conflicts = allShiftConflicts.WhereToList(asc => asc.SheriffId == s.Id)
             })
-            .OrderBy(s => s.Sheriff.LastName)
-            .ThenBy(s => s.Sheriff.FirstName)
-            .ToList();
+                .OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff.Rank)
+                    ?.SortOrder.FirstOrDefault()
+                    ?.SortOrder) 
+                .ThenBy(s => s.Sheriff.LastName)
+                .ThenBy(s => s.Sheriff.FirstName)
+                .ToList();
         }
 
         #region Helpers
