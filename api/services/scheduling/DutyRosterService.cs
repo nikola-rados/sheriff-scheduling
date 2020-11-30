@@ -53,15 +53,20 @@ namespace SS.Api.services.scheduling
         /// This just creates, there is no assignment of slots. The team has agreed it's just created with the defaults initially.
         /// Creating a Duty with no slots, doesn't require any validation rules. 
         /// </summary>
-        public async Task<Duty> AddDuty(Duty duty)
+        public async Task<List<Duty>> AddDuties(List<Duty> duties)
         {
-            duty.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(duty.Timezone)} must be provided.");
-            duty.Location = await Db.Location.FindAsync(duty.LocationId);
-            duty.Assignment = await Db.Assignment.FindAsync(duty.AssignmentId);
-            duty.DutySlots = new List<DutySlot>();
-            await Db.Duty.AddAsync(duty);
+            foreach (var duty in duties)
+            {
+                duty.Timezone.GetTimezone()
+                    .ThrowBusinessExceptionIfNull($"A valid {nameof(duty.Timezone)} must be provided.");
+                duty.Location = await Db.Location.FindAsync(duty.LocationId);
+                duty.Assignment = await Db.Assignment.FindAsync(duty.AssignmentId);
+                duty.DutySlots = new List<DutySlot>();
+                await Db.Duty.AddAsync(duty);
+            }
+
             await Db.SaveChangesAsync();
-            return duty;
+            return duties;
         }
 
         /// <summary>

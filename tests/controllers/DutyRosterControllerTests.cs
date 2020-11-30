@@ -79,10 +79,10 @@ namespace tests.controllers
                 LocationId = locationId,
                 Timezone = "America/Vancouver"
             };
-            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddDuty(addDuty));
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddDuties( new List<AddDutyDto> {addDuty}));
             Assert.NotNull(response);
-            Assert.Equal(addDuty.StartDate, response.StartDate);
-            Assert.Equal(addDuty.EndDate, response.EndDate);
+            Assert.Equal(addDuty.StartDate, response.First().StartDate);
+            Assert.Equal(addDuty.EndDate, response.First().EndDate);
         }
 
         [Fact]
@@ -121,7 +121,7 @@ namespace tests.controllers
                 EndDate = startDate.AddDays(5),
                 Timezone = "America/Vancouver"
             };
-            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddDuty(addDuty));
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddDuties(new List<AddDutyDto> {addDuty } ));
 
             var controllerResult = await _controller.GetDuties(locationId, startDate, startDate.AddDays(5));
             var getDuties = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);

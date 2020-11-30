@@ -43,13 +43,15 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignDuties)]
-        public async Task<ActionResult<DutyDto>> AddDuty(AddDutyDto newDuty)
+        public async Task<ActionResult<List<DutyDto>>> AddDuties(List<AddDutyDto> newDuties)
         {
-            if (newDuty == null) return BadRequest(InvalidDutyErrorMessage);
-            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, newDuty.LocationId)) return Forbid();
+            if (newDuties == null) return BadRequest(InvalidDutyErrorMessage);
+            var locationIds = newDuties.SelectDistinctToList(d => d.LocationId);
+            if (locationIds.Count != 1) return BadRequest(CannotUpdateCrossLocationError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationIds.First())) return Forbid();
 
-            var duty = await DutyRosterService.AddDuty(newDuty.Adapt<Duty>());
-            return Ok(duty.Adapt<DutyDto>());
+            var duty = await DutyRosterService.AddDuties(newDuties.Adapt<List<Duty>>());
+            return Ok(duty.Adapt<List<DutyDto>>());
         }
 
         [HttpPut]
@@ -64,7 +66,6 @@ namespace SS.Api.controllers.scheduling
             var duties = await DutyRosterService.UpdateDuties(editDuties.Adapt<List<Duty>>(), overrideValidation);
             return Ok(duties.Adapt<List<DutyDto>>());
         }
-
 
         [HttpPut("moveSheriff")]
         [PermissionClaimAuthorize(perm: Permission.EditDuties)]
