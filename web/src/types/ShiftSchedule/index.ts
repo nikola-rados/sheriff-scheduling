@@ -10,6 +10,11 @@ export interface shiftInfoType {
     sheriffId: string;
 }
 
+export interface distributeTeamMemberInfoType {        
+    sheriffId: string;
+    name: string;
+}
+
 export interface weekShiftInfoType {
 
     myteam:sheriffAvailabilityInfoType;
@@ -84,4 +89,38 @@ export interface dayOptionsInfoType {
 
 export interface importConflictMessageType {
     ConflictFieldName: string
+}
+
+export interface weekScheduleInfoType {
+
+    myteam:distributeScheduleInfoType;
+    Sun: shiftInfoType | {};
+    Mon: shiftInfoType | {};
+    Tue: shiftInfoType | {};
+    Wed: shiftInfoType | {};
+    Thu: shiftInfoType | {};
+    Fri: shiftInfoType | {};
+    Sat: shiftInfoType | {};    
+}
+
+export interface distributeScheduleInfoType {
+    sheriffId: string;
+    conflicts: scheduleInfoType[];
+    name: string;
+    homeLocation: string;
+}
+
+export interface scheduleInfoType {
+    id?: string;
+    location: string;
+    dayOffset:number; 
+    date:string; 
+    startTime:string;
+    endTime:string;
+    // startInMinutes:number;
+    // timeDuration: number; 
+    type: string;
+    workSection: string; 
+    workSectionColor: string;
+    // fullday: boolean;   
 }

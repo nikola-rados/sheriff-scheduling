@@ -10,9 +10,24 @@ Vue.filter('beautify-date', function(date){
 		return ''
 })
 
+Vue.filter('beautify-full-date', function(date){
+	
+	if(date)
+		return moment(date).format('MMMM DD, YYYY');
+	else
+		return ''
+})
+
 Vue.filter('beautify-date-weekday', function(date){
 	if(date)
 		return	moment(date).format('ddd DD MMM YYYY');
+	else
+		return ''
+})
+
+Vue.filter('beautify-date-time-weekday', function(date){
+	if(date)
+		return	moment(date).format('dddd MMM DD, YYYY HH:mm');
 	else
 		return ''
 })
