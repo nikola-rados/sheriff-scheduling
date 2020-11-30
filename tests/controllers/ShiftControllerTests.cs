@@ -398,7 +398,7 @@ namespace tests.controllers
         public async Task AddShift()
         {
             var shiftDto = await CreateShift();
-            var shiftDtos = new List<AddShiftDto> {shiftDto.Adapt<AddShiftDto>()};
+            var shiftDtos = new List<AddShiftDto> { shiftDto.Adapt<AddShiftDto>() };
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
 
             var locationId = shiftDto.LocationId;
@@ -653,6 +653,73 @@ namespace tests.controllers
             Assert.Equal(sheriffId, importedShift.SheriffId);
         }
 
+        [Fact]
+        public async Task ShiftOvertime()
+        {
+            //Create Location, shift.. get 
+            var locationId = await CreateLocation();
+            var sheriffId = Guid.NewGuid();
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, IsEnabled = true, HomeLocationId = locationId });
+            await Db.SaveChangesAsync();
+
+            var shiftStartDate = DateTimeOffset.UtcNow.AddYears(5).ConvertToTimezone("America/Vancouver").DateOnly();
+            var addShifts = new List<Shift>
+            {
+                new Shift
+                {
+                    LocationId = locationId,
+                    StartDate = shiftStartDate.AddHours(24),
+                    EndDate = shiftStartDate.AddHours(25),
+                    ExpiryDate = null,
+                    SheriffId = sheriffId,
+                    Timezone = "America/Vancouver"
+                },
+                new Shift
+                {
+                    LocationId = locationId,
+                    StartDate = shiftStartDate,
+                    EndDate = shiftStartDate.AddHours(5),
+                    ExpiryDate = null,
+                    SheriffId = sheriffId,
+                    Timezone = "America/Vancouver"
+                },
+                new Shift
+                {
+                    LocationId = locationId,
+                    StartDate = shiftStartDate.AddHours(5),
+                    EndDate = shiftStartDate.AddHours(6),
+                    SheriffId = sheriffId,
+                    Timezone = "America/Vancouver"
+                },
+                new Shift
+                {
+                    LocationId = locationId,
+                    StartDate = shiftStartDate.AddHours(9),
+                    EndDate = shiftStartDate.AddHours(18),
+                    SheriffId = sheriffId,
+                    Timezone = "America/Vancouver"
+                }
+            };
+         
+            var controllerResult = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(addShifts.Adapt<List<AddShiftDto>>()));
+
+            var shiftConflicts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
+                await ShiftController.GetAvailability(locationId, shiftStartDate, shiftStartDate.AddDays(1)));
+
+            var conflicts = shiftConflicts.SelectMany(s => s.Conflicts);
+            var conflict = conflicts.FirstOrDefault(s => s.End == shiftStartDate.AddHours(18));
+            Assert.NotNull(conflict);
+            //SHould have 7 hours of overtime.  12 -> 5 -> 6 <--> 9 -> 18 = 15 hours - 8 hours regular shift = 7 hours overtime. 
+            Assert.Equal(7.0, conflict.OvertimeHours);
+        }
+
+        private async Task<int> CreateLocation()
+        {
+            var location = new Location { Id = 50000, AgencyId = "5555", Name = "dfd" };
+            await Db.Location.AddAsync(location);
+            await Db.SaveChangesAsync();
+            return location.Id;
+        }
 
         private async Task<ShiftDto> CreateShift()
         {
@@ -675,6 +742,5 @@ namespace tests.controllers
             };
             return shiftDto;
         }
-
     }
 }

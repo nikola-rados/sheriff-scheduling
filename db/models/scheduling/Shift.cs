@@ -32,7 +32,7 @@ namespace SS.Db.models.scheduling
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string Timezone { get; set; }
-        public bool IsOvertime { get; set; }
+        public double OvertimeHours { get; set; }
         [ExcludeFromAddAndUpdateDto]
         [NotMapped]
         public string WorkSection => DutySlots.FirstOrDefault(ds =>
