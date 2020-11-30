@@ -1,12 +1,9 @@
 <template>
 	<div>
 		<header variant="primary">
-			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
-                <!-- <b-navbar-nav class="mx-1">					
-					<b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="addAssignment()" class="my-1"><b-icon-plus/>Add Assignment</b-button> 
-                </b-navbar-nav> -->
+			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">                
 				<b-navbar-nav>
-					<div style="width:11rem;" class="text-white ml-2 mr-auto">Duty Roster</div>
+					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto">Duty Roster</h3>
 				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
@@ -21,6 +18,8 @@
                                     @shown = "datePickerOpened = true"
                                     @hidden = "datePickerOpened = false"
                                     button-only
+									today-button
+									close-button
                                     locale="en-US">
                             </b-form-datepicker>
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
@@ -37,7 +36,7 @@
 		</header>
 
 
-		<b-modal v-model="showAssignmentDetails" id="bv-modal-assignment-details" header-class="bg-primary text-light">
+		<b-modal v-model="showAssignmentDetails" id="bv-modal-assignment-details" centered header-class="bg-primary text-light">
 			<template v-slot:modal-title>
 				<h2 class="mb-0 text-light"> Creating Assignment </h2>
 			</template>
@@ -331,12 +330,10 @@
 		assignmentErrorMsg = '';
 		assignmentErrorMsgDesc = '';
 
-		
-
         mounted() {
 			this.userIsAdmin = this.userDetails.roles.includes("Administrator");
 			this.runMethod.$on('addassign', this.addAssignment)
-			console.log(this.runMethod)
+			//console.log(this.runMethod)
 			this.selectedDate = moment().format().substring(0,10);			
 			this.loadNewDateRange();
 		}
@@ -383,11 +380,18 @@
 
 		public startDatePicked(){
             this.startDateState = true;
-            this.endDateState = true;
-			this.selectedEndDate = this.selectedStartDate;			
+			this.endDateState = true;
+			this.toggleAllDays(false);
+			this.toggleWeekDays(false);
+			this.selectedDays = [] ;
+			this.selectedEndDate = this.selectedStartDate;
+			this.disableOutOfRangeDays();			
 		}
 		
-		public endDatePicked(){            
+		public endDatePicked(){
+			this.toggleAllDays(false);
+			this.toggleWeekDays(false);
+			this.selectedDays = [] ;            
             if (this.selectedStartDate.length) {
 				this.disableOutOfRangeDays();
 			}
@@ -410,6 +414,8 @@
 						this.dayOptions[dayOfWeek].enabled = true;
 					}
 				}
+			} else {
+				this.enableAllDayOptions();
 			}
 		}
 
@@ -490,6 +496,11 @@
 				this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);					
 				this.endTimeState = true;
 			}
+			if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
+				this.startTimeState = false;
+				this.endTimeState = false;
+				requiredError = true;
+            } 
 			if (this.selectedDays.length < 1) {
 				this.selectedDayState = false;
 				requiredError = true;
@@ -611,7 +622,7 @@
 							this.$emit('change');
 					}
 				}, err => {
-					const errMsg = err.response.data.error;
+					const errMsg = err.response.data;
 					this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
 					this.assignmentErrorMsgDesc = errMsg;
 					this.assignmentError = true;
