@@ -70,6 +70,23 @@ export interface assignmentCardInfoType {
     type: assignmentCardTypeInfoType;    
 }
 
+export interface assignmentCardWeekInfoType {
+    FTEnumber: number;
+    assignment: string;
+    assignmentDetail: assignmentDetailInfoType;
+    0: attachedDutyInfoType | null;
+    1: attachedDutyInfoType | null;
+    2: attachedDutyInfoType | null;
+    3: attachedDutyInfoType | null;
+    4: attachedDutyInfoType | null;
+    5: attachedDutyInfoType | null;
+    6: attachedDutyInfoType | null;
+    code: string;
+    name: string;
+    totalFTE: number;
+    type: assignmentCardTypeInfoType;    
+}
+
 export interface assignmentDetailInfoType {
     id: number;
     lookupCodeId: number;
