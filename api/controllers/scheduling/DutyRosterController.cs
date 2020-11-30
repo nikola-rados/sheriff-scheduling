@@ -66,8 +66,7 @@ namespace SS.Api.controllers.scheduling
         }
 
 
-        [HttpGet("moveSheriff")]
-        [HttpPut]
+        [HttpPut("moveSheriff")]
         [PermissionClaimAuthorize(perm: Permission.EditDuties)]
         public async Task<ActionResult<DutyDto>> MoveSheriffFromDutySlot(int fromDutySlotId, int toDutyId, DateTimeOffset? separationTime = null)
         {
