@@ -42,8 +42,8 @@
                     <!-- <duty-card v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/> ="data"-->
                 </template>
         </b-table>                
-        <b-card><br></b-card>
-        <sheriff-fuel-gauge v-if="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
+        <!-- <b-card><br></b-card>
+        <sheriff-fuel-gauge v-if="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/> -->
     </div>
 </template>
 
@@ -79,8 +79,8 @@
         @commonState.State
         public location!: locationInfoType;
 
-        @commonState.State
-        public displayFooter!: boolean;
+        // @commonState.State
+        // public displayFooter!: boolean;
 
         @dutyState.State
         public dutyRangeInfo!: dutyRangeInfoType;

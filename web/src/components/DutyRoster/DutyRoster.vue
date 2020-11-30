@@ -25,9 +25,9 @@
                                     <b-icon-bar-chart-steps /> 
                             </b-button>
                         </b-card-header>
-                        <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekview="weekView"/>
-                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekview="weekView"/> 
-                        <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekview="weekView"/>
+                        <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
+                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/> 
+                        <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
                 </b-card>
             </b-col>
         </b-row>
