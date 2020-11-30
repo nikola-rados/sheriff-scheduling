@@ -15,7 +15,7 @@
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item"/>
+                    <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item" :weekview="false"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >

@@ -15,7 +15,7 @@
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item"/>
+                    <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item" :weekview="true"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >
@@ -31,27 +31,25 @@
                 </template>
 
                 <template v-slot:head(h0) >
-                    <div class="grid796">
+                    <div class="grid796h">
                         <div v-for="i in 7" :key="i" :style="{gridColumnStart: ((i-1)*96)+1,gridColumnEnd:(i*96+2), gridRow:'1/1'}">
                             <div class="h6 text-center">{{getBeautifyTime(i-1)}}</div>
                         </div>
                     </div>
                 </template>
 
-                <template v-slot:cell(h0) >
-                    <!-- <duty-card v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/> ="data"-->
+                <template v-slot:cell(h0)="data" >
+                    <duty-card-week-view v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
         <b-card><br></b-card>
-        <sheriff-fuel-gauge v-if="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
     </div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Watch} from 'vue-property-decorator';
 
-    import DutyCard from './components/DutyCard.vue'
-    import SheriffFuelGauge from './components/SheriffFuelGauge.vue'
+    import DutyCardWeekView from './components/DutyCardWeekView.vue'
     import DutyRosterAssignment from './components/DutyRosterAssignment.vue'
 
     import moment from 'moment-timezone';
@@ -64,13 +62,12 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import {localTimeInfoType, locationInfoType } from '../../types/common';
-    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
+    import { assignmentCardWeekInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component({
         components: {
-            DutyCard,
-            SheriffFuelGauge,
+            DutyCardWeekView,            
             DutyRosterAssignment
         }
     })
@@ -93,7 +90,7 @@
 
         isDutyRosterDataMounted = false;
 
-        dutyRosterAssignments: assignmentCardInfoType[] = [];
+        dutyRosterAssignments: assignmentCardWeekInfoType[] = [];
 
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
@@ -247,27 +244,77 @@
         }
 
         public extractAssignmentsInfo(assignments){
+            const dutyWeekDates: string[] = []
+            for(let day=0; day<7; day++)
+                dutyWeekDates.push(moment(this.dutyRangeInfo.startDate).add(day,'days').format().substring(0,10))                
+            //console.log(dutyWeekDates)
 
             this.dutyRosterAssignments =[]
             let sortOrder = 0;
             for(const assignment of assignments){
                 sortOrder++;
                 const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                //console.log(dutyRostersForThisAssignment)
+                console.log(dutyRostersForThisAssignment)
                
                if(dutyRostersForThisAssignment.length>0){
-                    for(const rosterInx in dutyRostersForThisAssignment){
-                        this.dutyRosterAssignments.push({
-                            assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
+                    let maximumRow = -2;
+                    for(const dutydate of dutyWeekDates){
+                        const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => dutyRoster.startDate.substring(0,10) == dutydate)
+                        if(dutyRostersInOneDay.length > maximumRow) maximumRow = dutyRostersInOneDay.length;
+                    }
+
+                    const dutyRosterAssignment: assignmentCardWeekInfoType[] = [];
+
+                    for(let row=0; row<maximumRow; row++){
+                        dutyRosterAssignment.push({
+                            assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ row).slice(-2) ,
                             assignmentDetail: assignment,
                             name:assignment.name,
                             code:assignment.lookupCode.code,
                             type: this.getType(assignment.lookupCode.type),
-                            attachedDuty: dutyRostersForThisAssignment[rosterInx],
-                            FTEnumber: Number(rosterInx),
-                            totalFTE: dutyRostersForThisAssignment.length
+                            0: null,
+                            1: null,
+                            2: null,
+                            3: null,
+                            4: null,
+                            5: null,
+                            6: null,
+                            FTEnumber: row,
+                            totalFTE: maximumRow
                         })
                     }
+
+                    for(const dutydateInx in dutyWeekDates){
+                        const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => dutyRoster.startDate.substring(0,10) == dutyWeekDates[dutydateInx])
+                        for(const dutyRosterInOneDay of dutyRostersInOneDay){
+                            for(let row=0; row<maximumRow; row++){
+                                //console.log(dutyRosterAssignment[row][dutydateInx])
+                                if(!dutyRosterAssignment[row][dutydateInx]){
+                                    dutyRosterAssignment[row][dutydateInx] = dutyRosterInOneDay;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    // for(const rosterInx in dutyRostersForThisAssignment){
+                    //     const dutyRosterForThisAssignment= dutyRostersForThisAssignment[rosterInx];
+                    //     console.log(dutyRosterForThisAssignment)
+                    //     const index = this.dutyRosterAssignments.findIndex(dutyRoster => dutyRoster.startDate == dutyRosterForThisAssignment.startDate)
+                
+                    //     // if (index != -1) {
+                    //     //     this.dutyRosterAssignments.push({
+                    //     //         assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
+                    //     //         assignmentDetail: assignment,
+                    //     //         name:assignment.name,
+                    //     //         code:assignment.lookupCode.code,
+                    //     //         type: this.getType(assignment.lookupCode.type),
+                    //     //         attachedDuty: dutyRosterForThisAssignment,
+                    //     //         FTEnumber: Number(rosterInx),
+                    //     //         totalFTE: dutyRostersForThisAssignment.length
+                    //     //     })
+                    //     // }
+                    // }
+                    this.dutyRosterAssignments.push(...dutyRosterAssignment)
                 }else{                
                     this.dutyRosterAssignments.push({
                         assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
@@ -275,7 +322,13 @@
                         name:assignment.name,
                         code:assignment.lookupCode.code,
                         type: this.getType(assignment.lookupCode.type),
-                        attachedDuty: null,
+                        0: null,
+                        1: null,
+                        2: null,
+                        3: null,
+                        4: null,
+                        5: null,
+                        6: null,
                         FTEnumber: 0,
                         totalFTE: 0
                     })
@@ -335,7 +388,7 @@
         position: sticky;
     }
 
-    .grid796 {        
+    .grid796h {        
         display:grid;
         grid-template-columns: repeat(672, 0.14881%);
         grid-template-rows: 1.65rem;
@@ -344,7 +397,7 @@
         height: 1.58rem;         
     }
 
-    .grid796 > div {      
+    .grid796h > div {      
         padding: 0.3rem 0;
         border: 1px dotted rgb(185, 143, 143);
     }
