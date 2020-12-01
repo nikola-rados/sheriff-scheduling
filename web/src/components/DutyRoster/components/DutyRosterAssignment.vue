@@ -337,7 +337,10 @@
     export default class DutyRosterAssignment extends Vue {
 
         @Prop({required: true})
-        assignment!: assignmentCardInfoType;
+		assignment!: assignmentCardInfoType;
+		
+		@Prop({required: true})
+		weekview!: boolean;
 
         @commonState.State
         public location!: locationInfoType;
@@ -376,7 +379,9 @@
 		endTimeState = true;
 		selectedDayState = true;		
 		allDaysSelected = false;
-		weekDaysSelected = false;		
+		weekDaysSelected = false;
+
+		weekDayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
 		dayOptions = [
 			{name:'Sun', diff:0, enabled: true},
@@ -803,19 +808,43 @@
         }
 
         public createDuty(){
-            this.dutyError = false;
-            const date = this.dutyRangeInfo.startDate.substring(0,10);
-            const startDate = moment.tz(date+'T'+this.assignment.assignmentDetail.start, this.location.timezone).utc().format();
-            const endDate = moment.tz(date+'T'+this.assignment.assignmentDetail.end, this.location.timezone).utc().format();
-            const body = {
-                startDate: startDate, 
-                endDate: endDate,
-                locationId: this.location.id,
-                assignmentId: this.assignment.assignmentDetail.id,
-                timezone: this.location.timezone,
-                concurrencyToken: 0
-            }
+			this.dutyError = false;
 
+			const date = this.dutyRangeInfo.startDate.substring(0,10);
+			const startDate = moment.tz(date+'T'+this.assignment.assignmentDetail.start, this.location.timezone).utc();
+			const endDate = moment.tz(date+'T'+this.assignment.assignmentDetail.end, this.location.timezone).utc();
+
+			const body: any[] = [];
+
+			if(this.weekview){
+				//console.log(this.assignment)
+				for(const dayIndexStr in this.weekDayNames){
+					const day = this.weekDayNames[dayIndexStr];
+					const dayIndex = Number(dayIndexStr)
+					if(this.assignment.assignmentDetail[day]){				
+						body.push({
+							startDate: moment(startDate).add(dayIndex,'days').format(), 
+							endDate: moment(endDate).add(dayIndex,'days').format(),
+							locationId: this.location.id,
+							assignmentId: this.assignment.assignmentDetail.id,
+							timezone: this.location.timezone,
+							concurrencyToken: 0
+						})						
+					}
+				}
+			}else{			
+				
+				body.push({
+					startDate: startDate.format(), 
+					endDate: endDate.format(),
+					locationId: this.location.id,
+					assignmentId: this.assignment.assignmentDetail.id,
+					timezone: this.location.timezone,
+					concurrencyToken: 0
+				})			
+			}
+
+			console.log(body)
 			const url = 'api/dutyroster';
 			this.$http.post(url, body )
 				.then(response => {
