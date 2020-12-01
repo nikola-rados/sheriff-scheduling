@@ -104,8 +104,6 @@
 	//import z from 'node_modules/'
 	@Component
 	export default class DistributeHeader extends Vue {	
-		
-		
 
 		@commonState.State
 		public location!: locationInfoType;
@@ -127,7 +125,8 @@
 		@Watch('location.id', { immediate: true })
         locationChange()
         {
-            this.selectedTeamMember = {sheriffId: '', name: 'All'};            
+			this.selectedTeamMember = {sheriffId: '', name: 'All'};
+			this.showWorkSectionChecked = false;            
         }
 
 		mounted() {

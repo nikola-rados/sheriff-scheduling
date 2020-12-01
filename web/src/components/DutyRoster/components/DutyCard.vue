@@ -107,8 +107,36 @@
                             </template>
 
                             <template v-slot:cell(editDutySlot)="data" >          
-                                <b-button style="width:1.2rem;float:right" class="ml-1 mr-0 my-0 py-0" size="sm" :disabled="data.item.sheriffId?false:true" variant="transparent" @click="confirmUnassignDutySlot(data.item)"><b-icon v-if="data.item.sheriffId" icon="trash-fill" font-scale="1.25" variant="danger" style="transform: translate(-8px,0);"/></b-button>
-                                <b-button style="width:.75rem;float:right" class="mx-1 my-0 py-0" size="sm" :disabled="data.item.note?true:false" variant="transparent" @click="editDutySlotInfo(data)"><b-icon v-if="!data.item.note" icon="pencil-square" font-scale="1.25" variant="primary" style="transform: translate(-8px,0);"/></b-button>
+                                <b-button style="width:1.2rem;float:right" 
+                                        class="ml-1 mr-0 my-0 py-0"
+                                        size="sm" 
+                                        :disabled="data.item.sheriffId?false:true" 
+                                        variant="transparent" 
+                                        @click="confirmUnassignDutySlot(data.item)"
+                                        v-b-tooltip.hover                                
+                                        title="Unassign"
+                                        ><b-icon 
+                                            v-if="data.item.sheriffId" 
+                                            icon="person-x-fill" 
+                                            font-scale="1.25" 
+                                            variant="danger" 
+                                            style="transform: translate(-8px,0);"/>
+                                </b-button>
+                                <b-button style="width:.75rem;float:right" 
+                                        class="mx-1 my-0 py-0" 
+                                        size="sm" 
+                                        :disabled="data.item.note?true:false" 
+                                        variant="transparent" 
+                                        @click="editDutySlotInfo(data)"
+                                        v-b-tooltip.hover                                
+                                        title="Edit"
+                                        ><b-icon 
+                                            v-if="!data.item.note" 
+                                            icon="pencil-square" 
+                                            font-scale="1.25" 
+                                            variant="primary" 
+                                            style="transform: translate(-8px,0);"/>
+                                </b-button>
                             </template>
 
                             <template v-slot:row-details="data">
