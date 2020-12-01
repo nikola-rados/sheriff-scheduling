@@ -23,12 +23,12 @@ namespace SS.Api.services.scheduling
     {
         private SheriffDbContext Db { get; }
         private SheriffService SheriffService { get; }
-        public double OvertimeHours { get; }
+        public double OvertimeHoursPerDay { get; }
         public ShiftService(SheriffDbContext db, SheriffService sheriffService, IConfiguration configuration)
         {
             Db = db;
             SheriffService = sheriffService;
-            OvertimeHours = double.Parse(configuration.GetNonEmptyValue("OvertimeHours"));
+            OvertimeHoursPerDay = double.Parse(configuration.GetNonEmptyValue("OvertimeHoursPerDay"));
         }
 
         public async Task<List<Shift>> GetShiftsForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeDuties)
@@ -62,10 +62,12 @@ namespace SS.Api.services.scheduling
                 shift.Sheriff = await Db.Sheriff.FindAsync(shift.SheriffId);
                 shift.AnticipatedAssignment = await Db.Assignment.FindAsync(shift.AnticipatedAssignmentId);
                 shift.Location = await Db.Location.FindAsync(shift.LocationId);
-                shift.IsOvertime = IsShiftOvertime(shift.StartDate, shift.EndDate, shift.Timezone, OvertimeHours);
                 await Db.Shift.AddAsync(shift);
             }
             await Db.SaveChangesAsync();
+
+            await CalculateOvertimeHoursForShifts(shifts);
+
             return shifts;
         }
 
@@ -83,8 +85,6 @@ namespace SS.Api.services.scheduling
                 savedShift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with the id: {shift.Id} could not be found.");
                 if (shift.StartDate > shift.EndDate) throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
                 shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(shift.Timezone)} needs to be included in the {nameof(Shift)}.");
-
-                shift.IsOvertime = IsShiftOvertime(shift.StartDate, shift.EndDate, shift.Timezone, OvertimeHours);
                 Db.Entry(savedShift!).CurrentValues.SetValues(shift);
                 Db.Entry(savedShift).Property(x => x.LocationId).IsModified = false;
                 Db.Entry(savedShift).Property(x => x.ExpiryDate).IsModified = false;
@@ -92,8 +92,10 @@ namespace SS.Api.services.scheduling
                 savedShift.Sheriff = await Db.Sheriff.FindAsync(shift.SheriffId);
                 savedShift.AnticipatedAssignment = await Db.Assignment.FindAsync(shift.AnticipatedAssignmentId);
             }
-
             await Db.SaveChangesAsync();
+
+            await CalculateOvertimeHoursForShifts(shifts);
+
             return await savedShifts.ToListAsync();
         }
 
@@ -218,7 +220,8 @@ namespace SS.Api.services.scheduling
                 Start = s.StartDate, 
                 End = s.EndDate, 
                 ShiftId = s.Id,
-                Timezone = s.Timezone
+                Timezone = s.Timezone,
+                OvertimeHours = s.OvertimeHours
             });
 
             //We've already included this information in the conflicts. 
@@ -251,14 +254,41 @@ namespace SS.Api.services.scheduling
 
         #region Helpers
 
-        public static bool IsShiftOvertime(DateTimeOffset start, DateTimeOffset end, string timezone, double overtimeHours)
+        public async Task CalculateOvertimeHoursForShifts(List<Shift> shifts)
         {
-            return start.HourDifference(end, timezone) > overtimeHours;
+            var sheriffsAndDates = shifts.SelectDistinctToList(s => new {s.SheriffId, s.StartDate, s.Timezone});
+            foreach (var sheriffAndDate in sheriffsAndDates)
+            {
+                await CalculateOvertimeHoursForSheriffOnDay(sheriffAndDate.SheriffId, sheriffAndDate.StartDate,
+                    sheriffAndDate.Timezone);
+            }
+            await Db.SaveChangesAsync();
+        }
+
+        public async Task<double> CalculateOvertimeHoursForSheriffOnDay(Guid? sheriffId, DateTimeOffset startDate, string timezone)
+        {
+            var startOfDayInTimezone = startDate.ConvertToTimezone(timezone).DateOnly();
+            var endOfDayInTimezone = startOfDayInTimezone.TranslateDateIfDaylightSavings(timezone, 1);
+
+            var shiftsForSheriffOnDay = await Db.Shift.Where(s =>
+                s.ExpiryDate == null && s.SheriffId == sheriffId &&
+                startOfDayInTimezone <= s.StartDate && endOfDayInTimezone >= s.EndDate)
+                .ToListAsync();
+
+            if (!shiftsForSheriffOnDay.Any())
+                return 0.0;
+
+            var hoursForSheriffOnDay = shiftsForSheriffOnDay.Sum(s => s.StartDate.HourDifference(s.EndDate, s.Timezone));
+
+            var latestShiftId = shiftsForSheriffOnDay.First(s => s.EndDate == shiftsForSheriffOnDay.Max(s2 => s2.EndDate)).Id;
+            var latestShift = await Db.Shift.FirstOrDefaultAsync(s => s.Id == latestShiftId);
+            latestShift.OvertimeHours = Math.Max(hoursForSheriffOnDay - OvertimeHoursPerDay, 0);
+            return latestShift.OvertimeHours;
         }
 
         #region Availability
 
-        private async Task<List<ShiftConflict>> GetShiftConflicts(List<Shift> shifts)
+        public async Task<List<ShiftConflict>> GetShiftConflicts(List<Shift> shifts)
         {
             var overlappingShifts = await CheckForShiftOverlap(shifts);
             var sheriffEventOverlaps = await CheckSheriffEventsOverlap(shifts);
