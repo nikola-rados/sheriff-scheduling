@@ -2,12 +2,12 @@
 	<div>
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">                
-				<b-navbar-nav>
+				<b-navbar-nav >
 					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto">Duty Roster</h3>
 				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
-                        <b-row style="margin:.25rem auto .25rem auto; width:100%;">
+                        <b-row style="margin:.25rem auto .25rem auto; width:7.3rem;">
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0"><b-icon-chevron-left /></b-button>
                             <b-form-datepicker
                                     class="my-0 py-0 mx-1"
@@ -24,13 +24,13 @@
                             </b-form-datepicker>
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
                         </b-row>
-                        <b-row style="margin:0 0 .25rem auto;">
-                            <div v-if="activetab=='Day'" class="bg-white" style="transform:translate(-1.3rem,0); border-radius:3px; width:10rem;">{{selectedDate|beautify-date-weekday}}</div>
-							<div v-else class="bg-white" style="transform:translate(-5rem,0); border-radius:3px; width:17rem;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
+                        <b-row  style="margin:0 auto .25rem auto; width:17rem;">
+                            <div v-if="activetab=='Day'" class="bg-white" style="margin:0 auto; border-radius:3px; width:9rem;">{{selectedDate|beautify-date-weekday}}</div>
+							<div v-else class="bg-white" style="border-radius:3px; width:17rem;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
 						</b-row>
                     </b-col>
                 </b-navbar-nav>
-				<b-navbar-nav>
+				<b-navbar-nav >
 					<b-tabs nav-wrapper-class = "bg-primary text-dark"
 							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
 							pills
@@ -719,6 +719,7 @@
 			margin:0 auto 0 auto;
 			display: block;
 			text-align: center;
+			width:20rem
 	}
 
 	.custom-navbar > li {

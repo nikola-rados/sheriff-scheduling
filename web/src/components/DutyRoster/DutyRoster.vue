@@ -4,8 +4,8 @@
         <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
-                <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" />
-                <duty-roster-day-view v-else :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" />
+                <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="isDutyRosterDataMounted=true" />
+                <duty-roster-day-view v-else :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="isDutyRosterDataMounted=true" />
                 
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
@@ -95,14 +95,16 @@
 
         mounted()
         {
+            this.isDutyRosterDataMounted = false;
             this.memberNotRequired.sheriffId ='00000-00000-11111';
             this.memberNotAvailable.sheriffId ='00000-00000-22222';
-            this.isDutyRosterDataMounted = true;
+            
 
             window.setTimeout(this.updateCurrentTimeCallBack, 1000);
         }
 
         public reloadDutyRosters(type){
+            this.isDutyRosterDataMounted = false;
             console.log(type)
             console.log('reload dutyroster')                
             this.updateCurrentTime();

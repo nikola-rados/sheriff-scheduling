@@ -281,6 +281,7 @@
             }
 
             this.isDutyRosterDataMounted = true;
+            this.$emit('dataready')
         }
         
         public getType(type: string){

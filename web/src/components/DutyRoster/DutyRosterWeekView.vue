@@ -192,18 +192,17 @@
                 shiftInfo.timezone = shiftJson.timezone;
                 shiftInfo.sheriffId = shiftJson.sheriffId;
                 shiftInfo.locationId = shiftJson.locationId;
-                const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, this.location.timezone);
 
-                const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId)return true})
-                let duties = Array(96).fill(0)
+                const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId && dutyslot.startDate.substring(0,10)==shiftInfo.startDate.substring(0,10))return true})
                 const dutiesDetail: dutiesDetailInfoType[] = [];
                 for(const duty of dutySlots){
-                    //console.log(duty)
-                    const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
+                    //console.log(duty)                    
                     dutiesDetail.push({
-                        id:duty.id , 
-                        startBin:dutyRangeBin.startBin, 
-                        endBin: dutyRangeBin.endBin,
+                        id:duty.id ,
+                        startBin: 0,
+                        endBin:0, 
+                        startTime:moment(duty.startDate).tz(this.location.timezone).format(),
+                        endTime:moment(duty.endDate).tz(this.location.timezone).format(),
                         name: duty.color.name,
                         colorCode: duty.color.colorCode,
                         color: duty.shiftId? duty.color.colorCode: this.dutyColors[5].colorCode,
@@ -211,31 +210,24 @@
                         code: duty.code
                     })
                     //console.log(dutiesDetail)
-                    duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
                 }
 
                 const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
                 
                 if (index != -1) {
-                    let availability = this.fillInArray(this.shiftAvailabilityInfo[index].availability, shiftJson.id , rangeBin.startBin,rangeBin.endBin)
-                    const newavailability = this.subtractUnionOfArrays(availability, duties);
-                    availability =this.unionArrays(availability, newavailability);
-                    this.shiftAvailabilityInfo[index].duties = duties;
-                    this.shiftAvailabilityInfo[index].availability = availability;
+                    this.shiftAvailabilityInfo[index].duties = [];
+                    this.shiftAvailabilityInfo[index].availability = [];
                     this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
                     this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
                 } else {
-                    let availability = this.fillInArray(Array(96).fill(0), shiftJson.id , rangeBin.startBin,rangeBin.endBin)
-                    const newavailability = this.subtractUnionOfArrays(availability, duties);
-                    availability =this.unionArrays(availability, newavailability);
                     availabilityInfo.shifts = [shiftInfo];
                     availabilityInfo.sheriffId = shiftJson.sheriff.id;
                     availabilityInfo.badgeNumber = shiftJson.sheriff.badgeNumber;
                     availabilityInfo.firstName = shiftJson.sheriff.firstName;
                     availabilityInfo.lastName = shiftJson.sheriff.lastName;
                     availabilityInfo.rank = shiftJson.sheriff.rank;
-                    availabilityInfo.availability = availability;
-                    availabilityInfo.duties = duties;
+                    availabilityInfo.availability = [];
+                    availabilityInfo.duties = [];
                     availabilityInfo.dutiesDetail = dutiesDetail;
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
@@ -254,7 +246,7 @@
             for(const assignment of assignments){
                 sortOrder++;
                 const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                console.log(dutyRostersForThisAssignment)
+                //console.log(dutyRostersForThisAssignment)
                
                if(dutyRostersForThisAssignment.length>0){
                     let maximumRow = -2;
@@ -335,7 +327,8 @@
                 }
             }
 
-            this.isDutyRosterDataMounted = true;
+           this.isDutyRosterDataMounted = true;
+           this.$emit('dataready');
         }
         
         public getType(type: string){

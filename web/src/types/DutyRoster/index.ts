@@ -29,7 +29,9 @@ export interface dutiesDetailInfoType{
     colorCode: string,
     color: string,
     type: string,
-    code: string
+    code: string,
+    startTime?: string, 
+    endTime?: string,
 }
 
 export interface assignmentInfoType {
