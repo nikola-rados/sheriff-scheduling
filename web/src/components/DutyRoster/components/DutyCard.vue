@@ -1,6 +1,6 @@
 <template>
     <div class="grid">
-        <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/7'}"></div>
+        <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/7'}"></div>       
         <div
             @click="editDuty()"
             v-for="block in dutyBlocks" 
@@ -11,10 +11,11 @@
             :title="block.title" 
             @dragover.prevent
             @drop.prevent="drop" >
-                <b style="text-transform: capitalize; margin:  0 padding:0; color:white;">
+                <b :style="dutyBlocks.length>1?dutyBlockStyle:(dutyBlockStyle + 'font-size: 16px;')">
                     {{block.title|truncate(block.endTime - block.startTime-1)}}
                 </b>     
         </div>
+        <span v-if="localTime.isTodayInView" :style="{borderLeft:'3px solid red', gridColumnStart: localTime.timeSlot+1,gridColumnEnd:(localTime.timeSlot+2), gridRow:'1/7'}"></span>
     
         <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
             <b-row id="AssignDutyError" class="h4 mx-2 py-2">
@@ -139,7 +140,7 @@
 						size="sm"
 						variant="secondary"
 						@click="closeEditDutyWindow()"
-				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
+				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Close</b-button>
 			</template>
 			<template v-slot:modal-header-close>
 				<b-button
@@ -207,8 +208,11 @@
     import moment from 'moment-timezone';
     import AddDutySlotForm from './AddDutySlotForm.vue'
     import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
+    import {localTimeInfoType} from '../../../types/common';
 
-    import { namespace } from "vuex-class"; 
+    import { namespace } from "vuex-class";
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation"); 
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
@@ -219,11 +223,20 @@
     })  
     export default class DutyCard extends Vue {
 
+        @commonState.State
+        public localTime!: localTimeInfoType;
+
         @Prop({required: true})
         dutyRosterInfo!: assignmentCardInfoType;
 
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
+
+        @dutyState.State
+        public dutyToBeEdited!: string;
+
+        @dutyState.Action
+        public UpdateDutyToBeEdited!: (newDutyToBeEdited: string) => void
 
         dutyBlocks: dutyBlockInfoType[] = []; 
 
@@ -232,6 +245,8 @@
 
         addNewDutySlotForm = false;
         addFormColor = 'secondary';
+
+        dutyBlockStyle = 'text-transform: capitalize; margin:  0 padding:0; color:white;';
 
         isEditOpen = false;
         updateTable=0;
@@ -286,6 +301,9 @@
             this.isMounted = false;
             this.dutyBlocks = [];
             this.extractDuty();
+            console.log(this.dutyRosterInfo.assignment)
+            if(this.dutyRosterInfo.assignment == this.dutyToBeEdited) Vue.nextTick(()=>this.editDuty())
+            
         }
 
         public getDutyName(){
@@ -297,6 +315,7 @@
         public editDuty(){			
 			this.isDutyDataMounted = false;
             console.log(this.dutyBlocks);
+            this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
             this.showEditDutyDetails = true;
             this.isDutyDataMounted = true;					           
         }
@@ -351,7 +370,8 @@
         }
 
 		public closeEditDutyWindow(){
-			this.closeDutySlotForm();
+            this.closeDutySlotForm();
+            this.UpdateDutyToBeEdited('');
 			this.showEditDutyDetails = false;
 		}
 
@@ -465,7 +485,7 @@
             }
             //console.log(this.dutyBlocks)
 
-            this.isMounted = true; 
+            this.isMounted = true;           
         }
 
         public extractUnassignedArrays(unassignedArray){
@@ -762,7 +782,7 @@
            
     }
 
-    .grid > * { 
+    .grid > div { 
         padding: 0 0;
         border: 1px dotted rgb(212, 212, 212);
     }

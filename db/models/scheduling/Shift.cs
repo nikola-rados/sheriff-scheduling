@@ -36,6 +36,6 @@ namespace SS.Db.models.scheduling
         [ExcludeFromAddAndUpdateDto]
         [NotMapped]
         public string WorkSection => DutySlots.FirstOrDefault(ds =>
-            ds.StartDate == DutySlots.Min(ds => ds.StartDate))?.AssignmentLookupCode?.Code?.Substring(0,1);
+            ds.StartDate == DutySlots.Min(ds => ds.StartDate))?.AssignmentLookupCode?.Type.ToString().Substring(0,1);
     }
 }

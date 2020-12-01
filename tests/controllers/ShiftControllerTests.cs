@@ -40,8 +40,9 @@ namespace tests.controllers
         public async Task AddShiftConflicts()
         {
             var sheriffId = Guid.NewGuid();
-            await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz" });
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, IsEnabled = true, HomeLocationId = 1});
+            var location = new Location {Id = 50000, AgencyId = "zz"};
+            await Db.Location.AddAsync(location);
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, IsEnabled = true, HomeLocationId = location.Id});
             await Db.SaveChangesAsync();
 
             Detach();
@@ -51,7 +52,7 @@ namespace tests.controllers
             {
                 StartDate = DateTimeOffset.UtcNow.Date,
                 EndDate = DateTimeOffset.UtcNow.Date.AddHours(1),
-                LocationId = 1,
+                LocationId = location.Id,
                 Timezone = "America/Vancouver",
                 SheriffId = sheriffId
             }.Adapt<AddShiftDto>();
@@ -60,7 +61,7 @@ namespace tests.controllers
             {
                 StartDate = DateTimeOffset.UtcNow.Date.AddHours(1),
                 EndDate = DateTimeOffset.UtcNow.Date.AddHours(2),
-                LocationId = 1,
+                LocationId = location.Id,
                 Timezone = "America/Vancouver",
                 SheriffId = sheriffId
             }.Adapt<AddShiftDto>();
@@ -70,7 +71,7 @@ namespace tests.controllers
                 Id = 3,
                 StartDate = DateTimeOffset.UtcNow.Date,
                 EndDate = DateTimeOffset.UtcNow.Date.AddHours(1),
-                LocationId = 1,
+                LocationId = location.Id,
                 Timezone = "America/Vancouver",
                 SheriffId = sheriffId
             }.Adapt<AddShiftDto>();
@@ -80,7 +81,7 @@ namespace tests.controllers
                 Id = 4,
                 StartDate = DateTimeOffset.UtcNow.Date.AddHours(1),
                 EndDate = DateTimeOffset.UtcNow.Date.AddHours(2),
-                LocationId = 1,
+                LocationId = location.Id,
                 Timezone = "America/Vancouver",
                 SheriffId = sheriffId
             }.Adapt<AddShiftDto>();
@@ -89,7 +90,7 @@ namespace tests.controllers
             {
                 StartDate = DateTimeOffset.UtcNow.Date,
                 EndDate = DateTimeOffset.UtcNow.Date.AddHours(2),
-                LocationId = 1,
+                LocationId = location.Id,
                 Timezone = "America/Vancouver",
                 SheriffId = sheriffId
             }.Adapt<AddShiftDto>();
@@ -99,7 +100,7 @@ namespace tests.controllers
                 Id = 6,
                 StartDate = DateTimeOffset.UtcNow.Date.AddHours(2),
                 EndDate = DateTimeOffset.UtcNow.Date.AddHours(3),
-                LocationId = 1,
+                LocationId = location.Id,
                 Timezone = "America/Vancouver",
                 SheriffId = sheriffId
             }.Adapt<AddShiftDto>();
@@ -109,7 +110,7 @@ namespace tests.controllers
                 Id = 7,
                 StartDate = DateTimeOffset.UtcNow.Date.AddHours(-1),
                 EndDate = DateTimeOffset.UtcNow.Date,
-                LocationId = 1,
+                LocationId = location.Id,
                 Timezone = "America/Vancouver",
                 SheriffId = sheriffId
             }.Adapt<AddShiftDto>();
@@ -139,8 +140,10 @@ namespace tests.controllers
         [Fact]
         public async Task GetAvailability()
         {
-            await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz", Name = "Location 1" });
-            await Db.Location.AddAsync(new Location { Id = 2, AgencyId = "5555", Name = "Location 2" });
+            var location1 = new Location {Id = 50000, AgencyId = "zz", Name = "Location 1"};
+            var location2 = new Location {Id = 50002, AgencyId = "5555", Name = "Location 2"};
+            await Db.Location.AddAsync(location1);
+            await Db.Location.AddAsync(location2);
             await Db.SaveChangesAsync();
 
             var startDate = DateTimeOffset.UtcNow.ConvertToTimezone("America/Edmonton");
@@ -150,7 +153,7 @@ namespace tests.controllers
             var awayLocationSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                HomeLocationId = 1,
+                HomeLocationId = location1.Id,
                 Id = awayLocationSheriff,
                 IsEnabled = true,
                 AwayLocation = new List<SheriffAwayLocation>
@@ -159,7 +162,7 @@ namespace tests.controllers
                     {
                         StartDate = startDate,
                         EndDate = startDate.AddDays(1),
-                        LocationId = 2
+                        LocationId = location2.Id
                     }
                 }
             });
@@ -168,7 +171,7 @@ namespace tests.controllers
             var trainingSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                HomeLocationId = 1,
+                HomeLocationId = location1.Id,
                 Id = trainingSheriff,
                 IsEnabled = true,
                 Training = new List<SheriffTraining>
@@ -185,7 +188,7 @@ namespace tests.controllers
             var leaveSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                HomeLocationId = 1,
+                HomeLocationId = location1.Id,
                 Id = leaveSheriff,
                 IsEnabled = true,
                 Leave = new List<SheriffLeave>
@@ -202,7 +205,7 @@ namespace tests.controllers
             var scheduledSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                HomeLocationId = 1,
+                HomeLocationId = location1.Id,
                 Id = scheduledSheriff,
                 IsEnabled = true
             });
@@ -212,7 +215,7 @@ namespace tests.controllers
                 Id = 1,
                 StartDate = startDate.AddDays(2),
                 EndDate = startDate.AddDays(3),
-                LocationId = 1,
+                LocationId = location1.Id,
                 SheriffId = scheduledSheriff,
                 Timezone = "America/Vancouver"
             });
@@ -222,7 +225,7 @@ namespace tests.controllers
             var scheduledDifferentLocationSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                HomeLocationId = 1,
+                HomeLocationId = location1.Id,
                 Id = scheduledDifferentLocationSheriff,
                 IsEnabled = true
             });
@@ -232,7 +235,7 @@ namespace tests.controllers
                 Id = 2,
                 StartDate = startDate.AddDays(2),
                 EndDate = startDate.AddDays(3),
-                LocationId = 2,
+                LocationId = location2.Id,
                 SheriffId = scheduledDifferentLocationSheriff,
                 Timezone = "America/Vancouver"
             });
@@ -241,7 +244,7 @@ namespace tests.controllers
             var expiredEventsAndShiftSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                HomeLocationId = 1,
+                HomeLocationId = location1.Id,
                 Id = expiredEventsAndShiftSheriff,
                 IsEnabled = true,
                 Leave = new List<SheriffLeave>
@@ -268,7 +271,7 @@ namespace tests.controllers
                     {
                         StartDate = startDate,
                         EndDate = startDate.AddDays(1),
-                        LocationId = 2,
+                        LocationId = location2.Id,
                         ExpiryDate = DateTimeOffset.UtcNow
                     }
                 }
@@ -279,7 +282,7 @@ namespace tests.controllers
                 Id = 3,
                 StartDate = startDate.AddDays(2),
                 EndDate = startDate.AddDays(3),
-                LocationId = 2,
+                LocationId = location2.Id,
                 SheriffId = expiredEventsAndShiftSheriff,
                 Timezone = "America/Vancouver",
                 ExpiryDate = DateTimeOffset.UtcNow
@@ -289,7 +292,7 @@ namespace tests.controllers
             var expiredSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                HomeLocationId = 1,
+                HomeLocationId = location1.Id,
                 Id = expiredSheriff,
                 FirstName = "Expired",
                 LastName = "Expired Sheriff",
@@ -302,7 +305,7 @@ namespace tests.controllers
             var loanedInSheriff = Guid.NewGuid();
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                HomeLocationId = 2,
+                HomeLocationId = location2.Id,
                 FirstName = "Loaned In",
                 LastName = "Loaned In",
                 Id = loanedInSheriff,
@@ -313,7 +316,7 @@ namespace tests.controllers
                     {
                         StartDate = startDate,
                         EndDate = startDate.AddDays(1),
-                        LocationId = 1
+                        LocationId = location1.Id
                     }
                 }
             });
@@ -321,13 +324,13 @@ namespace tests.controllers
             await Db.SaveChangesAsync();
 
             var shiftConflicts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
-                await ShiftController.GetAvailability(1, startDate, endDate));
+                await ShiftController.GetAvailability(location1.Id, startDate, endDate));
 
             //Postgres stores ticks as 1/1,000,000 vs .NET uses 1/10,000,000
             var awayLocationsSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == awayLocationSheriff);
             Assert.NotNull(awayLocationsSheriffConflicts); 
             Assert.Contains(awayLocationsSheriffConflicts.Conflicts, c =>
-                c.Conflict == ShiftConflictType.AwayLocation && c.LocationId == 2 && (startDate - c.Start).TotalSeconds <= 1 && (startDate.AddDays(1) - c.End).TotalSeconds <= 1);
+                c.Conflict == ShiftConflictType.AwayLocation && c.LocationId == location2.Id && (startDate - c.Start).TotalSeconds <= 1 && (startDate.AddDays(1) - c.End).TotalSeconds <= 1);
 
             var trainingSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == trainingSheriff);
             Assert.NotNull(trainingSheriffConflicts);
@@ -342,12 +345,12 @@ namespace tests.controllers
             var scheduledSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == scheduledSheriff);
             Assert.NotNull(scheduledSheriffConflicts);
             Assert.Contains(scheduledSheriffConflicts.Conflicts, c =>
-                c.Conflict == ShiftConflictType.Scheduled && (startDate.AddDays(2) - c.Start).TotalSeconds <= 1 && (startDate.AddDays(3) - c.End).TotalSeconds <= 1  && c.LocationId == 1);
+                c.Conflict == ShiftConflictType.Scheduled && (startDate.AddDays(2) - c.Start).TotalSeconds <= 1 && (startDate.AddDays(3) - c.End).TotalSeconds <= 1  && c.LocationId == location1.Id);
 
             var scheduledDifferentLocationSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == scheduledDifferentLocationSheriff);
             Assert.NotNull(scheduledDifferentLocationSheriffConflicts);
             Assert.Contains(scheduledDifferentLocationSheriffConflicts.Conflicts, c =>
-                c.Conflict == ShiftConflictType.Scheduled && (startDate.AddDays(2) - c.Start).TotalSeconds <= 1 && (startDate.AddDays(3) - c.End).TotalSeconds <= 1 && c.LocationId == 2);
+                c.Conflict == ShiftConflictType.Scheduled && (startDate.AddDays(2) - c.Start).TotalSeconds <= 1 && (startDate.AddDays(3) - c.End).TotalSeconds <= 1 && c.LocationId == location2.Id);
 
             var expiredEventsAndShiftSheriffConflict = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == expiredEventsAndShiftSheriff);
             Assert.NotNull(expiredEventsAndShiftSheriffConflict);
@@ -358,7 +361,7 @@ namespace tests.controllers
             var loanedInSheriffConflicts = shiftConflicts.FirstOrDefault(sc => sc.SheriffId == loanedInSheriff);
             Assert.NotNull(loanedInSheriffConflicts);
             Assert.Contains(loanedInSheriffConflicts.Conflicts, c =>
-                c.Conflict == ShiftConflictType.AwayLocation && c.LocationId == 1 && (startDate - c.Start).TotalSeconds <= 1 && (startDate.AddDays(1) - c.End).TotalSeconds <= 1);
+                c.Conflict == ShiftConflictType.AwayLocation && c.LocationId == location1.Id && (startDate - c.Start).TotalSeconds <= 1 && (startDate.AddDays(1) - c.End).TotalSeconds <= 1);
 
         }
 
@@ -378,13 +381,13 @@ namespace tests.controllers
                 StartDate = startTimeOffset,
                 EndDate = endTimeOffset,
                 Sheriff = new Sheriff { Id = Guid.NewGuid(), LastName = "hello" },
-                AnticipatedAssignment = new Assignment {Id = 1, Name = "Super assignment", Location = new Location { Id = 1, AgencyId = "zz"}, LookupCode = new LookupCode() {Id = 900000}},
-                LocationId = 1
+                AnticipatedAssignment = new Assignment {Id = 1, Name = "Super assignment", Location = new Location { Id = 50000, AgencyId = "zz"}, LookupCode = new LookupCode() {Id = 900000}},
+                LocationId = 50000
             });
 
             await Db.SaveChangesAsync();
 
-            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.GetShifts(1, startTimeOffset, endTimeOffset));
+            var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.GetShifts(50000, startTimeOffset, endTimeOffset));
             Assert.NotEmpty(response);
             Assert.NotNull(response[0].Sheriff);
             Assert.NotNull(response[0].AnticipatedAssignment);
@@ -398,6 +401,8 @@ namespace tests.controllers
             var shiftDtos = new List<AddShiftDto> {shiftDto.Adapt<AddShiftDto>()};
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos));
 
+            var locationId = shiftDto.LocationId;
+
             var stDate = DateTimeOffset.UtcNow.AddDays(20);
 
             var sheriffId = Guid.NewGuid();
@@ -408,7 +413,7 @@ namespace tests.controllers
                 FirstName = "Hello",
                 LastName = "There",
                 IsEnabled = true,
-                HomeLocationId = 1
+                HomeLocationId = locationId
             });
             await Db.Sheriff.AddAsync(new Sheriff
             {
@@ -416,13 +421,13 @@ namespace tests.controllers
                 FirstName = "Hello2",
                 LastName = "There2",
                 IsEnabled = true,
-                HomeLocationId = 1,
+                HomeLocationId = locationId,
                 AwayLocation = new List<SheriffAwayLocation>
                 {
                     new SheriffAwayLocation
                     {
                         Id = 1,
-                        LocationId = 1,
+                        LocationId = locationId,
                         StartDate = stDate,
                         EndDate = stDate.AddDays(5)
                     }
@@ -431,7 +436,7 @@ namespace tests.controllers
             await Db.Assignment.AddAsync(new Assignment
             {
                 Id = 5,
-                LocationId = 1,
+                LocationId = locationId,
                 LookupCode = new LookupCode()
                 {
                     Id = 9000
@@ -449,7 +454,7 @@ namespace tests.controllers
                     SheriffId = sheriffId,
                     StartDate = stDate,
                     EndDate = stDate.AddHours(5),
-                    LocationId = 1,
+                    LocationId = locationId,
                     Timezone = "America/Edmonton"
                 }
             };
@@ -463,7 +468,7 @@ namespace tests.controllers
                     SheriffId = sheriffId,
                     StartDate = stDate.AddHours(2),
                     EndDate = stDate.AddHours(3),
-                    LocationId = 1,
+                    LocationId = locationId,
                     Timezone = "America/Edmonton"
                 }
             };
@@ -479,7 +484,7 @@ namespace tests.controllers
                     SheriffId = sheriffIdAway,
                     StartDate = stDate.AddHours(2),
                     EndDate = stDate.AddHours(3),
-                    LocationId = 1,
+                    LocationId = locationId,
                     Timezone = "America/Edmonton"
                 }
             };
@@ -491,9 +496,12 @@ namespace tests.controllers
         [Fact]
         public async Task AddShiftSheriffEventConflict()
         {
-            await Db.Location.AddAsync(new Location { Id = 2, AgencyId = "5555", Name = "Location 2" });
+            var location2 = new Location {Id = 50002, AgencyId = "5555", Name = "Location 2"};
+            await Db.Location.AddAsync(location2);
             var shiftDto = await CreateShift();
-        
+
+            var locationId1 = shiftDto.LocationId;
+            var locationId2 = location2.Id;
 
             var startDate = shiftDto.StartDate;
             var sheriffId = Guid.NewGuid();
@@ -503,7 +511,7 @@ namespace tests.controllers
 
             await Db.Sheriff.AddAsync(new Sheriff
             {
-                Id = sheriffId, HomeLocationId = 1, FirstName = "First", LastName = "Sheriff", IsEnabled = true,
+                Id = sheriffId, HomeLocationId = locationId1, FirstName = "First", LastName = "Sheriff", IsEnabled = true,
                 Leave = new List<SheriffLeave>
                 {
                     new SheriffLeave
@@ -526,7 +534,7 @@ namespace tests.controllers
                     {
                         StartDate = startDate,
                         EndDate = startDate.AddDays(1),
-                        LocationId = 2
+                        LocationId = locationId2
                     }
                 }
             });
@@ -543,15 +551,17 @@ namespace tests.controllers
             var shiftDto = await CreateShift();
             var shiftDtos = new List<ShiftDto> {shiftDto};
             var sheriffId = Guid.NewGuid();
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There", IsEnabled = true, HomeLocationId = 1});
-            await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = 1, LookupCode = new LookupCode() { Id = 9000 }});
+            var locationId1 = shiftDto.LocationId;
+
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, FirstName = "Hello", LastName = "There", IsEnabled = true, HomeLocationId = locationId1 });
+            await Db.Assignment.AddAsync(new Assignment { Id = 5, LocationId = locationId1, LookupCode = new LookupCode() { Id = 9000 }});
             await Db.SaveChangesAsync();
 
             var shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));
             var shift = shifts.First();
             shift.StartDate = DateTimeOffset.UtcNow.AddDays(5).Date;
             shift.EndDate = DateTimeOffset.UtcNow.AddDays(6).Date;
-            shift.LocationId = 1; // This shouldn't change 
+            shift.LocationId = locationId1; // This shouldn't change 
             shift.ExpiryDate = DateTimeOffset.UtcNow; // this shouldn't change
             shift.SheriffId = sheriffId;
             shift.Sheriff = new SheriffDto(); // shouldn't change
@@ -614,11 +624,11 @@ namespace tests.controllers
             var sheriffId = Guid.NewGuid();
             var sheriffId2 = Guid.NewGuid();
             var shiftDto = await CreateShift();
-            await Db.Sheriff.AddAsync(new Sheriff {Id = sheriffId, IsEnabled = true, HomeLocationId = 1});
-            await Db.Location.AddAsync(new Location { Id = 2, AgencyId = "3z", Timezone = "America/Vancouver" });
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId2, IsEnabled = true, HomeLocationId = 2 });
+            await Db.Sheriff.AddAsync(new Sheriff {Id = sheriffId, IsEnabled = true, HomeLocationId = 50000 });
+            await Db.Location.AddAsync(new Location { Id = 50002, AgencyId = "3z", Timezone = "America/Vancouver" });
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId2, IsEnabled = true, HomeLocationId = 50002 });
             await Db.SaveChangesAsync();
-            shiftDto.LocationId = 1;
+            shiftDto.LocationId = 50000;
             shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6).AddYears(5); //Last week monday
             shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5).AddYears(5); //Last week tuesday
             shiftDto.SheriffId = sheriffId;
@@ -627,13 +637,13 @@ namespace tests.controllers
             var shift = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));
 
             //Add in shift at a location, with a Sheriff that has no away location or home location.. to simulate a move. This shift shouldn't be picked up. 
-            shiftDto.LocationId = 1;
+            shiftDto.LocationId = 50000;
             shiftDto.StartDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 6).AddYears(5); //Last week monday
             shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5).AddYears(5); //Last week tuesday
             shiftDto.SheriffId = sheriffId2;
 
             var importedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
-                await ShiftController.ImportWeeklyShifts(1, shiftDto.StartDate));
+                await ShiftController.ImportWeeklyShifts(50000, shiftDto.StartDate));
 
             Assert.NotNull(importedShifts);
             Assert.True(importedShifts.Shifts.Count == 1);
@@ -647,8 +657,8 @@ namespace tests.controllers
         private async Task<ShiftDto> CreateShift()
         {
             var sheriffId = Guid.NewGuid();
-            await Db.Location.AddAsync(new Location { Id = 1, AgencyId = "zz", Timezone = "America/Vancouver"});
-            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, HomeLocationId = 1, FirstName = "First", LastName = "Sheriff", IsEnabled = true });
+            await Db.Location.AddAsync(new Location { Id = 50000, AgencyId = "zz", Timezone = "America/Vancouver"});
+            await Db.Sheriff.AddAsync(new Sheriff { Id = sheriffId, HomeLocationId = 50000, FirstName = "First", LastName = "Sheriff", IsEnabled = true });
             await Db.SaveChangesAsync();
 
             var shiftDto = new ShiftDto
@@ -660,7 +670,7 @@ namespace tests.controllers
                 Sheriff = new SheriffDto(),
                 AnticipatedAssignment = null,
                 Location = new LocationDto { Id = 55, AgencyId = "55" },
-                LocationId = 1,
+                LocationId = 50000,
                 Timezone = "America/Edmonton"
             };
             return shiftDto;

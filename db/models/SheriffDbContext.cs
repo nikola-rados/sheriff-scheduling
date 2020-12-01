@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SS.Common.authorization;
 using SS.Db.models.audit;
 using SS.Db.models.audit.notmapped;
+using SS.Db.models.jc;
 using SS.Db.models.lookupcodes;
 using SS.Db.models.scheduling;
 
@@ -57,9 +58,11 @@ namespace SS.Db.models
         #endregion Scheduling
 
         // This maps to the table that stores keys.
-        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+        public virtual DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
-        public DbSet<Audit> Audit { get; set; }
+        public virtual DbSet<Audit> Audit { get; set; }
+
+        public virtual DbSet<JcSynchronization> JcSynchronization { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyAllConfigurations();
@@ -76,8 +79,8 @@ namespace SS.Db.models
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            var auditEntries = OnBeforeSaveChanges();
             HandleSaveChanges();
+            var auditEntries = OnBeforeSaveChanges();
             var result = await base.SaveChangesAsync(cancellationToken);
             await OnAfterSaveChanges(auditEntries);
             return result;
@@ -86,8 +89,8 @@ namespace SS.Db.models
         //Only used in tests. 
         public override int SaveChanges()
         {
-            var auditEntries = OnBeforeSaveChanges();
             HandleSaveChanges();
+            var auditEntries = OnBeforeSaveChanges();
             var result = base.SaveChanges();
             OnAfterSaveChanges(auditEntries);
             return result;
@@ -116,7 +119,7 @@ namespace SS.Db.models
                     }
 
                     string propertyName = property.Metadata.Name;
-                    if (propertyName == "Photo")
+                    if (SkipProperty(property))
                         continue;
                     if (IsKeyValue(property))
                     {
@@ -148,7 +151,7 @@ namespace SS.Db.models
             // Save audit entities that have all the modifications
             foreach (var auditEntry in auditEntries.Where(_ => !_.HasTemporaryProperties))
             {
-                Audit.Add(auditEntry.ToAudit());
+                Audit.Add(auditEntry.ToAudit(GetUserIdFromContext()));
             }
 
             // keep a list of entries where the value of some properties are unknown at this step
@@ -162,6 +165,11 @@ namespace SS.Db.models
             return property.Metadata.IsPrimaryKey() || property.Metadata.IsForeignKey();
         }
 
+        private bool SkipProperty(PropertyEntry property)
+        {
+            return property.Metadata.Name == "CreatedOn" || property.Metadata.Name == "Photo";
+        }
+
         private Task OnAfterSaveChanges(List<AuditEntry> auditEntries)
         {
             if (auditEntries == null || auditEntries.Count == 0)
@@ -172,7 +180,7 @@ namespace SS.Db.models
                 // Get the final value of the temporary properties
                 foreach (var prop in auditEntry.TemporaryProperties)
                 {
-                    if (prop.Metadata.Name == "Photo")
+                    if (SkipProperty(prop))
                         continue;
                     if (IsKeyValue(prop))
                     {
@@ -185,7 +193,7 @@ namespace SS.Db.models
                 }
 
                 // Save the Audit entry
-                Audit.Add(auditEntry.ToAudit());
+                Audit.Add(auditEntry.ToAudit(GetUserIdFromContext()));
             }
 
             return SaveChangesAsync();
@@ -199,24 +207,29 @@ namespace SS.Db.models
             var modifiedEntries = ChangeTracker.Entries()
                 .Where(x => (x.State == EntityState.Added || x.State == EntityState.Modified));
 
-            var userId = GetUserId(_httpContextAccessor?.HttpContext?.User.FindFirst(CustomClaimTypes.UserId)?.Value);
-            userId ??= auth.User.SystemUser;
             foreach (var entry in modifiedEntries)
             {
                 if (entry.Entity is BaseEntity entity)
                 {
                     if (entry.State == EntityState.Added)
                     {
-                        entity.CreatedById = userId;
-                        entity.CreatedOn = DateTime.UtcNow;
+                        entity.CreatedById = GetUserIdFromContext();
                     }
                     else if (entry.State != EntityState.Deleted)
                     {
-                        entity.UpdatedById = userId;
-                        entity.UpdatedOn = DateTime.UtcNow;
+                        entity.UpdatedById = GetUserIdFromContext();
+                        entity.UpdatedOn = DateTimeOffset.Now;
                     }
                 }
             }
+        }
+
+
+        private Guid? GetUserIdFromContext()
+        {
+            var userId = GetUserId(_httpContextAccessor?.HttpContext?.User.FindFirst(CustomClaimTypes.UserId)?.Value);
+            userId ??= auth.User.SystemUser;
+            return userId;
         }
 
         public TEntity DetachedClone<TEntity>(TEntity entity) where TEntity : class

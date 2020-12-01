@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 //Thanks to PIMS for this. 
 namespace SS.DB.Configuration
@@ -17,6 +18,7 @@ namespace SS.DB.Configuration
         {
             builder.HasOne(m => m.CreatedBy).WithMany().HasForeignKey(m => m.CreatedById).OnDelete(DeleteBehavior.SetNull);
             builder.HasOne(m => m.UpdatedBy).WithMany().HasForeignKey(m => m.UpdatedById).OnDelete(DeleteBehavior.SetNull);
+            builder.Property(b => b.CreatedOn).HasDefaultValueSql("now()").Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
         }
 
         public virtual void Configure(EntityTypeBuilder<TBase> builder)

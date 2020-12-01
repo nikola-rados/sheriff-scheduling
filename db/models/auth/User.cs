@@ -14,10 +14,6 @@ namespace SS.Db.models.auth
 {
     public class User : BaseEntity
     {
-        public User()
-        {
-            CreatedOn = DateTime.UtcNow;
-        }
         [AdaptIgnore]
         [NotMapped]
 

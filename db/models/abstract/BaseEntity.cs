@@ -73,7 +73,7 @@ namespace db.models
         /// </summary>
         public BaseEntity()
         {
-            CreatedOn = DateTime.UtcNow;
+
         }
         #endregion
     }
