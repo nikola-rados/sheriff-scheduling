@@ -162,9 +162,6 @@ namespace SS.Api.services.scheduling
                 toDutySlotEnd = toDutySlotEnd > earliestEndFromOtherSlots ? earliestEndFromOtherSlots : toDutySlotEnd;
             }
 
-            fromDutySlot.ShiftId = null;
-            fromDutySlot.SheriffId = null;
-
             var toDutySlot = toDuty.DutySlots.FirstOrDefault(ds =>
                 toDutySlotStart < ds.EndDate && ds.StartDate < toDutySlotEnd && ds.SheriffId == null);
 
