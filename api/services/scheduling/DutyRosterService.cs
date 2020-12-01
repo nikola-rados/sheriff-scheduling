@@ -6,14 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Castle.Core.Logging;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using SS.Api.helpers;
 using SS.Api.infrastructure.exceptions;
 using SS.Common.helpers.extensions;
 using SS.Db.models.sheriff;
-using ILogger = Castle.Core.Logging.ILogger;
 
 namespace SS.Api.services.scheduling
 {
@@ -32,8 +29,9 @@ namespace SS.Api.services.scheduling
         public async Task<List<Duty>> GetDutiesForLocation(int locationId, DateTimeOffset start, DateTimeOffset end) =>
             await Db.Duty.AsSingleQuery().AsNoTracking()
                 .Include(d => d.DutySlots.Where(ds => ds.ExpiryDate == null))
-                .Include(d=> d.Assignment)
                 .Include(d=> d.Location)
+                .Include(d => d.Assignment)
+                .ThenInclude(d => d.LookupCode)
                 .Where(d => d.LocationId == locationId &&
                             d.StartDate < end &&
                             start < d.EndDate &&
