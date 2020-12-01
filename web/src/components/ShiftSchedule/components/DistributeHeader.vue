@@ -3,7 +3,7 @@
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav>
-					<h3 style="width:15rem; margin-bottom: 0px;" class="text-white ml-2">Distribute Schedule</h3>
+					<h3 style="width:15rem; margin-bottom: 0px;" class="text-white ml-2 font-weight-normal">Distribute Schedule</h3>
 				</b-navbar-nav>
 
 				<b-navbar-nav class="custom-navbar">
@@ -104,8 +104,6 @@
 	//import z from 'node_modules/'
 	@Component
 	export default class DistributeHeader extends Vue {	
-		
-		
 
 		@commonState.State
 		public location!: locationInfoType;
@@ -127,7 +125,8 @@
 		@Watch('location.id', { immediate: true })
         locationChange()
         {
-            this.selectedTeamMember = {sheriffId: '', name: 'All'};            
+			this.selectedTeamMember = {sheriffId: '', name: 'All'};
+			this.showWorkSectionChecked = false;            
         }
 
 		mounted() {
