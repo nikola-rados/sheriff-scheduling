@@ -168,7 +168,7 @@
                         weekday: dayOffset, 
                         text:this.WeekDay[dayOffset],
                         name:this. weekDayNames[dayOffset], 
-                        variant:'white',  
+                        variant:'danger',  
                         style:'', 
                         shifts:[],
                         duties:[]
@@ -194,7 +194,7 @@
                 const filteredShifts = this.sheriffInfo.shifts.filter(shift=>{if(shift.startDate.substring(0,10)==schedule.date.substring(0,10))return true;});
                 const filteredDuties = this.sheriffInfo.dutiesDetail.filter(duty=>{if(duty.startTime && duty.startTime.substring(0,10)==schedule.date.substring(0,10))return true;});
                 if (filteredShifts.length == 0) {
-                    this.sheriffSchedules[scheduleIndex].variant = 'danger';
+                    this.sheriffSchedules[scheduleIndex].variant = 'white';
                 } else {
                     this.sheriffSchedules[scheduleIndex].shifts = filteredShifts 
                     this.sheriffSchedules[scheduleIndex].duties = filteredDuties   

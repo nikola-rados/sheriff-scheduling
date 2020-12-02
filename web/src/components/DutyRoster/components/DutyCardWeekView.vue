@@ -313,11 +313,11 @@
         }
 
         public editDuty(){			
-			//this.isDutyDataMounted = false;
+			this.isDutyDataMounted = false;
             console.log(this.dutyBlocks);
-            //this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
-            //this.showEditDutyDetails = true;
-            //this.isDutyDataMounted = true;					           
+            this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
+            this.showEditDutyDetails = true;
+            this.isDutyDataMounted = true;					           
         }
 
         public confirmDeleteDuty(){

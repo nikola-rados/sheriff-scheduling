@@ -98,6 +98,8 @@ export interface assignmentDetailInfoType {
     name: string;
     start: string;
     end: string;
+    expiryDate: string | null;
+    expiryReason: string | null;
     timezone: string;
     monday: boolean;
     tuesday: boolean;
