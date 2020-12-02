@@ -83,6 +83,7 @@ export interface dayOptionsInfoType {
         Leave: conflictsInfoType[],
         Loaned: conflictsInfoType[],
         Shift: conflictsInfoType[],
+        overTimeShift: conflictsInfoType[],
         Unavailable: conflictsInfoType[]
     }
 }

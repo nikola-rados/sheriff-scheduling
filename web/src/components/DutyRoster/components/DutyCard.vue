@@ -11,8 +11,12 @@
             :title="block.title" 
             @dragover.prevent
             @drop.prevent="drop" >
-                <b :style="dutyBlocks.length>1?dutyBlockStyle:(dutyBlockStyle + 'font-size: 16px;')">
-                    {{block.title|truncate(block.endTime - block.startTime-1)}}
+                <b 
+                    :id="'moveduty'+block.dutySlotId"
+                    :draggable="localTime.isTodayInView" 
+                    v-on:dragstart="DragStart"
+                    :style="dutyBlocks.length>1?dutyBlockStyle:(dutyBlockStyle + 'font-size: 16px;')">
+                        {{block.title|truncate(block.endTime - block.startTime-1)}}
                 </b>     
         </div>
         <span v-if="localTime.isTodayInView" :style="{borderLeft:'3px solid red', gridColumnStart: localTime.timeSlot+1,gridColumnEnd:(localTime.timeSlot+2), gridRow:'1/7'}"></span>
@@ -560,6 +564,13 @@
             console.log(event.target.id)
             if(event.target.id){
                 const cardid = event.dataTransfer.getData('text');
+                if(cardid.includes('moveduty')){
+                    console.log('moved')
+                    console.log()
+                    const fromDutySlotId = cardid.slice(8)
+                    this.moveSheriff(fromDutySlotId,this.dutyId,this.localTime.timeString)
+                    return
+                }
                 const blockId: string = event.target.id;
                 const unassignedBlockId = Number(blockId.substring(blockId.indexOf('n')+1));
                 console.log(unassignedBlockId)
@@ -784,6 +795,28 @@
                         this.assignDutyError = true;
                     })
             }
+        }
+
+        public DragStart(event: any) 
+        { 
+            event.dataTransfer.setData('text', event.target.id);
+            console.log(event.target.id)
+        }
+
+        public  moveSheriff(fromDutySlotId,toDutyId,separationTime){
+            console.log(separationTime)
+            const url = 'api/dutyroster/movesheriff?fromDutySlotId='+fromDutySlotId+'&toDutyId='+toDutyId+'&separationTime='+separationTime;
+                this.$http.put(url)
+                    .then(response => {
+                        if(response.data){
+                            // Update the duty bar with name;
+                            this.$emit('change');
+                        }
+                    }, err => {
+                        const errMsg = err.response.data.error;
+                        this.assignDutyErrorMsg = errMsg;
+                        this.assignDutyError = true;
+                    })
         }
 
     }

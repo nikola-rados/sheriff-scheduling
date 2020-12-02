@@ -3,7 +3,7 @@
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">                
 				<b-navbar-nav >
-					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto">Duty Roster</h3>
+					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal">Duty Roster</h3>
 				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
@@ -349,7 +349,7 @@
 		assignmentErrorMsgDesc = '';
 
         mounted() {
-			this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+			// this.userIsAdmin = this.userDetails.roles.includes("Administrator");
 			this.runMethod.$on('addassign', this.addAssignment)
 			//console.log(this.runMethod)
 			this.selectedDate = moment().format().substring(0,10);			
