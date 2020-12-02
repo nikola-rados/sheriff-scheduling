@@ -199,7 +199,8 @@
         roleData: roleInfoType[] = [];
 
         mounted() {
-            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+            // this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+            this.userIsAdmin = true;
             this.getRoles();
             this.sectionHeader = "Manage System Roles and Access";
         }

@@ -78,7 +78,7 @@
                         startTime: schedule.startInMinutes *5 /72 -widthOtherElements,
                         timeDuration: schedule.timeDuration * 5 /72,
                         timeStamp: schedule.startTime +'-'+schedule.endTime,
-                        title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: schedule.type,
+                        title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: (schedule.type=='overTimeShift'? 'Shift':schedule.type),
                         color: this.getScheduleColor(schedule.type).body, //unused now
                         originalColor: this.getScheduleColor(schedule.type).body, //unused now
                         headerColor: this.getScheduleColor(schedule.type).header, //unused now
@@ -129,6 +129,7 @@
             let color = {body:'#FFEEDD' , header:'#F94567'};
             if(block.type=='Unavailable') color = {body:'#CFCFCF' , header:'#868686'}
             else if(block.type=='Shift') color = {body:'#BEF2F7' , header:'#004567'}
+            else if (block.type=='overTimeShift') color = {body:'#e85a0e' , header:'#004567'}
             if (block.id != null && this.selectedShifts.includes(block.id)) color.body ='#F7F54F';
             return color;
         }
