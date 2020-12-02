@@ -240,7 +240,8 @@
 
         mounted() {
             this.maxRank = this.commonInfo.sheriffRankList.reduce((max, rank) => rank.id > max ? rank.id : max, this.commonInfo.sheriffRankList[0].id);
-            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+            // this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+            this.userIsAdmin = true;
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
             this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;

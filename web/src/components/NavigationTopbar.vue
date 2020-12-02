@@ -102,8 +102,8 @@
      
     mounted() {
       this.getCurrentLocation();
-      this.userIsAdmin = this.userDetails.roles.includes("Administrator");
-      this.disableLocationChange = !this.userIsAdmin;
+      // this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+      this.disableLocationChange = false;
     }
 
     public getCurrentLocation()
