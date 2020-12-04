@@ -171,6 +171,29 @@ export interface dutyBlockInfoType {
     note: string,
 }
 
+export interface dutyBlockWeekInfoType {
+    color: string,
+    endTime: number,
+    endTimeString: string,
+    height: string,
+    id: string,
+    firstName: string,
+    lastName: string,
+    sheriffId: string,
+    startTime: number,
+    startTimeString: string,
+    title: string,
+    timezone: string,
+    shiftId: number|null,
+    dutySlotId: number|null,
+    note: string,
+    day:number,
+    dutyId:number,
+    dutyDate:string,
+    fullDutyStartTime: string,
+    fullDutyEndTime: string,
+}
+
 export interface assignDutySlotsInfoType{
     startDate: string,
     endDate: string,

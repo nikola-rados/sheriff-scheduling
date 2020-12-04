@@ -170,18 +170,10 @@
         public extractTeamShiftInfo(shiftsJson){
             this.UpdateShiftAvailabilityInfo([]);
             const allDutySlots: any[] = []
-            for(const dutyRoster of this.dutyRostersJson){
-                //console.log(dutyRoster)
-                const assignmentToThisDuty = this.dutyRosterAssignmentsJson.filter(assignment=>{if(assignment.id==dutyRoster.assignmentId)return true;})[0]
-                //console.log(assignmentToThisDuty.lookupCode)
-                for(const slot of dutyRoster.dutySlots){
-                    slot['color']= this.getType(assignmentToThisDuty.lookupCode.type);
-                    slot['type'] = assignmentToThisDuty.lookupCode.type;
-                    slot['code'] = assignmentToThisDuty.lookupCode.code;
-                    allDutySlots.push(slot)
-                }                
-            }
-            //console.log(allDutySlots)
+            for(const dutyRoster of this.dutyRostersJson)            
+                allDutySlots.push(...dutyRoster.dutySlots)              
+
+            // console.log(allDutySlots)
             for(const shiftJson of shiftsJson)
             {
                 //console.log(shiftJson)
@@ -199,17 +191,18 @@
                 let duties = Array(96).fill(0)
                 const dutiesDetail: dutiesDetailInfoType[] = [];
                 for(const duty of dutySlots){
-                    //console.log(duty)
+                    console.log(duty)
+                    const color = this.getType(duty.assignmentLookupCode.type)
                     const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
                     dutiesDetail.push({
                         id:duty.id , 
                         startBin:dutyRangeBin.startBin, 
                         endBin: dutyRangeBin.endBin,
-                        name: duty.color.name,
-                        colorCode: duty.color.colorCode,
-                        color: duty.shiftId? duty.color.colorCode: this.dutyColors[5].colorCode,
-                        type: duty.type,
-                        code: duty.code
+                        name: color.name,
+                        colorCode: color.colorCode,
+                        color: duty.shiftId? color.colorCode: this.dutyColors[5].colorCode,
+                        type: duty.assignmentLookupCode.type,
+                        code: duty.assignmentLookupCode.code
                     })
                     //console.log(dutiesDetail)
                     duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)

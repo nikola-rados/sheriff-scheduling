@@ -470,7 +470,8 @@
 			
 		}
 
-        public editAssignment(){			
+        public editAssignment(){
+			if(this.isDeleted)return;			
 			this.isSubTypeDataReady = false;
 			this.enableAllDayOptions();
 			this.initialLoad = true; 

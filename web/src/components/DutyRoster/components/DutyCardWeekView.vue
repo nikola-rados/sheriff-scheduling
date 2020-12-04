@@ -2,7 +2,7 @@
     <div class="grid796c">
         <div v-for="i in 7" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: ((i-1)*96)+1,gridColumnEnd:(i*96+2), gridRow:'1/7'}"></div>       
         <div
-            @click="editDuty()"
+            @click="editDuty(block.day)"
             v-for="block in dutyBlocks" 
             :key="block.id"
             :id="block.id"
@@ -62,8 +62,9 @@
         <b-modal v-model="showEditDutyDetails" id="bv-modal-edit-duty-details" centered header-class="bg-primary text-light">
 			<template v-slot:modal-title>
 				<div class="h2 mb-2 text-light"> Editing Duty: </div> 
-                <div style="float:left;" class="h4 ml-4 p-0 mb-0">{{assignmentName}}</div>             
-                <div style="float:left;" class="h4 text-warning ml-2 p-0 mb-0"> {{fullDutyStartTime}} - {{fullDutyEndTime}}</div>                 
+                <div style="float:left;" class="h5 ml-0 p-0 mb-0">{{assignmentName}}</div>             
+                <div style="float:left; margin:.1rem 0 0 1rem;" class="h5 text-warning p-0"> {{dutyBlocksDay[0].fullDutyStartTime}} - {{dutyBlocksDay[0].fullDutyEndTime}}</div>
+                <div style="float:left; margin:.1rem 0 0 1rem;" class="h6 text-white p-0"> {{dutyBlocksDay[0].dutyDate|beautify-date-weekday}}</div>                 
             </template>
 
 			<b-card v-if="isDutyDataMounted" no-body style="font-size: 14px;user-select: none;" >
@@ -82,7 +83,7 @@
                 <div>
                     <b-card no-body border-variant="light" bg-variant="white">
                         <b-table
-                            :items="dutyBlocks"
+                            :items="dutyBlocksDay"
                             :fields="fields"
                             head-row-variant="primary"
                             striped
@@ -107,18 +108,46 @@
                             </template>
 
                             <template v-slot:cell(editDutySlot)="data" >          
-                                <b-button style="width:1.2rem;float:right" class="ml-1 mr-0 my-0 py-0" size="sm" :disabled="data.item.sheriffId?false:true" variant="transparent" @click="confirmUnassignDutySlot(data.item)"><b-icon v-if="data.item.sheriffId" icon="trash-fill" font-scale="1.25" variant="danger" style="transform: translate(-8px,0);"/></b-button>
-                                <b-button style="width:.75rem;float:right" class="mx-1 my-0 py-0" size="sm" :disabled="data.item.note?true:false" variant="transparent" @click="editDutySlotInfo(data)"><b-icon v-if="!data.item.note" icon="pencil-square" font-scale="1.25" variant="primary" style="transform: translate(-8px,0);"/></b-button>
+                                <b-button style="width:1.2rem;float:right" 
+                                        class="ml-1 mr-0 my-0 py-0"
+                                        size="sm" 
+                                        :disabled="data.item.sheriffId?false:true" 
+                                        variant="transparent" 
+                                        @click="confirmUnassignDutySlot(data.item)"
+                                        v-b-tooltip.hover                                
+                                        title="Unassign"
+                                        ><b-icon 
+                                            v-if="data.item.sheriffId" 
+                                            icon="person-x-fill" 
+                                            font-scale="1.25" 
+                                            variant="danger" 
+                                            style="transform: translate(-8px,0);"/>
+                                </b-button>
+                                <b-button style="width:.75rem;float:right" 
+                                        class="mx-1 my-0 py-0" 
+                                        size="sm" 
+                                        :disabled="data.item.note?true:false" 
+                                        variant="transparent" 
+                                        @click="editDutySlotInfo(data)"
+                                        v-b-tooltip.hover                                
+                                        title="Edit"
+                                        ><b-icon 
+                                            v-if="!data.item.note" 
+                                            icon="pencil-square" 
+                                            font-scale="1.25" 
+                                            variant="primary" 
+                                            style="transform: translate(-8px,0);"/>
+                                </b-button>
                             </template>
 
                             <template v-slot:row-details="data">
                                 <b-card :id="'Le-Date-'+data.item.startTimeString.substring(0,10)" body-class="m-0 px-0 py-1" :border-variant="addFormColor" style="border:2px solid">
-                                    <add-duty-slot-form 
+                                    <add-duty-slot-week-form 
                                         :formData="data.item" 
-                                        :dutyBlocks="dutyBlocks"
-                                        :fullDutyStartTime="fullDutyStartTime"
-                                        :fullDutyEndTime="fullDutyEndTime"
-                                        :startOfDay="dutyDate"
+                                        :dutyBlocks="dutyBlocksDay"
+                                        :fullDutyStartTime="dutyBlocksDay[0].fullDutyStartTime"
+                                        :fullDutyEndTime="dutyBlocksDay[0].fullDutyEndTime"
+                                        :startOfDay="dutyBlocksDay[0].dutyDate"
                                         :timezone="dutyTimezone" 
                                         v-on:submit="assignDuty" 
                                         v-on:cancel="closeDutySlotForm" />
@@ -168,7 +197,7 @@
 					/></b-badge></h2>
 			</b-card>
 
-            <h4>Are you sure you want to delete the "{{assignmentName}}" duty?</h4>
+            <h4 v-if="dutyBlocksDay[0]">Are you sure you want to delete the "{{assignmentName}}" duty from {{dutyBlocksDay[0].dutyDate|beautify-date-weekday}}?</h4>
             
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="deleteDuty()">Confirm</b-button>
@@ -185,7 +214,7 @@
                     <h2 class="mb-0 text-light">Confirm Unassign Duty</h2>                    
             </template>
             
-            <h4>Are you sure you want to unassign the "{{assignmentName}}" duty from {{dutySlotToUnassign.lastName}}, {{dutySlotToUnassign.firstName}}?</h4>
+            <h4 v-if="dutyBlocksDay[0]">Are you sure you want to unassign {{dutySlotToUnassign.lastName}}, {{dutySlotToUnassign.firstName}} from the "{{assignmentName}}" duty on {{dutyBlocksDay[0].dutyDate|beautify-date-weekday}}?</h4>
             
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="unassignDutySlot()">Confirm</b-button>
@@ -206,8 +235,8 @@
    
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
-    import AddDutySlotForm from './AddDutySlotForm.vue'
-    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
+    import AddDutySlotWeekForm from './AddDutySlotWeekForm.vue'
+    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockWeekInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
     import {localTimeInfoType} from '../../../types/common';
 
     import { namespace } from "vuex-class";
@@ -218,7 +247,7 @@
 
     @Component({
         components: {
-            AddDutySlotForm
+            AddDutySlotWeekForm
         }        
     })  
     export default class DutyCardWeekView extends Vue {
@@ -238,10 +267,12 @@
         @dutyState.Action
         public UpdateDutyToBeEdited!: (newDutyToBeEdited: string) => void
 
-        dutyBlocks: dutyBlockInfoType[] = []; 
+        dutyBlocks: dutyBlockWeekInfoType[] = [];
+        
+        dutyBlocksDay: dutyBlockWeekInfoType[] = []; 
 
-        fullDutyStartTime=''
-        fullDutyEndTime=''
+        //fullDutyStartTime=''
+        //fullDutyEndTime=''
 
         addNewDutySlotForm = false;
         addFormColor = 'secondary';
@@ -262,17 +293,16 @@
 
         assignedArray: number[] = [];
         unassignedArray: number[][] = [];
-        dutyDate ='';
+
         dutyTimezone='';
 
         assignmentName = '';
-        dutyId = 0;
 
         showEditDutyDetails = false;
         isDutyDataMounted = false;
         showEditCancelWarning = false;
         confirmDelete = false;
-        dutySlotToDelete = {} as dutyBlockInfoType;
+        dutySlotToDelete = {} as dutyBlockWeekInfoType;
         latestEditData;
         timezone = 'UTC';
 
@@ -283,7 +313,7 @@
         deleteError = false; 
         
         confirmUnassign = false;
-        dutySlotToUnassign = {} as dutyBlockInfoType;
+        dutySlotToUnassign = {} as dutyBlockWeekInfoType;
 
         fields = [      
             {key:'title', label:'Sheriff',sortable:false, tdClass: 'border-top'  },
@@ -297,12 +327,14 @@
         {
             console.log(this.dutyRosterInfo)
             this.assignmentName = this.getDutyName()
-            this.dutyId = (this.dutyRosterInfo && this.dutyRosterInfo.attachedDuty)? this.dutyRosterInfo.attachedDuty.id:0;
+            
             this.isMounted = false;
             this.dutyBlocks = [];
             this.extractDuty();
             console.log(this.dutyRosterInfo.assignment)
-            if(this.dutyRosterInfo.assignment == this.dutyToBeEdited) Vue.nextTick(()=>this.editDuty())
+            console.log(this.dutyToBeEdited.substring(0,8))
+            console.log(this.dutyToBeEdited.substring(9))
+            if(this.dutyRosterInfo.assignment == this.dutyToBeEdited.substring(0,8)) Vue.nextTick(()=>this.editDuty(this.dutyToBeEdited.substring(9)))
             
         }
 
@@ -312,10 +344,13 @@
             else return '';
         }
 
-        public editDuty(){			
+        public editDuty(day){			
 			this.isDutyDataMounted = false;
             console.log(this.dutyBlocks);
-            this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
+            console.log(day)
+            console.log(this.dutyRosterInfo)
+            this.dutyBlocksDay = this.dutyBlocks.filter(dutyBlock=>{if(dutyBlock.day==day)return true;})
+            this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment+'D'+day);
             this.showEditDutyDetails = true;
             this.isDutyDataMounted = true;					           
         }
@@ -334,12 +369,13 @@
 			
             this.confirmDelete = false;
             this.deleteError = false;
-            const url = 'api/dutyroster?id=' + this.dutyId;
+            const url = 'api/dutyroster?id=' + this.dutyBlocksDay[0].dutyId;
         
             this.$http.delete(url)
                 .then(response => {
                     // console.log(response);
                     this.confirmDelete = false;
+                    this.UpdateDutyToBeEdited('');
                     this.$emit('change');                    
                 }, err=>{
                     const errMsg = err.response.data.error;
@@ -365,7 +401,7 @@
                     shiftId:null,
                     dutySlotId:this.dutySlotToUnassign.dutySlotId
                 }]
-                this.assignDuty(this.dutySlotToUnassign.sheriffId, editedDutySlots, true);        
+                this.assignDuty(this.dutySlotToUnassign.sheriffId, editedDutySlots, true,this.dutyBlocksDay[0].day);        
             }
         }
 
@@ -411,11 +447,11 @@
 
                     const dutyStartTime = moment(dutyInfo.startDate).tz(dutyInfo.timezone);
                     const startOfDay = moment(dutyStartTime).startOf("day");
-                    this.dutyDate = startOfDay.format();
+                    const dutyDate = startOfDay.format();
                     this.dutyTimezone = dutyInfo.timezone;
 
-                    this.fullDutyStartTime  = dutyStartTime.format('HH:mm')
-                    this.fullDutyEndTime = moment(dutyInfo.endDate).tz(dutyInfo.timezone).format('HH:mm')
+                    const fullDutyStartTime  = dutyStartTime.format('HH:mm')
+                    const fullDutyEndTime = moment(dutyInfo.endDate).tz(dutyInfo.timezone).format('HH:mm')
 
                     const dutyBin = this.getTimeRangeBins(dutyInfo.startDate, dutyInfo.endDate,startOfDay, dutyInfo.timezone);
                     let unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyBin.startBin, dutyBin.endBin); 
@@ -447,10 +483,15 @@
                             timezone: dutySlot.timezone, 
                             shiftId: dutySlot.shiftId, 
                             dutySlotId: dutySlot.id,
-                            note: isOvertime? 'Overtime' :''
+                            note: isOvertime? 'Overtime' :'',
+                            day: day,
+                            dutyId: dutyInfo.id,
+                            dutyDate: dutyDate,
+                            fullDutyStartTime:fullDutyStartTime,
+                            fullDutyEndTime:fullDutyEndTime,
                         })                
                     }
-
+                    this.unassignedArray = [];
                     this.extractUnassignedArrays(unassignedArray);
 
                     for(const unassignInx in this.unassignedArray){
@@ -473,7 +514,12 @@
                             timezone: '',
                             shiftId: null,
                             dutySlotId: null,
-                            note: ''
+                            note: '',
+                            day: day,
+                            dutyId: dutyInfo.id,
+                            dutyDate: dutyDate,
+                            fullDutyStartTime:fullDutyStartTime,
+                            fullDutyEndTime:fullDutyEndTime,
                         })                
                     }                    
                 }
@@ -671,10 +717,11 @@
             return( {startBin: startBin, endBin:endBin } )
         }
 
-        public assignDuty(sheriffId: string|null, editedDutySlots: assignDutySlotsInfoType[], unassignSheriff: boolean ) {
+        public assignDuty(sheriffId: string|null, editedDutySlots: assignDutySlotsInfoType[], unassignSheriff: boolean, day: number ) {
 
-            if(this.dutyRosterInfo.attachedDuty){
-                const dutyInfo = this.dutyRosterInfo.attachedDuty;
+            console.log('assign')
+            if(this.dutyRosterInfo[day]){
+                const dutyInfo = this.dutyRosterInfo[day];
                 let isNotRequired = false;
                 let isNotAvailable = false;
                 if(sheriffId=='00000-00000-11111'){
