@@ -172,7 +172,7 @@
             for(const dutyRoster of this.dutyRostersJson)                
                     allDutySlots.push(...dutyRoster.dutySlots)
            
-            //console.log(allDutySlots)
+            console.log(allDutySlots)
             for(const shiftJson of shiftsJson)
             {
                 //console.log(shiftJson)
@@ -209,10 +209,17 @@
                 const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
                 
                 if (index != -1) {
+                    // if(this.shiftAvailabilityInfo[index].sheriffId =='96d3a24e-506a-4e98-a15a-b9e4f33f499c'){
+                    //                     console.log(this.shiftAvailabilityInfo[index].dutiesDetail)
+                    //                     console.log(shiftInfo.startDate)
+                    //                     }
+
+                    const indexSimilarDuties = this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(dutydetail=> {if(dutydetail.startTime && dutydetail.startTime.substring(0,10)==shiftInfo.startDate.substring(0,10))return true})
+                    //console.log(indexSimilarDuties)
                     this.shiftAvailabilityInfo[index].duties = [];
                     this.shiftAvailabilityInfo[index].availability = [];
                     this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
-                    this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
+                    if(indexSimilarDuties<0)this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
                 } else {
                     availabilityInfo.shifts = [shiftInfo];
                     availabilityInfo.sheriffId = shiftJson.sheriff.id;

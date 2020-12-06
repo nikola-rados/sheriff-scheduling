@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-if="isDataReady">
         <b-table-simple small borderless class="m-0 p-0">
             <b-tbody >
                 <b-tr >
@@ -18,7 +18,7 @@
                                                     {{sheriff.lastName}}
                                         </b-form-select-option>
                                         <b-form-select-option
-                                            v-for="sheriff in shiftAvailabilityInfo"
+                                            v-for="sheriff in filteredShiftAvailabilityInfo"
                                             :key="sheriff.sheriffId"
                                             :value="sheriff">
                                                     {{sheriff.firstName|capitalize}} {{sheriff.lastName|capitalize}}
@@ -155,7 +155,9 @@
         timezone!: string;
 
         @Prop({required: true})
-        startOfDay!: string;        
+        startOfDay!: string;
+        
+        filteredShiftAvailabilityInfo: myTeamShiftInfoType[] = [];
 
         selectedSheriff = {} as myTeamShiftInfoType | undefined;
         sheriffState = true;        
@@ -179,16 +181,34 @@
         formDataId = '0';
         showCancelWarning = false;
 
+        isDataReady = false;
+
         notAvailableNotRequired: myTeamShiftInfoType[] =[]; 
         
         mounted()
         { 
+            this.isDataReady = false;
+
+            //console.warn(this.shiftAvailabilityInfo)
+            //console.log(this.formData)
+            this.filterSheriffs()
+            //console.log(this.filteredShiftAvailabilityInfo)      
+
             this.addNotAvailableNotRequired();
             this.clearSelections();
             if(this.formData.id) {
                 this.extractFormInfo();
-            }               
-        } 
+            }  
+            this.isDataReady = true;             
+        }
+        
+        public filterSheriffs(){
+            this.filteredShiftAvailabilityInfo = this.shiftAvailabilityInfo.filter(sheriff=>{
+                for(const shift of sheriff.shifts){
+                    if(shift.startDate.substring(0,10)==this.formData.dutyDate.substring(0,10)) return true
+                }
+            })
+        }
         
         public addNotAvailableNotRequired(){
             this.notAvailableNotRequired = [];
