@@ -81,13 +81,14 @@ namespace SS.Api.controllers.scheduling
 
         [HttpDelete]
         [PermissionClaimAuthorize(perm: Permission.ExpireDuties)]
-        public async Task<ActionResult> ExpireDuty(int id)
+        public async Task<ActionResult> ExpireDuties(List<int> ids)
         {
-            var duty = await DutyRosterService.GetDuty(id);
-            if (duty == null) return NotFound();
-            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, duty.LocationId)) return Forbid();
+            if (ids == null) return BadRequest(InvalidDutyErrorMessage);
+            var locationIds = await DutyRosterService.GetDutiesLocations(ids);
+            if (locationIds.Count != 1) return BadRequest(CannotUpdateCrossLocationError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationIds.First())) return Forbid();
 
-            await DutyRosterService.ExpireDuty(id);
+            await DutyRosterService.ExpireDuties(ids);
             return NoContent();
         }
     }

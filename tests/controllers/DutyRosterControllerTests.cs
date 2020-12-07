@@ -100,7 +100,7 @@ namespace tests.controllers
             await Db.Duty.AddAsync(addDuty);
             await Db.SaveChangesAsync();
 
-            HttpResponseTest.CheckForNoContentResponse(await _controller.ExpireDuty(1));
+            HttpResponseTest.CheckForNoContentResponse(await _controller.ExpireDuties(new List<int> {1}));
 
             var controllerResult = await _controller.GetDuties(locationId, startDate, startDate.AddDays(1));
             var getDuties = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);

@@ -192,10 +192,10 @@ namespace SS.Api.services.scheduling
             return toDuty;
         }
 
-        public async Task ExpireDuty(int id)
+        public async Task ExpireDuties(List<int> ids)
         {
-            await Db.DutySlot.Where(ds => ds.DutyId == id).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
-            await Db.Duty.Where(d => d.Id == id).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            await Db.DutySlot.Where(ds => ids.Contains(ds.DutyId)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            await Db.Duty.Where(d => ids.Contains(d.Id)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
             await Db.SaveChangesAsync();
         }
 
