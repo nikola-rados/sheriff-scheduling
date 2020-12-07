@@ -21,7 +21,6 @@ namespace SS.Db.models.auth
         public const string CreateAndAssignRoles = nameof(CreateAndAssignRoles);
         public const string ExpireRoles = nameof(ExpireRoles);
         public const string EditRoles = nameof(EditRoles);
-        public const string ViewManageTypes = nameof(ViewManageTypes);
         public const string CreateTypes = nameof(CreateTypes);
         public const string EditTypes = nameof(EditTypes);
         public const string ExpireTypes = nameof(ExpireTypes);
