@@ -131,20 +131,19 @@ namespace SS.Api.services.scheduling
             fromDutySlot.ThrowBusinessExceptionIfNull("From duty slot didn't exist.");
 
             var fromShiftId = fromDutySlot.ShiftId;
+            var fromShift = await Db.Shift.AsNoTracking().FirstOrDefaultAsync(s => s.Id == fromShiftId);
             var fromSheriffId = fromDutySlot.SheriffId;
 
             var toDutySlotStart = separationTime ?? DateTimeOffset.UtcNow.ConvertToTimezone(fromDutySlot.Timezone);
             toDutySlotStart = RoundUp(toDutySlotStart, TimeSpan.FromMinutes(15));
 
-            var oldEndDate = fromDutySlot.EndDate;
             fromDutySlot.EndDate = toDutySlotStart;
 
             var toDuty = await Db.Duty.Include(d=> d.DutySlots).FirstOrDefaultAsync(d => d.Id == toDutyId);
             if (!(toDutySlotStart < toDuty.EndDate && toDuty.StartDate < toDutySlotStart))
                 throw new BusinessLayerException("Duty doesn't have room. You may need to adjust the duty.");
 
-            //Might be cut short from the new duty.
-            var toDutySlotEnd = oldEndDate > toDuty.EndDate ? toDuty.EndDate : oldEndDate;
+            var toDutySlotEnd = toDuty.EndDate;
 
             //Might be cut even shorter from existing dutyslots with sheriffs in them. 
             if (toDuty.DutySlots.Any(ds =>
@@ -159,6 +158,9 @@ namespace SS.Api.services.scheduling
 
                 toDutySlotEnd = toDutySlotEnd > earliestEndFromOtherSlots ? earliestEndFromOtherSlots : toDutySlotEnd;
             }
+
+            //Ensure this duty doesn't go over our end shift. 
+            toDutySlotEnd = toDutySlotEnd > fromShift.EndDate ? fromShift.EndDate : toDutySlotEnd;
 
             var toDutySlot = toDuty.DutySlots.FirstOrDefault(ds =>
                 toDutySlotStart < ds.EndDate && ds.StartDate < toDutySlotEnd && ds.SheriffId == null);
