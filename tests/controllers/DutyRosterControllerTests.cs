@@ -610,8 +610,6 @@ namespace tests.controllers
 
             await Assert.ThrowsAsync<BusinessLayerException>(async () => await _controller.MoveSheriffFromDutySlot(fromDutySlot.Id, toDuty.Id, startDate.AddHours(6)));
         }
-
-
         private async Task<Guid> CreateSheriff(int locationId)
         {
             var newSheriff = new Sheriff

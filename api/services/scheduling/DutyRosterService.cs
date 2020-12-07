@@ -160,7 +160,7 @@ namespace SS.Api.services.scheduling
             }
 
             //Ensure this duty doesn't go over our end shift. 
-            toDutySlotEnd = toDutySlotEnd > fromShift.EndDate ? fromShift.EndDate : toDutySlotEnd;
+            toDutySlotEnd = fromShift != null && toDutySlotEnd > fromShift.EndDate ? fromShift.EndDate : toDutySlotEnd;
 
             var toDutySlot = toDuty.DutySlots.FirstOrDefault(ds =>
                 toDutySlotStart < ds.EndDate && ds.StartDate < toDutySlotEnd && ds.SheriffId == null);
