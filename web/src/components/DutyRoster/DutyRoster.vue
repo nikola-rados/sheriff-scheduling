@@ -4,13 +4,14 @@
         <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
-                <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="isDutyRosterDataMounted=true" />
-                <duty-roster-day-view v-else :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="isDutyRosterDataMounted=true" />
+                <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
+                <duty-roster-day-view v-else :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
                 
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
                 <b-card 
-                    v-if="isDutyRosterDataMounted" 
+                    v-if="isDutyRosterDataMounted"
+                    :key="updateMyTeam" 
                     body-class="mx-2 p-0"
                     class="bg-dark m-0 p-0">
                         <b-card-header header-class="m-0 text-white py-2 px-0"> 
@@ -88,6 +89,7 @@
         isDutyRosterDataMounted = false;
 
         updateDutyRoster = 0;
+        updateMyTeam = 0;
 
         weekView = false;
 
@@ -118,6 +120,11 @@
 
             this.updateDutyRoster++;
 
+        }
+
+        public reloadMyTeam(){
+            this.isDutyRosterDataMounted=true
+            this.updateMyTeam++;
         }
 
         public toggleDisplayMyteam(){
