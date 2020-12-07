@@ -169,18 +169,10 @@
         public extractTeamShiftInfo(shiftsJson){
             this.UpdateShiftAvailabilityInfo([]);
             const allDutySlots: any[] = []
-            for(const dutyRoster of this.dutyRostersJson){
-                //console.log(dutyRoster)
-                const assignmentToThisDuty = this.dutyRosterAssignmentsJson.filter(assignment=>{if(assignment.id==dutyRoster.assignmentId)return true;})[0]
-                //console.log(assignmentToThisDuty.lookupCode)
-                for(const slot of dutyRoster.dutySlots){
-                    slot['color']= this.getType(assignmentToThisDuty.lookupCode.type);
-                    slot['type'] = assignmentToThisDuty.lookupCode.type;
-                    slot['code'] = assignmentToThisDuty.lookupCode.code;
-                    allDutySlots.push(slot)
-                }                
-            }
-            //console.log(allDutySlots)
+            for(const dutyRoster of this.dutyRostersJson)                
+                    allDutySlots.push(...dutyRoster.dutySlots)
+           
+            console.log(allDutySlots)
             for(const shiftJson of shiftsJson)
             {
                 //console.log(shiftJson)
@@ -196,18 +188,20 @@
                 const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId && dutyslot.startDate.substring(0,10)==shiftInfo.startDate.substring(0,10))return true})
                 const dutiesDetail: dutiesDetailInfoType[] = [];
                 for(const duty of dutySlots){
-                    //console.log(duty)                    
+                    //console.log(duty)
+                    const color = this.getType(duty.assignmentLookupCode.type)
+                    const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);                    
                     dutiesDetail.push({
                         id:duty.id ,
-                        startBin: 0,
-                        endBin:0, 
+                        startBin:dutyRangeBin.startBin, 
+                        endBin: dutyRangeBin.endBin,
                         startTime:moment(duty.startDate).tz(this.location.timezone).format(),
                         endTime:moment(duty.endDate).tz(this.location.timezone).format(),
-                        name: duty.color.name,
-                        colorCode: duty.color.colorCode,
-                        color: duty.shiftId? duty.color.colorCode: this.dutyColors[5].colorCode,
-                        type: duty.type,
-                        code: duty.code
+                        name: color.name,
+                        colorCode: color.colorCode,
+                        color: duty.shiftId? color.colorCode: this.dutyColors[5].colorCode,
+                        type: duty.assignmentLookupCode.type,
+                        code: duty.assignmentLookupCode.code
                     })
                     //console.log(dutiesDetail)
                 }
@@ -215,10 +209,17 @@
                 const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
                 
                 if (index != -1) {
+                    // if(this.shiftAvailabilityInfo[index].sheriffId =='96d3a24e-506a-4e98-a15a-b9e4f33f499c'){
+                    //                     console.log(this.shiftAvailabilityInfo[index].dutiesDetail)
+                    //                     console.log(shiftInfo.startDate)
+                    //                     }
+
+                    const indexSimilarDuties = this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(dutydetail=> {if(dutydetail.startTime && dutydetail.startTime.substring(0,10)==shiftInfo.startDate.substring(0,10))return true})
+                    //console.log(indexSimilarDuties)
                     this.shiftAvailabilityInfo[index].duties = [];
                     this.shiftAvailabilityInfo[index].availability = [];
                     this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
-                    this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
+                    if(indexSimilarDuties<0)this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
                 } else {
                     availabilityInfo.shifts = [shiftInfo];
                     availabilityInfo.sheriffId = shiftJson.sheriff.id;
@@ -248,7 +249,7 @@
                 const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
                 //console.log(dutyRostersForThisAssignment)
                
-               if(dutyRostersForThisAssignment.length>0){
+                if(dutyRostersForThisAssignment.length>0){
                     let maximumRow = -2;
                     for(const dutydate of dutyWeekDates){
                         const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => dutyRoster.startDate.substring(0,10) == dutydate)
@@ -326,6 +327,8 @@
                     })
                 }
             }
+
+            console.log(this.dutyRosterAssignments)
 
            this.isDutyRosterDataMounted = true;
            this.$emit('dataready');
