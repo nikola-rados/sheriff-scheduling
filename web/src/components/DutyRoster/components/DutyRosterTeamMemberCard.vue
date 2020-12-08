@@ -168,7 +168,7 @@
                         weekday: dayOffset, 
                         text:this.WeekDay[dayOffset],
                         name:this. weekDayNames[dayOffset], 
-                        variant:'white',  
+                        variant:'danger',  
                         style:'', 
                         shifts:[],
                         duties:[]
@@ -184,9 +184,10 @@
         }
 
         public extractSchedules() {
-           // console.log(this.sheriffInfo)
-            //console.log(this.sheriffSchedules)
-
+            // if(this.sheriffInfo.firstName=='Alex'){
+                //console.warn(this.sheriffInfo)
+                //console.log(this.sheriffSchedules)
+            // }
             for(const scheduleIndex in this.sheriffSchedules) {
 
                 const schedule = this.sheriffSchedules[scheduleIndex];            
@@ -194,10 +195,21 @@
                 const filteredShifts = this.sheriffInfo.shifts.filter(shift=>{if(shift.startDate.substring(0,10)==schedule.date.substring(0,10))return true;});
                 const filteredDuties = this.sheriffInfo.dutiesDetail.filter(duty=>{if(duty.startTime && duty.startTime.substring(0,10)==schedule.date.substring(0,10))return true;});
                 if (filteredShifts.length == 0) {
-                    this.sheriffSchedules[scheduleIndex].variant = 'danger';
+                    this.sheriffSchedules[scheduleIndex].variant = 'white';
                 } else {
                     this.sheriffSchedules[scheduleIndex].shifts = filteredShifts 
-                    this.sheriffSchedules[scheduleIndex].duties = filteredDuties   
+                    this.sheriffSchedules[scheduleIndex].duties = filteredDuties
+                    if(filteredDuties.length>0) {
+                         
+                        let availability = this.getAvailability(filteredShifts, schedule.date)
+                        const duties = this.getSheriffDuties(filteredDuties, schedule.date) 
+                        availability = this.subtractUnionOfArrays(availability,duties) 
+                        //console.log(availability)
+                        this.sheriffSchedules[scheduleIndex].variant = 'info';
+                        if(this.sumOfArrayElements(availability)==0)
+                            this.sheriffSchedules[scheduleIndex].style =''
+                        else this.sheriffSchedules[scheduleIndex].style = this.halfSchStyle;
+                    }
                 }
                 
             }
@@ -222,6 +234,50 @@
         { 
             event.dataTransfer.setData('text', event.target.id);
         }
+
+        public getAvailability(shifts, startOfDay){
+            
+            //console.log(shifts)
+            let availability = Array(96).fill(0)
+            for(const shift of shifts){
+                const rangeBin = this.getTimeRangeBins(shift.startDate, shift.endDate, startOfDay, this.location.timezone);
+                //console.log(rangeBin)
+                availability = this.fillInArray(availability, shift.id , rangeBin.startBin,rangeBin.endBin)
+            }
+            return availability            
+        }
+
+        public getSheriffDuties(dutiesDetail,startOfDay){
+    
+                //console.log(dutiesDetail)
+                let duties = Array(96).fill(0)
+                for(const duty of dutiesDetail){                    
+                    //console.log(duty)
+                    duties = this.fillInArray(duties, duty.id , duty.startBin, duty.endBin)
+                }
+                return duties           
+        }
+
+        public fillInArray(array, fillInNum, startBin, endBin){
+            return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
+        }
+
+        public getTimeRangeBins(startDate, endDate, startOfDay, timezone){
+            const startTime = moment(startDate).tz(timezone);
+            const endTime = moment(endDate).tz(timezone);
+            const startBin = moment.duration(startTime.diff(startOfDay)).asMinutes()/15;
+            const endBin = moment.duration(endTime.diff(startOfDay)).asMinutes()/15;
+            return( {startBin: startBin, endBin:endBin } )
+        }
+
+        public subtractUnionOfArrays(arrayA, arrayB){
+            return arrayA.map((arr,index) =>{return arr*(arrayB[index]>0?0:1)});
+        }
+
+        public sumOfArrayElements(arrayA){
+            return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)
+        }
+
     }
 </script>
 

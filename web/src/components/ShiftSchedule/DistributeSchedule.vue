@@ -57,19 +57,19 @@
                         </template>
 
                         <template v-slot:cell(myteam) = "data" >  
-                            <span >{{data.item.myteam.name}}</span>
+                            <span style="font-size: 0.75rem;">{{data.item.myteam.name}}</span>
                             <div style="height:1rem;"                    
                                 v-if="data.item.myteam.homeLocation != location.name">
                                 <div class="m-0 p-0 text-jail"> 
                                     <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
-                                    <div style="font-size:12px;">Loaned in from </div>
+                                    <div style="font-size:10px;">Loaned in from </div>
                                 </div> 
                                 <div class=" m-0 p-0 text-jail" style="font-size:10px">{{data.item.myteam.homeLocation|truncate(25)}} </div>
                             </div>
                         </template>
                         
                         <template v-slot:cell() = "data">                     
-                            <b-card class="ml-auto" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
+                            <b-card style="font-size: 0.75rem;" class="ml-auto" body-class="p-1" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
                                 <b-row v-if="event.type == 'Shift'" class="m-0 p-0">
                                     <div v-if="event.workSection" :style="{backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
                                     <div v-else style="background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0;"></div>
@@ -136,14 +136,14 @@
         teamMembers: distributeTeamMemberInfoType[] = [];
 
         fields=[
-            {key:'myteam', label:'Name', tdClass:'px-1 mx-0', thClass:'text-center'},
-            {key:'Sun', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Mon', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Tue', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Wed', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Thu', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Fri', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Sat', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'}
+            {key:'myteam', label:'Name', tdClass:'px-1 mx-0 align-middle', thClass:'text-center'},
+            {key:'Sun', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Mon', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Tue', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Wed', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Thu', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Fri', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Sat', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'}
         ]
 
         WSColors = {
@@ -151,8 +151,7 @@
             'J':'#A22BB9',
             'E':'#ffb007',
             'O':'#7a4528'
-        }                       
-        
+        }
 
         sheriffSchedules: weekScheduleInfoType[] =[];
 
@@ -446,6 +445,10 @@
 <style scoped>    
     .card {
         border: white;
+    }
+
+    .table >>> td {
+        height: 2.5rem;
     }   
 
 </style>

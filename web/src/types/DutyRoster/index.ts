@@ -98,6 +98,8 @@ export interface assignmentDetailInfoType {
     name: string;
     start: string;
     end: string;
+    expiryDate: string | null;
+    expiryReason: string | null;
     timezone: string;
     monday: boolean;
     tuesday: boolean;
@@ -167,6 +169,29 @@ export interface dutyBlockInfoType {
     shiftId: number|null,
     dutySlotId: number|null,
     note: string,
+}
+
+export interface dutyBlockWeekInfoType {
+    color: string,
+    endTime: number,
+    endTimeString: string,
+    height: string,
+    id: string,
+    firstName: string,
+    lastName: string,
+    sheriffId: string,
+    startTime: number,
+    startTimeString: string,
+    title: string,
+    timezone: string,
+    shiftId: number|null,
+    dutySlotId: number|null,
+    note: string,
+    day:number,
+    dutyId:number,
+    dutyDate:string,
+    fullDutyStartTime: string,
+    fullDutyEndTime: string,
 }
 
 export interface assignDutySlotsInfoType{

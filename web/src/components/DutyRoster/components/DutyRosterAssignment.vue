@@ -49,7 +49,8 @@
             <b-col cols="2" class="m-0 p-0"> 
                 <b-button
                     class="bg-white"
-                    style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0" 
+                    style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0"
+					:disabled="isDeleted" 
                     @click="addDuty();"
                     size="sm"> 
                         <b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
@@ -330,7 +331,7 @@
     import "@store/modules/DutyRosterInformation";   
 	const dutyState = namespace("DutyRosterInformation");
 	import * as _ from 'underscore';
-    import { locationInfoType } from '../../../types/common';
+    import { localTimeInfoType, locationInfoType } from '../../../types/common';
     import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
 
     @Component
@@ -347,6 +348,9 @@
 
         @dutyState.State
 		public dutyRangeInfo!: dutyRangeInfoType;
+
+		@commonState.State
+        public localTime!: localTimeInfoType;
 		
 		assignmentTitle = '';
 
@@ -369,6 +373,7 @@
 		initialLoad = false;
 		isSubTypeDataReady = false;
 		nonReoccuring = false;
+		isDeleted = false;
 
 		nameState = true;
 		selectedTypeState = true;
@@ -417,7 +422,20 @@
         {
 			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
             //this.isDutyDataMounted = false;
-			// console.log(this.assignment)
+			console.log(this.assignment)
+			this.isDeleted = this.determineExpired();
+		}
+
+		public determineExpired(){
+			const currentTime = this.localTime.timeString
+			
+			if (this.assignment.assignmentDetail && this.assignment.assignmentDetail.expiryDate) {
+				const expiryDate = moment(this.assignment.assignmentDetail.expiryDate).tz(this.location.timezone)
+				if (expiryDate.isBefore(currentTime)) return true;
+				return false;
+			} else {
+				return false;
+			}			
 		}
 		
 		public confirmDeleteAssignment(){
@@ -452,7 +470,8 @@
 			
 		}
 
-        public editAssignment(){			
+        public editAssignment(){
+			if(this.isDeleted)return;			
 			this.isSubTypeDataReady = false;
 			this.enableAllDayOptions();
 			this.initialLoad = true; 
