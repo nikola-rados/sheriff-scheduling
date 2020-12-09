@@ -71,7 +71,8 @@
                         const userData = response.data;
                         this.UpdateUser({
                             roles: userData.roles,
-                            homeLocationId: userData.homeLocationId
+                            homeLocationId: userData.homeLocationId,
+                            permissions: userData.permissions
                         }) 
                         this.getLocations()                        
                     }                   
