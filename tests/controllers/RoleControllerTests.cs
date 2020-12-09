@@ -43,7 +43,7 @@ namespace tests.controllers
             var roleDto = new RoleDto
             {
                 Description = "Super Role",
-                Name = "Super"
+                Name = "Super Super"
             };
 
             var addRoleDto = new AddRoleDto()
