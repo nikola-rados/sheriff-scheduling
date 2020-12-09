@@ -10,7 +10,7 @@ namespace SS.Db.configuration
     {
         public override void Configure(EntityTypeBuilder<UserRole> builder)
         {
-            builder.Property(b => b.Id).HasIdentityOptions(startValue: 100);
+            builder.Property(b => b.Id).HasIdentityOptions(startValue: 5000);
 
             builder.HasIndex(lc => new { lc.RoleId, lc.UserId }).IsUnique();
 
