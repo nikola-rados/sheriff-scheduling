@@ -160,7 +160,8 @@
 						size:16.5in 11.7in;
 					}
 				}`,
-				`.card {border: white;}`
+				`.card {border: white;}`,
+				`td {height: 5rem;}`
 			]
 			const pageToPrint = document.getElementById("pdf")
 			if(pageToPrint) pdfPage.print(pageToPrint, styles)

@@ -349,7 +349,7 @@
 		assignmentErrorMsgDesc = '';
 
         mounted() {
-			this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+			// this.userIsAdmin = this.userDetails.roles.includes("Administrator");
 			this.runMethod.$on('addassign', this.addAssignment)
 			//console.log(this.runMethod)
 			this.selectedDate = moment().format().substring(0,10);			

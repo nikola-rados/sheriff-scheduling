@@ -100,7 +100,7 @@ namespace tests.controllers
             await Db.Duty.AddAsync(addDuty);
             await Db.SaveChangesAsync();
 
-            HttpResponseTest.CheckForNoContentResponse(await _controller.ExpireDuty(1));
+            HttpResponseTest.CheckForNoContentResponse(await _controller.ExpireDuties(new List<int> {1}));
 
             var controllerResult = await _controller.GetDuties(locationId, startDate, startDate.AddDays(1));
             var getDuties = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
@@ -610,8 +610,6 @@ namespace tests.controllers
 
             await Assert.ThrowsAsync<BusinessLayerException>(async () => await _controller.MoveSheriffFromDutySlot(fromDutySlot.Id, toDuty.Id, startDate.AddHours(6)));
         }
-
-
         private async Task<Guid> CreateSheriff(int locationId)
         {
             var newSheriff = new Sheriff
