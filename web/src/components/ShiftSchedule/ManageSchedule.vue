@@ -29,6 +29,8 @@
                             <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
                         </template>
                 </b-table>
+                <div v-if="!isManageScheduleDataMounted && this.shiftSchedules.length == 0" style="min-height:115.6px;">
+                </div>
             </b-overlay>
         <b-card><br></b-card>
            
@@ -212,8 +214,45 @@
                         {  
                             const start = moment(conflict.start)
                             const end = moment(conflict.end)
-                            const duration = moment.duration(end.diff(start));//duration.asMinutes()                            
-                            conflicts.push({
+                            
+                            if (conflict.conflict == "Scheduled" && conflict.overtimeHours !=0) {
+                                
+                                const regularTimeEnd = moment(conflict.end).subtract(conflict.overtimeHours, 'h');
+                                let duration = moment.duration(regularTimeEnd.diff(start));
+                                
+                                const regularShift = {
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex), 
+                                    date:this.headerDates[dateIndex], 
+                                    startTime:Vue.filter('beautify-time')(conflict.start), 
+                                    endTime:Vue.filter('beautify-time')(regularTimeEnd.format("YYYY-MM-DDTHH:mm:ssZ")), 
+                                    startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
+                                    timeDuration:duration.asMinutes(), 
+                                    type:this.getConflictsType(conflict), 
+                                    fullday:false
+                                }
+
+                                duration = moment.duration(end.diff(regularTimeEnd))
+
+                                const overTimeShift = {
+                                    id:conflict.shiftId? conflict.shiftId:0,
+                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
+                                    dayOffset: Number(dateIndex), 
+                                    date:this.headerDates[dateIndex], 
+                                    startTime:Vue.filter('beautify-time')(regularTimeEnd.format("YYYY-MM-DDTHH:mm:ssZ")), 
+                                    endTime:Vue.filter('beautify-time')(conflict.end), 
+                                    startInMinutes:moment.duration(regularTimeEnd.diff(moment(regularTimeEnd.format("YYYY-MM-DDTHH:mm:ssZ")).startOf('day'))).asMinutes(),
+                                    timeDuration:duration.asMinutes(), 
+                                    type:'overTimeShift', 
+                                    fullday:false
+                                }
+                                // console.log(regularShift)
+                                conflicts.push(regularShift, overTimeShift);                                
+
+                            } else {
+                                const duration = moment.duration(end.diff(start));//duration.asMinutes()
+                                conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
                                 location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
                                 dayOffset: Number(dateIndex), 
@@ -224,7 +263,9 @@
                                 timeDuration:duration.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
                                 fullday:false
-                            })        
+                                }) 
+
+                            }   
                         }else if(date == conflict.start.substring(0,10) && nextDate == conflict.end.substring(0,10))
                         {  
                             const start = moment(conflict.start)
@@ -290,7 +331,8 @@
                         numberOfConflictsPerDay++;
                         if(Vue.filter('isDateFullday')(conflict.start,conflict.end)){                            
                             break;
-                        } else {                            
+                        } else {
+                            console.log(conflict)                            
                             numberOfConflictsPerDay++;
                             //console.log( numberOfConflictsPerDay)
                             const start = moment(previousConflictEndDate)

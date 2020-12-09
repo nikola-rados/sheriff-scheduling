@@ -1,6 +1,7 @@
 <template>
     <div> 
-        <b-row v-if="assignment.FTEnumber>0" 
+        <b-row v-if="assignment.FTEnumber>0"
+			@click="editAssignment()" 
 			:style="{
 				borderTop: '0px solid #BBBBBB',
 				borderBottom: getBorderBottom,
@@ -48,14 +49,15 @@
             <b-col cols="2" class="m-0 p-0"> 
                 <b-button
                     class="bg-white"
-                    style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0" 
+                    style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0"
+					:disabled="isDeleted" 
                     @click="addDuty();"
                     size="sm"> 
                         <b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
             </b-col>
         </b-row>
 
-		<b-modal v-model="showEditAssignmentDetails" id="bv-modal-edit-assignment-details" header-class="bg-primary text-light">
+		<b-modal v-model="showEditAssignmentDetails" id="bv-modal-edit-assignment-details" centered header-class="bg-primary text-light">
 			<template v-slot:modal-title>
 				<h2 class="mb-0 text-light"> Editing Assignment </h2>
 			</template>
@@ -290,8 +292,8 @@
                 </b-form-select>
             </b-form-group>
             <template v-slot:modal-footer>
-                <b-button variant="danger" @click="deleteAssignment()" :disabled="assignmentDeleteReason.length == 0">Confirm</b-button>
-                <b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
+				<b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
+                <b-button variant="danger" @click="deleteAssignment()" :disabled="assignmentDeleteReason.length == 0">Confirm</b-button>                
             </template>            
             <template v-slot:modal-header-close>                 
                 <b-button variant="outline-warning" class="text-light closeButton" @click="cancelDeletion()"
@@ -329,20 +331,26 @@
     import "@store/modules/DutyRosterInformation";   
 	const dutyState = namespace("DutyRosterInformation");
 	import * as _ from 'underscore';
-    import { locationInfoType } from '../../../types/common';
+    import { localTimeInfoType, locationInfoType } from '../../../types/common';
     import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
 
     @Component
     export default class DutyRosterAssignment extends Vue {
 
         @Prop({required: true})
-        assignment!: assignmentCardInfoType;
+		assignment!: assignmentCardInfoType;
+		
+		@Prop({required: true})
+		weekview!: boolean;
 
         @commonState.State
         public location!: locationInfoType;
 
         @dutyState.State
 		public dutyRangeInfo!: dutyRangeInfoType;
+
+		@commonState.State
+        public localTime!: localTimeInfoType;
 		
 		assignmentTitle = '';
 
@@ -365,6 +373,7 @@
 		initialLoad = false;
 		isSubTypeDataReady = false;
 		nonReoccuring = false;
+		isDeleted = false;
 
 		nameState = true;
 		selectedTypeState = true;
@@ -375,7 +384,9 @@
 		endTimeState = true;
 		selectedDayState = true;		
 		allDaysSelected = false;
-		weekDaysSelected = false;		
+		weekDaysSelected = false;
+
+		weekDayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
 		dayOptions = [
 			{name:'Sun', diff:0, enabled: true},
@@ -411,7 +422,20 @@
         {
 			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
             //this.isDutyDataMounted = false;
-			// console.log(this.assignment)
+			console.log(this.assignment)
+			this.isDeleted = this.determineExpired();
+		}
+
+		public determineExpired(){
+			const currentTime = this.localTime.timeString
+			
+			if (this.assignment.assignmentDetail && this.assignment.assignmentDetail.expiryDate) {
+				const expiryDate = moment(this.assignment.assignmentDetail.expiryDate).tz(this.location.timezone)
+				if (expiryDate.isBefore(currentTime)) return true;
+				return false;
+			} else {
+				return false;
+			}			
 		}
 		
 		public confirmDeleteAssignment(){
@@ -446,20 +470,27 @@
 			
 		}
 
-        public editAssignment(){			
+        public editAssignment(){
+			if(this.isDeleted)return;			
 			this.isSubTypeDataReady = false;
 			this.enableAllDayOptions();
 			this.initialLoad = true; 
 			this.loadAssignmentDetails();					           
 		}
 
-		public startDatePicked(){            
+		public startDatePicked(){
+			this.toggleAllDays(false);
+			this.toggleWeekDays(false);
+			this.selectedDays = [] ;            
             if (this.selectedEndDate.length) {
 				this.disableOutOfRangeDays();
 			}
 		}
 
-		public endDatePicked(){            
+		public endDatePicked(){
+			this.toggleAllDays(false);
+			this.toggleWeekDays(false);
+			this.selectedDays = [] ;            
             if (this.selectedStartDate.length) {
 				this.disableOutOfRangeDays();
 			}
@@ -482,6 +513,8 @@
 						this.dayOptions[dayOfWeek].enabled = true;
 					}
 				}
+			} else {
+				this.enableAllDayOptions();
 			}
 		}
 		
@@ -657,6 +690,11 @@
 				this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);					
 				this.endTimeState = true;
 			}
+			if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
+				this.startTimeState = false;
+				this.endTimeState = false;
+				requiredError = true;
+            } 
 			if (this.selectedDays.length < 1) {
 				this.selectedDayState = false;
 				requiredError = true;
@@ -766,12 +804,9 @@
 			this.assignmentToEdit.end = this.selectedEndTime;	
 		}
 
-
 		public saveAssignmentChanges() {
-
 			this.readEditedAssignment();
 			const body = this.assignmentToEdit;
-
 			const url = 'api/assignment';
 			this.$http.put(url, body )
 				.then(response => {
@@ -780,32 +815,55 @@
 							this.$emit('change');
 					}
 				}, err => {
-					const errMsg = err.response.data.error;
+					const errMsg = err.response.data;
 					this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
 					this.assignmentErrorMsgDesc = errMsg;
 					this.assignmentError = true;
 				})
 		}
 
-
         public addDuty(){
             this.createDuty();
         }
 
         public createDuty(){
-            this.dutyError = false;
-            const date = this.dutyRangeInfo.startDate.substring(0,10);
-            const startDate = moment.tz(date+'T'+this.assignment.assignmentDetail.start, this.location.timezone).utc().format();
-            const endDate = moment.tz(date+'T'+this.assignment.assignmentDetail.end, this.location.timezone).utc().format();
-            const body = {
-                startDate: startDate, 
-                endDate: endDate,
-                locationId: this.location.id,
-                assignmentId: this.assignment.assignmentDetail.id,
-                timezone: this.location.timezone,
-                concurrencyToken: 0
-            }
+			this.dutyError = false;
 
+			const date = this.dutyRangeInfo.startDate.substring(0,10);
+			const startDate = moment.tz(date+'T'+this.assignment.assignmentDetail.start, this.location.timezone).utc();
+			const endDate = moment.tz(date+'T'+this.assignment.assignmentDetail.end, this.location.timezone).utc();
+
+			const body: any[] = [];
+
+			if(this.weekview){
+				//console.log(this.assignment)
+				for(const dayIndexStr in this.weekDayNames){
+					const day = this.weekDayNames[dayIndexStr];
+					const dayIndex = Number(dayIndexStr)
+					if(this.assignment.assignmentDetail[day]){				
+						body.push({
+							startDate: moment(startDate).add(dayIndex,'days').format(), 
+							endDate: moment(endDate).add(dayIndex,'days').format(),
+							locationId: this.location.id,
+							assignmentId: this.assignment.assignmentDetail.id,
+							timezone: this.location.timezone,
+							concurrencyToken: 0
+						})						
+					}
+				}
+			}else{			
+				
+				body.push({
+					startDate: startDate.format(), 
+					endDate: endDate.format(),
+					locationId: this.location.id,
+					assignmentId: this.assignment.assignmentDetail.id,
+					timezone: this.location.timezone,
+					concurrencyToken: 0
+				})			
+			}
+
+			console.log(body)
 			const url = 'api/dutyroster';
 			this.$http.post(url, body )
 				.then(response => {
@@ -857,14 +915,6 @@
 			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
 			return value
 		}
-
-        // public getDutyDetails(){
-            
-        //     this.selectedStartTime = this.assignment.assignmentDetail.start;
-        //     this.selectedEndTime = this.assignment.assignmentDetail.end;
-        //     this.selectedStartDate = '';
-        //     this.selectedEndDate = '';
-        // }
     }
 </script>
 

@@ -1,34 +1,45 @@
 <template>
     <div>
-        <b-table-simple small borderless>
-            <b-tbody>
-                <b-tr>
-                    <b-td>
-                        <b-tr>
+        <b-table-simple small borderless class="m-0 p-0">
+            <b-tbody >
+                <b-tr >
+                    <b-td >
+                        <b-tr class="bg-white">
                             <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem">                            
                                 <label class="h6 m-0 p-0">Sheriff<span class="text-danger">*</span></label>
                                 <b-form-select 
                                     size="sm"
-                                    v-model="selectedSheriff.sheriffId"
+                                    v-model="selectedSheriff"
                                     :state = "sheriffState?null:false">
+                                        <b-form-select-option
+                                            v-for="sheriff in notAvailableNotRequired"
+                                            :key="sheriff.sheriffId"
+                                            :value="sheriff">
+                                                    {{sheriff.lastName}}
+                                        </b-form-select-option>
                                         <b-form-select-option
                                             v-for="sheriff in shiftAvailabilityInfo"
                                             :key="sheriff.sheriffId"
-                                            :value="sheriff.sheriffId">
-                                                    {{sheriff.firstName}} {{sheriff.lastName}}
+                                            :value="sheriff">
+                                                    {{sheriff.firstName|capitalize}} {{sheriff.lastName|capitalize}}
                                         </b-form-select-option>
                                 </b-form-select>
                             </b-form-group>
+                        </b-tr>
+                        <b-tr v-if="showErrorMsg">
+                            <div style="font-size:12px; border-radius:3px;" class="bg-danger text-white mx-2 my-1 px-1">
+                                {{errorMsg}} <b-button @click="showErrorMsg=false;" class="m-0 p-0" style="height:.8rem" size="sm"><b-icon-x style="transform: translate(0,-9px);" font-scale=".75" /> </b-button>
+                            </div>
                         </b-tr>                        
                     </b-td>
-                    <b-td >
+                    <b-td>
                         <b-tr>
                             <b-td>
-                                <b-form-group style="margin: 0.25rem 0 0 0; width: 4.5rem">
+                                <b-form-group style="margin: 0.25rem 0 0 0; width: 5rem">
                                     <label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
                                     <b-form-input
                                         v-model="selectedStartTime"
-                                        @click="startTimeState=true"
+                                        @click="startTimeState=true;showErrorMsg=false;"
                                         size="sm"
                                         type="text"
                                         autocomplete="off"
@@ -40,11 +51,11 @@
                                 </b-form-group>
                             </b-td>
                             <b-td>
-                                <b-form-group style="margin: 0.25rem 0 0 0; width: 4.5rem;">
+                                <b-form-group style="margin: 0.25rem 0 0 0; width: 5rem;">
                                     <label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
                                     <b-form-input
                                         v-model="selectedEndTime"
-                                        @click="endTimeState=true"
+                                        @click="endTimeState=true;showErrorMsg=false;"
                                         size="sm"
                                         type="text"
                                         autocomplete="off"
@@ -59,15 +70,15 @@
                         <b-tr>
                             <b-td>	
                                 <b-button                                    
-                                    style="margin: 1.25rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                                    style="margin: .5rem .5rem .5rem .5rem ; padding:0 .5rem 0 .5rem; "
                                     variant="secondary"
                                     @click="closeForm()">
                                     Cancel
                                 </b-button>
                             </b-td>
-                            <b-td>		       
+                            <b-td >		       
                                 <b-button                                    
-                                    style="margin: 1.25rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                                    style="margin: .5rem 0 .5rem .25rem; padding:0 1rem 0 1rem; "
                                     variant="success"                        
                                     @click="saveForm()">
                                     Save
@@ -80,9 +91,8 @@
         </b-table-simple>  
 
         <b-modal v-model="showCancelWarning" id="bv-modal-duty-slot-cancel-warning" header-class="bg-warning text-light">            
-            <template v-slot:modal-title>
-                <h2 v-if="isCreate" class="mb-0 text-light"> Unsaved New Duty Slot </h2>                
-                <h2 v-else class="mb-0 text-light"> Unsaved Duty Slot Changes </h2>                                 
+            <template v-slot:modal-title>                
+                <h2 class="mb-0 text-light"> Unsaved Duty Slot Changes </h2>                                 
             </template>
             <p>Are you sure you want to cancel without saving your changes?</p>
             <template v-slot:modal-footer>
@@ -95,16 +105,32 @@
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-duty-slot-cancel-warning')"
                  >&times;</b-button>
             </template>
-        </b-modal>             
+        </b-modal>
+
+        <b-modal v-model="confirmAssignOverTimeDuty" id="bv-modal-confirm-assign-edit-overtime" header-class="bg-warning text-light">            
+            <template v-slot:modal-title>
+                <h2 class="mb-0 text-light">Confirm Assign Overtime</h2>                   
+            </template>
+            <h4 style="line-height:1.5rem" v-if="selectedSheriff" >Are you sure you want to assign a duty that extends {{selectedSheriff.firstName|capitalize}} {{selectedSheriff.lastName|capitalize}}'s shift?</h4>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="confirmedAssignOverTimeDuty()">Confirm</b-button>
+                <b-button variant="primary" @click="$bvModal.hide('bv-modal-confirm-assign-edit-overtime')">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-assign-edit-overtime')"
+                >&times;</b-button>
+            </template>
+        </b-modal>            
     </div>
 </template>
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import { dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
+    import {assignDutySlotsInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
     import { namespace } from 'vuex-class';
     import "@store/modules/DutyRosterInformation";
-import { shiftInfoType } from '../../../types/ShiftSchedule';
+    import { shiftInfoType } from '../../../types/ShiftSchedule';
+    import moment from 'moment-timezone';
     const dutyState = namespace("DutyRosterInformation");
 
     @Component
@@ -117,8 +143,19 @@ import { shiftInfoType } from '../../../types/ShiftSchedule';
         formData!: dutyBlockInfoType;
 
         @Prop({required: true})
-        isCreate!: boolean;
-        
+        dutyBlocks!: dutyBlockInfoType[];
+
+        @Prop({required: true})
+        fullDutyStartTime!: string;
+
+        @Prop({required: true})
+        fullDutyEndTime!: string;
+
+        @Prop({required: true})
+        timezone!: string;
+
+        @Prop({required: true})
+        startOfDay!: string;        
 
         selectedSheriff = {} as myTeamShiftInfoType | undefined;
         sheriffState = true;        
@@ -133,23 +170,58 @@ import { shiftInfoType } from '../../../types/ShiftSchedule';
         originalStartTime = '';
         originalEndTime = '';
 
+        errorMsg = ''
+        showErrorMsg = false;
+
+        confirmAssignOverTimeDuty = false;
+        editedDutySlots: assignDutySlotsInfoType[] = [];
 
         formDataId = '0';
         showCancelWarning = false;
+
+        notAvailableNotRequired: myTeamShiftInfoType[] =[]; 
         
         mounted()
         { 
+            this.addNotAvailableNotRequired();
             this.clearSelections();
             if(this.formData.id) {
                 this.extractFormInfo();
             }               
-        }        
+        } 
+        
+        public addNotAvailableNotRequired(){
+            this.notAvailableNotRequired = [];
+            this.notAvailableNotRequired.push({
+                sheriffId: '00000-00000-11111',
+                shifts: [],
+                badgeNumber: 0,
+                firstName: ' ',
+                lastName: 'NOT REQUIRED',
+                rank: ' ',
+                availability: Array(96).fill(1),
+                duties: Array(96).fill(0),
+                dutiesDetail: []
+            })
+            this.notAvailableNotRequired.push({
+                sheriffId: '00000-00000-22222',
+                shifts: [],
+                badgeNumber: 0,
+                firstName: ' ',
+                lastName: 'NOT AVAILABLE',
+                rank: '',
+                availability: Array(96).fill(1),
+                duties: Array(96).fill(0),
+                dutiesDetail: []
+            })
+        }
 
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:'0';
             
             const index = this.shiftAvailabilityInfo.findIndex(sheriff=>{if(sheriff.sheriffId == this.formData.sheriffId)return true})
-            this.originalSheriff = this.selectedSheriff = (index>=0)? this.shiftAvailabilityInfo[index]: {} as myTeamShiftInfoType;            
+            const indexNANQ = this.notAvailableNotRequired.findIndex(sheriff=>{if(sheriff.sheriffId == this.formData.sheriffId)return true})
+            this.originalSheriff = this.selectedSheriff = (index>=0)? this.shiftAvailabilityInfo[index]: (indexNANQ>=0)? this.notAvailableNotRequired[indexNANQ]: {} as myTeamShiftInfoType;            
               
             this.originalStartTime = this.selectedStartTime = this.formData.startTimeString;            
             this.originalEndTime = this.selectedEndTime = this.formData.endTimeString;
@@ -202,33 +274,219 @@ import { shiftInfoType } from '../../../types/ShiftSchedule';
             this.sheriffState  = true;                
             this.startTimeState = true;
             this.endTimeState   = true;
+            this.showErrorMsg = false;
+            let requiredError = false;
 
-            if(this.selectedSheriff && !this.selectedSheriff.sheriffId ){
+            if(!this.selectedSheriff || (this.selectedSheriff && !this.selectedSheriff.sheriffId) ){
                 this.sheriffState  = false;
-            
-            }else if(this.selectedEndTime == "" && this.selectedStartTime != ""){
+                requiredError = true;            
+            } else {
                 this.sheriffState  = true;
-                
-                this.startTimeState = true;
-                this.endTimeState   = false;
-            }else if(this.selectedStartTime == "" && this.selectedEndTime != ""){
-                this.sheriffState  = true;                    
-                this.endTimeState   = true;
+            }
+            
+            if (!this.selectedStartTime) {
                 this.startTimeState = false;
-            }else{
+                requiredError = true;
+			} else {
+                this.selectedStartTime = this.autoCompleteTime(this.selectedStartTime);
+                this.startTimeState = true;
+            }
+            
+			if (!this.selectedEndTime) {
+                this.endTimeState = false;
+                requiredError = true;
+			} else {
+                this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);
+                this.endTimeState = true;
+            }
+
+            if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
+                this.startTimeState = false;
+                this.endTimeState = false;
+                this.errorMsg = "The End time is before or equal to the Start time."
+                this.showErrorMsg = true;
+                requiredError = true;
+            } 
+            
+            if (!requiredError) {
+                   
                 this.sheriffState  = true;                    
                 this.endTimeState   = true;
                 this.startTimeState = true;
 
-                
-                const body = {
-                    sheriffId: this.selectedSheriff?this.selectedSheriff.sheriffId:0,
-                    startTime: this.selectedStartTime,
-                    endTime: this.selectedEndTime,
-                    id: this.formDataId
-                } 
-                this.$emit('submit', body, this.isCreate);                  
+                const selectedTimeBins = this.getTimeRangeBins(this.selectedStartTime, this.selectedEndTime, this.startOfDay, this.timezone)
+
+                if(this.validateTime(selectedTimeBins)){
+                    this.submitEditingSlotInfo(selectedTimeBins)                    
+                }                                
             }
+        }
+
+        public submitEditingSlotInfo(selectedTimeBins){
+            const selectedTimeArray = this.fillInArray(Array(96).fill(0), 1, selectedTimeBins.startBin, selectedTimeBins.endBin);
+            
+            if(this.selectedSheriff){
+                const sheriffId = this.selectedSheriff.sheriffId
+                let sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
+                if(!sheriff) sheriff =  this.selectedSheriff;
+                
+                let availability = sheriff.availability
+                let duties = sheriff.duties
+                let shiftId = this.formData.shiftId
+                console.log(sheriff)
+                // console.log(unassignedArray)
+                console.log(availability)
+                console.log(duties)
+
+                const isNotRequiredOrAvailable = (sheriffId =='00000-00000-11111' || sheriffId =='00000-00000-22222')
+
+                
+                if(!isNotRequiredOrAvailable  && sheriffId == this.formData.sheriffId){
+                    const dutyArrayOfOriginalSlot = this.fillInArray(Array(96).fill(0), 1, this.formData.startTime-1, this.formData.endTime-1);
+                    availability = this.addArrays(dutyArrayOfOriginalSlot, availability);
+                    //console.log(dutyArrayOfOriginalSlot)
+                    //console.log(availability)
+                    duties = this.subtractUnionOfArrays(duties,dutyArrayOfOriginalSlot)                    
+                }
+                // else{
+                //     //console.log('reassign to other sheriff')
+                //     //console.log(availability)
+                // }
+
+                const dutiesConflictWithNewTimeSlot = this.unionArrays(selectedTimeArray, duties);
+                //console.log(dutiesConflictWithNewTimeSlot)
+                if(this.sumOfArrayElements(dutiesConflictWithNewTimeSlot)>0){
+                    this.errorMsg = "The Sheriff has conflicting duties with the selected time range." 
+                    this.showErrorMsg = true;
+                    return
+                }
+
+                const unionSelectedRangeAvail = this.unionArrays(selectedTimeArray, availability);
+                //console.log(unionSelectedRangeAvail)
+//___overtime___
+                const subtractSelectedRangeAvail = this.subtractUnionOfArrays(selectedTimeArray, availability)
+                //console.log(subtractSelectedRangeAvail)
+                if(this.sumOfArrayElements(subtractSelectedRangeAvail)>0){
+                    const editedDutySlots: assignDutySlotsInfoType[] = [];
+
+                    const discontinuityOvertime = this.findDiscontinuity(subtractSelectedRangeAvail);
+                    const iterationNumOvertime = Math.floor((this.sumOfArrayElements(discontinuityOvertime) +1)/2);
+                    //console.log(iterationNumOvertime)
+                    for(let i=0; i< iterationNumOvertime; i++){
+                        const inx1 = discontinuityOvertime.indexOf(1)
+                        let inx2 = discontinuityOvertime.indexOf(2)
+                        discontinuityOvertime[inx1]=0
+                        if(inx2>=0) discontinuityOvertime[inx2]=0; else inx2=discontinuityOvertime.length 
+                        console.error(inx1 + ' ' +inx2)
+                        const slotTime = this.convertTimeRangeBinsToTime(this.startOfDay, inx1, inx2)
+                        editedDutySlots.push({
+                            startDate: slotTime.startTime,
+                            endDate: slotTime.endTime,                        
+                            shiftId: null,
+                            dutySlotId: null,
+                        })
+                    }
+
+                    const discontinuity = this.findDiscontinuity(unionSelectedRangeAvail);
+                    const iterationNum = Math.floor((this.sumOfArrayElements(discontinuity) +1)/2);
+                    //console.log(iterationNum)
+                   
+                    for(let i=0; i< iterationNum; i++){
+                        const inx1 = discontinuity.indexOf(1)
+                        let inx2 = discontinuity.indexOf(2)
+                        discontinuity[inx1]=0
+                        if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
+                        //console.error(inx1 + ' ' +inx2) 
+                        //console.log(unionSelectedRangeAvail.slice(inx1,inx2).includes(1))
+                        //console.log(unionSelectedRangeAvail[inx1])
+                        const slotTime = this.convertTimeRangeBinsToTime(this.startOfDay, inx1, inx2)
+                        editedDutySlots.push({
+                            startDate: slotTime.startTime,
+                            endDate: slotTime.endTime,                        
+                            shiftId: unionSelectedRangeAvail.slice(inx1,inx2).includes(1)? this.formData.shiftId: unionSelectedRangeAvail[inx1],
+                            dutySlotId: unionSelectedRangeAvail.slice(inx1,inx2).includes(1)? this.formData.dutySlotId:null,
+                        })
+                    }
+                    //console.log(editedDutySlots)
+                    this.editedDutySlots = editedDutySlots;
+                    this.confirmAssignOverTimeDuty = true;
+                    return
+                }
+                
+                const indexShiftId = unionSelectedRangeAvail.findIndex((element)=>{return(element>0);})
+                if(!shiftId) shiftId = unionSelectedRangeAvail[indexShiftId]; 
+
+                const startTime = moment(this.startOfDay).add(this.selectedStartTime).format();
+                const endTime =  moment(this.startOfDay).add(this.selectedEndTime).format();
+                const editedDutySlot: assignDutySlotsInfoType[] =[{
+                    startDate: startTime,
+                    endDate: endTime,                        
+                    shiftId: isNotRequiredOrAvailable?null:shiftId,
+                    dutySlotId: this.formData.dutySlotId,
+                }]
+                console.log(editedDutySlot)
+                this.$emit('submit',this.selectedSheriff?this.selectedSheriff.sheriffId:0, editedDutySlot , false);  
+                //return true
+
+            }
+        }
+
+        public validateTime(selectedTimeBins){
+            console.log('validate')
+            const fulldutyBins = this.getTimeRangeBins(this.fullDutyStartTime, this.fullDutyEndTime, this.startOfDay, this.timezone)            
+            console.log(fulldutyBins)
+            console.log(selectedTimeBins)
+            
+            if(selectedTimeBins.startBin < fulldutyBins.startBin){
+                this.startTimeState = false;
+                this.errorMsg = "The Start time is before the duty start time ("+this.fullDutyStartTime+")." 
+                this.showErrorMsg = true;
+                return false
+            }
+            else if(selectedTimeBins.endBin > fulldutyBins.endBin){
+                this.endTimeState = false;
+                this.errorMsg = "The End time is after the duty end time ("+this.fullDutyEndTime+")."
+                this.showErrorMsg = true;
+                return false;
+            }
+
+            for(const dutyBlock of this.dutyBlocks){
+                if(dutyBlock.sheriffId && (dutyBlock.startTime != this.formData.startTime)){
+                    // console.error(dutyBlock.sheriffId)
+                    // console.log(this.selectedSheriff?.sheriffId)
+                    // console.warn(this.formData.sheriffId)
+                    // console.log(dutyBlock.startTime)
+                    // console.log(dutyBlock.endTime)
+                    const name = dutyBlock.firstName? dutyBlock.lastName+", "+dutyBlock.firstName:dutyBlock.lastName
+
+                    if(selectedTimeBins.startBin >= (dutyBlock.startTime-1) && selectedTimeBins.startBin < (dutyBlock.endTime-1)){
+                        this.startTimeState = false;
+                        this.errorMsg = "The Start time conflicts with "+name+"'s duty." 
+                        this.showErrorMsg = true;
+                        return false;
+                    }
+
+                    if(selectedTimeBins.endBin > (dutyBlock.startTime-1) && selectedTimeBins.endBin <= (dutyBlock.endTime-1)){
+                        this.endTimeState = false;
+                        this.errorMsg = "The End time conflicts with "+name+"'s duty." 
+                        this.showErrorMsg = true;
+                        return false;
+                    }
+
+                    if(this.selectedSheriff?.sheriffId == dutyBlock.sheriffId && (selectedTimeBins.startBin == (dutyBlock.endTime-1)||selectedTimeBins.endBin == (dutyBlock.startTime-1)) ){
+                        this.errorMsg = "Please modify the duty of "+name +" instead."
+                        this.showErrorMsg = true; 
+                        return false;   
+                    }
+                }
+            }
+            return true            
+        }
+
+        public confirmedAssignOverTimeDuty(){
+            console.log('overtime')
+            this.confirmAssignOverTimeDuty = false;
+            this.$emit('submit',this.selectedSheriff?this.selectedSheriff.sheriffId:0, this.editedDutySlots , false);
         }
 
         public closeForm(){
@@ -238,17 +496,12 @@ import { shiftInfoType } from '../../../types/ShiftSchedule';
                 this.confirmedCloseForm();
         }
 
-        public isChanged(){
-            if(this.isCreate){
-                if((this.selectedSheriff && this.selectedSheriff.sheriffId) ||
-                    this.selectedStartTime || this.selectedEndTime) return true;
-                return false;
-            }else{
-                if((this.originalSheriff && this.selectedSheriff && (this.originalSheriff.sheriffId != this.selectedSheriff.sheriffId)) ||
-                    (this.originalStartTime != this.selectedStartTime) || 
-                    (this.originalEndTime != this.selectedEndTime)) return true;
-                return false;
-            }
+        public isChanged(){            
+            if((this.originalSheriff && this.selectedSheriff && (this.originalSheriff.sheriffId != this.selectedSheriff.sheriffId)) ||
+                (this.originalStartTime != this.selectedStartTime) || 
+                (this.originalEndTime != this.selectedEndTime)) return true;
+            return false;
+            
         }
 
         public confirmedCloseForm(){           
@@ -263,7 +516,49 @@ import { shiftInfoType } from '../../../types/ShiftSchedule';
             this.sheriffState  = true;
             this.startTimeState = true;
             this.endTimeState   = true;            
-        }        
+        }
+
+        public unionArrays(arrayA, arrayB){
+            return arrayA.map((arr,index) =>{return arr*arrayB[index]});
+        }
+
+        public addArrays(arrayA, arrayB){
+            return arrayA.map((arr,index) =>{return arr+arrayB[index]});
+        }
+
+        public sumOfArrayElements(arrayA){
+            return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)
+        }
+
+        public subtractUnionOfArrays(arrayA, arrayB){
+            return arrayA.map((arr,index) =>{return arr&&(arrayB[index]>0?0:1)});
+        }
+        
+        public fillInArray(array, fillInNum, startBin, endBin){
+            return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
+        }
+
+        public findDiscontinuity(array){
+            return array.map((arr,index)=>{
+                if((index==0 && arr>0)||(arr>0 && array[index-1]==0)) return 1 ;
+                else if(index>0 && arr==0 && array[index-1]>0) return 2 ;
+                else return 0
+            })
+        }
+        
+        public getTimeRangeBins(startTime, endTime, startOfDay, timezone){
+            const startDate = moment(startOfDay).tz(timezone).add(startTime);
+            const endDate = moment(startOfDay).tz(timezone).add(endTime);
+            const startBin = moment.duration(startDate.diff(startOfDay)).asMinutes()/15;
+            const endBin = moment.duration(endDate.diff(startOfDay)).asMinutes()/15;
+            return( {startBin: startBin, endBin:endBin } )
+        }
+
+        public convertTimeRangeBinsToTime(dutyDate, startBin, endBin){            
+            const startTime = moment(dutyDate).add(startBin*15, 'minutes').format();
+            const endTime = moment(dutyDate).add(endBin*15, 'minutes').format();
+            return( {startTime: startTime, endTime:endTime } )
+        }
     }
 </script>
 

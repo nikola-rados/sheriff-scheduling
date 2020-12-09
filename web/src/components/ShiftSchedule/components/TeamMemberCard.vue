@@ -35,7 +35,7 @@
                 </b-col>
         </b-row>
 
-        <b-modal  v-model="showShiftDetails" id="bv-modal-shift-details" header-class="bg-primary text-light">
+        <b-modal  v-model="showShiftDetails" id="bv-modal-shift-details" centered header-class="bg-primary text-light">
             <template v-slot:modal-title>                
                 <span class="m-0 p-0" > 
                     <h3 class="m-0 p-0" >Creating Shift for </h3>
@@ -247,13 +247,13 @@
             this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
 
             this.dayOptions = [
-                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
-                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
-                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
-                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
-                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
-                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}},
-                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], Unavailable:[]}}
+                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}}
             ];        
             this.extractConflicts();
             //console.log(this.dayOptions[4].conflicts.Training)

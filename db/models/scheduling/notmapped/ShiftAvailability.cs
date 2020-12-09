@@ -20,8 +20,6 @@ namespace SS.Db.models.scheduling.notmapped
         public Sheriff Sheriff { get; set; }
         [NotMapped]
         public Guid? SheriffId { get; set; }
-        [NotMapped]
-        public string Timezone { get; set; }
     }
 
     public class ShiftAvailabilityConflict
@@ -33,6 +31,9 @@ namespace SS.Db.models.scheduling.notmapped
         public int? LocationId { get; set;}
         public Location Location { get; set; }
         public int? ShiftId { get; set; }
+        public string WorkSection { get; set; }
+        public string Timezone { get; set; }
+        public double OvertimeHours { get; set; }
     }
 
     public enum ShiftConflictType

@@ -3,7 +3,7 @@
 		<header variant="primary">
 			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
 				<b-navbar-nav>
-					<div style="width:11rem;" class="text-white ml-2">Shift Schedule</div>
+					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 font-weight-normal">Shift Schedule</h3>
 				</b-navbar-nav>
 
 				<b-navbar-nav class="custom-navbar">
@@ -141,7 +141,7 @@
             </template>
         </b-modal>  
 
-		<b-modal  v-model="showEditShiftDetails" id="bv-modal-shift-edit-details" header-class="bg-primary text-light">
+		<b-modal  v-model="showEditShiftDetails" id="bv-modal-shift-edit-details" centered header-class="bg-primary text-light">
             <template v-slot:modal-title>
                 <span class="mb-0 text-light"> 
                     <h3 class="m-0 p-0" >Updating Shift </h3>                   

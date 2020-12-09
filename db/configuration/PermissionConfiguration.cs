@@ -23,7 +23,6 @@ namespace SS.Db.configuration
                 new Permission { Id = 9, Name = Permission.CreateAndAssignRoles, Description = "Create and Assign Roles" },
                 new Permission { Id = 10, Name = Permission.ExpireRoles, Description = "Expire Roles" },
                 new Permission { Id = 11, Name = Permission.EditRoles, Description = "Edit Roles" },
-                new Permission { Id = 12, Name = Permission.ViewManageTypes, Description = "View Manage Types" },
                 new Permission { Id = 13, Name = Permission.CreateTypes, Description = "Create Types" },
                 new Permission { Id = 14, Name = Permission.EditTypes, Description = "Edit Types" },
                 new Permission { Id = 15, Name = Permission.ExpireTypes, Description = "Expire Types" },

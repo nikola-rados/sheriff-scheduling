@@ -29,7 +29,9 @@ export interface dutiesDetailInfoType{
     colorCode: string,
     color: string,
     type: string,
-    code: string
+    code: string,
+    startTime?: string, 
+    endTime?: string,
 }
 
 export interface assignmentInfoType {
@@ -70,6 +72,23 @@ export interface assignmentCardInfoType {
     type: assignmentCardTypeInfoType;    
 }
 
+export interface assignmentCardWeekInfoType {
+    FTEnumber: number;
+    assignment: string;
+    assignmentDetail: assignmentDetailInfoType;
+    0: attachedDutyInfoType | null;
+    1: attachedDutyInfoType | null;
+    2: attachedDutyInfoType | null;
+    3: attachedDutyInfoType | null;
+    4: attachedDutyInfoType | null;
+    5: attachedDutyInfoType | null;
+    6: attachedDutyInfoType | null;
+    code: string;
+    name: string;
+    totalFTE: number;
+    type: assignmentCardTypeInfoType;    
+}
+
 export interface assignmentDetailInfoType {
     id: number;
     lookupCodeId: number;
@@ -79,6 +98,8 @@ export interface assignmentDetailInfoType {
     name: string;
     start: string;
     end: string;
+    expiryDate: string | null;
+    expiryReason: string | null;
     timezone: string;
     monday: boolean;
     tuesday: boolean;
@@ -124,7 +145,7 @@ export interface dutySlotInfoType {
     startDate: string,
     endDate: string,
     dutyId: number,
-    sheriffId: string,
+    sheriffId: string|null,
     shiftId: number|null,
     timezone: string,
     isNotRequired: boolean,
@@ -144,5 +165,38 @@ export interface dutyBlockInfoType {
     startTime: number,
     startTimeString: string,
     title: string,
-    timezone: string
+    timezone: string,
+    shiftId: number|null,
+    dutySlotId: number|null,
+    note: string,
+}
+
+export interface dutyBlockWeekInfoType {
+    color: string,
+    endTime: number,
+    endTimeString: string,
+    height: string,
+    id: string,
+    firstName: string,
+    lastName: string,
+    sheriffId: string,
+    startTime: number,
+    startTimeString: string,
+    title: string,
+    timezone: string,
+    shiftId: number|null,
+    dutySlotId: number|null,
+    note: string,
+    day:number,
+    dutyId:number,
+    dutyDate:string,
+    fullDutyStartTime: string,
+    fullDutyEndTime: string,
+}
+
+export interface assignDutySlotsInfoType{
+    startDate: string,
+    endDate: string,
+    shiftId: number|null,
+    dutySlotId: number|null,    
 }

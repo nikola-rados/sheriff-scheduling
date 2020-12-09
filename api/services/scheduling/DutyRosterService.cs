@@ -17,18 +17,21 @@ namespace SS.Api.services.scheduling
     public class DutyRosterService
     {
         private SheriffDbContext Db { get; }
-        public double OvertimeHours { get; }
-        public DutyRosterService(SheriffDbContext db, IConfiguration configuration)
+        private ShiftService ShiftService { get; }
+        private double OvertimeHoursPerDay { get; }
+        public DutyRosterService(SheriffDbContext db, IConfiguration configuration, ShiftService shiftService)
         {
             Db = db;
-            OvertimeHours = double.Parse(configuration.GetNonEmptyValue("OvertimeHours"));
+            ShiftService = shiftService;
+            OvertimeHoursPerDay = double.Parse(configuration.GetNonEmptyValue("OvertimeHoursPerDay"));
         }
 
         public async Task<List<Duty>> GetDutiesForLocation(int locationId, DateTimeOffset start, DateTimeOffset end) =>
             await Db.Duty.AsSingleQuery().AsNoTracking()
                 .Include(d => d.DutySlots.Where(ds => ds.ExpiryDate == null))
-                .Include(d=> d.Assignment)
                 .Include(d=> d.Location)
+                .Include(d => d.Assignment)
+                .ThenInclude(d => d.LookupCode)
                 .Where(d => d.LocationId == locationId &&
                             d.StartDate < end &&
                             start < d.EndDate &&
@@ -41,19 +44,27 @@ namespace SS.Api.services.scheduling
         public async Task<Duty> GetDuty(int id) =>
             await Db.Duty.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
 
+        public async Task<Duty> GetDutyByDutySlot(int dutySlotId) =>
+            await Db.Duty.AsNoTracking().FirstOrDefaultAsync(d => d.DutySlots.Any(ds => ds.Id == dutySlotId));
+
         /// <summary>
         /// This just creates, there is no assignment of slots. The team has agreed it's just created with the defaults initially.
         /// Creating a Duty with no slots, doesn't require any validation rules. 
         /// </summary>
-        public async Task<Duty> AddDuty(Duty duty)
+        public async Task<List<Duty>> AddDuties(List<Duty> duties)
         {
-            duty.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(duty.Timezone)} must be provided.");
-            duty.Location = await Db.Location.FindAsync(duty.LocationId);
-            duty.Assignment = await Db.Assignment.FindAsync(duty.AssignmentId);
-            duty.DutySlots = new List<DutySlot>();
-            await Db.Duty.AddAsync(duty);
+            foreach (var duty in duties)
+            {
+                duty.Timezone.GetTimezone()
+                    .ThrowBusinessExceptionIfNull($"A valid {nameof(duty.Timezone)} must be provided.");
+                duty.Location = await Db.Location.FindAsync(duty.LocationId);
+                duty.Assignment = await Db.Assignment.FindAsync(duty.AssignmentId);
+                duty.DutySlots = new List<DutySlot>();
+                await Db.Duty.AddAsync(duty);
+            }
+
             await Db.SaveChangesAsync();
-            return duty;
+            return duties;
         }
 
         /// <summary>
@@ -70,9 +81,12 @@ namespace SS.Api.services.scheduling
                 .Include(d => d.DutySlots)
                 .Where(s => dutyIds.Contains(s.Id) && s.ExpiryDate == null);
 
+            var shiftIds = duties
+                .SelectMany(d => d.DutySlots.Select(ds => ds.ShiftId)).ToList()
+                .Concat(savedDuties.SelectMany(d => d.DutySlots.Select(ds => ds.ShiftId)))
+                .Distinct()
+                .ToList();
 
-            var shiftIds = duties.SelectMany(d => d.DutySlots).SelectDistinctToList(ds => ds.ShiftId);
-            var shifts = Db.Shift.Where(s => shiftIds.Contains(s.Id));
             foreach (var duty in duties)
             {
                 var savedDuty = await savedDuties.FirstOrDefaultAsync(s => s.Id == duty.Id);
@@ -94,26 +108,7 @@ namespace SS.Api.services.scheduling
                     dutySlot.Shift = null;
                     dutySlot.Location = null;
                     dutySlot.IsOvertime = false;
-
-                    var shift = shifts.FirstOrDefault(s => s.Id == dutySlot.ShiftId && s.ExpiryDate == null);
-                    if (shift != null)
-                    {
-                        if (shift.StartDate > dutySlot.StartDate)
-                        {
-                            shift.StartDate = dutySlot.StartDate;
-                            shift.IsOvertime = ShiftService.IsShiftOvertime(shift.StartDate, shift.EndDate,
-                                shift.Timezone, OvertimeHours);
-                            dutySlot.IsOvertime = shift.IsOvertime;
-                        }
-                        if (shift.EndDate < dutySlot.EndDate)
-                        {
-                            shift.EndDate = dutySlot.EndDate;
-                            shift.IsOvertime = ShiftService.IsShiftOvertime(shift.StartDate, shift.EndDate,
-                                shift.Timezone, OvertimeHours);
-                            dutySlot.IsOvertime = shift.IsOvertime;
-                        }
-                    }
-
+                    
                     if (savedDutySlot == null)
                         await Db.DutySlot.AddAsync(dutySlot);
                     else
@@ -124,17 +119,133 @@ namespace SS.Api.services.scheduling
 
             await Db.SaveChangesAsync();
 
+            await HandleShiftAdjustmentsAndOvertime(shiftIds);
+            await Db.SaveChangesAsync();
+
             return await savedDuties.ToListAsync();
         }
 
-        public async Task ExpireDuty(int id)
+        public async Task<Duty> MoveSheriffFromDutySlot(int fromDutySlotId, int toDutyId, DateTimeOffset? separationTime = null)
         {
-            await Db.DutySlot.Where(ds => ds.DutyId == id).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
-            await Db.Duty.Where(d => d.Id == id).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            var fromDutySlot = await Db.DutySlot.FirstOrDefaultAsync(d => d.Id == fromDutySlotId);
+            fromDutySlot.ThrowBusinessExceptionIfNull("From duty slot didn't exist.");
+
+            var fromShiftId = fromDutySlot.ShiftId;
+            var fromShift = await Db.Shift.AsNoTracking().FirstOrDefaultAsync(s => s.Id == fromShiftId);
+            var fromSheriffId = fromDutySlot.SheriffId;
+
+            var toDutySlotStart = separationTime ?? DateTimeOffset.UtcNow.ConvertToTimezone(fromDutySlot.Timezone);
+            toDutySlotStart = RoundUp(toDutySlotStart, TimeSpan.FromMinutes(15));
+
+            fromDutySlot.EndDate = toDutySlotStart;
+
+            var toDuty = await Db.Duty.Include(d=> d.DutySlots).FirstOrDefaultAsync(d => d.Id == toDutyId);
+            if (!(toDutySlotStart < toDuty.EndDate && toDuty.StartDate < toDutySlotStart))
+                throw new BusinessLayerException("Duty doesn't have room. You may need to adjust the duty.");
+
+            var toDutySlotEnd = toDuty.EndDate;
+
+            //Might be cut even shorter from existing dutyslots with sheriffs in them. 
+            if (toDuty.DutySlots.Any(ds =>
+                toDutySlotStart < ds.EndDate && ds.StartDate < toDutySlotEnd && ds.SheriffId != null))
+            {
+                var earliestEndFromOtherSlots = toDuty.DutySlots.Where(ds =>
+                        toDutySlotStart < ds.EndDate && ds.StartDate < toDutySlotEnd && ds.SheriffId != null)
+                    .Min(ds => ds.StartDate);
+
+                if (earliestEndFromOtherSlots <= toDutySlotStart)
+                    throw new BusinessLayerException("This already has a duty slot with a sheriff in it.");
+
+                toDutySlotEnd = toDutySlotEnd > earliestEndFromOtherSlots ? earliestEndFromOtherSlots : toDutySlotEnd;
+            }
+
+            //Ensure this duty doesn't go over our end shift. 
+            toDutySlotEnd = fromShift != null && toDutySlotEnd > fromShift.EndDate ? fromShift.EndDate : toDutySlotEnd;
+
+            var toDutySlot = toDuty.DutySlots.FirstOrDefault(ds =>
+                toDutySlotStart < ds.EndDate && ds.StartDate < toDutySlotEnd && ds.SheriffId == null);
+
+            if (toDutySlot == null)
+            {
+                toDutySlot = new DutySlot
+                {
+                    LocationId = toDuty.LocationId,
+                    DutyId = toDuty.Id,
+                    Timezone = toDuty.Timezone,
+                    StartDate = toDutySlotStart,
+                    EndDate = toDutySlotEnd,
+                    SheriffId = fromSheriffId,
+                    ShiftId = fromShiftId
+                };
+                await Db.DutySlot.AddAsync(toDutySlot);
+            }
+            else
+            {
+                toDutySlot.StartDate = toDutySlotStart;
+                toDutySlot.EndDate = toDutySlotEnd;
+                toDutySlot.SheriffId = fromSheriffId;
+                toDutySlot.ShiftId = fromShiftId;
+            }
+
+            await Db.SaveChangesAsync();
+
+            return toDuty;
+        }
+
+        public async Task ExpireDuties(List<int> ids)
+        {
+            await Db.DutySlot.Where(ds => ids.Contains(ds.DutyId)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            await Db.Duty.Where(d => ids.Contains(d.Id)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
             await Db.SaveChangesAsync();
         }
 
         #region Helpers
+
+        private async Task HandleShiftAdjustmentsAndOvertime(List<int?> shiftIds)
+        {
+            var shifts = await Db.Shift.Where(ds => shiftIds.Contains(ds.Id)).ToListAsync();
+            foreach (var shift in shifts)
+            {
+                var dutySlotsForShift = Db.DutySlot.Where(ds => ds.ShiftId == shift.Id && ds.ExpiryDate == null);
+                var earliestDutySlot = dutySlotsForShift.FirstOrDefault(ds => ds.StartDate == dutySlotsForShift.Min(ds2 => ds2.StartDate));
+                var latestDutySlot = dutySlotsForShift.FirstOrDefault(ds => ds.EndDate == dutySlotsForShift.Max(ds2 => ds2.EndDate));
+
+                var shiftExpandedByDutySlotIds = new List<int>();
+                if (shift.EndDate < latestDutySlot?.EndDate)
+                {
+                    shift.EndDate = latestDutySlot.EndDate;
+                    shiftExpandedByDutySlotIds.Add(latestDutySlot.Id);
+                }
+
+                if (shift.StartDate > earliestDutySlot?.StartDate)
+                {
+                    shift.StartDate = earliestDutySlot.StartDate;
+                    shiftExpandedByDutySlotIds.Add(earliestDutySlot.Id);
+                }
+
+                if (shiftExpandedByDutySlotIds.Any())
+                {
+                    var overtimeHoursForSheriff = await ShiftService.CalculateOvertimeHoursForSheriffOnDay(
+                        shift.SheriffId, shift.StartDate,
+                        shift.Timezone);
+
+                    if (earliestDutySlot != null && shiftExpandedByDutySlotIds.Contains(earliestDutySlot.Id)) 
+                        earliestDutySlot.IsOvertime = overtimeHoursForSheriff > 0;
+                    if (latestDutySlot != null && shiftExpandedByDutySlotIds.Contains(latestDutySlot.Id))  
+                        latestDutySlot.IsOvertime = overtimeHoursForSheriff > 0;
+                }
+                else if (shift.StartDate.HourDifference(shift.EndDate, shift.Timezone) > OvertimeHoursPerDay)
+                {
+                    var regularShiftEndDate = shift.StartDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, OvertimeHoursPerDay);
+                    if (latestDutySlot?.EndDate < shift.EndDate)
+                        shift.EndDate = latestDutySlot.EndDate < regularShiftEndDate ?  regularShiftEndDate : latestDutySlot.EndDate;
+
+                    var regularShiftStartDate = shift.EndDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, -OvertimeHoursPerDay);
+                    if (earliestDutySlot?.StartDate > shift.StartDate)
+                        shift.StartDate = earliestDutySlot.StartDate > regularShiftStartDate ? regularShiftStartDate : earliestDutySlot.StartDate;
+                }
+            }
+        }
 
         //There might be a way to make this more generic and reuse it. I think overlapping shifts and DutySlot overlapping is a very similar process. 
         public async Task CheckForDutySlotOverlap(List<Duty> duties, bool overrideValidation)
@@ -180,6 +291,11 @@ namespace SS.Api.services.scheduling
             );
 
             return conflictingDutySlots;
+        }
+
+        private DateTimeOffset RoundUp(DateTimeOffset dt, TimeSpan d)
+        {
+            return new DateTimeOffset((dt.Ticks + d.Ticks - 1) / d.Ticks * d.Ticks, dt.Offset);
         }
 
         #region String Helpers

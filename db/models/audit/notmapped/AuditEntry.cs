@@ -23,13 +23,14 @@ namespace SS.Db.models.audit.notmapped
         public bool HasTemporaryProperties => TemporaryProperties.Any();
 
         //I used System.Text.Json because I think the Npgsql EF Core provider has support to convert LINQ -> SQL.
-        public Audit ToAudit()
+        public Audit ToAudit(Guid? createdById)
         {
             var audit = new Audit();
             audit.TableName = TableName;
             audit.KeyValues = JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(KeyValues));
             audit.OldValues = OldValues.Count == 0 ? null : JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(OldValues));
             audit.NewValues = NewValues.Count == 0 ? null : JsonDocument.Parse(System.Text.Json.JsonSerializer.Serialize(NewValues));
+            audit.CreatedById = createdById;
             return audit;
         }
     }

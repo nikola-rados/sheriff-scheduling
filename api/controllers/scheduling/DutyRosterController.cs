@@ -6,7 +6,6 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using SS.Db.models;
@@ -44,13 +43,15 @@ namespace SS.Api.controllers.scheduling
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateAndAssignDuties)]
-        public async Task<ActionResult<DutyDto>> AddDuty(AddDutyDto newDuty)
+        public async Task<ActionResult<List<DutyDto>>> AddDuties(List<AddDutyDto> newDuties)
         {
-            if (newDuty == null) return BadRequest(InvalidDutyErrorMessage);
-            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, newDuty.LocationId)) return Forbid();
+            if (newDuties == null) return BadRequest(InvalidDutyErrorMessage);
+            var locationIds = newDuties.SelectDistinctToList(d => d.LocationId);
+            if (locationIds.Count != 1) return BadRequest(CannotUpdateCrossLocationError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationIds.First())) return Forbid();
 
-            var duty = await DutyRosterService.AddDuty(newDuty.Adapt<Duty>());
-            return Ok(duty.Adapt<DutyDto>());
+            var duty = await DutyRosterService.AddDuties(newDuties.Adapt<List<Duty>>());
+            return Ok(duty.Adapt<List<DutyDto>>());
         }
 
         [HttpPut]
@@ -66,15 +67,28 @@ namespace SS.Api.controllers.scheduling
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 
-        [HttpDelete]
-        [PermissionClaimAuthorize(perm: Permission.ExpireDuties)]
-        public async Task<ActionResult> ExpireDuty(int id)
+        [HttpPut("moveSheriff")]
+        [PermissionClaimAuthorize(perm: Permission.EditDuties)]
+        public async Task<ActionResult<DutyDto>> MoveSheriffFromDutySlot(int fromDutySlotId, int toDutyId, DateTimeOffset? separationTime = null)
         {
-            var duty = await DutyRosterService.GetDuty(id);
+            var duty = await DutyRosterService.GetDutyByDutySlot(fromDutySlotId);
             if (duty == null) return NotFound();
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, duty.LocationId)) return Forbid();
 
-            await DutyRosterService.ExpireDuty(id);
+            duty = await DutyRosterService.MoveSheriffFromDutySlot(fromDutySlotId, toDutyId, separationTime);
+            return Ok(duty.Adapt<DutyDto>());
+        }
+
+        [HttpDelete]
+        [PermissionClaimAuthorize(perm: Permission.ExpireDuties)]
+        public async Task<ActionResult> ExpireDuties(List<int> ids)
+        {
+            if (ids == null) return BadRequest(InvalidDutyErrorMessage);
+            var locationIds = await DutyRosterService.GetDutiesLocations(ids);
+            if (locationIds.Count != 1) return BadRequest(CannotUpdateCrossLocationError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationIds.First())) return Forbid();
+
+            await DutyRosterService.ExpireDuties(ids);
             return NoContent();
         }
     }

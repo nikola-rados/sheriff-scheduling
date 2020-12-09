@@ -13,6 +13,7 @@ using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
 using SS.Db.models;
 using SS.Db.models.auth;
+using SS.Db.models.jc;
 using SS.Db.models.lookupcodes;
 using Region = db.models.Region;
 
@@ -24,17 +25,40 @@ namespace SS.Api.services.jc
         private LocationServicesClient LocationClient { get; }
         private SheriffDbContext Db { get; }
         private IConfiguration Configuration { get; }
-        private bool Expire { get; }
+        private bool ExpireRegions { get; }
+        private bool ExpireLocations { get; }
+        private bool ExpireRooms { get; }
         private bool AssociateUsersWithNoLocationToVictoria { get; }
+        private TimeSpan UpdateEvery { get; }
 
         public JCDataUpdaterService(SheriffDbContext dbContext, LocationServicesClient locationClient, IConfiguration configuration, ILogger<JCDataUpdaterService> logger)
         {
             LocationClient = locationClient;
             Db = dbContext;
             Configuration = configuration;
-            Expire = Configuration.GetNonEmptyValue("JCSynchronization:Expire").Equals("true");
+            ExpireRegions = Configuration.GetNonEmptyValue("JCSynchronization:ExpireRegions").Equals("true");
+            ExpireLocations = Configuration.GetNonEmptyValue("JCSynchronization:ExpireLocations").Equals("true");
+            ExpireRooms = Configuration.GetNonEmptyValue("JCSynchronization:ExpireCourtRooms").Equals("true");
             AssociateUsersWithNoLocationToVictoria = Configuration.GetNonEmptyValue("JCSynchronization:AssociateUsersWithNoLocationToVictoria").Equals("true");
+            UpdateEvery = TimeSpan.Parse(configuration.GetNonEmptyValue("JCSynchronization:UpdateEvery"));
             Logger = logger;
+        }
+
+        public async Task<bool> ShouldSynchronize()
+        {
+            //Only a single row here. 
+            var jcSynchronization = await Db.JcSynchronization.FirstOrDefaultAsync(jc => jc.Id == 1);
+            if (jcSynchronization == null)
+            {
+                await Db.JcSynchronization.AddAsync(new JcSynchronization { Id = 1, LastSynchronization = DateTimeOffset.UtcNow });
+                await Db.SaveChangesAsync();
+                return true;
+            }
+
+            if (jcSynchronization.LastSynchronization.Add(UpdateEvery) > DateTimeOffset.UtcNow) return false;
+            jcSynchronization.LastSynchronization = DateTimeOffset.UtcNow;
+            await Db.SaveChangesAsync();
+            return true;
         }
 
         public async Task SyncRegions()
@@ -51,7 +75,7 @@ namespace SS.Api.services.jc
                             .RunAsync();
             
             //Any regions that aren't on this list expire/disable for now. This is for regions that may have been deleted. 
-            if (Expire)
+            if (ExpireRegions)
             {
                 var disableRegions = Db.Region.WhereToList(r => r.ExpiryDate == null && regionsDb.All(rdb => rdb.JustinId != r.JustinId));
                 foreach (var disableRegion in disableRegions)
@@ -80,8 +104,9 @@ namespace SS.Api.services.jc
                                })
                                .RunAsync();
 
+            //Set to false for now, because some Locations are brought in via Migration and not the JC-Interface.
             //Any Locations that aren't on this list expire/disable for now.  This is for locations that may have been deleted. 
-            if (Expire)
+            if (ExpireLocations)
             {
                 var disableLocations = Db.Location.WhereToList(l => l.ExpiryDate == null && locationsDb.All(rdb => rdb.AgencyId != l.AgencyId ));
                 foreach (var disableLocation in disableLocations)
@@ -107,6 +132,9 @@ namespace SS.Api.services.jc
                 }
                 await Db.SaveChangesAsync();
             }
+
+            //Associate Migrated Location to regions. 
+            await AssociateAdhocLocationToRegion();
         }
 
         public async Task SyncCourtRooms()
@@ -140,7 +168,7 @@ namespace SS.Api.services.jc
                  .RunAsync();
 
             //Any court rooms that aren't from this list, expire/disable for now. This is for CourtRooms that may have been deleted. 
-            if (Expire)
+            if (ExpireRooms)
             {
                 var disableCourtRooms = Db.LookupCode.WhereToList(lc =>
                     lc.ExpiryDate == null &&
@@ -189,6 +217,21 @@ namespace SS.Api.services.jc
             Logger.LogDebug("Locations without a region: ");
             Logger.LogDebug(JsonConvert.SerializeObject(locationWithoutRegion));
             return locationsDb;
+        }
+
+        private async Task AssociateAdhocLocationToRegion()
+        {
+            var locationsToRegions =
+                Configuration.GetSection("JCSynchronization:NonJcInterfaceLocationRegions").Get<Dictionary<string, string>>() ??
+                throw new ConfigurationException("Couldn't not build dictionary based on NonJcInterfaceLocationRegions");
+
+            foreach (var locationToRegion in locationsToRegions)
+            {
+                var location = await Db.Location.FirstOrDefaultAsync(l => l.Name == locationToRegion.Key);
+                if (location != null && location.RegionId == null)
+                    location.RegionId = (await Db.Region.AsNoTracking().FirstOrDefaultAsync(r => r.Name == locationToRegion.Value))?.Id;
+            }
+            await Db.SaveChangesAsync();
         }
 
         private List<Location> AssociateLocationToTimezone(List<Location> locations)

@@ -14,19 +14,21 @@ namespace SS.Api.services.jc
         private ILogger Logger { get; }
         private Timer _timer;
         public IServiceProvider Services { get; }
-        private readonly TimeSpan _jcSynchronizationPeriod;
+        private readonly TimeSpan _checkForUpdate;
+
 
         public TimedDataUpdaterService(IServiceProvider services, ILogger<TimedDataUpdaterService> logger, IConfiguration configuration)
         {
             Services = services;
             Logger = logger;
-            _jcSynchronizationPeriod = TimeSpan.Parse(configuration.GetNonEmptyValue("JCSynchronization:Period"));
+            _checkForUpdate = TimeSpan.Parse(configuration.GetNonEmptyValue("JCSynchronization:CheckForUpdate"));
+
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            Logger.LogInformation($"Timed Background Service is starting with a period of {_jcSynchronizationPeriod}.");
-            _timer = new Timer(DoWork, null, new TimeSpan(), _jcSynchronizationPeriod);
+            Logger.LogInformation($"Timed Background Service is starting with a period of {_checkForUpdate}.");
+            _timer = new Timer(DoWork, null, new TimeSpan(), _checkForUpdate);
             return Task.CompletedTask;
         }
 
@@ -40,6 +42,8 @@ namespace SS.Api.services.jc
                 var justinDataUpdaterService =
                     scope.ServiceProvider
                         .GetRequiredService<JCDataUpdaterService>();
+
+                if (!await justinDataUpdaterService.ShouldSynchronize()) return;
 
                 Logger.LogInformation("Syncing Regions.");
                 await justinDataUpdaterService.SyncRegions();

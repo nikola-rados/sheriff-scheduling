@@ -1,16 +1,13 @@
 <template>
 	<div>
 		<header variant="primary">
-			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">
-                <!-- <b-navbar-nav class="mx-1">					
-					<b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="addAssignment()" class="my-1"><b-icon-plus/>Add Assignment</b-button> 
-                </b-navbar-nav> -->
-				<b-navbar-nav>
-					<div style="width:11rem;" class="text-white ml-2 mr-auto">Duty Roster</div>
+			<b-navbar toggleable="lg" class=" m-0 p-0 navbar navbar-expand-lg navbar-dark">                
+				<b-navbar-nav >
+					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal">Duty Roster</h3>
 				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
-                        <b-row style="margin:.25rem auto .25rem auto; width:73%;">
+                        <b-row style="margin:.25rem auto .25rem auto; width:7.3rem;">
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0"><b-icon-chevron-left /></b-button>
                             <b-form-datepicker
                                     class="my-0 py-0 mx-1"
@@ -21,23 +18,38 @@
                                     @shown = "datePickerOpened = true"
                                     @hidden = "datePickerOpened = false"
                                     button-only
+									today-button
+									close-button
                                     locale="en-US">
                             </b-form-datepicker>
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
                         </b-row>
-                        <b-row style="margin:0 0 .25rem auto;">
-                            <div class="bg-white" style=" border-radius:5px; width:10rem;">{{selectedDate|beautify-date-weekday}}</div>
-                        </b-row>
+                        <b-row  style="margin:0 auto .25rem auto; width:17rem;">
+                            <div v-if="activetab=='Day'" class="bg-white" style="margin:0 auto; border-radius:3px; width:9rem;">{{selectedDate|beautify-date-weekday}}</div>
+							<div v-else class="bg-white" style="border-radius:3px; width:17rem;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
+						</b-row>
                     </b-col>
                 </b-navbar-nav>
-				<b-navbar-nav>
-					<div style="width:11rem;" class="text-white ml-2 mr-auto"></div>
+				<b-navbar-nav >
+					<b-tabs nav-wrapper-class = "bg-primary text-dark"
+							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
+							pills
+							no-body
+							class="mx-3">
+						<b-tab 
+							v-for="(tabMapping, index) in tabs" 
+							:key="index"                 
+							:title="tabMapping"                 
+							v-on:click="tabChanged(tabMapping)" 
+							v-bind:class="[ activetab === tabMapping ? 'active mb-0' : 'mb-0' ]"
+							/>
+					</b-tabs>
 				</b-navbar-nav>
 			</b-navbar>
 		</header>
 
 
-		<b-modal v-model="showAssignmentDetails" id="bv-modal-assignment-details" header-class="bg-primary text-light">
+		<b-modal v-model="showAssignmentDetails" id="bv-modal-assignment-details" centered header-class="bg-primary text-light">
 			<template v-slot:modal-title>
 				<h2 class="mb-0 text-light"> Creating Assignment </h2>
 			</template>
@@ -278,8 +290,13 @@
 		
 		@Prop({required: true})
 		runMethod!: any
+
+		activetab = 'Day';
+		tabs =['Day', 'Week']
 		
 		selectedDate = '';
+		selectedDateBegin = '';
+		selectedDateEnd = '';
 		datePickerOpened = false;
 		userIsAdmin = false;
 
@@ -331,16 +348,14 @@
 		assignmentErrorMsg = '';
 		assignmentErrorMsgDesc = '';
 
-		
-
         mounted() {
-			this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+			// this.userIsAdmin = this.userDetails.roles.includes("Administrator");
 			this.runMethod.$on('addassign', this.addAssignment)
-			console.log(this.runMethod)
+			//console.log(this.runMethod)
 			this.selectedDate = moment().format().substring(0,10);			
 			this.loadNewDateRange();
 		}
-
+		
 		public weekdaysChanged(){
 			Vue.nextTick(()=>{
 				this.allDaysSelected = this.selectedDays.length==7? true: false
@@ -383,11 +398,18 @@
 
 		public startDatePicked(){
             this.startDateState = true;
-            this.endDateState = true;
-			this.selectedEndDate = this.selectedStartDate;			
+			this.endDateState = true;
+			this.toggleAllDays(false);
+			this.toggleWeekDays(false);
+			this.selectedDays = [] ;
+			this.selectedEndDate = this.selectedStartDate;
+			this.disableOutOfRangeDays();			
 		}
 		
-		public endDatePicked(){            
+		public endDatePicked(){
+			this.toggleAllDays(false);
+			this.toggleWeekDays(false);
+			this.selectedDays = [] ;            
             if (this.selectedStartDate.length) {
 				this.disableOutOfRangeDays();
 			}
@@ -410,6 +432,8 @@
 						this.dayOptions[dayOfWeek].enabled = true;
 					}
 				}
+			} else {
+				this.enableAllDayOptions();
 			}
 		}
 
@@ -490,6 +514,11 @@
 				this.selectedEndTime = this.autoCompleteTime(this.selectedEndTime);					
 				this.endTimeState = true;
 			}
+			if (this.selectedStartTime && this.selectedEndTime && this.selectedStartTime >= this.selectedEndTime ) {
+				this.startTimeState = false;
+				this.endTimeState = false;
+				requiredError = true;
+            } 
 			if (this.selectedDays.length < 1) {
 				this.selectedDayState = false;
 				requiredError = true;
@@ -577,7 +606,6 @@
 			}
 		}
 
-
 		public createAssignment() {
 
 			this.assignment.sunday = this.selectedDays.includes(0)
@@ -611,11 +639,16 @@
 							this.$emit('change');
 					}
 				}, err => {
-					const errMsg = err.response.data.error;
+					const errMsg = err.response.data;
 					this.assignmentErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
 					this.assignmentErrorMsgDesc = errMsg;
 					this.assignmentError = true;
 				})
+		}
+
+		public tabChanged(tabInfo){
+			this.activetab = tabInfo;
+			this.loadNewDateRange();
 		}
 
         
@@ -623,22 +656,27 @@
 			if(this.datePickerOpened)this.loadNewDateRange();
 		}
 
-		public nextDateRange() {			
-			this.selectedDate = moment(this.selectedDate).add(1, 'days').format().substring(0,10);
+		public nextDateRange() {
+			const days =(this.activetab == 'Day')? 1 :7;		
+			this.selectedDate = moment(this.selectedDate).add(days, 'days').format().substring(0,10);
 			this.loadNewDateRange(); 
 		}
 
 		public previousDateRange() {
-			this.selectedDate = moment(this.selectedDate).subtract(1, 'days').format().substring(0,10);
+			const days =(this.activetab == 'Day')? 1 :7;
+			this.selectedDate = moment(this.selectedDate).subtract(days, 'days').format().substring(0,10);
 			this.loadNewDateRange();
 		}
 
 		public loadNewDateRange() {
-			const beginTime = moment(this.selectedDate).startOf('day').format()
-			const endTime = moment(this.selectedDate).endOf('day').format();
-			const dateRange = {startDate: beginTime, endDate: endTime}
+
+			const dateType = (this.activetab == 'Day')?'day':'week'
+			this.selectedDateBegin = moment(this.selectedDate).startOf(dateType).format()
+			this.selectedDateEnd = moment(this.selectedDate).endOf(dateType).format();
+			const dateRange = {startDate: this.selectedDateBegin, endDate: this.selectedDateEnd}
+			console.log(dateRange)
 			this.UpdateDutyRangeInfo(dateRange);
-			this.$emit('change'); 
+			this.$emit('change',this.activetab); 
 		}
 
 		public timeFormat(value , event) {
@@ -681,6 +719,7 @@
 			margin:0 auto 0 auto;
 			display: block;
 			text-align: center;
+			width:20rem
 	}
 
 	.custom-navbar > li {

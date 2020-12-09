@@ -3,57 +3,21 @@
 
         <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
-                <duty-roster-header v-on:change="getDutyRosters()" :runMethod="headerAddAssignment" />
-                <loading-spinner v-if="!isDutyRosterDataMounted" />
-                <b-table 
-                    v-else              
-                    :items="dutyRosterAssignments" 
-                    :fields="fields"
-                    sort-by="assignment"
-                    small
-                    head-row-variant="primary"   
-                    borderless                   
-                    fixed>
-                        <template v-slot:table-colgroup>
-                            <col style="width:9rem">                            
-                        </template>
-                       
-                        <template v-slot:cell(assignment) ="data"  >
-                            <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item"/>
-                        </template>
-
-                        <template v-slot:head(assignment)="data" >
-                            <div style="float: left; margin:0 1rem; padding:0;">
-                                <div style="float: left; margin:.15rem .25rem 0  0; font-size:14px">{{data.label}}</div>
-                                <b-button
-                                    variant="success"
-                                    style="padding:0; height:1rem; width:1rem; margin:auto 0" 
-                                    @click="addAssignment();"
-                                    size="sm"> <div style="transform:translate(0,-3px)" >+</div>
-                                </b-button>
-                            </div>
-                        </template>
-
-                        <template v-slot:head(h0) >
-                            <div class="grid24">
-                                <div v-for="i in 24" :key="i" :style="{gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/1'}">{{getBeautifyTime(i-1)}}</div>
-                            </div>
-                        </template>
-
-                        <template v-slot:cell(h0)="data" >
-                            <duty-card v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/>
-                        </template>
-                </b-table>                
-                <b-card><br></b-card>  
+                <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
+                <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
+                <duty-roster-day-view v-else :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
+                
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
                 <b-card 
-                    v-if="isDutyRosterDataMounted" 
+                    v-if="isDutyRosterDataMounted"
+                    :key="updateMyTeam" 
                     body-class="mx-2 p-0"
                     class="bg-dark m-0 p-0">
                         <b-card-header header-class="m-0 text-white py-2 px-0"> 
                             My Team
                             <b-button
+                                v-if="!weekView"
                                 @click="toggleDisplayMyteam()"
                                 v-b-tooltip.hover                            
                                 title="Display Graphical Availability of MyTeam "                            
@@ -62,14 +26,12 @@
                                     <b-icon-bar-chart-steps /> 
                             </b-button>
                         </b-card-header>
-                        <duty-roster-team-member-card :sheriffInfo="memberNotRequired"/>
-                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable"/> 
-                        <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member"/>
+                        <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
+                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/> 
+                        <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
                 </b-card>
             </b-col>
         </b-row>
-
-        <sheriff-fuel-gauge v-if="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
     </b-card>
 </template>
 
@@ -77,9 +39,9 @@
     import { Component, Vue, Watch, Emit } from 'vue-property-decorator';
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
-    import DutyCard from './components/DutyCard.vue'
-    import SheriffFuelGauge from './components/SheriffFuelGauge.vue'
-    import DutyRosterAssignment from './components/DutyRosterAssignment.vue'
+
+    import DutyRosterDayView from './DutyRosterDayView.vue';
+    import DutyRosterWeekView from './DutyRosterWeekView.vue'
 
     import moment from 'moment-timezone';
 
@@ -90,7 +52,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import { locationInfoType } from '../../types/common';
+    import { localTimeInfoType } from '../../types/common';
     import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
@@ -98,15 +60,20 @@
         components: {
             DutyRosterHeader,
             DutyRosterTeamMemberCard,
-            DutyCard,
-            SheriffFuelGauge,
-            DutyRosterAssignment
+            DutyRosterDayView,
+            DutyRosterWeekView
         }
     })
     export default class DutyRoster extends Vue {
 
         @commonState.State
-        public location!: locationInfoType;
+        public localTime!: localTimeInfoType;
+
+        @commonState.Action
+        public UpdateLocalTime!: (newLocalTime: localTimeInfoType) => void
+
+        @dutyState.State
+        public dutyRangeInfo!: dutyRangeInfoType;
 
         @commonState.State
         public displayFooter!: boolean;
@@ -115,253 +82,77 @@
         public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
 
         @dutyState.State
-        public dutyRangeInfo!: dutyRangeInfoType;
-
-        @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
-
-        @dutyState.Action
-        public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
         memberNotRequired = {} as myTeamShiftInfoType;
         memberNotAvailable = {} as myTeamShiftInfoType;
         isDutyRosterDataMounted = false;
 
-        dutyRosterAssignments: assignmentCardInfoType[] = [];
+        updateDutyRoster = 0;
+        updateMyTeam = 0;
 
-        dutyRostersJson: attachedDutyInfoType[] = [];
-        dutyRosterAssignmentsJson;
+        weekView = false;
 
-        headerAddAssignment = new Vue();
-
-        fields =[
-            {key:'assignment', label:'Assignments', thClass:' m-0 p-0', tdClass:'p-0 m-0', thStyle:''},
-            {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
-        ]
-
-        dutyColors = [
-            {name:'courtroom',  colorCode:'#189fd4'},
-            {name:'court',      colorCode:'#189fd4'},
-            {name:'jail' ,      colorCode:'#A22BB9'},
-            {name:'escort',     colorCode:'#ffb007'},
-            {name:'other',      colorCode:'#7a4528'}, 
-            {name:'overtime',   colorCode:'#e85a0e'},
-            {name:'free',       colorCode:'#e6d9e2'}                        
-        ]
-
-        @Watch('location.id', { immediate: true })
-        locationChange()
-        {
-            if (this.isDutyRosterDataMounted) {
-                this.getDutyRosters();                                
-            }            
-        } 
+        headerAddAssignment = new Vue();      
 
         mounted()
         {
             this.isDutyRosterDataMounted = false;
-            this.toggleDisplayMyteam();            
             this.memberNotRequired.sheriffId ='00000-00000-11111';
             this.memberNotAvailable.sheriffId ='00000-00000-22222';
+            
+
+            window.setTimeout(this.updateCurrentTimeCallBack, 1000);
         }
 
-        public getBeautifyTime(hour: number){
-            return( hour>9? hour+':00': '0'+hour+':00')
-        }
-
-        public getDutyRosters(){
-            const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        this.dutyRostersJson = response.data; 
-                        console.log(response.data);
-                        this.getAssignments();                                                                   
-                    }                                   
-                })      
-        }
-
-        public getAssignments(){
-            const url = 'api/assignment?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)
-                        this.dutyRosterAssignmentsJson = response.data; 
-                        this.getShifts();                             
-                    }                                   
-                })      
-        }
-
-        public getShifts(){
+        public reloadDutyRosters(type){
             this.isDutyRosterDataMounted = false;
-            const url = 'api/shift?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate +'&includeDuties=true';
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
-                        this.extractTeamShiftInfo(response.data);                        
-                        this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);                                               
-                    }                                   
-                })      
-        }        
-
-        public extractTeamShiftInfo(shiftsJson){
-            this.UpdateShiftAvailabilityInfo([]);
-            const allDutySlots: any[] = []
-            for(const dutyRoster of this.dutyRostersJson){
-                //console.log(dutyRoster)
-                const assignmentToThisDuty = this.dutyRosterAssignmentsJson.filter(assignment=>{if(assignment.id==dutyRoster.assignmentId)return true;})[0]
-                //console.log(assignmentToThisDuty.lookupCode)
-                for(const slot of dutyRoster.dutySlots){
-                    slot['color']= this.getType(assignmentToThisDuty.lookupCode.type);
-                    slot['type'] = assignmentToThisDuty.lookupCode.type;
-                    slot['code'] = assignmentToThisDuty.lookupCode.code;
-                    allDutySlots.push(slot)
-                }                
+            console.log(type)
+            console.log('reload dutyroster')                
+            this.updateCurrentTime();
+            if(type=='Day'){
+                this.weekView = false
+                this.UpdateDisplayFooter(false)
+            } else{
+                this.weekView = true
+                this.UpdateDisplayFooter(true)
             }
-            //console.log(allDutySlots)
-            for(const shiftJson of shiftsJson)
-            {
-                //console.log(shiftJson)
-                const availabilityInfo = {} as myTeamShiftInfoType;
-                const shiftInfo = {} as shiftInfoType;
-                shiftInfo.id = shiftJson.id;
-                shiftInfo.startDate =  moment(shiftJson.startDate).tz(this.location.timezone).format();
-                shiftInfo.endDate = moment(shiftJson.endDate).tz(this.location.timezone).format();
-                shiftInfo.timezone = shiftJson.timezone;
-                shiftInfo.sheriffId = shiftJson.sheriffId;
-                shiftInfo.locationId = shiftJson.locationId;
-                const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, this.location.timezone);
 
-                const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId)return true})
-                let duties = Array(96).fill(0)
-                const dutiesDetail: dutiesDetailInfoType[] = [];
-                for(const duty of dutySlots){
-                    //console.log(duty)
-                    const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
-                    dutiesDetail.push({
-                        id:duty.id , 
-                        startBin:dutyRangeBin.startBin, 
-                        endBin: dutyRangeBin.endBin,
-                        name: duty.color.name,
-                        colorCode: duty.color.colorCode,
-                        color: duty.shiftId? duty.color.colorCode: this.dutyColors[5].colorCode,
-                        type: duty.type,
-                        code: duty.code
-                    })
-                    //console.log(dutiesDetail)
-                    duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
-                }
+            this.updateDutyRoster++;
 
-                const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
-                
-                if (index != -1) {
-                    let availability = this.fillInArray(this.shiftAvailabilityInfo[index].availability, shiftJson.id , rangeBin.startBin,rangeBin.endBin)
-                    const newavailability = this.subtractUnionOfArrays(availability, duties);
-                    availability =this.unionArrays(availability, newavailability);
-                    this.shiftAvailabilityInfo[index].duties = duties;
-                    this.shiftAvailabilityInfo[index].availability = availability;
-                    this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
-                    this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
-                } else {
-                    let availability = this.fillInArray(Array(96).fill(0), shiftJson.id , rangeBin.startBin,rangeBin.endBin)
-                    const newavailability = this.subtractUnionOfArrays(availability, duties);
-                    availability =this.unionArrays(availability, newavailability);
-                    availabilityInfo.shifts = [shiftInfo];
-                    availabilityInfo.sheriffId = shiftJson.sheriff.id;
-                    availabilityInfo.badgeNumber = shiftJson.sheriff.badgeNumber;
-                    availabilityInfo.firstName = shiftJson.sheriff.firstName;
-                    availabilityInfo.lastName = shiftJson.sheriff.lastName;
-                    availabilityInfo.rank = shiftJson.sheriff.rank;
-                    availabilityInfo.availability = availability;
-                    availabilityInfo.duties = duties;
-                    availabilityInfo.dutiesDetail = dutiesDetail;
-                    this.shiftAvailabilityInfo.push(availabilityInfo);
-                }
-            }
-            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
         }
 
-        public extractAssignmentsInfo(assignments){
-
-            this.dutyRosterAssignments =[]
-            let sortOrder = 0;
-            for(const assignment of assignments){
-                sortOrder++;
-                const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                //console.log(dutyRostersForThisAssignment)
-               
-               if(dutyRostersForThisAssignment.length>0){
-                    for(const rosterInx in dutyRostersForThisAssignment){
-                        this.dutyRosterAssignments.push({
-                            assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
-                            assignmentDetail: assignment,
-                            name:assignment.name,
-                            code:assignment.lookupCode.code,
-                            type: this.getType(assignment.lookupCode.type),
-                            attachedDuty: dutyRostersForThisAssignment[rosterInx],
-                            FTEnumber: Number(rosterInx),
-                            totalFTE: dutyRostersForThisAssignment.length
-                        })
-                    }
-                }else{                
-                    this.dutyRosterAssignments.push({
-                        assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
-                        assignmentDetail: assignment,
-                        name:assignment.name,
-                        code:assignment.lookupCode.code,
-                        type: this.getType(assignment.lookupCode.type),
-                        attachedDuty: null,
-                        FTEnumber: 0,
-                        totalFTE: 0
-                    })
-                }
-            }
-
-            this.isDutyRosterDataMounted = true;
-        }
-        
-        public getType(type: string){
-            for(const color of this.dutyColors){
-                if(type.toLowerCase().includes(color.name))return color
-            }
-            return this.dutyColors[3]
+        public reloadMyTeam(){
+            this.isDutyRosterDataMounted=true
+            this.updateMyTeam++;
         }
 
         public toggleDisplayMyteam(){
-            console.log('display')
             if(this.displayFooter) this.UpdateDisplayFooter(false)
             else this.UpdateDisplayFooter(true)
-        }
-
-        public fillInArray(array, fillInNum, startBin, endBin){
-            return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
-        }
-
-        // public addArrays(arrayA, arrayB){
-        //     return arrayA.map((arr,index) =>{return arr+arrayB[index]});
-        // }
-
-        public unionArrays(arrayA, arrayB){
-            return arrayA.map((arr,index) =>{return arr*arrayB[index]});
-        }
-
-        public subtractUnionOfArrays(arrayA, arrayB){
-            return arrayA.map((arr,index) =>{return arr&&(arrayB[index]>0?0:1)});
-        }
-
-        public getTimeRangeBins(startDate, endDate, timezone){
-            const startTime = moment(startDate).tz(timezone);
-            const endTime = moment(endDate).tz(timezone);
-            const startOfDay = moment(startTime).startOf("day");
-            const startBin = moment.duration(startTime.diff(startOfDay)).asMinutes()/15;
-            const endBin = moment.duration(endTime.diff(startOfDay)).asMinutes()/15;
-            return( {startBin: startBin, endBin:endBin } )
-        }
+        }        
 
         public addAssignment(){ 
             this.headerAddAssignment.$emit('addassign');
+        }
+
+        public updateCurrentTime() {
+            const currentTime = moment();
+            const startOfDay = moment(currentTime).startOf('day')
+            const timeBin = (moment.duration(currentTime.diff(startOfDay)).asMinutes()/15 +0.5)            
+            const currentTimeObject = { 
+                timeString: currentTime.format(), 
+                timeSlot: Math.floor(timeBin),                
+                dayOfWeek: currentTime.weekday(),
+                isTodayInView: currentTime.isBetween(this.dutyRangeInfo.startDate, this.dutyRangeInfo.endDate),
+            }
+            //console.log(currentTimeObject)
+            this.UpdateLocalTime(currentTimeObject);
+        }
+
+        public updateCurrentTimeCallBack() {
+            this.updateCurrentTime();
+            window.setTimeout(this.updateCurrentTime, 60000);
         }
 
     }

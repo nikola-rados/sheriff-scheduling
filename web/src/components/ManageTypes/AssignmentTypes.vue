@@ -167,7 +167,7 @@
         @manageTypesState.State
         public sortingAssignmentInfo!: {prvIndex: number; newIndex: number};
 
-        userIsAdmin = false;
+        userIsAdmin = true;
 
         sectionHeader = 'Assignments';
         isAssignmentDataMounted = false;
@@ -237,7 +237,8 @@
 
         mounted () 
         {  
-            this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+            // this.userIsAdmin = this.userDetails.roles.includes("Administrator");
+            this.userIsAdmin = true;
             this.getAssignments()       
         }
 
