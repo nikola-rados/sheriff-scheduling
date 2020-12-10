@@ -21,12 +21,13 @@ export interface trainingInfoType {
 }
 
 export interface userInfoType {
-    "roles": string[],
-    "homeLocationId": number
+    roles: string[];
+    homeLocationId: number;
+    permissions: string[];
 }
 
 export interface commonInfoType {
-    "sheriffRankList": sheriffRankInfoType[]    
+    sheriffRankList: sheriffRankInfoType[]    
 }
 
 export interface sheriffRankInfoType {

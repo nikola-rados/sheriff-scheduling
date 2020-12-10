@@ -13,7 +13,7 @@ class CommonInformation extends VuexModule {
 
   public locationList: locationInfoType[] = [];
 
-  public userDetails: userInfoType = {roles: [], homeLocationId: 0}
+  public userDetails: userInfoType = {roles: [], homeLocationId: 0, permissions: []}
 
   public displayFooter = true;
 
