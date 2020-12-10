@@ -59,8 +59,9 @@
         sheriffRankList: sheriffRankInfoType[] = []
         currentLocation;
        
-        mounted() {            
-            this.loadUserDetails()
+        mounted() {
+            this.isCommonDataReady = false;            
+            this.loadUserDetails();
         }
 
         public loadUserDetails() {
@@ -106,8 +107,7 @@
             })
         }
         
-        public getLocations(): void {
-
+        public getLocations() {
             const url = 'api/location'
             this.$http.get(url)
                 .then(response => {
@@ -119,12 +119,12 @@
         }
         
         public extractLocationInfo(locationListJson){            
-            //let locationJson: locationJsonType;
+            const locations: locationInfoType[] = [];
             for(const locationJson of locationListJson){                
                 const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId, timezone: locationJson.timezone}
-                this.locationList.push(locationInfo)
+                locations.push(locationInfo)
             }                       
-            this.UpdateLocationList(_.sortBy(this.locationList,'name'));
+            this.UpdateLocationList(_.sortBy(locations,'name'));
         }
         
      }
