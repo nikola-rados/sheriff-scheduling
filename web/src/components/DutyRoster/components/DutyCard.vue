@@ -366,9 +366,10 @@
 			
             this.confirmDelete = false;
             this.deleteError = false;
-            const url = 'api/dutyroster?id=' + this.dutyId;
+            const body = [this.dutyId]
+            const url = 'api/dutyroster';
         
-            this.$http.delete(url)
+            this.$http.delete(url, {data:body})
                 .then(response => {
                     // console.log(response);
                     this.confirmDelete = false;
