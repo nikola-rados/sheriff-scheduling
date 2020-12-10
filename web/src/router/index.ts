@@ -78,7 +78,8 @@ const routes: Array<RouteConfig> = [
     path: '/distribute-shift-schedule',
     name: 'DistributeSchedule',
     beforeEnter: displayFooter,
-    component: DistributeSchedule  
+    component: DistributeSchedule,
+    meta:{requiredPermission: 'ViewDistributeSchedule'}  
   },
   {
     path: '/team-members',
