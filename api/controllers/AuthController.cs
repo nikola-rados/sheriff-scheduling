@@ -70,7 +70,18 @@ namespace SS.Api.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
-            return Ok();
+
+            var logoutUrl = $"{Configuration.GetNonEmptyValue("Keycloak:Authority")}/protocol/openid-connect/logout";
+
+            var forwardedHost = HttpContext.Request.Headers.ContainsKey("X-Forwarded-Host")
+                ? HttpContext.Request.Headers["X-Forwarded-Host"].ToString()
+                : Request.Host.ToString();
+            var forwardedPort = HttpContext.Request.Headers["X-Forwarded-Port"];
+
+            //We are always sending X-Forwarded-Port, only time we aren't is when we are hitting the API directly. 
+            var baseUri = HttpContext.Request.Headers.ContainsKey("X-Forwarded-Host") ? $"{Configuration.GetNonEmptyValue("WebBaseHref")}logout" : "/api";
+            var redirectUrl = $"{XForwardedForHelper.BuildUrlString(forwardedHost, forwardedPort, baseUri)}";
+            return Redirect($"{logoutUrl}?post_logout_redirect_uri={redirectUrl}");
         }
 
         [HttpGet("requestAccess")]
