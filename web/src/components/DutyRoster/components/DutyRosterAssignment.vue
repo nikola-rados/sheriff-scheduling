@@ -279,8 +279,9 @@
 			</b-card>
 
             <h4>Are you sure you want to delete the "{{assignmentToEdit.name}}" assignment?</h4>
-            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+            <b-form-group style="float:left; margin: 0; padding: 0; width: 15rem;"><label class="ml-1">Reason for Deletion:</label> 
                 <b-form-select
+					tabindex="1"
                     size = "sm"
                     v-model="assignmentDeleteReason">
                         <b-form-select-option value="OPERDEMAND">
@@ -294,6 +295,19 @@
                         </b-form-select-option>     
                 </b-form-select>
             </b-form-group>
+			<b-form-group style="float:left; margin: 0 0 0 1rem; padding: 0; width: 13rem;">					
+				<label class="ml-1"> Expiry Date</label>
+				<b-form-datepicker
+					tabindex="2"
+					class="mb-1"
+					size="sm"
+					v-model="selectedExipryDate"
+					placeholder="Exipry Date*"
+					today-button
+					:date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+					locale="en-US">
+				</b-form-datepicker>
+			</b-form-group>
             <template v-slot:modal-footer>
 				<b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
                 <b-button variant="danger" @click="deleteAssignment()" :disabled="assignmentDeleteReason.length == 0">Confirm</b-button>                
@@ -378,6 +392,8 @@
 		nonReoccuring = false;
 		isDeleted = false;
 
+		selectedExipryDate = ''
+
 		nameState = true;
 		selectedTypeState = true;
 		selectedSubTypeState = true;
@@ -424,13 +440,12 @@
         mounted()
         {
 			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
-            //this.isDutyDataMounted = false;
-			console.log(this.assignment)
+            this.selectedExipryDate = this.localTime.timeString;
 			this.isDeleted = this.determineExpired();
 		}
 
 		public determineExpired(){
-			const currentTime = this.localTime.timeString
+			const currentTime = this.dutyRangeInfo.endDate
 			
 			if (this.assignment.assignmentDetail && this.assignment.assignmentDetail.expiryDate) {
 				const expiryDate = moment(this.assignment.assignmentDetail.expiryDate).tz(this.location.timezone)
@@ -455,11 +470,10 @@
 			if (this.assignmentDeleteReason.length) {
 				this.confirmDelete = false;
 				this.deleteError = false;
-				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason;
+				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason+ '&expiryDate='+this.selectedExipryDate;
 			
 				this.$http.delete(url)
 					.then(response => {
-						// console.log(response);
 						this.confirmDelete = false;
 						this.$emit('change');                    
 					}, err=>{
@@ -534,7 +548,6 @@
         }
 		
 		public loadAssignmentDetails() {
-			console.log(this.assignment.assignmentDetail)
 			const assignmentInfo = this.assignment.assignmentDetail;
 			this.originalAssignmentToEdit.id = this.assignmentToEdit.id = assignmentInfo.id;
 			this.originalAssignmentToEdit.name = this.assignmentToEdit.name = assignmentInfo.name;			
@@ -839,7 +852,6 @@
 			const body: any[] = [];
 
 			if(this.weekview){
-				//console.log(this.assignment)
 				for(const dayIndexStr in this.weekDayNames){
 					const day = this.weekDayNames[dayIndexStr];
 					const dayIndex = Number(dayIndexStr)
@@ -866,7 +878,6 @@
 				})			
 			}
 
-			console.log(body)
 			const url = 'api/dutyroster';
 			this.$http.post(url, body )
 				.then(response => {

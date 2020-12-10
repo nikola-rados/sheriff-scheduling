@@ -327,13 +327,11 @@
 
         mounted()
         {
-            //console.log(this.dutyRosterInfo)
             this.assignmentName = this.getDutyName()
             this.dutyId = (this.dutyRosterInfo && this.dutyRosterInfo.attachedDuty)? this.dutyRosterInfo.attachedDuty.id:0;
             this.isMounted = false;
             this.dutyBlocks = [];
             this.extractDuty();
-            console.log(this.dutyRosterInfo.assignment)
             if(this.dutyRosterInfo.assignment == this.dutyToBeEdited) Vue.nextTick(()=>this.editDuty())
             
         }
@@ -346,7 +344,6 @@
 
         public editDuty(){			
 			this.isDutyDataMounted = false;
-            console.log(this.dutyBlocks);
             this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
             this.showEditDutyDetails = true;
             this.isDutyDataMounted = true;					           
@@ -371,7 +368,6 @@
         
             this.$http.delete(url, {data:body})
                 .then(response => {
-                    // console.log(response);
                     this.confirmDelete = false;
                     this.UpdateDutyToBeEdited('');
                     this.$emit('change');                    
@@ -385,7 +381,6 @@
 		}
         
         public confirmUnassignDutySlot(slotinfo){
-            console.log(slotinfo)
             this.dutySlotToUnassign = slotinfo
             this.confirmUnassign = true;
         }
@@ -451,7 +446,6 @@
                 let unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyBin.startBin, dutyBin.endBin); 
                               
                 for(const dutySlot of dutyInfo.dutySlots){
-                    // console.log(dutySlot)
                     let id = 1000;
                     const assignedDutyBin = this.getTimeRangeBins(dutySlot.startDate, dutySlot.endDate,startOfDay, dutySlot.timezone)
                     unassignedArray = this.fillInArray(unassignedArray,0,assignedDutyBin.startBin, assignedDutyBin.endBin);
@@ -460,7 +454,6 @@
                     const isNotRequiredOrAvailable = (dutySlot.isNotAvailable || dutySlot.isNotRequired)
                     const isNotRequiredOrAvailableTitle = dutySlot.isNotRequired? 'Not Required':'Not Available'
                     const isNotRequiredOrAvailableSheriffId = dutySlot.isNotRequired? '00000-00000-11111':'00000-00000-22222'
-                    //console.log(isNotRequiredOrAvailable)                    
 
                     this.dutyBlocks.push({
                         id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'n'+id++,                    
@@ -484,8 +477,7 @@
                 this.extractUnassignedArrays(unassignedArray);
 
                 for(const unassignInx in this.unassignedArray){
-                    //console.log(unassignInx)
-                    // console.log(this.unassignedArray[unassignInx])
+        
                     const unassignedBin = this.getArrayRangeBins(this.unassignedArray[unassignInx]);
                     const unassignedSlotTime = this.convertTimeRangeBinsToTime(startOfDay, unassignedBin.startBin, unassignedBin.endBin);
                     this.dutyBlocks.push({
@@ -508,7 +500,6 @@
                 }
 
                 this.dutyBlocks = _.sortBy(this.dutyBlocks,'startTime')
-                //console.log(unassignedArray)
 
                 if(this.dutyBlocks.length>1)
                     for(const dutyBlockInx in this.dutyBlocks){
@@ -517,7 +508,6 @@
 
                 
             }
-            //console.log(this.dutyBlocks)
 
             this.isMounted = true;           
         }
@@ -529,12 +519,9 @@
                 if((unassignedArray[valueInx]>0 && valueInx==0)||(unassignedArray[valueInx]>0 && unassignedArray[valueInx-1]==0)) startBin = valueInx;
                 
                 if((unassignedArray[valueInx]>0 && valueInx==(unassignedArray.length-1))||(unassignedArray[valueInx]>0 && unassignedArray[valueInx+1]==0)){
-                    //console.log(startBin)
-                    //console.log(valueInx)
+
                     const array = this.fillInArray(Array(96).fill(0),1, startBin, valueInx+1)
-                    //console.log(array)
                     this.unassignedArray.push(array)
-                    //console.log(this.unassignedArray)
                 } 
             }
         }
@@ -562,23 +549,21 @@
         
         public drop(event: any) 
         {
-            console.log(event.target.id)
+
             if(event.target.id){
                 const cardid = event.dataTransfer.getData('text');
                 if(cardid.includes('moveduty')){
-                    console.log('moved')
-                    console.log()
                     const fromDutySlotId = cardid.slice(8)
                     this.moveSheriff(fromDutySlotId,this.dutyId,this.localTime.timeString)
                     return
                 }
                 const blockId: string = event.target.id;
                 const unassignedBlockId = Number(blockId.substring(blockId.indexOf('n')+1));
-                console.log(unassignedBlockId)
+
                 if(unassignedBlockId>=1000) return
-                // console.log(cardid)
+
                 const sheriffId = cardid.slice(7)
-                // console.log(sheriffId)
+
                 const unassignedArray = this.unassignedArray[unassignedBlockId]
 
                 if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'){
@@ -596,32 +581,22 @@
 
                 const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
                 const availability = sheriff.availability
-                const duties = sheriff.duties
-                // console.log(sheriff)
-                // console.log(unassignedArray)
-                // console.log(availability)
-                // console.log(duties)                
+                const duties = sheriff.duties          
 
                 const unionUnassignAvail = this.unionArrays(unassignedArray, availability)
-                console.log(unionUnassignAvail)
                 
                 if(this.sumOfArrayElements(unionUnassignAvail)>0){
-                    console.log('call assign')
+
                     const editedDutySlots: assignDutySlotsInfoType[] =[]
 
                     const discontinuity = this.findDiscontinuity(unionUnassignAvail);
                     const iterationNum = Math.floor((this.sumOfArrayElements(discontinuity) +1)/2);
-                    console.log(iterationNum);
-                    console.log(discontinuity);
 
                     for(let i=0; i< iterationNum; i++){
                         const inx1 = discontinuity.indexOf(1)
                         let inx2 = discontinuity.indexOf(2)
                         discontinuity[inx1]=0
                         if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
-                        console.error(inx1 + ' ' +inx2) 
-                        //console.log(unionSelectedRangeAvail.slice(inx1,inx2).includes(1))
-                        //console.log(unionSelectedRangeAvail[inx1])
                         const slotTime = this.convertTimeRangeBinsToTime(this.dutyDate, inx1, inx2)
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
@@ -630,17 +605,15 @@
                             dutySlotId: null,
                         })
                     }
-                    console.log(editedDutySlots)
+
                     this.assignDuty(sheriffId, editedDutySlots, false)
                     
                 }else{
                     const unionUnassignDuties = this.unionArrays(unassignedArray, duties)
                     if(this.sumOfArrayElements(unionUnassignDuties)>0){
-                        console.log('overtime conflicts')
                         this.assignDutyErrorMsg = "This team member is already assigned to conflicting duties.";
                         this.assignDutyError = true;
                     }else{
-                        console.log('call assign overtime')
                         const timeRangeBins = this.getArrayRangeBins(unassignedArray);
                         this.overTimeTimeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
                         this.overTimeSheriffId = sheriffId;
@@ -688,8 +661,6 @@
             const array = _.clone(arrayOriginal);
             const startBin: number = array.findIndex(arr=>{if(arr>0) return true });
             const binValue: number = startBin>=0? array[startBin]: 1;
-            //console.log(startBin)
-            //console.log(array[startBin])
             return({
                 startBin: startBin ,
                 endBin: (96-array.reverse().findIndex(arr=>{if(arr>0) return true })),
@@ -727,13 +698,9 @@
                 
                 const dutySlots: dutySlotInfoType[] = [];
                 const dutySlotIds: number[] = [];
-                console.log(dutyInfo)
                 
                 for(const dutySlot of editedDutySlots){
-                    console.log(dutySlot.startDate)
-                    console.log(dutySlot.endDate)
-                    console.log(dutySlot.shiftId)
-                    console.log(dutySlot.dutySlotId)
+
                     if(dutySlot.dutySlotId) dutySlotIds.push(dutySlot.dutySlotId)
 
                     if(!unassignSheriff)
@@ -782,7 +749,6 @@
                     }
                 ];
                 
-                console.log(body)
                 const url = 'api/dutyroster';
                 this.$http.put(url, body )
                     .then(response => {
@@ -798,14 +764,11 @@
             }
         }
 
-        public DragStart(event: any) 
-        { 
+        public DragStart(event: any){ 
             event.dataTransfer.setData('text', event.target.id);
-            console.log(event.target.id)
         }
 
         public  moveSheriff(fromDutySlotId,toDutyId,separationTime){
-            console.log(separationTime)
             const url = 'api/dutyroster/movesheriff?fromDutySlotId='+fromDutySlotId+'&toDutyId='+toDutyId+'&separationTime='+separationTime;
                 this.$http.put(url)
                     .then(response => {

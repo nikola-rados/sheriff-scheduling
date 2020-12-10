@@ -352,9 +352,7 @@
 		assignmentErrorMsgDesc = '';
 
         mounted() {
-			// this.userIsAdmin = this.userDetails.roles.includes("Administrator");
-			this.runMethod.$on('addassign', this.addAssignment)
-			//console.log(this.runMethod)
+			this.runMethod.$on('addassign', this.addAssignment)			
 			this.selectedDate = moment().format().substring(0,10);			
 			this.loadNewDateRange();
 		}
@@ -677,7 +675,6 @@
 			this.selectedDateBegin = moment(this.selectedDate).startOf(dateType).format()
 			this.selectedDateEnd = moment(this.selectedDate).endOf(dateType).format();
 			const dateRange = {startDate: this.selectedDateBegin, endDate: this.selectedDateEnd}
-			console.log(dateRange)
 			this.UpdateDutyRangeInfo(dateRange);
 			this.$emit('change',this.activetab); 
 		}

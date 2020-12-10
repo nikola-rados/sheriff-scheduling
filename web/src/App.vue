@@ -70,6 +70,7 @@
                 .then(response => {
                     if(response.data){
                         const userData = response.data;
+                        console.log(response.data)
                         this.UpdateUser({
                             roles: userData.roles,
                             homeLocationId: userData.homeLocationId,
