@@ -2,7 +2,7 @@
 
 namespace SS.Api.models.dto
 {
-    public class CreateSheriffDto : SheriffDto
+    public class SheriffWithIdirDto : SheriffDto
     {
         public string IdirName { get; set; }
     }
