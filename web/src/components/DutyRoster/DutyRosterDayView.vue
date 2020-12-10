@@ -8,7 +8,8 @@
             sort-by="assignment"
             small
             head-row-variant="primary"   
-            borderless                   
+            borderless
+            :sticky-header="displayFooter?'37rem':'33rem'"                  
             fixed>
                 <template v-slot:table-colgroup>
                     <col style="width:9rem">                            
