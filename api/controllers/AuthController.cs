@@ -69,6 +69,7 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
             return Ok();
         }
 
@@ -113,7 +114,19 @@ namespace SS.Api.Controllers
             var permissions = HttpContext.User.FindAll(CustomClaimTypes.Permission).SelectToList(r => r.Value);
             var userId = HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value;
             var homeLocationId = HttpContext.User.FindFirst(CustomClaimTypes.HomeLocationId)?.Value;
-            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, IsImpersonated = IsImpersonated, DateTime.UtcNow });
+            var firstName = HttpContext.User.FindFirst(CustomClaimTypes.FirstName)?.Value;
+            var lastName = HttpContext.User.FindFirst(CustomClaimTypes.LastName)?.Value;
+            return Ok(new
+            {
+                Permissions = permissions,
+                Roles = roles,
+                UserId = userId,
+                FirstName = firstName,
+                LastName = lastName,
+                HomeLocationId = homeLocationId,
+                IsImpersonated = IsImpersonated,
+                DateTime.UtcNow
+            });
         }
     }
 }
