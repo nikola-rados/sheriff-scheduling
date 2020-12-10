@@ -27,7 +27,7 @@
             <b-dropdown-item to="/team-members">My Team Members</b-dropdown-item>
             <b-dropdown-item to="/define-roles-access">Define Roles & Access</b-dropdown-item>
           </b-nav-item-dropdown>
-          <b-nav-item-dropdown text="Manage Types" dropdown >
+          <b-nav-item-dropdown text="Manage Types" dropdown :disabled="!hasPermissionToEditManageTypes">
             <b-dropdown-item to="/assignment-types">Assignment Types</b-dropdown-item>
             <b-dropdown-item to="/leave-training-types">Leave & Training Types</b-dropdown-item>
           </b-nav-item-dropdown>
@@ -99,11 +99,16 @@
     userIsAdmin = false;
     selectedLocation ={} as locationInfoType;
     locationDataReady = false;
+    hasPermissionToEditManageTypes = false;
      
     mounted() {
+      this.getModulePermissions();
       this.getCurrentLocation();
-      // this.userIsAdmin = this.userDetails.roles.includes("Administrator");
       this.disableLocationChange = false;
+    }
+
+    public getModulePermissions() {
+      this.hasPermissionToEditManageTypes = this.userDetails.permissions.includes("EditTypes");
     }
 
     public getCurrentLocation()

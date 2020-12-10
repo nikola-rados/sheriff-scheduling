@@ -377,9 +377,10 @@
 			
             this.confirmDelete = false;
             this.deleteError = false;
+            const body = [this.dutyBlocksDay[0].dutyId]
             const url = 'api/dutyroster?id=' + this.dutyBlocksDay[0].dutyId;
         
-            this.$http.delete(url)
+            this.$http.delete(url, {data:body})
                 .then(response => {
                     // console.log(response);
                     this.confirmDelete = false;
