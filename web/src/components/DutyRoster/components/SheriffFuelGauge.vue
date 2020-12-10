@@ -57,7 +57,7 @@
                 <b-card 
                 class="bg-light"
                     header="Colours" 
-                    header-class=" m-0 p-0 bg-primary text-white text-center" 
+                    header-class=" m-0 p-0 bg-primary text-white text-center no-top-rounding" 
                     no-body>
                     <b-row style="margin:0 0 .25rem .25rem; width:7.6rem;">
                         <div
