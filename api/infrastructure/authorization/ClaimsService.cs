@@ -40,6 +40,8 @@ namespace SS.Api.infrastructure.authorization
 
             claims.AddRange(user.ActiveRoles.SelectToList(r => new Claim(ClaimTypes.Role, r.Role.Name)));
             claims.AddRange(user.Permissions.SelectDistinctToList(p => new Claim(CustomClaimTypes.Permission, p.Name)));
+            claims.Add(new Claim(CustomClaimTypes.FirstName, user.FirstName));
+            claims.Add(new Claim(CustomClaimTypes.LastName, user.LastName));
             claims.Add(new Claim(CustomClaimTypes.UserId, user.Id.ToString()));
             if (user.HomeLocationId.HasValue)
                 claims.Add(new Claim(CustomClaimTypes.HomeLocationId, user.HomeLocationId.ToString()));
