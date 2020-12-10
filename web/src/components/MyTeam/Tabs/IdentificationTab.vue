@@ -4,7 +4,7 @@
             <h2 v-if="identificationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="identificationErrorMsgDesc"  variant="danger"> {{identificationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="identificationError = false" /></b-badge></h2>
         </b-card>
 
-        <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
+        <b-form-group class="mx-1"><label>IDIR User Name<span class="text-danger">*</span></label>
             <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
         </b-form-group>
         <h2 class="mx-1 mt-0"><b-badge v-if="duplicateIdir" variant="danger"> Duplicate IDIR</b-badge></h2>
@@ -237,7 +237,7 @@ export default class IdentificationTab extends Vue {
     public saveMemberProfile() {     
         let requiredError = false;
 
-        if (this.createMode && !this.user.idirUserName) {
+        if (!this.user.idirUserName) {
             this.idirUserNameState = false;
             requiredError = true;
         } else {
