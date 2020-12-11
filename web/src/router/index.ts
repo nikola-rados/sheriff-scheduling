@@ -71,13 +71,14 @@ const routes: Array<RouteConfig> = [
   {    
     path: '/manage-shift-schedule',
     name: 'ManageSchedule',
-    beforeEnter: displayFooter,
-    component: ManageSchedule
+    beforeEnter: checkPermission,
+    component: ManageSchedule,
+    meta:{requiredPermission: 'ViewShifts'}
   },
   {
     path: '/distribute-shift-schedule',
     name: 'DistributeSchedule',
-    beforeEnter: displayFooter,
+    beforeEnter: checkPermission,
     component: DistributeSchedule,
     meta:{requiredPermission: 'ViewDistributeSchedule'}  
   },
