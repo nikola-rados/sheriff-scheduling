@@ -73,8 +73,10 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        const userData = response.data;                        
+                        const userData = response.data;  
                         this.UpdateUser({
+                            firstName: userData.firstName,
+                            lastName: userData.lastName,
                             roles: userData.roles,
                             homeLocationId: userData.homeLocationId,
                             permissions: userData.permissions

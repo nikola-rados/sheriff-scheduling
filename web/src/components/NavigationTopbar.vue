@@ -17,6 +17,7 @@
 						alt="B.C. Government Logo"
 					/>
 			</b-navbar-brand>
+            <b-navbar-nav v-else style="height:3rem"/>
             
 			<b-navbar-nav v-if="displayHeader" class="mt-1 mx-5">
 				<b-nav-item :disabled="!hasPermissionToViewDutyRosterPage" to="/duty-roster" ><div style="display: inline-block; white-space: nowrap;">Duty Roster</div></b-nav-item>         
@@ -51,12 +52,12 @@
                         </b-form-select-option>                  
                     </b-form-select>
                 </b-input-group>
-                <b-nav-item-dropdown class="mb-3" dropdown>
+                <b-nav-item-dropdown right class="mb-3" menu-class="bg-info"  dropdown>
                     <template v-slot:button-content>
                         <b-icon-person-circle></b-icon-person-circle>
                     </template>
-                    <b-dropdown-text>USER</b-dropdown-text>
-                    <!-- <b-dropdown-item-button variant="danger" @click="signout()">Sign out</b-dropdown-item-button> -->
+                    <b-dropdown-text class="text-primary"><b-icon-person/> {{userDetails.firstName}} {{userDetails.lastName}}</b-dropdown-text>
+                    <b-dropdown-item-button variant="danger" @click="signout()"><b-icon-box-arrow-right/> Sign out</b-dropdown-item-button>
                 </b-nav-item-dropdown>
                 <b-nav-item-dropdown class="mb-3 mr-5" dropdown>
                     <template v-slot:button-content>
@@ -76,7 +77,6 @@
 	import {commonInfoType, locationInfoType, userInfoType} from '../types/common';  
 	const commonState = namespace("CommonInformation");
     import store from "@/store";
-    //import Vue from "vue"
 
 	@Component
 	export default class NavigationTopbar extends Vue {
@@ -160,4 +160,7 @@
 
 <style scoped>   
 
+    ul >>> .dropdown-menu {
+        width: 250px !important;
+    }
 </style>
