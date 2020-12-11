@@ -12,7 +12,7 @@
 							width="177"
 							height="44"
 							alt="B.C. Government Logo"
-						/> Login To Sheriff Schedualing</b-button>
+						/> Login To Sheriff Scheduling</b-button>
         </b-card>
         <!-- <b-button class="py-2 px-5 m-5" @click="del()"> del</b-button> -->
     </b-card>
