@@ -9,17 +9,17 @@
                     sort-by="availability"
                     :sort-desc="true"
                     class="gauge"                   
-                    sticky-header="200px"                        
+                    sticky-header="7rem"                        
                     bordered                    
                     fixed>
                         <template v-slot:table-colgroup> 
-                            <col>                                      
                             <col style="width:7.7rem">
+                            <col>
                         </template>
 
                         <template v-slot:head(availability) >
                             <div class="gridfuel24">
-                                <div v-for="i in 24" :key="i" :style="{gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/1'}">{{getBeautifyTime(24-i)}}</div>
+                                <div v-for="i in 24" :key="i" :style="{gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/1'}">{{getBeautifyTime(i-1)}}</div>
                             </div>
                         </template>
 
@@ -27,7 +27,8 @@
                             <sheriff-availability-card class="m-0 p-0" :sheriffInfo="data.item" />
                         </template>
 
-                        <template v-slot:head(name) >                           
+                        <template v-slot:head(name) > 
+                             My Team                          
                             <b-button
                                 @click="closeDisplayMyteam()"
                                 v-b-tooltip.hover.right                            
@@ -36,7 +37,7 @@
                                 size="sm">
                                     <b-icon-bar-chart-steps /> 
                             </b-button>
-                             My Team
+                            
                         </template>
 
                          <template v-slot:cell(name)="data" >
@@ -55,7 +56,7 @@
             <b-col class="m-0 p-0" cols="1" >
                 <b-card 
                 class="bg-light"
-                    header="Colors" 
+                    header="Colours" 
                     header-class=" m-0 p-0 bg-primary text-white text-center" 
                     no-body>
                     <b-row style="margin:0 0 .25rem .25rem; width:7.6rem;">
@@ -106,8 +107,9 @@
         myTeamMembers: any[] = []
 
         gaugeFields = [
+            {key:'name', label:'My Team', thClass:'text-center text-white bg-primary', tdClass:' py-0 my-0', thStyle:'margin:0; padding:0;'},
             {key:'availability', label:'', thClass:'text-white bg-primary', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'},
-            {key:'name', label:'My Team', thClass:'text-center text-white bg-primary', tdClass:' py-0 my-0', thStyle:'margin:0; padding:0;'}            
+            
         ]
 
         mounted()
@@ -205,7 +207,7 @@
     }
 
     .gauge {
-        direction:rtl;
+       
         position: sticky;
         overflow-y: scroll;
     }

@@ -16,6 +16,40 @@ function displayFooter(to: any, from: any, next: any) {
   next();
 }
 
+function waitFor(callback) {
+  
+  if(!store.state.CommonInformation.userDetails.homeLocationId) {
+      
+      window.setTimeout(waitFor.bind(null, callback), 100);
+
+  } else {
+      
+      callback();
+  }
+}
+
+async function checkPermission(to: any, from: any, next: any) {
+
+  try {
+    
+    await store.state.CommonInformation.userDetails;
+    await waitFor(() => {
+      
+      if (store.state.CommonInformation.userDetails.permissions.includes(to.meta.requiredPermission)){
+        
+        displayFooter(to, from, next);	
+      } else {
+        next({ path: "/" });
+      }
+
+    })  
+
+  } catch(e) {
+    next({ path: "/" });
+  } 
+
+}
+
 const routes: Array<RouteConfig> = [
   {
     path: '/',
@@ -61,14 +95,16 @@ const routes: Array<RouteConfig> = [
   {    
     path: '/assignment-types',
     name: 'AssignmentTypes',
-    beforeEnter: displayFooter,
-    component: AssignmentTypes
+    beforeEnter: checkPermission,
+    component: AssignmentTypes,
+    meta: {requiredPermission: 'EditTypes'}
   },
   {
     path: '/leave-training-types',
     name: 'LeaveTrainingTypes',
-    beforeEnter: displayFooter,
-    component: LeaveTrainingTypes  
+    beforeEnter: checkPermission,
+    component: LeaveTrainingTypes,
+    meta: {requiredPermission: 'EditTypes'}  
   }
 ]
 

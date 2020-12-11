@@ -31,7 +31,7 @@ namespace SS.Api.controllers
         
         [HttpGet]
         [Route("{id}")]
-        [PermissionClaimAuthorize(perm: Permission.ViewManageTypes)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         public async Task<ActionResult<LookupCodeDto>> Find(int id)
         {
             var entity = await ManageTypesService.Find(id);
@@ -41,7 +41,7 @@ namespace SS.Api.controllers
         }
 
         [HttpGet]
-        [PermissionClaimAuthorize(perm: Permission.ViewManageTypes)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         public async Task<ActionResult<List<LookupCodeDto>>> GetAll(LookupTypes? codeType, int? locationId, bool showExpired = false)
         {
             var lookupCodesDtos = (await ManageTypesService.GetAll(codeType, locationId, showExpired)).Adapt<List<LookupCodeDto>>();

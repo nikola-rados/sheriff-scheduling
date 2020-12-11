@@ -161,7 +161,7 @@
 					}
 				}`,
 				`.card {border: white;}`,
-				`td {height: 5rem;}`
+				`td {height: 2.5rem;}`
 			]
 			const pageToPrint = document.getElementById("pdf")
 			if(pageToPrint) pdfPage.print(pageToPrint, styles)
