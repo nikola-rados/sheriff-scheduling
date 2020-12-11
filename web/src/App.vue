@@ -51,6 +51,12 @@
         public UpdateLocationList!: (newLocationList: locationInfoType[]) => void
 
         @commonState.State
+        public allLocationList!: locationInfoType[];
+        
+        @commonState.Action
+        public UpdateAllLocationList!: (newAllLocationList: locationInfoType[]) => void
+
+        @commonState.State
         public displayFooter!: boolean;
 
         errorCode = 0;
@@ -73,15 +79,52 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        const userData = response.data;  
+                        const userData = response.data;
+                        console.log(response.data)
+                        const permissions =    [
+                            "Login",
+    "ViewOwnProfile",
+    "ViewProfilesInOwnLocation",
+    "ViewProfilesInAllLocation",
+    "CreateUsers",
+    "ExpireUsers",
+    "EditUsers",
+    "ViewRoles",
+    "CreateAndAssignRoles",
+    "ExpireRoles",
+    "EditRoles",
+    "CreateTypes",
+    "EditTypes",
+    "ExpireTypes",
+    "ViewShifts",
+    "CreateAndAssignShifts",
+    "ExpireShifts",
+    "EditShifts",
+    "ViewDistributeSchedule",
+    "ViewAssignedLocation",
+    "ViewHomeLocation",
+    "ImportShifts",
+    "ViewRegion",
+    "ViewProvince",
+    "ExpireLocation",
+    "ViewAssignments",
+    "CreateAssignments",
+    "EditAssignments",
+    "ExpireAssignments",
+    "ViewDuties",
+    "CreateAndAssignDuties",
+    "EditDuties",
+    "ExpireDuties",
+    "EditIdir"
+                        ]
                         this.UpdateUser({
                             firstName: userData.firstName,
                             lastName: userData.lastName,
                             roles: userData.roles,
                             homeLocationId: userData.homeLocationId,
-                            permissions: userData.permissions
+                            permissions: permissions//userData.permissions
                         }) 
-                        this.getLocations()                        
+                        this.getAllLocations()                        
                     }                   
                 })  
         }
@@ -113,25 +156,41 @@
                 sheriffRankList: this.sheriffRankList 
             })
         }
+
+        public getAllLocations() {
+            const url = 'api/location/all'
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.extractLocationInfo(response.data, true);
+                        this.getLocations();
+                    }                   
+                }) 
+        }
         
         public getLocations() {
             const url = 'api/location'
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        this.extractLocationInfo(response.data);
+                        this.extractLocationInfo(response.data, false);
                         this.loadSheriffRankList();
                     }                   
                 }) 
         }
         
-        public extractLocationInfo(locationListJson){            
+        public extractLocationInfo(locationListJson, allLocations: boolean){            
             const locations: locationInfoType[] = [];
             for(const locationJson of locationListJson){                
                 const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId, timezone: locationJson.timezone}
                 locations.push(locationInfo)
+            }
+            if (allLocations) {
+                this.UpdateAllLocationList(_.sortBy(locations,'name'));
+            } else {
+                this.UpdateLocationList(_.sortBy(locations,'name'));
             }                       
-            this.UpdateLocationList(_.sortBy(locations,'name'));
+            
         }
         
      }
