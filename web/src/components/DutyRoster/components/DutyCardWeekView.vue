@@ -107,7 +107,7 @@
                                     {{data.value}}</div>
                             </template>
 
-                            <template v-slot:cell(editDutySlot)="data" >          
+                            <template v-if="hasPermissionToEditDuty" v-slot:cell(editDutySlot)="data" >          
                                 <b-button style="width:1.2rem;float:right" 
                                         class="ml-1 mr-0 my-0 py-0"
                                         size="sm" 
@@ -160,6 +160,7 @@
 
 			<template v-slot:modal-footer>
 				<b-button
+                        :disabled="!hasPermissionToExpireDuty"
 						size="sm"
 						variant="danger"
 						class="mr-auto"
@@ -237,7 +238,7 @@
     import moment from 'moment-timezone';
     import AddDutySlotWeekForm from './AddDutySlotWeekForm.vue'
     import {dutyRangeInfoType, dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockWeekInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
-    import {localTimeInfoType} from '../../../types/common';
+    import {localTimeInfoType, userInfoType} from '../../../types/common';
 
     import { namespace } from "vuex-class";
     import "@store/modules/CommonInformation";
@@ -257,6 +258,9 @@
 
         @commonState.State
         public localTime!: localTimeInfoType;
+
+        @commonState.State
+        public userDetails!: userInfoType;
 
         @Prop({required: true})
         dutyRosterInfo!: assignmentCardInfoType;
@@ -303,6 +307,8 @@
 
         showEditDutyDetails = false;
         isDutyDataMounted = false;
+        hasPermissionToEditDuty = false;
+        hasPermissionToExpireDuty = false;
         showEditCancelWarning = false;
         confirmDelete = false;
         dutySlotToDelete = {} as dutyBlockWeekInfoType;
@@ -330,6 +336,8 @@
 
         mounted()
         {
+            this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");
+            this.hasPermissionToExpireDuty = this.userDetails.permissions.includes("ExpireDuties");
             this.assignmentName = this.getDutyName()
 
             for(let day=0; day<7; day++)
@@ -348,17 +356,19 @@
             else return '';
         }
 
-        public editDuty(day){			
-			this.isDutyDataMounted = false;
+        public editDuty(day){
+            this.isDutyDataMounted = false;
             this.dutyBlocksDay = this.dutyBlocks.filter(dutyBlock=>{if(dutyBlock.day==day)return true;})
             this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment+'D'+day);
             this.showEditDutyDetails = true;
-            this.isDutyDataMounted = true;					           
+            this.isDutyDataMounted = true;
         }
 
         public confirmDeleteDuty(){
-			this.deleteError = false;
-			this.confirmDelete = true;
+            if (this.hasPermissionToExpireDuty) {
+                this.deleteError = false;
+                this.confirmDelete = true;
+            }
         }
         
         public cancelDeletion() {

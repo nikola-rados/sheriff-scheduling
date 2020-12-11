@@ -50,7 +50,7 @@
                 <b-button
                     class="bg-white"
                     style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0"
-					:disabled="isDeleted" 
+					:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
                     @click="addDuty();"
                     size="sm"> 
                         <b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
@@ -235,6 +235,7 @@
 
 			<template v-slot:modal-footer>
 				<b-button
+						:disabled="!hasPermissionToExpireAssignment"
 						size="sm"
 						variant="danger"
 						class="mr-auto"
@@ -246,6 +247,7 @@
 						@click="closeEditAssignmentWindow()"
 				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
 				<b-button
+						:disabled="!hasPermissionToEditAssignment"
 						size="sm"
 						variant="success"
 						@click="saveAssignment()"
@@ -348,7 +350,7 @@
     import "@store/modules/DutyRosterInformation";   
 	const dutyState = namespace("DutyRosterInformation");
 	import * as _ from 'underscore';
-    import { localTimeInfoType, locationInfoType } from '../../../types/common';
+    import { localTimeInfoType, locationInfoType, userInfoType } from '../../../types/common';
     import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
 
     @Component
@@ -361,7 +363,10 @@
 		weekview!: boolean;
 
         @commonState.State
-        public location!: locationInfoType;
+		public location!: locationInfoType;
+		
+		@commonState.State
+        public userDetails!: userInfoType;
 
         @dutyState.State
 		public dutyRangeInfo!: dutyRangeInfoType;
@@ -385,6 +390,9 @@
 		showEditAssignmentDetails = false;
 		showEditCancelWarning = false;
 		isAssignmentDataMounted = false;
+		hasPermissionToEditAssignment = false;
+		hasPermissionToExpireAssignment = false;
+        hasPermissionToAddAssignDuty = false;
 		confirmDelete = false;
 		assignmentDeleteReason = '';
 		initialLoad = false;
@@ -439,6 +447,9 @@
 
         mounted()
         {
+			this.hasPermissionToEditAssignment = this.userDetails.permissions.includes("EditAssignments");
+            this.hasPermissionToExpireAssignment = this.userDetails.permissions.includes("ExpireAssignments");    
+            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");    
 			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
             this.selectedExipryDate = this.localTime.timeString;
 			this.isDeleted = this.determineExpired();
