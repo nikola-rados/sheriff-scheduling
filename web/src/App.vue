@@ -94,6 +94,7 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
+                            this.$router.push({path:'/duty-roster'})
                         }
                     }                   
                 })          
