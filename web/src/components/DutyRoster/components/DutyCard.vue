@@ -13,7 +13,7 @@
             @drop.prevent="drop" >
                 <b 
                     :id="'moveduty'+block.dutySlotId"
-                    :draggable="localTime.isTodayInView" 
+                    :draggable="localTime.isTodayInView && hasPermissionToAddAssignDuty && hasPermissionToEditDuty" 
                     v-on:dragstart="DragStart"
                     :style="dutyBlocks.length>1?dutyBlockStyle:(dutyBlockStyle + 'font-size: 16px;')">
                         {{block.title|truncate(block.endTime - block.startTime-1)}}
@@ -308,6 +308,7 @@
         isDutyDataMounted = false;
         hasPermissionToEditDuty = false;
         hasPermissionToExpireDuty = false;
+        hasPermissionToAddAssignDuty = false;
         showEditCancelWarning = false;
         confirmDelete = false;
         dutySlotToDelete = {} as dutyBlockInfoType;
@@ -335,6 +336,7 @@
         {
             this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");
             this.hasPermissionToExpireDuty = this.userDetails.permissions.includes("ExpireDuties");    
+            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
             this.assignmentName = this.getDutyName()
             this.dutyId = (this.dutyRosterInfo && this.dutyRosterInfo.attachedDuty)? this.dutyRosterInfo.attachedDuty.id:0;
             this.isMounted = false;

@@ -55,7 +55,7 @@
                         <b-icon-person-circle></b-icon-person-circle>
                     </template>
                     <b-dropdown-text>USER</b-dropdown-text>
-                    <b-dropdown-item-button variant="danger" @click="signout()">Sign out</b-dropdown-item-button>
+                    <!-- <b-dropdown-item-button variant="danger" @click="signout()">Sign out</b-dropdown-item-button> -->
                 </b-nav-item-dropdown>
                 <b-nav-item-dropdown class="mb-3 mr-5" dropdown>
                     <template v-slot:button-content>
@@ -121,7 +121,7 @@
             this.hasPermissionToViewSchedulePages = this.hasPermissionToViewDistributeSchedule || this.hasPermissionToViewManageSchedule;
             const hasViewAssignmentPermission = this.userDetails.permissions.includes("ViewAssignments");
             const hasViewDutiesPermission = this.userDetails.permissions.includes("ViewDuties");
-            this.hasPermissionToViewDutyRosterPage = hasViewAssignmentPermission && hasViewDutiesPermission;
+            this.hasPermissionToViewDutyRosterPage = hasViewAssignmentPermission && hasViewDutiesPermission && this.hasPermissionToViewManageSchedule;
         }
 
 		public getCurrentLocation()

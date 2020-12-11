@@ -221,6 +221,7 @@ export default class IdentificationTab extends Vue {
             (this.userToEdit.lastName != this.user.lastName) ||
             (this.userToEdit.gender != this.user.gender) ||
             (this.userToEdit.email != this.user.email) ||
+            (this.userToEdit.idirUserName != this.user.idirUserName) ||
             (this.userToEdit.badgeNumber != this.user.badgeNumber) ||
             (this.userToEdit.rank != this.user.rank) ||                    
             (this.userToEdit.homeLocationId != this.user.homeLocationId)) return true;
