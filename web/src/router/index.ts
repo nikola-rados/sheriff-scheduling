@@ -1,6 +1,7 @@
 import { RouteConfig } from 'vue-router'
 import VueResource from 'vue-resource'
 import Home from '@components/Home.vue'
+import Logout from '@components/Logout.vue'
 import DutyRoster from '@components/DutyRoster/DutyRoster.vue'
 import ManageSchedule from '@components/ShiftSchedule/ManageSchedule.vue'
 import DistributeSchedule from '@components/ShiftSchedule/DistributeSchedule.vue'
@@ -9,6 +10,11 @@ import DefineRolesAccess from '@components/MyTeam/DefineRolesAccess.vue'
 import AssignmentTypes from '@components/ManageTypes/AssignmentTypes.vue'
 import LeaveTrainingTypes from '@components/ManageTypes/LeaveTrainingTypes.vue'
 import store from "@/store";
+
+function dontDisplayHeader(to: any, from: any, next: any) {
+	store.commit('CommonInformation/setDisplayHeader',false);
+	next();
+}
 
 function displayFooter(to: any, from: any, next: any) {
 	store.commit('CommonInformation/setDisplayFooter',true);
@@ -57,6 +63,12 @@ const routes: Array<RouteConfig> = [
 		name: 'Home',
 		beforeEnter: displayFooter,
 		component: Home
+	},
+	{
+		path: '/logout',
+		name: 'Logout',
+		beforeEnter: dontDisplayHeader,
+		component: Logout
 	},
 	{
 		path: '/duty-roster',

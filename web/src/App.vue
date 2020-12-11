@@ -60,8 +60,12 @@
         currentLocation;
        
         mounted() {
-            this.isCommonDataReady = false;            
-            this.loadUserDetails();
+            this.isCommonDataReady = false; 
+            console.log(Vue.$cookies.get("logout"))           
+            if (Vue.$cookies.isKey("logout"))
+                this.isCommonDataReady = true;            
+            else 
+                this.loadUserDetails();
         }
 
         public loadUserDetails() {

@@ -1,7 +1,7 @@
 <template>
 	<header class="app-header">
 		<b-navbar toggleable="lg" class="navbar navbar-expand-lg navbar-dark">    
-			<b-navbar-brand class="mt-1" href="https://www2.gov.bc.ca">
+			<b-navbar-brand v-if="displayHeader" class="mt-1" href="https://www2.gov.bc.ca">
 					<img 
 							class="img-fluid d-none d-lg-block"          
 							src="../../public/images/bcid-logo-rev-en.svg"
@@ -17,7 +17,8 @@
 						alt="B.C. Government Logo"
 					/>
 			</b-navbar-brand>
-			<b-navbar-nav class="mt-1 mx-5">
+            
+			<b-navbar-nav v-if="displayHeader" class="mt-1 mx-5">
 				<b-nav-item :disabled="!hasPermissionToViewDutyRosterPage" to="/duty-roster" ><div style="display: inline-block; white-space: nowrap;">Duty Roster</div></b-nav-item>         
                 <b-nav-item-dropdown text="Shift Schedule" dropdown :disabled="!hasPermissionToViewSchedulePages">
                     <b-dropdown-item v-if="hasPermissionToViewManageSchedule" to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
@@ -32,7 +33,7 @@
                     <b-dropdown-item to="/leave-training-types">Leave & Training Types</b-dropdown-item>
                 </b-nav-item-dropdown>
 			</b-navbar-nav>
-			<b-navbar-nav class="ml-5 mt-1 mr-5">
+			<b-navbar-nav v-if="displayHeader" class="ml-5 mt-1 mr-5">
                 <b-input-group v-if="locationDataReady" class="mr-2 mt-1" style="height: 40px">
                     <b-input-group-prepend is-text>
                         <b-icon icon="globe"></b-icon>
@@ -69,16 +70,19 @@
 </template>
 
 <script lang="ts">
-	import { Component, Vue } from 'vue-property-decorator';
+	import { Component, Vue} from 'vue-property-decorator';
 	import { namespace } from "vuex-class";
 	import "@store/modules/CommonInformation";  
 	import {commonInfoType, locationInfoType, userInfoType} from '../types/common';  
 	const commonState = namespace("CommonInformation");
-	import axios from "axios";
-	import store from "@/store";
+    import store from "@/store";
+    //import Vue from "vue"
 
 	@Component
 	export default class NavigationTopbar extends Vue {
+
+        @commonState.State
+        public displayHeader!: boolean;
 
 		@commonState.State
 		public userDetails!: userInfoType;
@@ -144,17 +148,11 @@
 			if (this.selectedLocation.name.length > 0) this.locationDataReady = true;
         }
         
-        public signout(){
-            // console.log(document.cookie)
-            const url = 'api/auth/logout'
+        public signout(){            
             store.commit('CommonInformation/setToken','');
             store.commit('CommonInformation/setTokenExpiry','');
-            axios.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)                                      
-                    }                   
-                })  
+            Vue.$cookies.set("logout","1",)
+            window.location.replace(`${process.env.BASE_URL}api/auth/logout`);            
         }
 
 	}
