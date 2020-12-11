@@ -110,7 +110,7 @@
                                     {{data.value}}</div>
                             </template>
 
-                            <template v-slot:cell(editDutySlot)="data" >          
+                            <template v-if="hasPermissionToEditDuty" v-slot:cell(editDutySlot)="data" >          
                                 <b-button style="width:1.2rem;float:right" 
                                         class="ml-1 mr-0 my-0 py-0"
                                         size="sm" 
@@ -163,6 +163,7 @@
 
 			<template v-slot:modal-footer>
 				<b-button
+                        :disabled="!hasPermissionToExpireDuty"
 						size="sm"
 						variant="danger"
 						class="mr-auto"
@@ -240,7 +241,7 @@
     import moment from 'moment-timezone';
     import AddDutySlotForm from './AddDutySlotForm.vue'
     import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
-    import {localTimeInfoType} from '../../../types/common';
+    import {localTimeInfoType, userInfoType} from '../../../types/common';
 
     import { namespace } from "vuex-class";
     import "@store/modules/CommonInformation";
@@ -257,6 +258,9 @@
 
         @commonState.State
         public localTime!: localTimeInfoType;
+
+        @commonState.State
+        public userDetails!: userInfoType;
 
         @Prop({required: true})
         dutyRosterInfo!: assignmentCardInfoType;
@@ -302,6 +306,8 @@
 
         showEditDutyDetails = false;
         isDutyDataMounted = false;
+        hasPermissionToEditDuty = false;
+        hasPermissionToExpireDuty = false;
         showEditCancelWarning = false;
         confirmDelete = false;
         dutySlotToDelete = {} as dutyBlockInfoType;
@@ -327,6 +333,8 @@
 
         mounted()
         {
+            this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");
+            this.hasPermissionToExpireDuty = this.userDetails.permissions.includes("ExpireDuties");    
             this.assignmentName = this.getDutyName()
             this.dutyId = (this.dutyRosterInfo && this.dutyRosterInfo.attachedDuty)? this.dutyRosterInfo.attachedDuty.id:0;
             this.isMounted = false;
@@ -346,12 +354,14 @@
 			this.isDutyDataMounted = false;
             this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
             this.showEditDutyDetails = true;
-            this.isDutyDataMounted = true;					           
+            this.isDutyDataMounted = true;
         }
 
         public confirmDeleteDuty(){
-			this.deleteError = false;
-			this.confirmDelete = true;
+            if (this.hasPermissionToExpireDuty) {
+                this.deleteError = false;
+                this.confirmDelete = true;
+            }
         }
         
         public cancelDeletion() {

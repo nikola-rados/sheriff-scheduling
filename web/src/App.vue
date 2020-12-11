@@ -69,49 +69,11 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        const userData = response.data;
-                        console.log(response.data)
-                        const permissions =    [
-                            "Login",
-                            "ViewOwnProfile",
-                            "ViewProfilesInOwnLocation",
-                            "ViewProfilesInAllLocation",
-                            "CreateUsers",
-                            "ExpireUsers",
-                            "EditUsers",
-                            "ViewRoles",
-                            "CreateAndAssignRoles",
-                            "ExpireRoles",
-                            "EditRoles",
-                            "ViewMyShifts",
-                            "ViewAllShiftsAtMyLocation",
-                            "ViewAllShifts",
-                            "CreateAndAssignShifts",
-                            "ExpireShifts",
-                            "EditShifts",
-                            "ViewDistributeSchedule",
-                            "ViewAssignedLocation",
-                            "ViewRegion",
-                            "ViewProvince",
-                            "ExpireLocation",
-                            "ViewHomeLocation",
-                            "ViewAssignments",
-                            "CreateAssignments",
-                            "EditAssignments",
-                            "ExpireAssignments",
-                            "ViewDuties",
-                            "CreateAndAssignDuties",
-                            "EditDuties",
-                            "ExpireDuties",
-                            "ImportShifts",
-                            "ExpireTypes",
-                            "CreateTypes",
-                            "EditTypes"
-                        ]
+                        const userData = response.data;                        
                         this.UpdateUser({
                             roles: userData.roles,
                             homeLocationId: userData.homeLocationId,
-                            permissions: permissions//userData.permissions
+                            permissions: userData.permissions
                         }) 
                         this.getLocations()                        
                     }                   
