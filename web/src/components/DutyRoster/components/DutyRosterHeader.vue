@@ -25,8 +25,8 @@
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
                         </b-row>
                         <b-row  style="margin:0 auto .25rem auto; width:17rem;">
-                            <div v-if="activetab=='Day'" class="bg-white" style="margin:0 auto; border-radius:3px; width:9rem;">{{selectedDate|beautify-date-weekday}}</div>
-							<div v-else class="bg-white" style="border-radius:3px; width:17rem;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
+                            <div v-if="activetab=='Day'" class="bg-white" style="margin:0 auto; border-radius:3px; width:9rem; font-weight:bold;">{{selectedDate|beautify-date-weekday}}</div>
+							<div v-else class="bg-white" style="border-radius:3px; width:17rem; font-weight:bold;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
 						</b-row>
                     </b-col>
                 </b-navbar-nav>

@@ -34,8 +34,7 @@ namespace SS.Api.controllers.scheduling
         /// This is used in the main shift screen, also used in duty roster to populate the available sheriffs on the right hand side. 
         /// </summary>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or, Permission.ViewAllShifts, Permission.ViewMyShifts,
-            Permission.ViewAllShiftsAtMyLocation)]
+        [PermissionClaimAuthorize(perm: Permission.ViewShifts)]
         public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeDuties = false)
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
