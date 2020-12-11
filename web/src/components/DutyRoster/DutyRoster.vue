@@ -13,7 +13,8 @@
                     v-if="isDutyRosterDataMounted"
                     :key="updateMyTeam" 
                     body-class="mx-2 p-0"
-                    class="bg-dark m-0 p-0">
+                    style="overflow-x: hidden;"
+                    class="bg-dark m-0 p-0 no-top-rounding">
                         <b-card-header header-class="m-0 text-white py-2 px-0"> 
                             My Team
                             <b-button
@@ -28,7 +29,9 @@
                         </b-card-header>
                         <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
                         <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/> 
-                        <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
+                        <div :style="{overflowX: 'hidden', overflowY: 'scroll', height: getheight}">
+                            <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
+                        </div>
                 </b-card>
             </b-col>
         </b-row>
@@ -153,6 +156,13 @@
         public updateCurrentTimeCallBack() {
             this.updateCurrentTime();
             window.setTimeout(this.updateCurrentTime, 60000);
+        }
+
+        get getheight(){
+            if(this.displayFooter) 
+                return '35rem';
+            else 
+                return '33rem';
         }
 
     }

@@ -4,7 +4,7 @@
         <div 
             v-for="(block,index) in sheriffInfo.availabilityDetail"
             :key="index+2000"
-            :style="{gridColumnStart: (97-block.startBin),gridColumnEnd:(97-block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0 }"
+            :style="{gridColumnStart: (1+block.startBin),gridColumnEnd:(1+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0 }"
             v-b-tooltip.hover.right                             
             :title="block.name">
                 <div style="text-transform: capitalize; margin:0 padding: 0;">
@@ -14,7 +14,7 @@
         <div 
             v-for="(block,index) in sheriffInfo.sheriff.dutiesDetail"
             :key="index+1000"
-            :style="{gridColumnStart: (97-block.startBin),gridColumnEnd:(97-block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0, color:'white' }"
+            :style="{gridColumnStart: (1+block.startBin),gridColumnEnd:(1+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0, color:'white' }"
             v-b-tooltip.hover.right                             
             :title="block.name +'-'+ block.code">
                 <div style="text-transform: capitalize; margin:0 padding: 0;">

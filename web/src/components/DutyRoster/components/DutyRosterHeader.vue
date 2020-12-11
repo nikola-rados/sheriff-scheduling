@@ -25,8 +25,8 @@
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
                         </b-row>
                         <b-row  style="margin:0 auto .25rem auto; width:17rem;">
-                            <div v-if="activetab=='Day'" class="bg-white" style="margin:0 auto; border-radius:3px; width:9rem;">{{selectedDate|beautify-date-weekday}}</div>
-							<div v-else class="bg-white" style="border-radius:3px; width:17rem;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
+                            <div v-if="activetab=='Day'" class="bg-white" style="margin:0 auto; border-radius:3px; width:9rem; font-weight:bold;">{{selectedDate|beautify-date-weekday}}</div>
+							<div v-else class="bg-white" style="border-radius:3px; width:17rem; font-weight:bold;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
 						</b-row>
                     </b-col>
                 </b-navbar-nav>
@@ -67,16 +67,7 @@
 					/></b-badge></h2>
 				</b-card>
 
-				<b-row class="mx-1 my-0 p-0">
-					<b-form-group class="mr-1" style="width: 12rem">
-						<label class="h6 m-0 p-0">Name<span class="text-danger">*</span></label>
-						<b-form-input 
-						size="sm"
-							v-model="assignment.name" 
-							placeholder="Enter Name" 
-							:state = "nameState?null:false">
-						</b-form-input>
-					</b-form-group>
+				<b-row class="mx-1 mt-0 mb-2 p-0">
 					<b-form-group class="my-auto ml-auto" style="width: 8.6rem">	
 						<b-form-checkbox
 							size="sm"									
@@ -117,6 +108,18 @@
 											{{subType.code}}
 								</b-form-select-option>
 						</b-form-select>
+					</b-form-group>
+				</b-row>
+
+				<b-row class="mx-1 my-0 p-0">
+					<b-form-group class="mr-1" style="width: 12rem">
+						<label class="h6 m-0 p-0">Name</label>
+						<b-form-input 
+						size="sm"
+							v-model="assignment.name" 
+							placeholder="Enter Name" 
+							:state = "nameState?null:false">
+						</b-form-input>
 					</b-form-group>
 				</b-row>
 
@@ -470,12 +473,12 @@
 
 		public saveAssignment() {
 			let requiredError = false;
-			if (!this.assignment.name) {
-				this.nameState = false;
-				requiredError = true;
-			} else {
-				this.nameState = true;
-			}
+			// if (!this.assignment.name) {
+			// 	this.nameState = false;
+			// 	requiredError = true;
+			// } else {
+			// 	this.nameState = true;
+			// }
 			if (!this.assignment.type) {
 				this.selectedTypeState = false;
 				requiredError = true;
@@ -636,7 +639,7 @@
 				.then(response => {
 					if(response.data){
 							this.confirmedCloseAssignmentWindow();
-							this.$emit('change');
+							this.$emit('change',this.activetab);
 					}
 				}, err => {
 					const errMsg = err.response.data;
