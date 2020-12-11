@@ -99,7 +99,7 @@ namespace SS.Api.controllers.scheduling
         /// </summary>
         [HttpGet]
         [Route("shiftAvailability")]
-        [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
+        [PermissionClaimAuthorize(perm: Permission.ViewShifts)]
         public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
             if (start >= end) return BadRequest("Start date was on or after end date.");
