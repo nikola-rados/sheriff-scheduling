@@ -18,7 +18,7 @@
 					/>
 			</b-navbar-brand>
 			<b-navbar-nav class="mt-1 mx-5">
-				<b-nav-item to="/duty-roster" ><div style="display: inline-block; white-space: nowrap;">Duty Roster</div></b-nav-item>         
+				<b-nav-item :disabled="!hasPermissionToViewDutyRosterPage" to="/duty-roster" ><div style="display: inline-block; white-space: nowrap;">Duty Roster</div></b-nav-item>         
                 <b-nav-item-dropdown text="Shift Schedule" dropdown :disabled="!hasPermissionToViewSchedulePages">
                     <b-dropdown-item v-if="hasPermissionToViewManageSchedule" to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
                     <b-dropdown-item v-if="hasPermissionToViewDistributeSchedule" to="/distribute-shift-schedule">Distribute Schedule</b-dropdown-item>
@@ -106,6 +106,7 @@
         hasPermissionToViewDistributeSchedule = false;
         hasPermissionToViewManageSchedule = false;
         hasPermissionToViewSchedulePages = false;
+        hasPermissionToViewDutyRosterPage = false;
         
         mounted() {
             this.getModulePermissions();
@@ -118,6 +119,9 @@
             this.hasPermissionToViewDistributeSchedule = this.userDetails.permissions.includes("ViewDistributeSchedule");
             this.hasPermissionToViewManageSchedule = this.userDetails.permissions.includes("ViewShifts");
             this.hasPermissionToViewSchedulePages = this.hasPermissionToViewDistributeSchedule || this.hasPermissionToViewManageSchedule;
+            const hasViewAssignmentPermission = this.userDetails.permissions.includes("ViewAssignments");
+            const hasViewDutiesPermission = this.userDetails.permissions.includes("ViewDuties");
+            this.hasPermissionToViewDutyRosterPage = hasViewAssignmentPermission && hasViewDutiesPermission;
         }
 
 		public getCurrentLocation()
