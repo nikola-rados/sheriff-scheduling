@@ -24,9 +24,7 @@ namespace SS.Db.models.auth
         public const string CreateTypes = nameof(CreateTypes);
         public const string EditTypes = nameof(EditTypes);
         public const string ExpireTypes = nameof(ExpireTypes);
-        public const string ViewMyShifts = nameof(ViewMyShifts);
-        public const string ViewAllShiftsAtMyLocation = nameof(ViewAllShiftsAtMyLocation);
-        public const string ViewAllShifts = nameof(ViewAllShifts);
+        public const string ViewShifts = nameof(ViewShifts);
         public const string CreateAndAssignShifts = nameof(CreateAndAssignShifts);
         public const string ExpireShifts = nameof(ExpireShifts);
         public const string EditShifts = nameof(EditShifts);
@@ -45,6 +43,7 @@ namespace SS.Db.models.auth
         public const string CreateAndAssignDuties = nameof(CreateAndAssignDuties);
         public const string EditDuties = nameof(EditDuties);
         public const string ExpireDuties = nameof(ExpireDuties);
+        public const string EditIdir = nameof(EditIdir);
 
         [Key]
         public int Id { get; set; }

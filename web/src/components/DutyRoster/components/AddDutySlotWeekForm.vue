@@ -188,12 +188,7 @@
         mounted()
         { 
             this.isDataReady = false;
-
-            //console.warn(this.shiftAvailabilityInfo)
-            //console.log(this.formData)
             this.filterSheriffs()
-            //console.log(this.filteredShiftAvailabilityInfo)      
-
             this.addNotAvailableNotRequired();
             this.clearSelections();
             if(this.formData.id) {
@@ -345,11 +340,9 @@
         public getSheriffAvailability(sheriff){
             if(sheriff){
                 const shifts = sheriff.shifts.filter(shift=>{if(shift.startDate.substring(0,10)==this.startOfDay.substring(0,10))return true})
-                console.log(shifts)
                 let availability = Array(96).fill(0)
                 for(const shift of shifts){
                     const rangeBin = this.getTimeRangeBinsFullDate(shift.startDate, shift.endDate, this.timezone);
-                    console.log(rangeBin)
                     availability = this.fillInArray(availability, shift.id , rangeBin.startBin,rangeBin.endBin)
                 }
                 return availability
@@ -361,10 +354,8 @@
         public getSheriffDuties(sheriff){
             if(sheriff){
                 const dutiesDetail = sheriff.dutiesDetail.filter(duty=>{if(duty.startTime.substring(0,10)==this.startOfDay.substring(0,10))return true})
-                console.log(dutiesDetail)
                 let duties = Array(96).fill(0)
                 for(const duty of dutiesDetail){                    
-                    console.log(duty)
                     duties = this.fillInArray(duties, duty.id , duty.startBin, duty.endBin)
                 }
                 return duties
@@ -375,7 +366,6 @@
 
         public submitEditingSlotInfo(selectedTimeBins){
 
-            //console.log(selectedTimeBins)
             const selectedTimeArray = this.fillInArray(Array(96).fill(0), 1, selectedTimeBins.startBin, selectedTimeBins.endBin);
             
             if(this.selectedSheriff){
@@ -390,31 +380,19 @@
                 let duties = this.getSheriffDuties(sheriff);
                 availability = this.subtractUnionOfArrays(availability,duties)
                 let shiftId = this.formData.shiftId
-                console.log(sheriff)
-                // console.log(unassignedArray)
-                console.log(availability)
-                console.log(duties)
-
-                
 
                 
                 if(!isNotRequiredOrAvailable  && sheriffId == this.formData.sheriffId){
-                    console.log('___same sheriff')
-                    
-                    console.log(this.formData)
-                    const startTime = (this.formData.startTime-1)%96
-                    const endTime = (this.formData.endTime-1)%96
-                    //console.log(startTime)
+            
+                    const startTime = (this.formData.startTime-1)%96;
+                    const endTime = (this.formData.endTime-1)%96;                   
                     const dutyArrayOfOriginalSlot = this.fillInArray(Array(96).fill(0), 1, startTime, endTime);
-                    availability = this.addArrays(dutyArrayOfOriginalSlot, availability);
-                    //console.log(dutyArrayOfOriginalSlot)
-                    //console.log(availability)
+                    availability = this.addArrays(dutyArrayOfOriginalSlot, availability);                    
                     duties = this.subtractUnionOfArrays(duties,dutyArrayOfOriginalSlot)                    
                 }
                 
 
                 const dutiesConflictWithNewTimeSlot = this.unionArrays(selectedTimeArray, duties);
-                //console.log(dutiesConflictWithNewTimeSlot)
                 if(this.sumOfArrayElements(dutiesConflictWithNewTimeSlot)>0){
                     this.errorMsg = "The Sheriff has conflicting duties with the selected time range." 
                     this.showErrorMsg = true;
@@ -422,22 +400,18 @@
                 }
 
                 const unionSelectedRangeAvail = this.unionArrays(selectedTimeArray, availability);
-                console.log(unionSelectedRangeAvail)
 //___overtime___
                 const subtractSelectedRangeAvail = this.subtractUnionOfArrays(selectedTimeArray, availability)
-                //console.log(subtractSelectedRangeAvail)
                 if(this.sumOfArrayElements(subtractSelectedRangeAvail)>0){
                     const editedDutySlots: assignDutySlotsInfoType[] = [];
 
                     const discontinuityOvertime = this.findDiscontinuity(subtractSelectedRangeAvail);
                     const iterationNumOvertime = Math.floor((this.sumOfArrayElements(discontinuityOvertime) +1)/2);
-                    //console.log(iterationNumOvertime)
                     for(let i=0; i< iterationNumOvertime; i++){
                         const inx1 = discontinuityOvertime.indexOf(1)
                         let inx2 = discontinuityOvertime.indexOf(2)
                         discontinuityOvertime[inx1]=0
                         if(inx2>=0) discontinuityOvertime[inx2]=0; else inx2=discontinuityOvertime.length 
-                        console.error(inx1 + ' ' +inx2)
                         const slotTime = this.convertTimeRangeBinsToTime(this.startOfDay, inx1, inx2)
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
@@ -449,16 +423,13 @@
 
                     const discontinuity = this.findDiscontinuity(unionSelectedRangeAvail);
                     const iterationNum = Math.floor((this.sumOfArrayElements(discontinuity) +1)/2);
-                    //console.log(iterationNum)
-                   
+
                     for(let i=0; i< iterationNum; i++){
                         const inx1 = discontinuity.indexOf(1)
                         let inx2 = discontinuity.indexOf(2)
                         discontinuity[inx1]=0
                         if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
-                        //console.error(inx1 + ' ' +inx2) 
-                        //console.log(unionSelectedRangeAvail.slice(inx1,inx2).includes(1))
-                        //console.log(unionSelectedRangeAvail[inx1])
+                        
                         const slotTime = this.convertTimeRangeBinsToTime(this.startOfDay, inx1, inx2)
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
@@ -467,7 +438,6 @@
                             dutySlotId: unionSelectedRangeAvail.slice(inx1,inx2).includes(1)? this.formData.dutySlotId:null,
                         })
                     }
-                    //console.log(editedDutySlots)
                     this.editedDutySlots = editedDutySlots;
                     this.confirmAssignOverTimeDuty = true;
                     return
@@ -484,18 +454,13 @@
                     shiftId: isNotRequiredOrAvailable?null:shiftId,
                     dutySlotId: this.formData.dutySlotId,
                 }]
-                console.log(editedDutySlot)
-                this.$emit('submit',this.selectedSheriff?this.selectedSheriff.sheriffId:0, editedDutySlot , false, this.formData.day);  
-                //return true
 
+                this.$emit('submit',this.selectedSheriff?this.selectedSheriff.sheriffId:0, editedDutySlot , false, this.formData.day);  
             }
         }
 
         public validateTime(selectedTimeBins){
-            console.log('validate')
             const fulldutyBins = this.getTimeRangeBins(this.fullDutyStartTime, this.fullDutyEndTime, this.startOfDay, this.timezone)            
-            console.log(fulldutyBins)
-            console.log(selectedTimeBins)
             
             if(selectedTimeBins.startBin < fulldutyBins.startBin){
                 this.startTimeState = false;
@@ -512,14 +477,8 @@
 
             for(const dutyBlock of this.dutyBlocks){
 
-                console.error(dutyBlock.sheriffId)
-                console.log(this.selectedSheriff?.sheriffId)
-                console.warn(this.formData.sheriffId)
-                console.log(dutyBlock.startTime)
-                console.log(dutyBlock.endTime)
-
-                const startTime = (dutyBlock.startTime-1)%96
-                const endTime = (dutyBlock.endTime-1)%96
+                const startTime = (dutyBlock.startTime-1)%96;
+                const endTime = (dutyBlock.endTime-1)%96;
 
                 const name = dutyBlock.firstName? dutyBlock.lastName+", "+dutyBlock.firstName:dutyBlock.lastName
 
@@ -551,7 +510,6 @@
         }
 
         public confirmedAssignOverTimeDuty(){
-            console.log('overtime')
             this.confirmAssignOverTimeDuty = false;
             this.$emit('submit',this.selectedSheriff?this.selectedSheriff.sheriffId:0, this.editedDutySlots , false, this.formData.day);
         }

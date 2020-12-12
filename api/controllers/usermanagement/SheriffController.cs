@@ -40,11 +40,11 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateUsers)]
-        public async Task<ActionResult<SheriffDto>> AddSheriff(CreateSheriffDto sheriffDto)
+        public async Task<ActionResult<SheriffDto>> AddSheriff(SheriffWithIdirDto addSheriff)
         {
-            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriffDto.HomeLocationId)) return Forbid();
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, addSheriff.HomeLocationId)) return Forbid();
 
-            var sheriff = sheriffDto.Adapt<Sheriff>();
+            var sheriff = addSheriff.Adapt<Sheriff>();
             sheriff = await SheriffService.AddSheriff(sheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
@@ -75,13 +75,16 @@ namespace SS.Api.controllers.usermanagement
             Permission.ViewProfilesInOwnLocation,
             Permission.ViewProfilesInAllLocation)]
         [Route("{id}")]
-        public async Task<ActionResult<SheriffDto>> GetSheriffForTeam(Guid id)
+        public async Task<ActionResult<SheriffWithIdirDto>> GetSheriffForTeam(Guid id)
         {
             var sheriff = await SheriffService.GetFilteredSheriffForTeams(id);
             if (sheriff == null) return NotFound(CouldNotFindSheriffError);
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriff.HomeLocationId)) return Forbid();
 
-            return Ok(sheriff.Adapt<SheriffDto>());
+            var sheriffDto = sheriff.Adapt<SheriffWithIdirDto>();
+            //Prevent exposing Idirs to regular users. 
+            sheriffDto.IdirName = User.HasPermission(Permission.EditIdir) ? sheriff.IdirName : null;
+            return Ok(sheriffDto);
         }
 
         /// <summary>
@@ -103,12 +106,14 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffDto sheriffDto)
+        public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffWithIdirDto updateSheriff)
         {
-            await CheckForAccessToSheriffByLocation(sheriffDto.Id);
+            await CheckForAccessToSheriffByLocation(updateSheriff.Id);
 
-            var sheriff = sheriffDto.Adapt<Sheriff>();
-            sheriff = await SheriffService.UpdateSheriff(sheriff);
+            var canEditIdir = User.HasPermission(Permission.EditIdir);
+            var sheriff = updateSheriff.Adapt<Sheriff>();
+            sheriff = await SheriffService.UpdateSheriff(sheriff, canEditIdir);
+
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
