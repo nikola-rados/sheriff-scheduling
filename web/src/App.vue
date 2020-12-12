@@ -60,8 +60,12 @@
         currentLocation;
        
         mounted() {
-            this.isCommonDataReady = false;            
-            this.loadUserDetails();
+            this.isCommonDataReady = false; 
+            console.log(Vue.$cookies.get("logout"))           
+            if (Vue.$cookies.isKey("logout"))
+                this.isCommonDataReady = true;            
+            else 
+                this.loadUserDetails();
         }
 
         public loadUserDetails() {
@@ -69,8 +73,10 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        const userData = response.data;
+                        const userData = response.data;  
                         this.UpdateUser({
+                            firstName: userData.firstName,
+                            lastName: userData.lastName,
                             roles: userData.roles,
                             homeLocationId: userData.homeLocationId,
                             permissions: userData.permissions
@@ -90,6 +96,7 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
+                            this.$router.push({path:'/duty-roster'})
                         }
                     }                   
                 })          
