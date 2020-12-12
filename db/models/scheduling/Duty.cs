@@ -27,5 +27,6 @@ namespace SS.Db.models.scheduling
         [ExcludeFromAddDto]
         public virtual ICollection<DutySlot> DutySlots { get; set; } = new List<DutySlot>();
         public string Timezone { get; set; }
+        public string Comment { get; set; }
     }
 }

@@ -49,7 +49,7 @@ namespace tests.controllers
                 HomeLocationId = null
             };
 
-            var sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
+            var sheriffDto = newSheriff.Adapt<SheriffWithIdirDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddSheriff(sheriffDto));
@@ -73,7 +73,7 @@ namespace tests.controllers
                 HomeLocationId = null
             };
 
-            var sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
+            var sheriffDto = newSheriff.Adapt<SheriffWithIdirDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddSheriff(sheriffDto));
@@ -82,7 +82,7 @@ namespace tests.controllers
             Assert.NotNull(await Db.Sheriff.FindAsync(sheriffResponse.Id));
 
             newSheriff.BadgeNumber = "554";
-            sheriffDto = newSheriff.Adapt<CreateSheriffDto>();
+            sheriffDto = newSheriff.Adapt<SheriffWithIdirDto>();
             //Debug.Write(JsonConvert.SerializeObject(sheriffDto));
 
             BusinessLayerException ble = null;
@@ -132,7 +132,7 @@ namespace tests.controllers
 
             Detach();
 
-            var updateSheriff = sheriffObject.Adapt<SheriffDto>();
+            var updateSheriff = sheriffObject.Adapt<SheriffWithIdirDto>();
             updateSheriff.FirstName = "Al";
             updateSheriff.LastName = "Hoyne";
             updateSheriff.BadgeNumber = "55";

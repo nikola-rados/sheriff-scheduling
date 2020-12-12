@@ -23,6 +23,7 @@
                     <div style="float: left; margin:0 1rem; padding:0;">
                         <div style="float: left; margin:.15rem .25rem 0  0; font-size:14px">{{data.label}}</div>
                         <b-button
+                            v-if="hasPermissionToAddAssignments"
                             variant="success"
                             style="padding:0; height:1rem; width:1rem; margin:auto 0" 
                             @click="addAssignment();"
@@ -62,7 +63,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {localTimeInfoType, locationInfoType } from '../../types/common';
+    import {localTimeInfoType, locationInfoType, userInfoType } from '../../types/common';
     import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
@@ -81,6 +82,9 @@
         @commonState.State
         public displayFooter!: boolean;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
         @dutyState.State
         public dutyRangeInfo!: dutyRangeInfoType;
 
@@ -91,6 +95,7 @@
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
         isDutyRosterDataMounted = false;
+        hasPermissionToAddAssignments = false;
 
         dutyRosterAssignments: assignmentCardInfoType[] = [];
 
@@ -132,6 +137,7 @@
         }
 
         public getDutyRosters(){
+            this.hasPermissionToAddAssignments = this.userDetails.permissions.includes("CreateAssignments");			
             const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
             this.$http.get(url)
                 .then(response => {

@@ -27,6 +27,7 @@
 				<b-navbar-nav class="mr-2">
 					<b-nav-form> 
 						<div v-b-tooltip.hover
+							v-if="hasPermissionToEditShifts"
 							:title="selectedShifts.length==0?'Please select shifts':''">
 								<b-button 
 									style="max-height: 40px;" 
@@ -39,6 +40,7 @@
 								</b-button>
 						</div>
 						<div v-b-tooltip.hover
+							v-if="hasPermissionToExpireShifts"
 							:title="selectedShifts.length==0?'Please select shifts':''">
 								<b-button 
 									style="max-height: 40px;" 
@@ -51,6 +53,7 @@
 								</b-button>
 						</div>
 						<div v-b-tooltip.hover
+							v-if="hasPermissionToImportShifts"
 							title="Import shifts from previous week">
 								<b-button 
 									style="max-height: 40px;" 
@@ -256,13 +259,16 @@
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 	import { importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
-	import { locationInfoType } from '../../../types/common';
+	import { locationInfoType, userInfoType } from '../../../types/common';
 	
 	@Component
 	export default class ScheduleHeader extends Vue {		
 
 		@commonState.State
 		public location!: locationInfoType;
+
+		@commonState.State
+        public userDetails!: userInfoType;
 				
 		@shiftState.State
 		public shiftRangeInfo!: shiftRangeInfoType;
@@ -292,6 +298,10 @@
 		endTimeState = true;
 
 		datePickerOpened = false;
+		
+        hasPermissionToEditShifts = false;
+		hasPermissionToExpireShifts = false;		
+        hasPermissionToImportShifts = false;
 
 		shiftError = false;
 		shiftErrorMsg = '';
@@ -313,6 +323,10 @@
 
 		mounted() {
 			console.log('header')
+
+			this.hasPermissionToImportShifts = this.userDetails.permissions.includes("ImportShifts");
+			this.hasPermissionToExpireShifts = this.userDetails.permissions.includes("ExpireShifts");
+			this.hasPermissionToEditShifts = this.userDetails.permissions.includes("EditShifts");            
 			
 			if(!this.shiftRangeInfo.startDate){
 				this.selectedDate = moment().format().substring(0,10);

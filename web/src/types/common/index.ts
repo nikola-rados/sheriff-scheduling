@@ -21,6 +21,8 @@ export interface trainingInfoType {
 }
 
 export interface userInfoType {
+    firstName: string;
+    lastName: string;
     roles: string[];
     homeLocationId: number;
     permissions: string[];

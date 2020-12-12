@@ -96,7 +96,7 @@ namespace tests.controllers
             var hasCount1 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult3);
             Assert.NotEmpty(hasCount1);
 
-            HttpResponseTest.CheckForNoContentResponse(await _controller.ExpireAssignment(assignment.Id, "EXPIRED"));
+            HttpResponseTest.CheckForNoContentResponse(await _controller.ExpireAssignment(assignment.Id, "EXPIRED", null));
             var controllerResult = await _controller.GetAssignments(newLocation.Id, DateTimeOffset.UtcNow, assignment.AdhocEndDate);
             var zeroCount = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
             Assert.Empty(zeroCount);

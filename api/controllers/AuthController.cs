@@ -69,7 +69,21 @@ namespace SS.Api.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return Ok();
+            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+            
+            Response.Cookies.Delete("SMSESSION", new CookieOptions() { Domain = ".gov.bc.ca", Secure = true });
+
+            var logoutUrl = $"{Configuration.GetNonEmptyValue("Keycloak:Authority")}/protocol/openid-connect/logout";
+
+            var forwardedHost = HttpContext.Request.Headers.ContainsKey("X-Forwarded-Host")
+                ? HttpContext.Request.Headers["X-Forwarded-Host"].ToString()
+                : Request.Host.ToString();
+            var forwardedPort = HttpContext.Request.Headers["X-Forwarded-Port"];
+
+            //We are always sending X-Forwarded-Port, only time we aren't is when we are hitting the API directly. 
+            var baseUri = HttpContext.Request.Headers.ContainsKey("X-Forwarded-Host") ? $"{Configuration.GetNonEmptyValue("WebBaseHref")}logout" : "/api";
+            var redirectUrl = $"{XForwardedForHelper.BuildUrlString(forwardedHost, forwardedPort, baseUri)}";
+            return Redirect($"{logoutUrl}?post_logout_redirect_uri={redirectUrl}");
         }
 
         [HttpGet("requestAccess")]
@@ -113,7 +127,19 @@ namespace SS.Api.Controllers
             var permissions = HttpContext.User.FindAll(CustomClaimTypes.Permission).SelectToList(r => r.Value);
             var userId = HttpContext.User.FindFirst(CustomClaimTypes.UserId)?.Value;
             var homeLocationId = HttpContext.User.FindFirst(CustomClaimTypes.HomeLocationId)?.Value;
-            return Ok(new { Permissions = permissions, Roles = roles, UserId = userId, HomeLocationId = homeLocationId, IsImpersonated = IsImpersonated, DateTime.UtcNow });
+            var firstName = HttpContext.User.FindFirst(CustomClaimTypes.FirstName)?.Value;
+            var lastName = HttpContext.User.FindFirst(CustomClaimTypes.LastName)?.Value;
+            return Ok(new
+            {
+                Permissions = permissions,
+                Roles = roles,
+                UserId = userId,
+                FirstName = firstName,
+                LastName = lastName,
+                HomeLocationId = homeLocationId,
+                IsImpersonated = IsImpersonated,
+                DateTime.UtcNow
+            });
         }
     }
 }

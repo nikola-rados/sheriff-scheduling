@@ -26,9 +26,7 @@ namespace SS.Db.configuration
                 new Permission { Id = 13, Name = Permission.CreateTypes, Description = "Create Types" },
                 new Permission { Id = 14, Name = Permission.EditTypes, Description = "Edit Types" },
                 new Permission { Id = 15, Name = Permission.ExpireTypes, Description = "Expire Types" },
-                new Permission { Id = 16, Name = Permission.ViewMyShifts, Description = "View their own shifts" },
-                new Permission { Id = 17, Name = Permission.ViewAllShiftsAtMyLocation, Description = "View Shifts at their location" },
-                new Permission { Id = 18, Name = Permission.ViewAllShifts, Description = "View all Shifts" },
+                new Permission { Id = 16, Name = Permission.ViewShifts, Description = "View shifts" },
                 new Permission { Id = 19, Name = Permission.CreateAndAssignShifts, Description = "Create and Assign Shifts" },
                 new Permission { Id = 20, Name = Permission.ExpireShifts, Description = "Expire Shifts" },
                 new Permission { Id = 21, Name = Permission.EditShifts, Description = "Edit Shifts" },
@@ -46,7 +44,8 @@ namespace SS.Db.configuration
                 new Permission { Id = 33, Name = Permission.ViewDuties, Description = "View Duties" },
                 new Permission { Id = 34, Name = Permission.CreateAndAssignDuties, Description = "Create Duties" },
                 new Permission { Id = 35, Name = Permission.EditDuties, Description = "Edit Duties" },
-                new Permission { Id = 36, Name = Permission.ExpireDuties, Description = "Expire Duties" }
+                new Permission { Id = 36, Name = Permission.ExpireDuties, Description = "Expire Duties" },
+                new Permission { Id = 37, Name = Permission.EditIdir, Description = "Edit Idir" }
             );
             base.Configure(builder);
         }

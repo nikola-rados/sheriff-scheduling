@@ -3,6 +3,7 @@ import 'regenerator-runtime/runtime'
 import 'intersection-observer'
 import Vue from 'vue'
 import VueRouter from 'vue-router'
+import VueCookies from "vue-cookies"
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -20,6 +21,7 @@ library.add(faSuitcase);
 library.add(faSignInAlt);
 library.add(faSignOutAlt);
 
+Vue.use(VueCookies);
 Vue.use(VueRouter);
 Vue.use(BootstrapVue);
 Vue.use(BootstrapVueIcons);
