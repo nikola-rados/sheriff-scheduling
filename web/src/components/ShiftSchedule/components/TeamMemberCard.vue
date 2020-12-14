@@ -15,7 +15,8 @@
                     </b-row>
                 </b-col>
                 <b-col cols="3" class="m-0 p-0">                    
-                    <b-button 
+                    <b-button
+                        v-if="hasPermissionToCreateShifts" 
                         style="margin:.7rem 0 0 0; padding:0;"                   
                         size="sm" 
                         variant="success" 
@@ -191,7 +192,7 @@
     import ConflictsIcon from './ConflictsIcon.vue'
     import { dayOptionsInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
     import moment from 'moment-timezone';
-    import { locationInfoType } from '../../../types/common';
+    import { locationInfoType, userInfoType } from '../../../types/common';
     @Component({
         components: {
             ConflictsIcon
@@ -205,12 +206,16 @@
         @commonState.State
         public location!: locationInfoType;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
         @Prop({required: true})
         public sheriffInfo!: sheriffAvailabilityInfoType;
 
         sheriffId = '';
 
         isDataMounted = false;
+        hasPermissionToCreateShifts = false; 
         fullName = '';
 
         halfUnavailStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), white);"
@@ -243,6 +248,7 @@
         mounted()
         {  
             this.isDataMounted = false;
+            this.hasPermissionToCreateShifts = this.userDetails.permissions.includes("CreateAndAssignShifts");        
             this.sheriffId = this.sheriffInfo.sheriffId;          
             this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
 

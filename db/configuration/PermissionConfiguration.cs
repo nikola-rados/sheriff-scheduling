@@ -45,7 +45,9 @@ namespace SS.Db.configuration
                 new Permission { Id = 34, Name = Permission.CreateAndAssignDuties, Description = "Create Duties" },
                 new Permission { Id = 35, Name = Permission.EditDuties, Description = "Edit Duties" },
                 new Permission { Id = 36, Name = Permission.ExpireDuties, Description = "Expire Duties" },
-                new Permission { Id = 37, Name = Permission.EditIdir, Description = "Edit Idir" }
+                new Permission { Id = 37, Name = Permission.EditIdir, Description = "Edit Idir" },
+                new Permission { Id = 38, Name = Permission.EditTraining, Description = "Edit Training" },
+                new Permission { Id = 39, Name = Permission.RemoveTraining, Description = "Remove Training" }
             );
             base.Configure(builder);
         }

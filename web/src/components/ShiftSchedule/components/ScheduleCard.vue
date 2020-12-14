@@ -36,7 +36,10 @@
     import * as _ from 'underscore';
     import "@store/modules/ShiftScheduleInformation";   
     const shiftState = namespace("ShiftScheduleInformation");
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
     import {conflictsInfoType, scheduleBlockInfoType} from '../../../types/ShiftSchedule/index'
+    import { userInfoType } from '@/types/common';
 
     @Component
     export default class ScheduleCard extends Vue {
@@ -47,6 +50,9 @@
         @Prop({required: true})
         sheriffId!: string;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+        
         @shiftState.State
         public selectedShifts!: string[];
 
@@ -57,6 +63,7 @@
 
         blockDrop = false;
         updateBoxes =0;
+        hasPermissionToEditShifts = false;
 
         isMounted = false;
 
@@ -64,6 +71,7 @@
         {
             // console.log(this.scheduleInfo)
             this.isMounted = false;
+            this.hasPermissionToEditShifts = this.userDetails.permissions.includes("EditShifts");
 
             const sortedScheduleInfo: conflictsInfoType[] = _.sortBy(this.scheduleInfo,'startInMinutes')
            
@@ -108,7 +116,7 @@
         }
 
         public selectOnlyCard(block){
-            if(block.title=='Shift') {
+            if(this.hasPermissionToEditShifts && block.title=='Shift') {
                 this.UpdateSelectedShifts([ block.id ]);
                 this.$root.$emit('editShifts');
             }

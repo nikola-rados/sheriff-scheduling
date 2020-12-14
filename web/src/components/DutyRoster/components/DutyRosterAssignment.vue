@@ -50,7 +50,7 @@
                 <b-button
                     class="bg-white"
                     style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0"
-					:disabled="isDeleted" 
+					:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
                     @click="addDuty();"
                     size="sm"> 
                         <b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
@@ -235,6 +235,7 @@
 
 			<template v-slot:modal-footer>
 				<b-button
+						:disabled="!hasPermissionToExpireAssignment"
 						size="sm"
 						variant="danger"
 						class="mr-auto"
@@ -246,6 +247,7 @@
 						@click="closeEditAssignmentWindow()"
 				><b-icon-x style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
 				<b-button
+						:disabled="!hasPermissionToEditAssignment"
 						size="sm"
 						variant="success"
 						@click="saveAssignment()"
@@ -279,8 +281,9 @@
 			</b-card>
 
             <h4>Are you sure you want to delete the "{{assignmentToEdit.name}}" assignment?</h4>
-            <b-form-group style="margin: 0; padding: 0; width: 20rem;"><label class="ml-1">Reason for Deletion:</label> 
+            <b-form-group style="float:left; margin: 0; padding: 0; width: 15rem;"><label class="ml-1">Reason for Deletion:</label> 
                 <b-form-select
+					tabindex="1"
                     size = "sm"
                     v-model="assignmentDeleteReason">
                         <b-form-select-option value="OPERDEMAND">
@@ -294,6 +297,19 @@
                         </b-form-select-option>     
                 </b-form-select>
             </b-form-group>
+			<b-form-group style="float:left; margin: 0 0 0 1rem; padding: 0; width: 13rem;">					
+				<label class="ml-1"> Expiry Date</label>
+				<b-form-datepicker
+					tabindex="2"
+					class="mb-1"
+					size="sm"
+					v-model="selectedExipryDate"
+					placeholder="Exipry Date*"
+					today-button
+					:date-format-options="{ year: 'numeric', month: 'short', day: '2-digit' }"
+					locale="en-US">
+				</b-form-datepicker>
+			</b-form-group>
             <template v-slot:modal-footer>
 				<b-button variant="primary" @click="cancelDeletion()">Cancel</b-button>
                 <b-button variant="danger" @click="deleteAssignment()" :disabled="assignmentDeleteReason.length == 0">Confirm</b-button>                
@@ -334,7 +350,7 @@
     import "@store/modules/DutyRosterInformation";   
 	const dutyState = namespace("DutyRosterInformation");
 	import * as _ from 'underscore';
-    import { localTimeInfoType, locationInfoType } from '../../../types/common';
+    import { localTimeInfoType, locationInfoType, userInfoType } from '../../../types/common';
     import { assignmentCardInfoType, assignmentInfoType, assignmentSubTypeInfoType, dutyRangeInfoType} from '../../../types/DutyRoster';
 
     @Component
@@ -347,7 +363,10 @@
 		weekview!: boolean;
 
         @commonState.State
-        public location!: locationInfoType;
+		public location!: locationInfoType;
+		
+		@commonState.State
+        public userDetails!: userInfoType;
 
         @dutyState.State
 		public dutyRangeInfo!: dutyRangeInfoType;
@@ -371,12 +390,17 @@
 		showEditAssignmentDetails = false;
 		showEditCancelWarning = false;
 		isAssignmentDataMounted = false;
+		hasPermissionToEditAssignment = false;
+		hasPermissionToExpireAssignment = false;
+        hasPermissionToAddAssignDuty = false;
 		confirmDelete = false;
 		assignmentDeleteReason = '';
 		initialLoad = false;
 		isSubTypeDataReady = false;
 		nonReoccuring = false;
 		isDeleted = false;
+
+		selectedExipryDate = ''
 
 		nameState = true;
 		selectedTypeState = true;
@@ -423,14 +447,16 @@
 
         mounted()
         {
+			this.hasPermissionToEditAssignment = this.userDetails.permissions.includes("EditAssignments");
+            this.hasPermissionToExpireAssignment = this.userDetails.permissions.includes("ExpireAssignments");    
+            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");    
 			this.assignmentTitle = Vue.filter('capitalize')(this.assignment.type.name) +'-' + this.assignment.code;
-            //this.isDutyDataMounted = false;
-			console.log(this.assignment)
+            this.selectedExipryDate = this.localTime.timeString;
 			this.isDeleted = this.determineExpired();
 		}
 
 		public determineExpired(){
-			const currentTime = this.localTime.timeString
+			const currentTime = this.dutyRangeInfo.endDate
 			
 			if (this.assignment.assignmentDetail && this.assignment.assignmentDetail.expiryDate) {
 				const expiryDate = moment(this.assignment.assignmentDetail.expiryDate).tz(this.location.timezone)
@@ -455,11 +481,10 @@
 			if (this.assignmentDeleteReason.length) {
 				this.confirmDelete = false;
 				this.deleteError = false;
-				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason;
+				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason+ '&expiryDate='+this.selectedExipryDate;
 			
 				this.$http.delete(url)
 					.then(response => {
-						// console.log(response);
 						this.confirmDelete = false;
 						this.$emit('change');                    
 					}, err=>{
@@ -534,7 +559,6 @@
         }
 		
 		public loadAssignmentDetails() {
-			console.log(this.assignment.assignmentDetail)
 			const assignmentInfo = this.assignment.assignmentDetail;
 			this.originalAssignmentToEdit.id = this.assignmentToEdit.id = assignmentInfo.id;
 			this.originalAssignmentToEdit.name = this.assignmentToEdit.name = assignmentInfo.name;			
@@ -839,7 +863,6 @@
 			const body: any[] = [];
 
 			if(this.weekview){
-				//console.log(this.assignment)
 				for(const dayIndexStr in this.weekDayNames){
 					const day = this.weekDayNames[dayIndexStr];
 					const dayIndex = Number(dayIndexStr)
@@ -866,7 +889,6 @@
 				})			
 			}
 
-			console.log(body)
 			const url = 'api/dutyroster';
 			this.$http.post(url, body )
 				.then(response => {

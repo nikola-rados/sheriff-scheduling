@@ -3,7 +3,7 @@
         <div 
             v-if="isDataMounted"
             :id="'member-'+sheriffId"
-            :draggable="true" 
+            :draggable="hasPermissionToAddAssignDuty" 
             v-on:dragstart="DragStart" 
             style="border-radius:5px"          
             :class="bgcolor+' mb-2 p-1'">
@@ -98,7 +98,7 @@
     
     import moment from 'moment-timezone';
     import * as _ from 'underscore';
-    import { locationInfoType } from '../../../types/common';
+    import { locationInfoType, userInfoType } from '../../../types/common';
     import { dutyRangeInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
 
     @Component
@@ -106,6 +106,9 @@
 
         @commonState.State
         public location!: locationInfoType;
+
+        @commonState.State
+        public userDetails!: userInfoType;
 
         @dutyState.State
         public dutyRangeInfo!: dutyRangeInfoType;
@@ -118,6 +121,7 @@
 
         sheriffId = '';
         isDataMounted = false;
+        hasPermissionToAddAssignDuty = false;
         fullName = '';
         shifts: string[] = [];
         allShifts = {title:''};
@@ -149,6 +153,7 @@
         {
             //console.error(this.sheriffInfo)  
             this.isDataMounted = false;
+            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
             this.sheriffId = this.sheriffInfo.sheriffId; 
             if(this.sheriffId== '00000-00000-11111'){
                 this.fullName = 'Not Required'
