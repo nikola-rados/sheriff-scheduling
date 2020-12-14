@@ -33,7 +33,7 @@
                         {{viewStatus}}
                     </b-form-checkbox>
                 </div>                
-                <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="AddMember()" class="my-2"><b-icon-plus/>Add User</b-button>  
+                <b-button v-if="hasPermissionToAddNewUsers" style="max-height: 40px;" size="sm" variant="success" @click="AddMember()" class="my-2"><b-icon-plus/>Add User</b-button>  
             </b-col>
         </b-row>
 
@@ -54,7 +54,7 @@
                             <user-summary-template v-on:photoChange="photoChanged" :user="teamMember" :editMode="false" />
                         </div>
                         <div class="card-footer text-white bg-dark border-dark mt-0 pt-0" style="width: 13.4rem; height: 2.5rem;">                                                
-                            <expire-sheriff-profile :disabled="!userIsAdmin" :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
+                            <expire-sheriff-profile :disabled="!hasPermissionToExpireUsers" :userID="teamMember.id" :userIsEnable="teamMember.isEnabled" @change="getSheriffs()" />                        
                         </div>
                     </div>
                 </div>
@@ -101,7 +101,7 @@
                                         v-on:change="getSheriffs()"/>
                                 </b-tab>
 
-                                <b-tab v-if="userIsAdmin & editMode" title="Roles" class="p-0">
+                                <b-tab v-if="editMode" title="Roles" class="p-0">
                                     <role-assignment-tab  v-on:change="getSheriffs()"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>
                                 </b-tab>
@@ -118,7 +118,8 @@
                 ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>{{getCancelLabel}}</b-button>
                 <b-button     
                     v-if="tabIndex<1"
-                    variant="success" 
+                    variant="success"
+                    :disabled="editMode && !hasPermissionToEditUsers" 
                     @click="saveMemberProfile()"
                 ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
             </template>            
@@ -203,7 +204,9 @@
         
         expiredViewChecked = false;
         showMemberDetails = false;
-        userIsAdmin = false;
+        hasPermissionToAddNewUsers = false;
+        hasPermissionToExpireUsers = false;
+        hasPermissionToEditUsers = false;
 
         maxRank = 1000;
 
@@ -240,8 +243,9 @@
 
         mounted() {
             this.maxRank = this.commonInfo.sheriffRankList.reduce((max, rank) => rank.id > max ? rank.id : max, this.commonInfo.sheriffRankList[0].id);
-            // this.userIsAdmin = this.userDetails.roles.includes("Administrator");
-            this.userIsAdmin = true;
+            this.hasPermissionToAddNewUsers = this.userDetails.permissions.includes("CreateUsers");
+            this.hasPermissionToExpireUsers = this.userDetails.permissions.includes("ExpireUsers");
+            this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
             this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
@@ -362,13 +366,10 @@
             }
         }      
 
-        public openMemberDetails(userId){
-            if(this.userIsAdmin)
-            {
-                this.createMode = false;
-                this.editMode = true;            
-                this.loadUserDetails(userId);
-            }                        
+        public openMemberDetails(userId){           
+            this.createMode = false;
+            this.editMode = true;            
+            this.loadUserDetails(userId);
         }
 
         public saveMemberProfile() { 

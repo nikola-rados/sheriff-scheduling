@@ -82,53 +82,16 @@
                         const userData = response.data;
                         if(userData.permissions.length == 0){
                             this.isCommonDataReady = true;
-                            console.log()
                             if(this.$route.name != 'RequestAccess')
                                 this.$router.push({path:'/request-access'}) 
                         }
-                        else {
-                            const permissions =    [
-                            "Login",
-    "ViewOwnProfile",
-    "ViewProfilesInOwnLocation",
-    "ViewProfilesInAllLocation",
-    "CreateUsers",
-    "ExpireUsers",
-    "EditUsers",
-    "ViewRoles",
-    "CreateAndAssignRoles",
-    "ExpireRoles",
-    "EditRoles",
-    "CreateTypes",
-    "EditTypes",
-    "ExpireTypes",
-    "ViewShifts",
-    "CreateAndAssignShifts",
-    "ExpireShifts",
-    "EditShifts",
-    "ViewDistributeSchedule",
-    "ViewAssignedLocation",
-    "ViewHomeLocation",
-    "ImportShifts",
-    "ViewRegion",
-    "ViewProvince",
-    "ExpireLocation",
-    "ViewAssignments",
-    "CreateAssignments",
-    "EditAssignments",
-    "ExpireAssignments",
-    "ViewDuties",
-    "CreateAndAssignDuties",
-    "EditDuties",
-    "ExpireDuties",
-    "EditIdir"
-                        ]
+                        else {                            
                             this.UpdateUser({
                                 firstName: userData.firstName,
                                 lastName: userData.lastName,
                                 roles: userData.roles,
                                 homeLocationId: userData.homeLocationId,
-                                permissions: permissions //userData.permissions
+                                permissions: userData.permissions
                             }) 
                             this.getAllLocations()  
                         }                      
@@ -146,7 +109,7 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
-                            if(this.$route.name != 'DustyRoster')
+                            if(this.$route.name == 'Home')
                                 this.$router.push({path:'/duty-roster'})
                         }
                     }                   

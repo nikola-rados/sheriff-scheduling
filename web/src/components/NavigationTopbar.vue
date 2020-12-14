@@ -25,9 +25,9 @@
                     <b-dropdown-item v-if="hasPermissionToViewManageSchedule" to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
                     <b-dropdown-item v-if="hasPermissionToViewDistributeSchedule" to="/distribute-shift-schedule">Distribute Schedule</b-dropdown-item>
                 </b-nav-item-dropdown>
-                <b-nav-item-dropdown text="My Team" dropdown >
-                    <b-dropdown-item to="/team-members">My Team Members</b-dropdown-item>
-                    <b-dropdown-item to="/define-roles-access">Define Roles & Access</b-dropdown-item>
+                <b-nav-item-dropdown text="My Team" dropdown :disabled="!hasPermissionToViewTeamPages">
+                    <b-dropdown-item v-if="hasPermissionToViewProfilePage" to="/team-members">My Team Members</b-dropdown-item>
+                    <b-dropdown-item v-if="hasPermissionToViewRolesPage" to="/define-roles-access">Define Roles & Access</b-dropdown-item>
                 </b-nav-item-dropdown>
                 <b-nav-item-dropdown text="Manage Types" dropdown :disabled="!hasPermissionToEditManageTypes">
                     <b-dropdown-item to="/assignment-types">Assignment Types</b-dropdown-item>
@@ -111,6 +111,9 @@
         hasPermissionToViewManageSchedule = false;
         hasPermissionToViewSchedulePages = false;
         hasPermissionToViewDutyRosterPage = false;
+        hasPermissionToViewProfilePage = false;
+        hasPermissionToViewRolesPage = false;
+        hasPermissionToViewTeamPages = false;
         
         mounted() {
             this.getModulePermissions();
@@ -126,6 +129,12 @@
             const hasViewAssignmentPermission = this.userDetails.permissions.includes("ViewAssignments");
             const hasViewDutiesPermission = this.userDetails.permissions.includes("ViewDuties");
             this.hasPermissionToViewDutyRosterPage = hasViewAssignmentPermission && hasViewDutiesPermission && this.hasPermissionToViewManageSchedule;
+            this.hasPermissionToViewRolesPage = this.userDetails.permissions.includes("ViewRoles");
+            const hasPermissionToViewOwnProfile = this.userDetails.permissions.includes("ViewOwnProfile");
+            const hasPermnissionToViewProfilesInOwnLocation = this.userDetails.permissions.includes("ViewProfilesInOwnLocation");
+            const hasPermnissionToViewProfilesInAllLocation = this.userDetails.permissions.includes("ViewProfilesInAllLocation");
+            this.hasPermissionToViewProfilePage = hasPermissionToViewOwnProfile || hasPermnissionToViewProfilesInOwnLocation || hasPermnissionToViewProfilesInAllLocation;
+            this.hasPermissionToViewTeamPages = this.hasPermissionToViewProfilePage || this.hasPermissionToViewRolesPage;
         }
 
 		public getCurrentLocation()

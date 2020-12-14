@@ -43,17 +43,23 @@ async function checkPermission(to: any, from: any, next: any) {
 				} else {
 					next({ path: "/" });
 				}
+			} else if(to.name == "MyTeamMembers") {
+				if (userPermissions.includes("ViewOwnProfile") || userPermissions.includes("ViewProfilesInOwnLocation") || userPermissions.includes("ViewProfilesInAllLocation")){        
+					displayFooter(to, from, next);	
+				} else {
+					next({ path: "/duty-roster" });
+				}
 			} else {
 				if (userPermissions.includes(to.meta.requiredPermission)){
 					displayFooter(to, from, next);	
 				} else {
-					next({ path: "/" });
+					next({ path: "/duty-roster" });
 				}
 			}
 		})  
 
 	} catch(e) {
-		next({ path: "/" });
+		next({ path: "/duty-roster" });
 	}
 
 }
@@ -101,14 +107,15 @@ const routes: Array<RouteConfig> = [
 	{
 		path: '/team-members',
 		name: 'MyTeamMembers',
-		beforeEnter: displayFooter,
+		beforeEnter: checkPermission,
 		component: MyTeamMembers
 	},
 	{
 		path: '/define-roles-access',
 		name: 'DefineRolesAccess',
-		beforeEnter: displayFooter,
-		component: DefineRolesAccess  
+		beforeEnter: checkPermission,
+		component: DefineRolesAccess,
+		meta:{requiredPermission: 'ViewRoles'}  
 	},
 	{    
 		path: '/assignment-types',
