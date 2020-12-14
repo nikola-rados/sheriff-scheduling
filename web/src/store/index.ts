@@ -8,13 +8,13 @@ import DutyRosterInformation from '@/store/modules/DutyRosterInformation'
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
-  modules: {
-    CommonInformation,
-    TeamMemberInformation,
-    ManageTypesInformation,
-    ShiftScheduleInformation,
-    DutyRosterInformation
-  }
+	modules: {
+		CommonInformation,
+		TeamMemberInformation,
+		ManageTypesInformation,
+		ShiftScheduleInformation,
+		DutyRosterInformation
+	}
 })
 
 export default store

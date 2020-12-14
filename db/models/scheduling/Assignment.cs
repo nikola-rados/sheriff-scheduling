@@ -37,7 +37,7 @@ namespace SS.Db.models.scheduling
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string ExpiryReason { get; set; }
-
+        public string Comment { get; set; }
         public bool IsAvailableOnDate(DateTimeOffset date)
         {
             return date.DayOfWeek switch

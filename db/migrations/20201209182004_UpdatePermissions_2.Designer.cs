@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -10,9 +11,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201209182004_UpdatePermissions_2")]
+    partial class UpdatePermissions_2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -361,8 +363,24 @@ namespace SS.Db.Migrations
                             Id = 16,
                             ConcurrencyToken = 0u,
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "View shifts",
-                            Name = "ViewShifts"
+                            Description = "View their own shifts",
+                            Name = "ViewMyShifts"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "View Shifts at their location",
+                            Name = "ViewAllShiftsAtMyLocation"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "View all Shifts",
+                            Name = "ViewAllShifts"
                         },
                         new
                         {
@@ -923,9 +941,6 @@ namespace SS.Db.Migrations
                     b.Property<DateTimeOffset?>("AdhocStartDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Comment")
-                        .HasColumnType("text");
-
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -1014,9 +1029,6 @@ namespace SS.Db.Migrations
 
                     b.Property<int?>("AssignmentId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Comment")
-                        .HasColumnType("text");
 
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
@@ -1154,9 +1166,6 @@ namespace SS.Db.Migrations
 
                     b.Property<int?>("AnticipatedAssignmentId")
                         .HasColumnType("integer");
-
-                    b.Property<string>("Comment")
-                        .HasColumnType("text");
 
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()

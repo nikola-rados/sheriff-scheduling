@@ -72,13 +72,13 @@ namespace SS.Api.controllers.scheduling
 
         [HttpDelete]
         [PermissionClaimAuthorize(perm: Permission.ExpireAssignments)]
-        public async Task<ActionResult> ExpireAssignment(int id, string expiryReason)
+        public async Task<ActionResult> ExpireAssignment(int id, string expiryReason, DateTimeOffset? expiryDate = null)
         {
             var savedAssignment = await AssignmentService.GetAssignment(id);
             if (savedAssignment == null) return NotFound();
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, savedAssignment.LocationId)) return Forbid();
 
-            await AssignmentService.ExpireAssignment(id, expiryReason);
+            await AssignmentService.ExpireAssignment(id, expiryReason, expiryDate);
             return NoContent();
         }
     }

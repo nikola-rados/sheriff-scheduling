@@ -10,6 +10,7 @@ namespace SS.Api.models.dto.generated
         public DateTimeOffset? ExpiryDate { get; set; }
         public int? AssignmentId { get; set; }
         public string Timezone { get; set; }
+        public string Comment { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

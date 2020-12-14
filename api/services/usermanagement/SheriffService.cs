@@ -115,13 +115,26 @@ namespace SS.Api.services.usermanagement
                 .SingleOrDefaultAsync(s => s.Id == id);
         }
 
-        public async Task<Sheriff> UpdateSheriff(Sheriff sheriff)
+        public async Task<Sheriff> UpdateSheriff(Sheriff sheriff, bool canEditIdir)
         {
             var savedSheriff = await Db.Sheriff.FindAsync(sheriff.Id);
             savedSheriff.ThrowBusinessExceptionIfNull($"{nameof(Sheriff)} with the id: {sheriff.Id} could not be found. ");
 
             if (sheriff.BadgeNumber != savedSheriff.BadgeNumber)
                 await CheckForBlankOrDuplicateBadgeNumber(sheriff.BadgeNumber);
+
+      
+            if (canEditIdir && savedSheriff.IdirName != sheriff.IdirName)
+            {
+                await CheckForBlankOrDuplicateIdirName(sheriff.IdirName, sheriff.Id);
+                sheriff.IdirName = sheriff.IdirName.ToLower();
+                sheriff.IdirId = null;
+            }
+            else
+            {
+                sheriff.IdirName = savedSheriff.IdirName;
+                sheriff.IdirId = savedSheriff.IdirId;
+            }
 
             Db.Entry(savedSheriff).CurrentValues.SetValues(sheriff);
 
@@ -130,8 +143,6 @@ namespace SS.Api.services.usermanagement
             Db.Entry(savedSheriff).Property(x => x.Photo).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.LastPhotoUpdate).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.KeyCloakId).IsModified = false;
-            Db.Entry(savedSheriff).Property(x => x.IdirId).IsModified = false;
-            Db.Entry(savedSheriff).Property(x => x.IdirName).IsModified = false;
             Db.Entry(savedSheriff).Property(x => x.LastLogin).IsModified = false;
 
             await Db.SaveChangesAsync();
@@ -329,12 +340,12 @@ namespace SS.Api.services.usermanagement
         #region Helpers
 
         #region Validation
-        private async Task CheckForBlankOrDuplicateIdirName(string idirName)
+        private async Task CheckForBlankOrDuplicateIdirName(string idirName, Guid? excludeSheriffId = null)
         {
             if (string.IsNullOrEmpty(idirName))
                 throw new BusinessLayerException($"Missing {nameof(idirName)}.");
 
-            var existingSheriffWithIdir = await Db.Sheriff.FirstOrDefaultAsync(s => s.IdirName.ToLower() == idirName.ToLower());
+            var existingSheriffWithIdir = await Db.Sheriff.FirstOrDefaultAsync(s => s.IdirName.ToLower() == idirName.ToLower() && s.Id != excludeSheriffId);
             if (existingSheriffWithIdir != null)
                 throw new BusinessLayerException(
                     $"Sheriff {existingSheriffWithIdir.LastName}, {existingSheriffWithIdir.FirstName} has IDIR name: {existingSheriffWithIdir.IdirName}");

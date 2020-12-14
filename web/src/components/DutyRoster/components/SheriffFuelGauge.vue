@@ -43,7 +43,7 @@
                          <template v-slot:cell(name)="data" >
                             <div
                                 :id="'gauge--'+data.item.sheriff.sheriffId"
-                                :draggable="true" 
+                                :draggable="hasPermissionToAddAssignDuty" 
                                 v-on:dragstart="DragStart"
                                 style="height:1rem; font-size:9px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
                                 v-b-tooltip.hover.right                             
@@ -57,7 +57,7 @@
                 <b-card 
                 class="bg-light"
                     header="Colours" 
-                    header-class=" m-0 p-0 bg-primary text-white text-center" 
+                    header-class=" m-0 p-0 bg-primary text-white text-center no-top-rounding" 
                     no-body>
                     <b-row style="margin:0 0 .25rem .25rem; width:7.6rem;">
                         <div
@@ -79,7 +79,8 @@
     import { Component, Vue } from 'vue-property-decorator';
     import SheriffAvailabilityCard from './SheriffAvailabilityCard.vue'
     import { myTeamShiftInfoType, dutiesDetailInfoType} from '../../../types/DutyRoster';
-
+    import { userInfoType } from '../../../types/common';
+    
     import moment from 'moment-timezone';
 
     import { namespace } from "vuex-class";   
@@ -102,7 +103,11 @@
         @commonState.Action
         public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
        
+        @commonState.State
+        public userDetails!: userInfoType;
+        
         isSheriffFuelGauge = false;
+        hasPermissionToAddAssignDuty = false;
 
         myTeamMembers: any[] = []
 
@@ -116,6 +121,7 @@
         {
             this.isSheriffFuelGauge = false;
             //console.log(this.shiftAvailabilityInfo)
+            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
             this.extractSheriffAvailability()                                    
         }
 
