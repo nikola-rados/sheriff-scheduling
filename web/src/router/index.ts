@@ -2,6 +2,7 @@ import { RouteConfig } from 'vue-router'
 import VueResource from 'vue-resource'
 import Home from '@components/Home.vue'
 import Logout from '@components/Logout.vue'
+import RequestAccess from '@components/RequestAccess.vue'
 import DutyRoster from '@components/DutyRoster/DutyRoster.vue'
 import ManageSchedule from '@components/ShiftSchedule/ManageSchedule.vue'
 import DistributeSchedule from '@components/ShiftSchedule/DistributeSchedule.vue'
@@ -17,6 +18,7 @@ function dontDisplayHeader(to: any, from: any, next: any) {
 }
 
 function displayFooter(to: any, from: any, next: any) {
+	store.commit('CommonInformation/setDisplayHeader',true);
 	store.commit('CommonInformation/setDisplayFooter',true);
 	next();
 }
@@ -69,6 +71,12 @@ const routes: Array<RouteConfig> = [
 		name: 'Logout',
 		beforeEnter: dontDisplayHeader,
 		component: Logout
+	},	
+	{
+		path: '/request-access',
+		name: 'RequestAccess',
+		beforeEnter: dontDisplayHeader,
+		component: RequestAccess
 	},
 	{
 		path: '/duty-roster',

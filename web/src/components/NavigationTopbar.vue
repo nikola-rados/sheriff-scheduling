@@ -145,7 +145,7 @@
 			
 			this.UpdateLocation(currentLocation);
 			this.selectedLocation = this.location;
-			if (this.selectedLocation.name.length > 0) this.locationDataReady = true;
+			if (this.selectedLocation && this.selectedLocation.name.length > 0) this.locationDataReady = true;
         }
         
         public signout(){            

@@ -61,7 +61,7 @@
        
         mounted() {
             this.isCommonDataReady = false; 
-            console.log(Vue.$cookies.get("logout"))           
+            //console.log(Vue.$cookies.get("logout"))           
             if (Vue.$cookies.isKey("logout"))
                 this.isCommonDataReady = true;            
             else 
@@ -73,15 +73,23 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        const userData = response.data;  
-                        this.UpdateUser({
-                            firstName: userData.firstName,
-                            lastName: userData.lastName,
-                            roles: userData.roles,
-                            homeLocationId: userData.homeLocationId,
-                            permissions: userData.permissions
-                        }) 
-                        this.getLocations()                        
+                        const userData = response.data;
+                        if(userData.permissions.length == 0){
+                            this.isCommonDataReady = true;
+                            console.log()
+                            if(this.$route.name != 'RequestAccess')
+                                this.$router.push({path:'/request-access'}) 
+                        }
+                        else {
+                            this.UpdateUser({
+                                firstName: userData.firstName,
+                                lastName: userData.lastName,
+                                roles: userData.roles,
+                                homeLocationId: userData.homeLocationId,
+                                permissions: userData.permissions
+                            }) 
+                            this.getLocations()  
+                        }                      
                     }                   
                 })  
         }
@@ -96,7 +104,8 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
-                            this.$router.push({path:'/duty-roster'})
+                            if(this.$route.name != 'DustyRoster')
+                                this.$router.push({path:'/duty-roster'})
                         }
                     }                   
                 })          
