@@ -67,7 +67,7 @@
        
         mounted() {
             this.isCommonDataReady = false; 
-            console.log(Vue.$cookies.get("logout"))           
+            //console.log(Vue.$cookies.get("logout"))           
             if (Vue.$cookies.isKey("logout"))
                 this.isCommonDataReady = true;            
             else 
@@ -80,8 +80,14 @@
                 .then(response => {
                     if(response.data){
                         const userData = response.data;
-                        console.log(response.data)
-                        const permissions =    [
+                        if(userData.permissions.length == 0){
+                            this.isCommonDataReady = true;
+                            console.log()
+                            if(this.$route.name != 'RequestAccess')
+                                this.$router.push({path:'/request-access'}) 
+                        }
+                        else {
+                            const permissions =    [
                             "Login",
     "ViewOwnProfile",
     "ViewProfilesInOwnLocation",
@@ -117,14 +123,15 @@
     "ExpireDuties",
     "EditIdir"
                         ]
-                        this.UpdateUser({
-                            firstName: userData.firstName,
-                            lastName: userData.lastName,
-                            roles: userData.roles,
-                            homeLocationId: userData.homeLocationId,
-                            permissions: permissions//userData.permissions
-                        }) 
-                        this.getAllLocations()                        
+                            this.UpdateUser({
+                                firstName: userData.firstName,
+                                lastName: userData.lastName,
+                                roles: userData.roles,
+                                homeLocationId: userData.homeLocationId,
+                                permissions: permissions //userData.permissions
+                            }) 
+                            this.getAllLocations()  
+                        }                      
                     }                   
                 })  
         }
@@ -139,7 +146,8 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
-                            this.$router.push({path:'/duty-roster'})
+                            if(this.$route.name != 'DustyRoster')
+                                this.$router.push({path:'/duty-roster'})
                         }
                     }                   
                 })          
