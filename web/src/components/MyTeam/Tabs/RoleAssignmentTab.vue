@@ -5,7 +5,7 @@
             <b-card id="RoleError" no-body>
                 <h2 v-if="roleError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="roleErrorMsgDesc"  variant="danger"> {{roleErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="roleError = false" /></b-badge></h2>
             </b-card>
-            <b-card  v-if="!addNewRoleForm">                
+            <b-card  v-if="!addNewRoleForm && hasPermissionToAssignRoles && hasPermissionToEditUsers">                
                 <b-button v-if="allowChanges" size="sm" variant="success" :disabled="roles.length==0" @click="addNewRole"> <b-icon icon="plus" /> Add </b-button>
             </b-card>
 
@@ -58,7 +58,7 @@
                                                 v-b-tooltip.hover
                                                 title="Expire" 
                                                 variant="warning"
-                                                v-if="allowChanges" 
+                                                v-if="hasPermissionToEditUsers && allowChanges" 
                                                 @click="confirmDeleteRole(data.item)">
                                                 <b-icon icon="clock" 
                                                         font-scale="1.25" 
@@ -67,7 +67,7 @@
                                 <span><b-button class="my-0 py-0" 
                                                 size="sm" 
                                                 variant="transparent"
-                                                v-if="allowChanges" 
+                                                v-if="hasPermissionToEditUsers && allowChanges" 
                                                 @click="editRole(data)">
                                                 <b-icon icon="pencil-square" 
                                                         font-scale="1.25" 
@@ -128,7 +128,7 @@
     const TeamMemberState = namespace("TeamMemberInformation");
     import AddRoleForm from './AddForms/AddRoleForm.vue'
     import { userRoleHistoryJsonType, userRoleJsonType } from '../../../types/MyTeam/jsonTypes';
-    import { locationInfoType } from '../../../types/common';
+    import { locationInfoType, userInfoType } from '../../../types/common';
 
     @Component({
         components: {
@@ -143,6 +143,11 @@
         @commonState.State
         public location!: locationInfoType;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
+        hasPermissionToEditUsers = false;
+        hasPermissionToAssignRoles = false;
         roleTabDataReady = false;       
 
         refreshTable = 0;
@@ -182,6 +187,8 @@
 
         mounted()
         {
+            this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");                         
+            this.hasPermissionToAssignRoles = this.userDetails.permissions.includes("CreateAndAssignRoles");
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.roleTabDataReady = false;
             this.allowChanges = true;

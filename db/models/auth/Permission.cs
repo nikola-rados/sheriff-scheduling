@@ -44,6 +44,8 @@ namespace SS.Db.models.auth
         public const string EditDuties = nameof(EditDuties);
         public const string ExpireDuties = nameof(ExpireDuties);
         public const string EditIdir = nameof(EditIdir);
+        public const string EditTraining = nameof(EditTraining);
+        public const string RemoveTraining = nameof(RemoveTraining);
 
         [Key]
         public int Id { get; set; }
