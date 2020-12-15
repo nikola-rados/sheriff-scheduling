@@ -250,7 +250,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("training")]
-        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
+        [PermissionClaimAuthorize(perm: Permission.EditTraining)]
         public async Task<ActionResult<SheriffTrainingDto>> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
             await CheckForAccessToSheriffByLocation<SheriffTraining>(sheriffTrainingDto.Id);
@@ -262,7 +262,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpDelete]
         [Route("training")]
-        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
+        [PermissionClaimAuthorize(perm: Permission.RemoveTraining)]
         public async Task<ActionResult> RemoveSheriffTraining(int id, string expiryReason)
         {
             await CheckForAccessToSheriffByLocation<SheriffTraining>(id);

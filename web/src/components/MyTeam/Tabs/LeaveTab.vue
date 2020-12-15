@@ -4,7 +4,7 @@
             <b-card id="LeaveError" no-body>
                 <h2 v-if="leaveError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc" style="word-break: break-word;white-space: normal;" variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
             </b-card>
-            <b-card  v-if="!addNewLeaveForm">                
+            <b-card  v-if="!addNewLeaveForm && hasPermissionToEditUsers">                
                 <b-button size="sm" variant="success" @click="addNewLeave"> <b-icon icon="plus" /> Add </b-button>
             </b-card>
 
@@ -52,8 +52,8 @@
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
                             <template v-slot:cell(editLeave)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -102,10 +102,12 @@
     import moment from 'moment-timezone';    
     import { namespace } from 'vuex-class';
     import AddLeaveForm from './AddForms/AddLeaveForm.vue'
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
     import {teamMemberInfoType, userLeaveInfoType} from '../../../types/MyTeam';
-    import {leaveInfoType} from '../../../types/common';
+    import {leaveInfoType, userInfoType} from '../../../types/common';
     import { leaveTypeJson } from '../../../types/common/jsonTypes';
 
     @Component({
@@ -115,12 +117,15 @@
     })  
     export default class LeaveTab extends Vue {        
 
+        @commonState.State
+        public userDetails!: userInfoType;
+        
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;                
 
+        hasPermissionToEditUsers = false;
         leaveTypeInfoList: leaveInfoType[] = [];
-        leaveTabDataReady = false;
-        
+        leaveTabDataReady = false;        
 
         addNewLeaveForm = false;
         addFormColor = 'secondary';
@@ -152,6 +157,7 @@
 
         mounted()
         {
+            this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");                         
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.leaveTabDataReady = false;
             this.extractLeaves();                     

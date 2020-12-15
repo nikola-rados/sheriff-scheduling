@@ -20,7 +20,7 @@
                                             Select a location*
                                         </b-form-select-option>
                                         <b-form-select-option
-                                            v-for="location in locationList" 
+                                            v-for="location in allLocationList" 
                                             :key="location.id"
                                             :value="location">
                                                 {{location.name}}
@@ -153,7 +153,7 @@
     export default class AddLocationForm extends Vue {
 
         @commonState.State
-        public locationList!: locationInfoType[];
+        public allLocationList!: locationInfoType[];
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
@@ -217,8 +217,8 @@
 
         public extractFormInfo(){
             this.formDataId = this.formData.id? this.formData.id:0;
-            const index = this.locationList.findIndex(location=>{if(location.id == this.formData.locationId)return true})
-            this.originalLocation = this.selectedLocation = (index>=0)? this.locationList[index]: {} as locationInfoType;
+            const index = this.allLocationList.findIndex(location=>{if(location.id == this.formData.locationId)return true})
+            this.originalLocation = this.selectedLocation = (index>=0)? this.allLocationList[index]: {} as locationInfoType;
             this.originalStartDate = this.selectedStartDate = this.formData.startDate.substring(0,10)            
             this.originalEndDate = this.selectedEndDate =  this.formData.endDate.substring(0,10)
 

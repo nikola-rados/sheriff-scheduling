@@ -4,7 +4,7 @@
         <b-card  align="left" >
             
             <b-card >
-                <b-card-title class="h2"> Temporary landing page for Sheriff Scheduling </b-card-title>
+                <b-card-title class="h2"> Sheriff Scheduling Application </b-card-title>
             </b-card>
 
         </b-card>
