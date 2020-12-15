@@ -33,7 +33,12 @@ namespace SS.Api.services.scheduling
 
         public async Task<List<Shift>> GetShiftsForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeDuties)
         {
-            return await Db.Shift.AsSingleQuery().AsNoTracking()
+            var lookupCode = await Db.LookupCode.AsNoTracking()
+                .Where(lc => lc.Type == LookupTypes.SheriffRank)
+                .Include(s => s.SortOrder)
+                .ToListAsync();
+
+            var shifts = await Db.Shift.AsSingleQuery().AsNoTracking()
                 .Include( s=> s.Location)
                 .Include(s => s.Sheriff)
                 .Include(s => s.AnticipatedAssignment)
@@ -44,6 +49,13 @@ namespace SS.Api.services.scheduling
                 .Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
                             s.StartDate < end && start < s.EndDate)
                 .ToListAsync();
+
+                return shifts.OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff?.Rank)
+                    ?.SortOrder.FirstOrDefault()
+                    ?.SortOrder)
+                .ThenBy(s => s.Sheriff.LastName)
+                .ThenBy(s => s.Sheriff.FirstName)
+                .ToList();
         }
 
         public async Task<List<int>> GetShiftsLocations(List<int> ids) =>
