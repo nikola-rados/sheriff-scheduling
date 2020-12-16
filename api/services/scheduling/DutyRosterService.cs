@@ -38,6 +38,7 @@ namespace SS.Api.services.scheduling
                             d.ExpiryDate == null)
                 .ToListAsync();
 
+
         public async Task<List<int>> GetDutiesLocations(List<int> ids) =>
             await Db.Duty.AsNoTracking().Where(d => ids.Contains(d.Id)).Select(d => d.LocationId).Distinct().ToListAsync();
 
@@ -196,6 +197,13 @@ namespace SS.Api.services.scheduling
         {
             await Db.DutySlot.Where(ds => ids.Contains(ds.DutyId)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
             await Db.Duty.Where(d => ids.Contains(d.Id)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            await Db.SaveChangesAsync();
+        }
+
+        public async Task UpdateDutyComment(int dutyId, string comment)
+        {
+            var savedDuty = await Db.Duty.FirstOrDefaultAsync(d => d.Id == dutyId);
+            savedDuty.Comment = comment;
             await Db.SaveChangesAsync();
         }
 
