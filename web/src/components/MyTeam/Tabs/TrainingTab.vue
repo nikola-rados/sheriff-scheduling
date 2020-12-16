@@ -183,8 +183,8 @@
         mounted()
         {
             this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
-            this.hasPermissionToRemoveCompletedTraining = this.userDetails.permissions.includes("RemoveTraining"); 
-            this.hasPermissionToEditCompletedTraining = this.userDetails.permissions.includes("EditTraining");                                
+            this.hasPermissionToRemoveCompletedTraining = this.userDetails.permissions.includes("RemovePastTraining"); 
+            this.hasPermissionToEditCompletedTraining = this.userDetails.permissions.includes("EditPastTraining");                                
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.currentTime = moment(new Date()).tz(this.timezone).format();
             // console.log(this.currentTime)  
