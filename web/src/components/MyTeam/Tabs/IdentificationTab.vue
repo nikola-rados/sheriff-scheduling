@@ -5,7 +5,7 @@
         </b-card>
 
         <b-form-group class="mx-1"><label>IDIR User Name<span class="text-danger">*</span></label>
-            <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
+            <b-form-input :disabled="editMode && !hasPermissionToEditIdir" v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
         </b-form-group>
         <h2 class="mx-1 mt-0"><b-badge v-if="duplicateIdir" variant="danger"> Duplicate IDIR</b-badge></h2>
 
@@ -50,7 +50,7 @@
                     v-model="user.homeLocationId"
                     :state = "homeLocationState?null:false">
                         <b-form-select-option
-                            v-for="homelocation in locationList" 
+                            v-for="homelocation in allLocationList" 
                             :key="homelocation.id"
                             :value="homelocation.id">
                                 {{homelocation.name}}
@@ -100,7 +100,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import {teamMemberInfoType} from '../../../types/MyTeam';
-import {commonInfoType, locationInfoType} from '../../../types/common';
+import {commonInfoType, locationInfoType, userInfoType} from '../../../types/common';
 import * as _ from 'underscore';
 
 import { namespace } from 'vuex-class';
@@ -121,7 +121,16 @@ export default class IdentificationTab extends Vue {
     public location!: locationInfoType;
 
     @commonState.State
-    public locationList!: locationInfoType[];
+    public allLocationList!: locationInfoType[]; 
+    
+    @commonState.State
+    public userDetails!: userInfoType;
+
+    @TeamMemberState.State
+    public userToEdit!: teamMemberInfoType;
+
+    @TeamMemberState.Action
+    public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
 
     @Prop({required: true})
     createMode!: boolean;
@@ -131,12 +140,6 @@ export default class IdentificationTab extends Vue {
 
     @Prop({required: true})
     runMethod!: any;
-
-    @TeamMemberState.State
-    public userToEdit!: teamMemberInfoType;
-
-    @TeamMemberState.Action
-    public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
 
     genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
     genderValues = [0, 1, 2]
@@ -151,6 +154,7 @@ export default class IdentificationTab extends Vue {
     duplicateBadge = false;
     duplicateIdir = false;
 
+    hasPermissionToEditIdir = false;
     showCancelWarning = false;
     cancelMessage ='cancel';
 
@@ -169,6 +173,7 @@ export default class IdentificationTab extends Vue {
         this.runMethod.$on('switchTab', this.switchTab)
         this.runMethod.$on('closeProfileWindow', this.closeProfileWindow)
         this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)
+        this.hasPermissionToEditIdir = this.userDetails.permissions.includes("EditIdir");            
     }
 
     public refreshTabInformation()

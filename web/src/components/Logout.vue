@@ -14,7 +14,7 @@
 							alt="B.C. Government Logo"
 						/> Login To Sheriff Scheduling</b-button>
         </b-card>
-        <!-- <b-button class="py-2 px-5 m-5" @click="del()"> del</b-button> -->
+
     </b-card>
 
 </template>
@@ -34,14 +34,6 @@
         mounted(){
             Vue.$cookies.remove("logout");
             console.log(document.cookie)
-        }
-
-        public del(){
-            //console.log(document.cookie)
-           // Vue.$cookies.set("FAILREASON","2",new Date(),'/','.gov.bc.ca',true,'')
-           // Vue.$cookies.remove("logout");
-           // window.sessionStorage.clear()
-           // console.log('_cleared')
         }
 
     }

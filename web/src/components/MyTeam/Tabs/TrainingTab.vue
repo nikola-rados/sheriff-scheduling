@@ -4,7 +4,7 @@
             <b-card id="TrainingError" no-body>
                 <h2 v-if="trainingError" class="mx-1 mt-0"><b-badge v-b-tooltip.hover :title="trainingErrorMsgDesc" style="word-break: break-word;white-space: normal;" variant="danger"> {{trainingErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="trainingError = false" /></b-badge></h2>
             </b-card>
-            <b-card v-if="!addNewTrainingForm">
+            <b-card v-if="!addNewTrainingForm && hasPermissionToEditUsers">
                 <b-button size="sm" variant="success" @click="addNewTraining"><b-icon icon="plus"/> Add </b-button>
             </b-card>
 
@@ -71,8 +71,8 @@
                                 <span>{{data.value | beautify-date}}</span> 
                             </template>
                             <template v-slot:cell(editTraining)="data" >
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" v-if="data.item['_rowVariant']?false:true" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>                                
+                                <b-button :disabled="!hasPermissionToEditCompletedTraining && (data.item['_rowVariant']?true:false)" v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="editTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>                                       
+                                <b-button class="my-0 py-0" size="sm" variant="transparent" :disabled="!hasPermissionToRemoveCompletedTraining && (data.item['_rowVariant']?true:false)" v-if="hasPermissionToEditUsers" @click="confirmDeleteTraining(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>                                
                             </template>
 
                             <template v-slot:row-details="data">
@@ -121,9 +121,11 @@
     import moment from 'moment-timezone';
     import {teamMemberInfoType, userTrainingInfoType} from '../../../types/MyTeam'; 
     import { trainingTypeJson } from '../../../types/common/jsonTypes';    
-    import { trainingInfoType } from '../../../types/common';    
+    import { trainingInfoType, userInfoType } from '../../../types/common';    
     import AddTrainingForm from './AddForms/AddTrainingForm.vue'   
     import { namespace } from 'vuex-class';
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
     import "@store/modules/TeamMemberInformation";    
     const TeamMemberState = namespace("TeamMemberInformation");
 
@@ -134,9 +136,15 @@
     }) 
     export default class TrainingTab extends Vue {
 
+        @commonState.State
+        public userDetails!: userInfoType;
+        
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
         
+        hasPermissionToEditUsers = false;
+        hasPermissionToEditCompletedTraining = false;
+        hasPermissionToRemoveCompletedTraining = false;
         trainingTabDataReady = false;
         addNewTrainingForm = false;
         addFormColor = 'secondary';
@@ -173,7 +181,10 @@
         ];
 
         mounted()
-        {        
+        {
+            this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
+            this.hasPermissionToRemoveCompletedTraining = this.userDetails.permissions.includes("RemoveTraining"); 
+            this.hasPermissionToEditCompletedTraining = this.userDetails.permissions.includes("EditTraining");                                
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.currentTime = moment(new Date()).tz(this.timezone).format();
             // console.log(this.currentTime)  
