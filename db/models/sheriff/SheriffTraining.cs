@@ -10,5 +10,6 @@ namespace SS.Db.models.sheriff
         public virtual LookupCode TrainingType { get; set; }
         public int? TrainingTypeId { get; set; }
         public DateTimeOffset? TrainingCertificationExpiry { get; set; }
+        public string Note { get; set; }
     }
 }
