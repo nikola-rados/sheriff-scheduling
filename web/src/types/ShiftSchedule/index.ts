@@ -8,6 +8,7 @@ export interface shiftInfoType {
     timezone: string;
     locationId: string;     
     sheriffId: string;
+    comment?: string;
 }
 
 export interface distributeTeamMemberInfoType {        
