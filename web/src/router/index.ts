@@ -2,6 +2,7 @@ import { RouteConfig } from 'vue-router'
 import VueResource from 'vue-resource'
 import Home from '@components/Home.vue'
 import Logout from '@components/Logout.vue'
+import RequestAccess from '@components/RequestAccess.vue'
 import DutyRoster from '@components/DutyRoster/DutyRoster.vue'
 import ManageSchedule from '@components/ShiftSchedule/ManageSchedule.vue'
 import DistributeSchedule from '@components/ShiftSchedule/DistributeSchedule.vue'
@@ -17,6 +18,7 @@ function dontDisplayHeader(to: any, from: any, next: any) {
 }
 
 function displayFooter(to: any, from: any, next: any) {
+	store.commit('CommonInformation/setDisplayHeader',true);
 	store.commit('CommonInformation/setDisplayFooter',true);
 	next();
 }
@@ -41,17 +43,23 @@ async function checkPermission(to: any, from: any, next: any) {
 				} else {
 					next({ path: "/" });
 				}
+			} else if(to.name == "MyTeamMembers") {
+				if (userPermissions.includes("ViewOwnProfile") || userPermissions.includes("ViewProfilesInOwnLocation") || userPermissions.includes("ViewProfilesInAllLocation")){        
+					displayFooter(to, from, next);	
+				} else {
+					next({ path: "/duty-roster" });
+				}
 			} else {
 				if (userPermissions.includes(to.meta.requiredPermission)){
 					displayFooter(to, from, next);	
 				} else {
-					next({ path: "/" });
+					next({ path: "/duty-roster" });
 				}
 			}
 		})  
 
 	} catch(e) {
-		next({ path: "/" });
+		next({ path: "/duty-roster" });
 	}
 
 }
@@ -69,6 +77,12 @@ const routes: Array<RouteConfig> = [
 		name: 'Logout',
 		beforeEnter: dontDisplayHeader,
 		component: Logout
+	},	
+	{
+		path: '/request-access',
+		name: 'RequestAccess',
+		beforeEnter: dontDisplayHeader,
+		component: RequestAccess
 	},
 	{
 		path: '/duty-roster',
@@ -93,14 +107,15 @@ const routes: Array<RouteConfig> = [
 	{
 		path: '/team-members',
 		name: 'MyTeamMembers',
-		beforeEnter: displayFooter,
+		beforeEnter: checkPermission,
 		component: MyTeamMembers
 	},
 	{
 		path: '/define-roles-access',
 		name: 'DefineRolesAccess',
-		beforeEnter: displayFooter,
-		component: DefineRolesAccess  
+		beforeEnter: checkPermission,
+		component: DefineRolesAccess,
+		meta:{requiredPermission: 'ViewRoles'}  
 	},
 	{    
 		path: '/assignment-types',

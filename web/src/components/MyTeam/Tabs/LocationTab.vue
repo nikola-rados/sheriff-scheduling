@@ -5,7 +5,7 @@
                 <h2 v-if="locationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc" style="word-break: break-word;white-space: normal;"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
             </b-card>
             
-            <b-card v-if="!addNewLocationForm">
+            <b-card v-if="!addNewLocationForm && hasPermissionToEditUsers">
                 <b-button size="sm" variant="success" @click="addNewLocation"> <b-icon icon="plus" /> Add </b-button>
             </b-card> 
 
@@ -54,8 +54,8 @@
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
                             <template v-slot:cell(edit)="data" >                                      
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -105,7 +105,7 @@
     import { Component, Vue} from 'vue-property-decorator';
     import moment from 'moment-timezone';
     import {teamMemberInfoType, awayLocationInfoType} from '../../../types/MyTeam';
-    import {locationInfoType} from '../../../types/common';
+    import {locationInfoType, userInfoType} from '../../../types/common';
     import AddLocationForm from './AddForms/AddLocationForm.vue'
     import { namespace } from 'vuex-class';
     import "@store/modules/CommonInformation";
@@ -122,11 +122,15 @@
     export default class LocationTab extends Vue {
 
         @commonState.State
-        public locationList!: locationInfoType[];
+        public allLocationList!: locationInfoType[];
+
+        @commonState.State
+        public userDetails!: userInfoType;
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
 
+        hasPermissionToEditUsers = false;
         addNewLocationForm = false;
         locationError = false;
         locationErrorMsg = '';
@@ -154,7 +158,8 @@
         ];
 
         mounted()
-        {                         
+        {
+            this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");                         
             this.extractAwayLocations();          
         }
 
@@ -326,8 +331,8 @@
         }
 
         public getLocation(locationId: number|null){
-            const index = this.locationList.findIndex(location=>{if(location.id == locationId)return true})
-            if(index>=0) return this.locationList[index]; else return "";
+            const index = this.allLocationList.findIndex(location=>{if(location.id == locationId)return true})
+            if(index>=0) return this.allLocationList[index]; else return "";
         }
 
     }

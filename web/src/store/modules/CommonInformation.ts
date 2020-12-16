@@ -13,6 +13,8 @@ class CommonInformation extends VuexModule {
 
   public locationList: locationInfoType[] = [];
 
+  public allLocationList: locationInfoType[] = [];
+
   public userDetails: userInfoType = {firstName:'', lastName:'', roles: [], homeLocationId: 0, permissions: []}
 
   public displayFooter = true;
@@ -74,6 +76,16 @@ class CommonInformation extends VuexModule {
   @Action
   public UpdateLocationList(newLocationList): void {
     this.context.commit('setLocationList', newLocationList)
+  }
+
+  @Mutation
+  public setAllLocationList(allLocationList): void {   
+    this.allLocationList = allLocationList
+  }
+
+  @Action
+  public UpdateAllLocationList(newAllLocationList): void {
+    this.context.commit('setAllLocationList', newAllLocationList)
   }
 
   @Mutation
