@@ -91,6 +91,7 @@
 						<label class="h6 m-0 p-0">Assignment Category<span class="text-danger">*</span></label>
 						<b-form-select 
 							size="sm"
+							disabled="true"
 							@change="loadSubTypes"
 							v-model="assignmentToEditType"
 							:state = "selectedTypeState?null:false">
@@ -106,7 +107,7 @@
 						<label class="h6 my-0 ml-1 p-0">Assignment Sub category<span class="text-danger">*</span></label>
 						<b-form-select 
 							size="sm"
-							:disabled="!isSubTypeDataReady"
+							disabled="true"
 							v-model="assignmentToEditSubType.id"
 							:state = "selectedSubTypeState?null:false">
 								<b-form-select-option
@@ -494,8 +495,7 @@
 						this.deleteError = true;
 					});
 					this.assignmentDeleteReason = '';
-			}
-			
+			}			
 		}
 
         public editAssignment(){
