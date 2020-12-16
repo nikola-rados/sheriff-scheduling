@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using SS.Api.helpers;
 using SS.Api.helpers.extensions;
@@ -250,22 +252,36 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [Route("training")]
-        [PermissionClaimAuthorize(perm: Permission.EditTraining)]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult<SheriffTrainingDto>> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
         {
             await CheckForAccessToSheriffByLocation<SheriffTraining>(sheriffTrainingDto.Id);
 
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
+            if (!User.HasPermission(Permission.EditPastTraining))
+            {
+                var savedSheriffTraining = Db.SheriffTraining.AsNoTracking().FirstOrDefault(st => st.Id == sheriffTrainingDto.Id);
+                if (savedSheriffTraining?.EndDate <= DateTimeOffset.UtcNow)
+                    throw new BusinessLayerException("No permission to edit training that has completed.");
+            }
+
             var updatedSheriffTraining = await SheriffService.UpdateSheriffTraining(sheriffTraining);
             return Ok(updatedSheriffTraining.Adapt<SheriffTrainingDto>());
         }
 
         [HttpDelete]
         [Route("training")]
-        [PermissionClaimAuthorize(perm: Permission.RemoveTraining)]
+        [PermissionClaimAuthorize(perm: Permission.EditUsers)]
         public async Task<ActionResult> RemoveSheriffTraining(int id, string expiryReason)
         {
             await CheckForAccessToSheriffByLocation<SheriffTraining>(id);
+
+            if (!User.HasPermission(Permission.RemovePastTraining))
+            {
+                var sheriffTraining = Db.SheriffTraining.AsNoTracking().FirstOrDefault(st => st.Id == id);
+                if (sheriffTraining?.EndDate <= DateTimeOffset.UtcNow)
+                    throw new BusinessLayerException("No permission to remove training that has completed.");
+            }
 
             await SheriffService.RemoveSheriffTraining(id, expiryReason);
             return NoContent();
