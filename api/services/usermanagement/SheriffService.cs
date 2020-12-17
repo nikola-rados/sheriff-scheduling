@@ -282,10 +282,6 @@ namespace SS.Api.services.usermanagement
 
         #region Sheriff Training
 
-           
-        public async Task<SheriffTraining> GetSheriffTraining(int id) =>
-            await Db.SheriffTraining.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id);
-
         public async Task<SheriffTraining> AddSheriffTraining(SheriffTraining sheriffTraining, bool overrideConflicts)
         {
             ValidateStartAndEndDates(sheriffTraining.StartDate, sheriffTraining.EndDate);
