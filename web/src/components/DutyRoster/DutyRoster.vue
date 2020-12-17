@@ -131,7 +131,13 @@
         }
 
         public toggleDisplayMyteam(){
-            if(this.displayFooter) this.UpdateDisplayFooter(false)
+            if(this.displayFooter){
+                this.UpdateDisplayFooter(false)
+                const el = document.getElementsByClassName('b-table-sticky-header') 
+                Vue.nextTick(()=>{            
+                    if(el[1]) el[1].scrollLeft = el[0].scrollLeft
+                })
+            }
             else this.UpdateDisplayFooter(true)
         }        
 
@@ -162,7 +168,7 @@
             if(this.displayFooter) 
                 return '35rem';
             else 
-                return '33rem';
+                return '31.3rem';
         }
 
     }
