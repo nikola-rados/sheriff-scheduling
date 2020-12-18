@@ -4,13 +4,13 @@
             <b-tbody>
                 <b-tr>
                     <b-td>   
-                        <b-tr class="mt-1 bg-white">   
-                            <b class="ml-3" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Leave: </b>                          
+                        <b-tr class="mt-0 bg-white">   
+                            <b class="ml-3 h6" v-if="!selectedStartDate || !selectedEndDate" >Full/Partial Day Leave: </b>                          
                             <b class="ml-3 px-1" style="background-color: #e8b5b5" v-else-if="isFullDay" >Full Day Leave: </b> 
                             <b class="ml-3 px-1" style="background-color: #aed4bc" v-else >Partial Day Leave: </b>
                         </b-tr>
                         <b-tr >
-                            <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem"> 
+                            <b-form-group style="margin: 0.05rem 0 0 0.5rem;width: 15rem"> 
                                 <b-form-select
                                     tabindex="1"
                                     size = "sm"
@@ -100,17 +100,30 @@
                     </b-td>
                     <b-td >
                         <b-button                                    
-                            style="margin: 2.5rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
+                            style="margin: 1.7rem .5rem 0 0 ; padding:0 .5rem 0 .5rem; "
                             variant="secondary"
                             @click="closeForm()">
                             Cancel
                         </b-button>   
                         <b-button                                    
-                            style="margin: 2.5rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
+                            style="margin: 1.7rem 0 0 0; padding:0 0.7rem 0 0.7rem; "
                             variant="success"                        
                             @click="saveForm()">
                             Save
                         </b-button>  
+                    </b-td>
+                </b-tr>
+                <b-tr  class="m-0 p-0">
+                    <b-td colspan="4">
+                        <b class="p-0 h6" style="margin: 0.75rem 0.5rem 0 0.7rem; float:left;">Comment:</b>
+                        <b-form-group class="p-0 mr-2 mt-1 mb-0" style="float:left; width: 40rem">                        
+                            <b-form-input
+                                tabindex="7"
+                                v-model="selectedComment"
+                                size="sm"
+                                type="text"                            
+                            ></b-form-input>
+                        </b-form-group> 
                     </b-td>
                 </b-tr>   
             </b-tbody>
@@ -180,6 +193,9 @@
         originalStartTime = '';
         originalEndTime = '';
 
+        originalComment = '';
+        selectedComment = '';
+
         addTime = false;
 
         formDataId = 0;
@@ -205,6 +221,8 @@
             this.addTime = !displayTime;           
             this.originalStartTime = this.selectedStartTime = displayTime? '' :this.formData.startDate.substring(11,16)            
             this.originalEndTime = this.selectedEndTime = displayTime? '' :this.formData.endDate.substring(11,16)
+
+            this.originalComment = this.selectedComment = this.formData.comment
         }
 
         public timeFormat(value , event){        
@@ -273,6 +291,7 @@
                         id: this.formDataId,
                         timezone: timezone
                     } 
+                    if(this.selectedComment) body['comment'] = this.selectedComment;
                     this.$emit('submit', body, this.isCreate);                  
                 }
         }
@@ -287,7 +306,7 @@
         public isChanged(){
             if(this.isCreate){
                 if((this.selectedLeave && this.selectedLeave.id) ||
-                    this.selectedStartDate || this.selectedEndDate ||
+                    this.selectedStartDate || this.selectedEndDate || this.selectedComment || 
                     this.selectedStartTime || this.selectedEndTime) return true;
                 return false;
             }else{
@@ -295,6 +314,7 @@
                     (this.originalStartDate != this.selectedStartDate)|| 
                     (this.originalEndDate != this.selectedEndDate) ||
                     (this.originalStartTime != this.selectedStartTime) || 
+                    (this.originalComment != this.selectedComment) ||
                     (this.originalEndTime != this.selectedEndTime)) return true;
                 return false;
             }
@@ -315,7 +335,8 @@
             this.endDateState   = true;
             this.startDateState = true;
             this.startTimeState = true;
-            this.endTimeState   = true;            
+            this.endTimeState   = true;
+            this.selectedComment = '';            
         }
 
         public addTimeCheckBoxChanged() {

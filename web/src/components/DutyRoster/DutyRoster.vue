@@ -5,7 +5,7 @@
             <b-col class="m-0 p-0" cols="11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
                 <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
-                <duty-roster-day-view v-else :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
+                <duty-roster-day-view v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
                 
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
@@ -95,6 +95,7 @@
         updateMyTeam = 0;
 
         weekView = false;
+        headerReady = false;
 
         headerAddAssignment = new Vue();      
 
@@ -121,6 +122,7 @@
                 this.UpdateDisplayFooter(true)
             }
 
+            this.headerReady = true;
             this.updateDutyRoster++;
 
         }
