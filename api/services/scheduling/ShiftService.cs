@@ -211,7 +211,8 @@ namespace SS.Api.services.scheduling
                     SheriffId = sheriff.Id, 
                     Start = s.StartDate, 
                     End = s.EndDate,
-                    Timezone = s.Timezone
+                    Timezone = s.Timezone,
+                    SheriffEventType = s.LeaveType.Code
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Training.Select(s => new ShiftAvailabilityConflict
                 {
@@ -219,7 +220,8 @@ namespace SS.Api.services.scheduling
                     SheriffId = sheriff.Id, 
                     Start = s.StartDate, 
                     End = s.EndDate,
-                    Timezone = s.Timezone
+                    Timezone = s.Timezone,
+                    SheriffEventType = s.TrainingType.Code
                 }));
             });
 
