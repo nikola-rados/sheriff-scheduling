@@ -175,7 +175,7 @@
 					</b-col>
                 </b-row>
 
-                <b-row class="mx-1 my-0 p-0">
+                <b-row class="mx-auto my-0 p-0">
                     <b-form-group class="mr-3" style="width: 7rem">
                         <label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
                         <b-form-input
@@ -191,7 +191,7 @@
                         ></b-form-input>
                     </b-form-group>
 
-                    <b-form-group class="mr-5" style="width: 7rem;">
+                    <b-form-group class="m-0" style="width: 7rem;">
                         <label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
                         <b-form-input
                             v-model="selectedEndTime"
@@ -206,8 +206,8 @@
                         ></b-form-input>
                     </b-form-group>                
                 </b-row>
-				<b-row class="mx-1 my-0 p-0">
-                    <b-form-group class="mr-3" style="width: 7rem">
+				<b-row class="mx-auto my-0 p-0">
+                    <b-form-group class="m-0" style="width: 28.5rem">
                         <label class="h6 m-0 p-0">Comment</label>
                         <b-form-input
                             v-model="comment"
@@ -348,7 +348,7 @@
 				this.selectedDate = this.shiftRangeInfo.startDate;
 				this.$emit('change');
 			}
-			console.log(this.selectedDate)
+			//console.log(this.selectedDate)
 			
 
 			this.$root.$on('editShifts', () => {
@@ -389,6 +389,8 @@
 							endTimes.push(this.extractTime(shift.endDate, shift.timezone));
 							if (shift.comment) {
 								comments.push(shift.comment)
+							}else{
+								comments.push('')
 							}
 						}
 						
@@ -416,11 +418,8 @@
 
 						if (numberOfComments == 1) {							
 							this.originalComment = this.comment = comments[0];
-						} else if (numberOfComments == 0) {
-							this.originalComment = this.comment = '';
 						}else {
 							this.originalComment = this.comment = '';
-							this.shiftsDiffer = true;
 						}
 
 						if (this.shiftsDiffer) {
@@ -504,15 +503,17 @@
 				const newStartDate = this.completeDate(shift.startDate,this.selectedStartTime);
 				const newEndDate = this.completeDate(shift.endDate,this.selectedEndTime);
 				//console.log(shift)
-				body.push({
+				const editedShift: shiftInfoType = {
 					id: shift.id,
 					startDate: newStartDate,
 					endDate: newEndDate,
-					comment: this.comment,    
 					timezone: shift.timezone,
 					locationId: shift.locationId ,     
 					sheriffId: shift.sheriffId
-				});				
+				};
+
+				if(this.comment) editedShift.comment = this.comment;				
+				body.push(editedShift)
 			}
 			const url = 'api/shift';
 			this.$http.put(url, body)
@@ -603,6 +604,7 @@
 		public ClearFormState(){
 			this.startTimeState = true;
 			this.endTimeState = true;
+			this.comment = '';
 		}
 
 		public confirmDeleteShift(){

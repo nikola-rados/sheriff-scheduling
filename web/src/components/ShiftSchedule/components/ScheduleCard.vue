@@ -8,13 +8,13 @@
             no-body>
                 <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%"> 
                     <h6 class="m-0 mb-1 p-0" :style="{ backgroundColor:scheduleColor(block).header, color: 'white', textAlign: 'center', fontSize:'10px', lineHeight: '16px' }"
-                        v-b-tooltip.hover                                
-                        :title="block.title + ' ' + block.timeStamp">
+                        v-b-tooltip.hover.html="'<b>'+block.title + ' ' + block.timeStamp+' </b>'">
                         <font-awesome-icon v-if="block.title.includes('Loaned')" style="transform: rotate(180deg); font-size: .55rem;"  icon="sign-out-alt" /> 
                         <font-awesome-icon v-if="block.title=='Leave'" style="font-size: .55rem;"  icon="suitcase"/> 
                         <font-awesome-icon v-if="block.title=='Training'" style="font-size: .5rem;" icon="graduation-cap"/> 
                         <b-icon-person-fill v-if="block.title=='Shift'"/>
                         <b-icon-calendar2-x v-if="block.title=='Unavailable'"/>
+                        <b-icon-chat-square-text-fill font-scale="0.9" class="ml-1" />
                     </h6>
                     <div class="m-0 p-0" style="text-align: center;font-size:10px; line-height: 12px; display: block;">{{block.timeStamp}}</div>
                 </span>
@@ -69,7 +69,7 @@
 
         mounted()
         {
-            // console.log(this.scheduleInfo)
+            //console.log(this.scheduleInfo)
             this.isMounted = false;
             this.hasPermissionToEditShifts = this.userDetails.permissions.includes("EditShifts");
 

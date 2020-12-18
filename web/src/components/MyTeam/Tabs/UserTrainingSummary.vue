@@ -53,7 +53,8 @@
         userTrainingFields = [
           { key: 'trainingName', label: 'Training Type', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
           { key: 'startDate', label: 'Start', thClass: 'text-primary h3'},
-          { key: 'endDate', label: 'End', thClass: 'text-primary h3'}
+          { key: 'endDate', label: 'End', thClass: 'text-primary h3'},
+          { key: 'note', label: 'Note', thClass: 'text-primary h3', tdClass:'text-success'},
         ];
 
         mounted()
@@ -77,6 +78,7 @@
                     trainingInfo.startDate = moment(trainingInfoJson.startDate).tz(this.timezone).format();
                     trainingInfo.endDate = moment(trainingInfoJson.endDate).tz(this.timezone).format();
                     trainingInfo.isFullDay = Vue.filter('isDateFullday')(trainingInfo.startDate, trainingInfo.endDate);
+                    trainingInfo.note = trainingInfoJson.note? trainingInfoJson.note : '';
                     this.userTrainingInfo.push(trainingInfo);
                 }
                 if(this.userTrainingInfo.length) this.displayTraining = true;       
@@ -91,8 +93,8 @@
  <style scoped>
 
     .tooltip >>> .tooltip-inner{
-        max-width: 500px !important;
-        width: 400px !important;
+        max-width: 700px !important;
+        width: 600px !important;
     } 
 
 </style>
