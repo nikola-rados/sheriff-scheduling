@@ -165,12 +165,9 @@
         }
 
         get getheight(){
-            if(this.displayFooter) 
-                return '35rem';
-            else 
-                return '31.3rem';
+            const height = 0.02811625*(window.innerWidth)-17
+            return (this.displayFooter? (height+3)+'rem' : height+'rem')
         }
-
     }
 </script>
 

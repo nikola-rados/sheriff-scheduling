@@ -9,7 +9,7 @@
             style="overflow-x:scroll"
             small   
             borderless
-            :sticky-header="displayFooter?'37.7rem':'34rem'"                  
+            :sticky-header="tableHeight"                  
             fixed>
                 <template v-slot:table-colgroup>
                     <col style="width:9rem">                         
@@ -326,6 +326,11 @@
 
         public addAssignment(){ 
             this.$emit('addAssignmentClicked');            
+        }
+
+        get tableHeight(){
+            const height = 0.02811625*(window.innerWidth)-14
+            return (this.displayFooter? (height+3)+'rem' : height+'rem')
         }
         
     }
