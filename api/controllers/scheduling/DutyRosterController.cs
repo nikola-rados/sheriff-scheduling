@@ -67,6 +67,18 @@ namespace SS.Api.controllers.scheduling
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 
+        [HttpPut("updateComment")]
+        [PermissionClaimAuthorize(perm: Permission.EditDuties)]
+        public async Task<ActionResult> UpdateDutyComment(int dutyId, string comment)
+        {
+            var locationIds = await DutyRosterService.GetDutiesLocations(new List<int> {dutyId});
+            if (locationIds.Count != 1) return BadRequest(CannotUpdateCrossLocationError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationIds.First())) return Forbid();
+
+            await DutyRosterService.UpdateDutyComment(dutyId, comment);
+            return NoContent();
+        }
+
         [HttpPut("moveSheriff")]
         [PermissionClaimAuthorize(perm: Permission.EditDuties)]
         public async Task<ActionResult<DutyDto>> MoveSheriffFromDutySlot(int fromDutySlotId, int toDutyId, DateTimeOffset? separationTime = null)
