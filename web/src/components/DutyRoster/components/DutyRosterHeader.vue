@@ -5,6 +5,9 @@
 				<b-navbar-nav >
 					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal">Duty Roster</h3>
 				</b-navbar-nav>
+				<b-navbar-nav v-if="activetab!='Day'">
+					<h3 style="width:8rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal"></h3>
+				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
                         <b-row style="margin:.25rem auto .25rem auto; width:7.3rem;">
@@ -30,6 +33,21 @@
 						</b-row>
                     </b-col>
                 </b-navbar-nav>
+				<b-navbar-nav v-if="activetab!='Day'" >
+					<b-tabs nav-wrapper-class = "bg-primary text-dark"
+							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
+							pills
+							no-body
+							class="mx-3">
+						<b-tab 
+							v-for="(tabMapping, index) in tabs12h24h" 
+							:key="index"                 
+							:title="tabMapping"                 
+							v-on:click="tab12h24hChanged(tabMapping)" 
+							v-bind:class="[ active24htab === tabMapping ? 'active mb-0' : 'mb-0' ]"
+							/>
+					</b-tabs>
+				</b-navbar-nav>
 				<b-navbar-nav >
 					<b-tabs nav-wrapper-class = "bg-primary text-dark"
 							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
@@ -286,13 +304,19 @@
         public location!: locationInfoType;
 
         @dutyState.Action
-        public UpdateDutyRangeInfo!: (newDutyRangeInfo: dutyRangeInfoType) => void
+		public UpdateDutyRangeInfo!: (newDutyRangeInfo: dutyRangeInfoType) => void
+		
+		@dutyState.Action
+        public UpdateView24h!: (newView24h: boolean) => void
 
 		@commonState.State
 		public userDetails!: userInfoType;
 		
 		@Prop({required: true})
 		runMethod!: any
+
+		active24htab = '12h';
+		tabs12h24h = ['12h','24h'];
 
 		activetab = 'Day';
 		tabs =['Day', 'Week']
@@ -650,6 +674,15 @@
 		public tabChanged(tabInfo){
 			this.activetab = tabInfo;
 			this.loadNewDateRange();
+		}
+
+		public tab12h24hChanged(tabInfo){
+			this.active24htab = tabInfo;
+			if(tabInfo == '12h')
+				this.UpdateView24h(false)
+			else
+				this.UpdateView24h(true)
+			this.$emit('change',this.activetab);			
 		}
 
         

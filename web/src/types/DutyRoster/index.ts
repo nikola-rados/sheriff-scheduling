@@ -192,6 +192,8 @@ export interface dutyBlockWeekInfoType {
     dutyDate:string,
     fullDutyStartTime: string,
     fullDutyEndTime: string,
+    borderLeft: string,
+    borderRight: string
 }
 
 export interface assignDutySlotsInfoType{

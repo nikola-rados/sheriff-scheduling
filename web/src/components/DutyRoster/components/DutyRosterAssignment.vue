@@ -482,7 +482,8 @@
 			if (this.assignmentDeleteReason.length) {
 				this.confirmDelete = false;
 				this.deleteError = false;
-				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason+ '&expiryDate='+this.selectedExipryDate;
+				const expDate = moment.tz(this.selectedExipryDate, this.location.timezone).utc().format();
+				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason+ '&expiryDate='+expDate;
 			
 				this.$http.delete(url)
 					.then(response => {

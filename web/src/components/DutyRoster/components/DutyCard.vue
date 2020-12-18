@@ -11,13 +11,14 @@
             :title="block.title" 
             @dragover.prevent
             @drop.prevent="drop" >
-                <b 
+                <div 
                     :id="'moveduty'+block.dutySlotId"
                     :draggable="localTime.isTodayInView && hasPermissionToAddAssignDuty && hasPermissionToEditDuty" 
                     v-on:dragstart="DragStart"
-                    :style="dutyBlocks.length>1?dutyBlockStyle:(dutyBlockStyle + 'font-size: 16px;')">
-                        {{block.title|truncate(block.endTime - block.startTime-1)}}
-                </b>     
+                    class="m-0 p-0"
+                    :style="dutyBlocks.length>1?(dutyBlockStyle+'font-size: 15px;transform:translate(0,-5px)'):(dutyBlockStyle + 'font-size: 19px;')">
+                        {{block.title|truncate((block.endTime - block.startTime-1)*2)}}
+                </div>     
         </div>
         <span v-if="localTime.isTodayInView" :style="{borderLeft:'3px solid red', gridColumnStart: localTime.timeSlot+1,gridColumnEnd:(localTime.timeSlot+2), gridRow:'1/7'}"></span>
     
@@ -282,7 +283,7 @@
         addNewDutySlotForm = false;
         addFormColor = 'secondary';
 
-        dutyBlockStyle = 'text-transform: capitalize; margin:  0 padding:0; color:white;';
+        dutyBlockStyle = 'text-transform: capitalize; margin:0; padding:0; color:white;';
 
         isEditOpen = false;
         updateTable=0;
@@ -808,7 +809,7 @@
 
     .grid {        
         display:grid;
-        grid-template-columns: repeat(96, 1.041666%);
+        grid-template-columns: repeat(96, 2.0832%);
         grid-template-rows: repeat(6,.5rem);
         inline-size: 100%; 
         background-color: #EEEEEE; 
