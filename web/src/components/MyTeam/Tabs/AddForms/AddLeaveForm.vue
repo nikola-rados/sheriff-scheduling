@@ -292,7 +292,8 @@
                         timezone: timezone
                     } 
                     if(this.selectedComment) body['comment'] = this.selectedComment;
-                    this.$emit('submit', body, this.isCreate);                  
+                    //this.$emit('submit', body, this.isCreate);                  
+                    this.$emit('submit', body, this.isCreate, false);                  
                 }
         }
 
