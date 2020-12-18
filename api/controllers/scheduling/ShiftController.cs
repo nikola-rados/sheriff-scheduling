@@ -38,7 +38,7 @@ namespace SS.Api.controllers.scheduling
         public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeDuties = false)
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
-            if (!User.HasPermission(Permission.ViewDuties)) includeDuties = false;
+            if (!User.HasPermission(Permission.ViewDutyRoster)) includeDuties = false;
 
             var shifts = await ShiftService.GetShiftsForLocation(locationId, start, end, includeDuties);
             return Ok(shifts.Adapt<List<ShiftDto>>());
