@@ -241,6 +241,16 @@
 						></b-form-input>
 					</b-form-group>						
 				</b-row>
+				<b-row class="mx-auto my-0 p-0">
+                    <b-form-group class="m-0" style="width: 28.5rem">
+                        <label class="h6 m-0 p-0">Comment</label>
+                        <b-form-input
+                            v-model="selectedComment"
+                            size="sm"
+                            type="text"                            
+                        ></b-form-input>
+                    </b-form-group>                                    
+                </b-row>
 			</b-card>
 
 			<template v-slot:modal-footer>
@@ -337,6 +347,8 @@
 		isAssignmentDataMounted = false;
 		isSubTypeDataReady = false;
 		nonReoccuring = false;
+
+		selectedComment = '';
 
 		
 		assignment = {} as assignmentInfoType;
@@ -578,6 +590,7 @@
 		public isChanged(){
 			if( this.assignment.name ||
 				this.assignment.type ||
+				this.selectedComment ||
 				this.selectedStartTime || this.selectedEndTime ||
                 this.nonReoccuring || this.selectedDays.length >0) return true;
             return false;           
@@ -623,6 +636,7 @@
 			this.assignmentErrorMsgDesc = '';
 			this.nonReoccuring = false;
 			this.enableAllDayOptions();
+			this.selectedComment = '';
 		}
 
 		public enableAllDayOptions() {
@@ -653,7 +667,9 @@
 			}
 
 			this.assignment.start = this.selectedStartTime;
-			this.assignment.end = this.selectedEndTime;	
+			this.assignment.end = this.selectedEndTime;
+			
+			this.assignment.comment = this.selectedComment;
 
 			const body = this.assignment;	
 			const url = 'api/assignment';

@@ -54,6 +54,7 @@ export interface assignmentInfoType {
     friday: boolean;
     saturday: boolean;
     sunday: boolean;
+    comment?: string;
 }
 
 export interface assignmentSubTypeInfoType {
@@ -110,6 +111,7 @@ export interface assignmentDetailInfoType {
     sunday: boolean;
     adhocStartDate: string | null;
     adhocEndDate: string | null;
+    comment?: string;
 }
 
 export interface attachedDutyInfoType {
