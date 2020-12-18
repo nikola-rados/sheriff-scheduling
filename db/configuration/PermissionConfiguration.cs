@@ -34,7 +34,6 @@ namespace SS.Db.configuration
                 new Permission { Id = 23, Name = Permission.ViewAssignedLocation, Description = "View Assigned Location" },
                 new Permission { Id = 24, Name = Permission.ViewRegion, Description = "View Region (all locations within region)" },
                 new Permission { Id = 25, Name = Permission.ViewProvince, Description = "View Province (all regions, all locations)" },
-                new Permission { Id = 26, Name = Permission.ExpireLocation, Description = "Expire Location" },
                 new Permission { Id = 27, Name = Permission.ViewHomeLocation, Description = "View Home Location" },
                 new Permission { Id = 28, Name = Permission.ImportShifts, Description = "Import Shifts" },
                 new Permission { Id = 30, Name = Permission.CreateAssignments, Description = "Create Assignments" },
