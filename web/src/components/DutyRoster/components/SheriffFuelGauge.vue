@@ -6,14 +6,16 @@
                     :items="myTeamMembers" 
                     :fields="gaugeFields"
                     small
+                    head-row-variant="transparant"
+                    style="overflow-x:hidden"
                     sort-by="availability"
                     :sort-desc="true"
                     class="gauge"                   
                     sticky-header="7rem"                        
-                    bordered                    
+                    borderless                   
                     fixed>
                         <template v-slot:table-colgroup> 
-                            <col style="width:7.7rem">
+                            <col style="width:9rem">
                             <col>
                         </template>
 
@@ -45,7 +47,7 @@
                                 :id="'gauge--'+data.item.sheriff.sheriffId"
                                 :draggable="hasPermissionToAddAssignDuty" 
                                 v-on:dragstart="DragStart"
-                                style="height:1rem; font-size:9px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
+                                style="height:1rem; font-size:12px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
                                 v-b-tooltip.hover.right                             
                                 :title="data.item.fullName">
                                     {{data.value}}
@@ -112,8 +114,8 @@
         myTeamMembers: any[] = []
 
         gaugeFields = [
-            {key:'name', label:'My Team', thClass:'text-center text-white bg-primary', tdClass:' py-0 my-0', thStyle:'margin:0; padding:0;'},
-            {key:'availability', label:'', thClass:'text-white bg-primary', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'},
+            {key:'name', label:'My Team', stickyColumn: true, thClass:'text-center text-white', tdClass:'border-bottom py-0 my-0', thStyle:'margin:0; padding:0;background-color:#556077;'},
+            {key:'availability', label:'', thClass:'', tdClass:'p-0 m-0 bg-white', thStyle:'margin:0; padding:0;'},
             
         ]
 
@@ -212,15 +214,14 @@
         border: white;
     }
 
-    .gauge {
-       
+    .gauge {       
         position: sticky;
         overflow-y: scroll;
     }
 
-     .gridfuel24 {        
+    .gridfuel24 {        
         display:grid;
-        grid-template-columns: repeat(24, 4.1666%);
+        grid-template-columns: repeat(24, 8.333%);
         grid-template-rows: 1.57rem;
         inline-size: 100%;
         font-size: 9px;         
@@ -229,5 +230,8 @@
     .gridfuel24 > * {      
         padding: .25rem 0;
         border: 1px dotted rgb(185, 143, 143);
+        background-color: #003366;
+        color: white;
+        font-size: 12px;
     }
 </style>

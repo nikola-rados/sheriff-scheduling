@@ -6,16 +6,16 @@
             v-for="block in dutyBlocks" 
             :key="block.id"
             :id="block.id"
-            :style="{gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
+            :style="{borderLeft:block.borderLeft, borderRight: block.borderRight, gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
             v-b-tooltip.hover.top                           
             :title="block.title"
             @dragover.prevent
             @drop.prevent="drop" >
-                <b :style="(dutyBlockStyle + 'font-size: 10px;')">
-                    {{block.title|truncate(((block.endTime - block.startTime)/5)-1)}}
+                <b :style="(dutyBlockStyle + 'font-size: 18px;')">
+                    {{block.title|truncate(((block.endTime - block.startTime)/7)-1)}}
                 </b>     
         </div>
-        <span v-if="localTime.isTodayInView" :style="{borderLeft:'3px solid red', gridColumnStart: (localTime.dayOfWeek*96) +localTime.timeSlot+1,gridColumnEnd:((localTime.dayOfWeek*96) +localTime.timeSlot+2), gridRow:'1/7'}"></span>
+        <span v-if="localTime.isTodayInView" :style="currentTimeStyle"></span>
     
         <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
             <b-row id="AssignDutyError" class="h4 mx-2 py-2">
@@ -278,6 +278,10 @@
         
         dutyBlocksDay: dutyBlockWeekInfoType[] = []; 
 
+        @dutyState.State
+        public view24h!: boolean;
+        
+
         //fullDutyStartTime=''
         //fullDutyEndTime=''
 
@@ -466,6 +470,8 @@
                     for(const dutySlot of dutyInfo.dutySlots){
                         let id = 1000;
                         const assignedDutyBin = this.getTimeRangeBins(dutySlot.startDate, dutySlot.endDate,startOfDay, dutySlot.timezone)
+                        const assignedBins = this.convert12h24hView(assignedDutyBin);
+                        
                         unassignedArray = this.fillInArray(unassignedArray,0,assignedDutyBin.startBin, assignedDutyBin.endBin);
                         const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==dutySlot.sheriffId)return true})[0];
                         const isOvertime = this.getOverTime(dutySlot.shiftId, dutySlot.isNotAvailable, dutySlot.isNotRequired, dutySlot.isOvertime);                    
@@ -474,9 +480,13 @@
                         const isNotRequiredOrAvailableSheriffId = dutySlot.isNotRequired? '00000-00000-11111':'00000-00000-22222'
 
                         this.dutyBlocks.push({
-                            id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'D'+day+'n'+id++,                    
-                            startTime: 1+(96*day)+ assignedDutyBin.startBin,
-                            endTime: 1+(96*day)+ assignedDutyBin.endBin,                    
+                            id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'D'+day+'n'+id++, 
+
+                            startTime: 1+(96*day)+ assignedBins.startBin,
+                            endTime: 1+(96*day)+ assignedBins.endBin,
+                            borderLeft: assignedBins.borderLeft,
+                            borderRight: assignedBins.borderRight,                            
+                            
                             color: this.getDutyColor(this.dutyRosterInfo.type.colorCode, dutySlot.isNotAvailable,dutySlot.isNotRequired, isOvertime),
                             height: '2/6',
                             title: this.getTitle(sheriff,dutySlot.isNotAvailable,dutySlot.isNotRequired),
@@ -502,11 +512,16 @@
                     for(const unassignInx in this.unassignedArray){
 
                         const unassignedBin = this.getArrayRangeBins(this.unassignedArray[unassignInx]);
+                        const bins = this.convert12h24hView(unassignedBin);
                         const unassignedSlotTime = this.convertTimeRangeBinsToTime(startOfDay, unassignedBin.startBin, unassignedBin.endBin, this.timezone);
                         this.dutyBlocks.push({
-                            id:'dutySlot'+dutyInfo.id+'D'+day+'n'+unassignInx,                    
-                            startTime: 1+(96*day)+ unassignedBin.startBin,
-                            endTime: 1+(96*day)+ unassignedBin.endBin,                    
+                            id:'dutySlot'+dutyInfo.id+'D'+day+'n'+unassignInx,
+
+                            startTime: 1+(96*day)+ bins.startBin,
+                            endTime: 1+(96*day)+ bins.endBin, 
+                            borderLeft: bins.borderLeft,
+                            borderRight: bins.borderRight,
+
                             color: this.dutyRosterInfo.type.colorCode,
                             height: '2/6',
                             title: '',
@@ -530,6 +545,36 @@
             }
             
            this.isMounted = true;           
+        }
+
+        public convert12h24hView(time){            
+            if(this.view24h) 
+                return {startBin:time.startBin, endBin:time.endBin , borderLeft:'', borderRight:''}
+            else{
+
+                let start = (time.startBin-26) ;
+                let end = (time.endBin-26);
+                let borderLeft = ''
+                let borderRight = ''
+                if(start>=48)
+                    start = 96;
+                else if(start>=0)
+                    start *=2;
+                else{
+                    start = 0;
+                    borderLeft = '4px solid aqua'
+                }
+
+                if(end<=0)
+                    end = 0;
+                else if(end<=48)
+                    end *=2;
+                else{
+                    end = 96;
+                    borderRight = '4px solid aqua'
+                }
+                return {startBin:start, endBin:end , borderLeft:borderLeft, borderRight:borderRight}
+            }
         }
 
         public extractUnassignedArrays(unassignedArray){
@@ -819,6 +864,18 @@
                         this.assignDutyError = true;
                     })
             }
+        }
+
+        get currentTimeStyle(){            
+            let time = this.localTime.timeSlot
+            if(!this.view24h){
+                if(this.localTime.timeSlot-26<0) time = 0
+                else  if(this.localTime.timeSlot-26>48) time = 96
+                else time = (this.localTime.timeSlot-26)*2 
+            }   
+            const start = (this.localTime.dayOfWeek*96) +time+1
+            const end =   (this.localTime.dayOfWeek*96) +time+2             
+            return {borderLeft:'3px solid red', gridColumnStart: start,gridColumnEnd:end, gridRow:'1/7'}
         }
 
     }
