@@ -18,6 +18,8 @@ namespace SS.Db.configuration
 
             builder.HasOne(d => d.Sheriff).WithMany().OnDelete(DeleteBehavior.SetNull);
 
+            builder.HasIndex(b => new { b.StartDate, b.EndDate });
+
             base.Configure(builder);
         }
     }
