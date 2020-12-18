@@ -16,7 +16,7 @@
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item" :weekview="false"/>
+                    <duty-roster-assignment v-on:change="getData()" :assignment="data.item" :weekview="false"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >
@@ -39,7 +39,7 @@
                 </template>
 
                 <template v-slot:cell(h0)="data" >
-                    <duty-card v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/>
+                    <duty-card v-on:change="getData()" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
         <b-card><br></b-card>
@@ -121,7 +121,7 @@
         async locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                await this.getData();                               
+                this.getData();
             }            
         } 
 
@@ -129,7 +129,7 @@
         {
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
-            await this.getData();
+            this.getData();
         }
 
         public getBeautifyTime(hour: number){
@@ -145,9 +145,11 @@
 
             this.dutyRostersJson = response[0].data;
             this.dutyRosterAssignmentsJson = response[1].data;
-
-            this.extractTeamShiftInfo(response[2].data);                        
-            this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);  
+            const shiftsData = response[2].data
+            Vue.nextTick(() => {
+                this.extractTeamShiftInfo(shiftsData);                        
+                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);  
+            })
         }
 
         public getDutyRosters(){
