@@ -44,12 +44,13 @@ namespace SS.Api.infrastructure.authorization
             var currentUserHomeLocationId = currentUser.HomeLocationId();
             var currentUserRegionId = db.Location.AsNoTracking().FirstOrDefault(l => l.Id == currentUserHomeLocationId)?.RegionId;
 
-            if (currentUser.HasPermission(Permission.ViewProvince))
-                return query;
-
+            var viewProvince = currentUser.HasPermission(Permission.ViewProvince);
             var viewRegion = currentUser.HasPermission(Permission.ViewRegion);
             var viewAssignedLocation = currentUser.HasPermission(Permission.ViewAssignedLocation);
             var viewHomeLocation = currentUser.HasPermission(Permission.ViewHomeLocation);
+
+            if (currentUser.HasPermission(Permission.ViewProvince))
+                return query;
 
             //Not sure if we want to put some sort of time limit on this. 
             var assignedLocationIds = db.SheriffAwayLocation.AsNoTracking().Where(sal => sal.SheriffId == currentUserId
@@ -58,7 +59,7 @@ namespace SS.Api.infrastructure.authorization
             return query.Where(loc =>
                 (viewRegion && currentUserRegionId.HasValue && loc.RegionId == currentUserRegionId) ||
                 (viewAssignedLocation && assignedLocationIds.Any(ali => ali == loc.Id)) ||
-                (viewHomeLocation && loc.Id == currentUserHomeLocationId));
+                ((viewProvince || viewRegion || viewAssignedLocation || viewHomeLocation) && loc.Id == currentUserHomeLocationId));
         }
 
         public static bool HasAccessToLocation(ClaimsPrincipal currentUser, SheriffDbContext db, int? locationId)
