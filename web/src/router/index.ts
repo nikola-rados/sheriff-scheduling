@@ -38,7 +38,7 @@ async function checkPermission(to: any, from: any, next: any) {
 		await waitFor(() => {
 			const userPermissions = store.state.CommonInformation.userDetails.permissions;
 			if(to.name == "DustyRoster") {
-				if (userPermissions.includes("ViewDuties") && userPermissions.includes("ViewAssignments") && userPermissions.includes("ViewShifts")){        
+				if (userPermissions.includes("ViewDutyRoster")){        
 					next();	
 				} else {
 					next({ path: "/" });
