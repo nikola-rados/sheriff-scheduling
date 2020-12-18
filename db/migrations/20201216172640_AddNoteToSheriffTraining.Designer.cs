@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -10,9 +11,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201216172640_AddNoteToSheriffTraining")]
+    partial class AddNoteToSheriffTraining
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1079,8 +1081,6 @@ namespace SS.Db.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.HasIndex("StartDate", "EndDate");
-
                     b.ToTable("Duty");
                 });
 
@@ -1228,8 +1228,6 @@ namespace SS.Db.Migrations
                     b.HasIndex("SheriffId");
 
                     b.HasIndex("UpdatedById");
-
-                    b.HasIndex("StartDate", "EndDate");
 
                     b.ToTable("Shift");
                 });
@@ -1762,9 +1760,6 @@ namespace SS.Db.Migrations
 
                     b.Property<string>("Rank")
                         .HasColumnType("text");
-
-                    b.HasIndex("BadgeNumber")
-                        .IsUnique();
 
                     b.HasDiscriminator().HasValue("Sheriff");
                 });

@@ -16,7 +16,7 @@
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item" :weekview="false"/>
+                    <duty-roster-assignment v-on:change="getData()" :assignment="data.item" :weekview="false"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >
@@ -39,7 +39,7 @@
                 </template>
 
                 <template v-slot:cell(h0)="data" >
-                    <duty-card v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/>
+                    <duty-card v-on:change="getData()" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
         <b-card><br></b-card>
@@ -118,60 +118,55 @@
         ]
 
         @Watch('location.id', { immediate: true })
-        locationChange()
+        async locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                this.getDutyRosters();                                
+                this.getData();
             }            
         } 
 
-        mounted()
+        async mounted()
         {
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
-            this.getDutyRosters()
+            this.getData();
         }
 
         public getBeautifyTime(hour: number){
             return( hour>9? hour+':00': '0'+hour+':00')
         }
 
+        public async getData() {
+            const response = await Promise.all([
+                this.getDutyRosters(),
+                this.getAssignments(),
+                this.getShifts()
+            ]);
+
+            this.dutyRostersJson = response[0].data;
+            this.dutyRosterAssignmentsJson = response[1].data;
+            const shiftsData = response[2].data
+            Vue.nextTick(() => {
+                this.extractTeamShiftInfo(shiftsData);                        
+                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);  
+            })
+        }
+
         public getDutyRosters(){
             this.hasPermissionToAddAssignments = this.userDetails.permissions.includes("CreateAssignments");			
             const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        this.dutyRostersJson = response.data; 
-                        console.log(response.data);
-                        this.getAssignments();                                                                   
-                    }                                   
-                })      
+            return this.$http.get(url)
         }
 
         public getAssignments(){
             const url = 'api/assignment?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)
-                        this.dutyRosterAssignmentsJson = response.data; 
-                        this.getShifts();                             
-                    }                                   
-                })      
+            return this.$http.get(url)
         }
 
         public getShifts(){
             this.isDutyRosterDataMounted = false;
             const url = 'api/shift?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate +'&includeDuties=true';
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
-                        this.extractTeamShiftInfo(response.data);                        
-                        this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);                                               
-                    }                                   
-                })      
+            return this.$http.get(url)
         }        
 
         public extractTeamShiftInfo(shiftsJson){
