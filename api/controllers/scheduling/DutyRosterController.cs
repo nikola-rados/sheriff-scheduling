@@ -32,7 +32,7 @@ namespace SS.Api.controllers.scheduling
         /// This is for the center of the DutyRoster screen. Specifically when assignments are created into Duties. 
         /// </summary>
         [HttpGet]
-        [PermissionClaimAuthorize(perm: Permission.ViewDuties)]
+        [PermissionClaimAuthorize(perm: Permission.ViewDutyRoster)]
         public async Task<ActionResult<List<DutyDto>>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();

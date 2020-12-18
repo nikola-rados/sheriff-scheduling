@@ -236,7 +236,7 @@
 
 			<template v-slot:modal-footer>
 				<b-button
-						:disabled="!hasPermissionToExpireAssignment"
+						v-if="hasPermissionToExpireAssignment"
 						size="sm"
 						variant="danger"
 						class="mr-auto"
