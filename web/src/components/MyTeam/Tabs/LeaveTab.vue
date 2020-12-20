@@ -261,7 +261,7 @@
                     this.closeLeaveForm();
                 }, err=>{                    
                     const errMsg = err.response.data.error;
-                    this.leaveErrorMsg = errMsg;//.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.leaveErrorMsg = errMsg;
                     this.leaveErrorMsgDesc = errMsg;
                     if (errMsg.toLowerCase().includes("overlaps")) {
                         console.log("overlap")

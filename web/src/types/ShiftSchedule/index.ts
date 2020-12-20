@@ -58,7 +58,8 @@ export interface conflictsInfoType {
     startInMinutes:number;
     timeDuration: number; 
     type: string; 
-    fullday: boolean;   
+    fullday: boolean;
+    sheriffEventType?: string;   
 }
 
 export interface scheduleBlockInfoType {
