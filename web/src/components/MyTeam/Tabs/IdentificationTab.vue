@@ -50,7 +50,7 @@
                     v-model="user.homeLocationId"
                     :state = "homeLocationState?null:false">
                         <b-form-select-option
-                            v-for="homelocation in allLocationList" 
+                            v-for="homelocation in locationList" 
                             :key="homelocation.id"
                             :value="homelocation.id">
                                 {{homelocation.name}}
@@ -121,7 +121,7 @@ export default class IdentificationTab extends Vue {
     public location!: locationInfoType;
 
     @commonState.State
-    public allLocationList!: locationInfoType[]; 
+    public locationList!: locationInfoType[]; 
     
     @commonState.State
     public userDetails!: userInfoType;

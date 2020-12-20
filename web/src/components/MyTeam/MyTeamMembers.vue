@@ -101,7 +101,7 @@
                                         v-on:change="getSheriffs()"/>
                                 </b-tab>
 
-                                <b-tab v-if="editMode" title="Roles" class="p-0">
+                                <b-tab v-if="editMode && hasPermissionToAssignRoles" title="Roles" class="p-0">
                                     <role-assignment-tab  v-on:change="getSheriffs()"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>
                                 </b-tab>
@@ -207,6 +207,7 @@
         hasPermissionToAddNewUsers = false;
         hasPermissionToExpireUsers = false;
         hasPermissionToEditUsers = false;
+        hasPermissionToAssignRoles = false;
 
         maxRank = 1000;
 
@@ -246,6 +247,7 @@
             this.hasPermissionToAddNewUsers = this.userDetails.permissions.includes("CreateUsers");
             this.hasPermissionToExpireUsers = this.userDetails.permissions.includes("ExpireUsers");
             this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
+            this.hasPermissionToAssignRoles = this.userDetails.permissions.includes("CreateAndAssignRoles");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
             this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
