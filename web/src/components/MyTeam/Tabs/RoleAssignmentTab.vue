@@ -231,7 +231,6 @@
 
         public populateRolesDropdown() {
             this.roles=[];
-            console.log(this.assignedRoles)
             const today = moment().tz(this.location.timezone);
             
             for(const role of this.rolesJson)

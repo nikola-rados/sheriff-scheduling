@@ -311,7 +311,6 @@
         
         public permissionChanged(){
             Vue.nextTick().then(()=>{
-                console.log(this.selectedPermissions)
                 for(const permissionInx in this.permissions)
                     this.permissions[permissionInx].selected = this.selectedPermissions.includes(this.permissions[permissionInx].value)
                 
