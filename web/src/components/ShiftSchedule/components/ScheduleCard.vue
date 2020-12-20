@@ -85,7 +85,7 @@
                         key: this.sheriffId+schedule.date +'Z' +schedule.startTime,
                         startTime: schedule.startInMinutes *5 /72 -widthOtherElements,
                         timeDuration: schedule.timeDuration * 5 /72,
-                        timeStamp: schedule.startTime +'-'+schedule.endTime,
+                        timeStamp: (schedule.type == 'Leave' || schedule.type == 'Training')?schedule.sheriffEventType + ': ' + schedule.startTime +'-'+schedule.endTime:schedule.startTime +'-'+schedule.endTime,
                         title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: (schedule.type=='overTimeShift'? 'Shift':schedule.type),
                         color: this.getScheduleColor(schedule.type).body, //unused now
                         originalColor: this.getScheduleColor(schedule.type).body, //unused now
@@ -102,7 +102,7 @@
                         key: this.sheriffId+schedule.date +'Z' +schedule.startTime,
                         startTime: 0,
                         timeDuration: 100,
-                        timeStamp: 'Full Day',
+                        timeStamp: (schedule.type == 'Leave' || schedule.type == 'Training')?schedule.sheriffEventType + ': Full Day': 'Full Day',
                         title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: schedule.type,
                         color: this.getScheduleColor(schedule.type).body, //unused now
                         originalColor: this.getScheduleColor(schedule.type).body, //unused now
