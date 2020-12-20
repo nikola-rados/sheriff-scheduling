@@ -282,7 +282,8 @@
                 this.assignedAwayLocations[index].startDate = moment(modifiedLocationInfo.startDate).tz(timezone).format();
                 this.assignedAwayLocations[index].endDate = moment(modifiedLocationInfo.endDate).tz(timezone).format();                
                 this.assignedAwayLocations[index]['locationNm'] = location? location.name :'' ;
-                
+                this.assignedAwayLocations[index].comment = modifiedLocationInfo.comment? modifiedLocationInfo.comment :'' ;
+
                 if(Vue.filter('isDateFullday')( this.assignedAwayLocations[index].startDate, this.assignedAwayLocations[index].endDate)){ 
                     this.assignedAwayLocations[index]['isFullDay'] = true;
                     this.assignedAwayLocations[index]['_cellVariants'] = {isFullDay:'danger'}                 
@@ -305,7 +306,8 @@
                 sheriffId : addedLocationInfo.sheriffId,    
                 locationId: addedLocationInfo.locationId,
                 startDate: moment(addedLocationInfo.startDate).tz(timezone).format(),
-                endDate: moment(addedLocationInfo.endDate).tz(timezone).format(),               
+                endDate: moment(addedLocationInfo.endDate).tz(timezone).format(), 
+                comment: addedLocationInfo.comment,              
             }
             
             assignedAwayLocation['locationNm'] = location? location.name :''

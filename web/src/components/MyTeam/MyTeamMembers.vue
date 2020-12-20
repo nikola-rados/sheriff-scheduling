@@ -78,7 +78,8 @@
                                     <identification-tab 
                                         :runMethod="identificationTabMethods"                                         
                                         v-on:closeMemberDetails="closeMemberDetailWindow()" 
-                                        v-on:profileUpdated="getSheriffs()"   
+                                        v-on:profileUpdated="getSheriffs()"
+                                        v-on:enableSave="enableSave()"   
                                         v-on:changeTab="changeTab"                                     
                                         :createMode="createMode" 
                                         :editMode="editMode" />
@@ -119,7 +120,7 @@
                 <b-button     
                     v-if="tabIndex<1"
                     variant="success"
-                    :disabled="editMode && !hasPermissionToEditUsers" 
+                    :disabled="(editMode && !hasPermissionToEditUsers) || saving" 
                     @click="saveMemberProfile()"
                 ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
             </template>            
@@ -220,6 +221,7 @@
         isUserDataMounted = false;
         editMode = false;
         createMode = false;
+        saving = false;
         sectionHeader = '';
         photokey = 0;
         // userAllRoles: any[] = [];
@@ -374,9 +376,14 @@
             this.loadUserDetails(userId);
         }
 
-        public saveMemberProfile() { 
+        public saveMemberProfile() {
+            this.saving = true; 
             this.identificationTabMethods.$emit('saveMemberProfile');
-        }  
+        }
+        
+        public enableSave() {
+            this.saving = false;
+        }
 
         public closeProfileWindow(){            
             if(this.tabIndex ==0 || this.createMode)
@@ -405,6 +412,7 @@
             this.tabIndex = 0;
             this.createMode = true;
             this.editMode = false;
+            this.saving = false;
             this.isUserDataMounted = true;
             this.showMemberDetails = true;
         }

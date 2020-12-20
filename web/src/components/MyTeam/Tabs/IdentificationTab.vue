@@ -342,6 +342,7 @@ export default class IdentificationTab extends Vue {
                     this.identificationErrorMsgDesc = errMsg;
                     this.identificationError = true;
                 }
+                this.$emit('enableSave');
             });
     }
 
@@ -353,13 +354,14 @@ export default class IdentificationTab extends Vue {
                 this.resetProfileWindowState();
                 this.$emit('closeMemberDetails');
                 this.$emit('profileUpdated');
-                
+                this.$emit('enableSave');                
                                                             
             }, err => {                
                 const errMsg = err.response.data.error;
                 this.identificationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                 this.identificationErrorMsgDesc = errMsg;
                 this.identificationError = true;
+                this.$emit('enableSave');
             });       
     }
 
@@ -381,7 +383,8 @@ export default class IdentificationTab extends Vue {
                 if(response.data){
                     this.resetProfileWindowState();
                     this.$emit('closeMemberDetails');
-                    this.$emit('profileUpdated')    
+                    this.$emit('profileUpdated');
+                    this.$emit('enableSave');    
                 }
             }, err => {
                 const errMsg = err.response.data.error;                                
@@ -399,6 +402,7 @@ export default class IdentificationTab extends Vue {
                     this.identificationErrorMsgDesc = errMsg;
                     this.identificationError = true;   
                 }
+                this.$emit('enableSave');
 
             })   
     }

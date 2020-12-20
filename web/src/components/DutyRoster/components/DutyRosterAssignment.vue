@@ -11,12 +11,12 @@
 				margin:'0rem 0.1rem 0 0.1rem'}">
         </b-row>
         <b-row v-else :style="{
-				borderTop: '1px solid #BBBBBB',
-				borderBottom: getBorderBottom,
-				height:'2.785rem',
-				backgroundColor:assignment.type.colorCode,
-				borderRadius:getBorderRadius,
-				margin:'0.15rem 0.1rem 0 0.1rem'}" > 
+			borderTop: '1px solid #BBBBBB',
+			borderBottom: getBorderBottom,
+			height:'2.785rem',
+			backgroundColor:assignment.type.colorCode,
+			borderRadius:getBorderRadius,
+			margin:'0.15rem 0.1rem 0 0.1rem'}" > 
             <b-col cols="10" class="m-0 p-0 text-white" @click="editAssignment()">
                                    
                 <b-row                                  
@@ -47,14 +47,23 @@
                 </b-row>
             </b-col>
             <b-col cols="2" class="m-0 p-0"> 
-                <b-button
-                    class="bg-white"
-                    style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0"
-					:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
-                    @click="addDuty();"
-                    size="sm"> 
-                        <b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
-            </b-col>
+				<b-row class="m-0 p-0" style="height:1rem">
+					<div v-if="assignment.assignmentDetail.comment"
+						v-b-tooltip.hover
+						:title="assignment.assignmentDetail.comment">
+						<b-icon-chat-square-text-fill variant="white" font-scale=".7" class="m-1 p-0"/>
+					</div>
+				</b-row>
+				<b-row class="m-0 p-0">
+					<b-button
+						class="bg-white"
+						style="padding:0; height:1.2rem; width:1.2rem; margin:0"
+						:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
+						@click="addDuty();"
+						size="sm"> 
+							<b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
+				</b-row>
+			</b-col>
         </b-row>
 
 		<b-modal v-model="showEditAssignmentDetails" id="bv-modal-edit-assignment-details" centered header-class="bg-primary text-light">
@@ -91,7 +100,7 @@
 						<label class="h6 m-0 p-0">Assignment Category<span class="text-danger">*</span></label>
 						<b-form-select 
 							size="sm"
-							disabled="true"
+							:disabled="true"
 							@change="loadSubTypes"
 							v-model="assignmentToEditType"
 							:state = "selectedTypeState?null:false">
@@ -107,7 +116,7 @@
 						<label class="h6 my-0 ml-1 p-0">Assignment Sub category<span class="text-danger">*</span></label>
 						<b-form-select 
 							size="sm"
-							disabled="true"
+							:disabled="true"
 							v-model="assignmentToEditSubType.id"
 							:state = "selectedSubTypeState?null:false">
 								<b-form-select-option
@@ -232,11 +241,21 @@
 						></b-form-input>
 					</b-form-group>						
 				</b-row>
+				<b-row class="mx-auto my-0 p-0">
+                    <b-form-group class="m-0" style="width: 28.5rem">
+                        <label class="h6 m-0 p-0">Comment</label>
+                        <b-form-input
+                            v-model="selectedComment"
+                            size="sm"
+                            type="text"                            
+                        ></b-form-input>
+                    </b-form-group>                                    
+                </b-row>
 			</b-card>
 
 			<template v-slot:modal-footer>
 				<b-button
-						:disabled="!hasPermissionToExpireAssignment"
+						v-if="hasPermissionToExpireAssignment"
 						size="sm"
 						variant="danger"
 						class="mr-auto"
@@ -402,6 +421,7 @@
 		isDeleted = false;
 
 		selectedExipryDate = ''
+		selectedComment = ''
 
 		nameState = true;
 		selectedTypeState = true;
@@ -560,6 +580,7 @@
         }
 		
 		public loadAssignmentDetails() {
+
 			const assignmentInfo = this.assignment.assignmentDetail;
 			this.originalAssignmentToEdit.id = this.assignmentToEdit.id = assignmentInfo.id;
 			this.originalAssignmentToEdit.name = this.assignmentToEdit.name = assignmentInfo.name;			
@@ -567,6 +588,8 @@
 			this.originalAssignmentToEdit.end = this.selectedEndTime = assignmentInfo.end.substring(0,5);
 			this.originalAssignmentToEdit.locationId = this.assignmentToEdit.locationId = assignmentInfo.locationId;
 			this.originalAssignmentToEdit.timezone = this.assignmentToEdit.timezone = assignmentInfo.timezone;
+			this.originalAssignmentToEdit.comment = this.selectedComment = assignmentInfo.comment?assignmentInfo.comment:''
+
 			if (assignmentInfo.adhocStartDate) {
 				this.nonReoccuring = true;
 				this.selectedStartDate = assignmentInfo.adhocStartDate? assignmentInfo.adhocStartDate: '';
@@ -829,7 +852,8 @@
 			}
 
 			this.assignmentToEdit.start = this.selectedStartTime;
-			this.assignmentToEdit.end = this.selectedEndTime;	
+			this.assignmentToEdit.end = this.selectedEndTime;
+			this.assignmentToEdit.comment = this.selectedComment;	
 		}
 
 		public saveAssignmentChanges() {

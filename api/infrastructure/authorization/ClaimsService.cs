@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.helpers.extensions;
 using SS.Common.authorization;
 using SS.Db.models;
+using SS.Db.models.auth;
 
 namespace SS.Api.infrastructure.authorization
 {
@@ -29,11 +31,21 @@ namespace SS.Api.infrastructure.authorization
 
             //Match by IdirID (already logged into SSO before) or Idir with no IdirID (created, but hasn't logged in yet).
             //Hopefully IdirID doesn't change when the base IdirName does (getting married / divorced etc).
-            var user = await Db.User.AsSingleQuery().AsNoTracking().Include(u => u.UserRoles)
+            var user = await Db.User.AsSingleQuery().AsNoTracking()
+                .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .ThenInclude(r => r.RolePermissions)
                 .ThenInclude(rp => rp.Permission)
-                .FirstOrDefaultAsync(u => u.IdirId == idirId || !u.IdirId.HasValue && u.IdirName == idirName);
+                .Where(u => u.IdirId == idirId || !u.IdirId.HasValue && u.IdirName == idirName)
+                .Select(u => new User
+                {
+                    Id = u.Id,
+                    UserRoles = u.UserRoles,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    HomeLocationId = u.HomeLocationId,
+                    IsEnabled = u.IsEnabled
+                }).FirstOrDefaultAsync();
 
             if (user?.IsEnabled != true) 
                 return claims;
