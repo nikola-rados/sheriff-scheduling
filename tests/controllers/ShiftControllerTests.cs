@@ -578,7 +578,7 @@ namespace tests.controllers
             Assert.Equal(sheriffId, updatedShift.SheriffId);
 
             //Create the same shift, without sheriff, should conflict.
-            shiftDto.SheriffId = null;
+            shiftDto.SheriffId = sheriffId;
             shiftDto.StartDate = DateTimeOffset.UtcNow.AddDays(5).Date;
             shiftDto.EndDate = DateTimeOffset.UtcNow.AddDays(6).Date;
             shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));
@@ -588,7 +588,7 @@ namespace tests.controllers
             await Assert.ThrowsAsync<BusinessLayerException>(() => ShiftController.UpdateShifts(shifts.Adapt<List<UpdateShiftDto>>()));
 
             //Create a shift that sits side by side, without sheriff, shouldn't conflict.
-            shiftDto.SheriffId = null;
+            shiftDto.SheriffId = sheriffId;
             shiftDto.StartDate = DateTimeOffset.UtcNow.AddDays(4).Date;
             shiftDto.EndDate = DateTimeOffset.UtcNow.AddDays(5).Date;
             shifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.AddShifts(shiftDtos.Adapt<List<AddShiftDto>>()));

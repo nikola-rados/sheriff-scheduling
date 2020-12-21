@@ -13,9 +13,6 @@ namespace SS.Db.configuration
 
             builder.HasData(
                 new Permission { Id = 1, Name = Permission.Login, Description = "Allows the user to login."},
-                new Permission { Id = 2, Name = Permission.ViewOwnProfile, Description = "View their own profile" },
-                new Permission { Id = 3, Name = Permission.ViewProfilesInOwnLocation, Description = "View profiles in their own location" },
-                new Permission { Id = 4, Name = Permission.ViewProfilesInAllLocation, Description = "View profiles in all locations" },
                 new Permission { Id = 5, Name = Permission.CreateUsers, Description = "Create Profile (User)" },
                 new Permission { Id = 6, Name = Permission.ExpireUsers, Description = "Expire Profile (User)" },
                 new Permission { Id = 7, Name = Permission.EditUsers, Description = "Edit Profile (User)" },
