@@ -438,6 +438,9 @@
 		allDaysSelected = false;
 		weekDaysSelected = false;
 
+		initialStartDate = false;
+		initialEndDate = false;
+
 		weekDayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
 		dayOptions = [
@@ -527,23 +530,40 @@
 			if(this.isDeleted)return;			
 			this.isSubTypeDataReady = false;
 			this.enableAllDayOptions();
-			this.initialLoad = true; 
+			this.initialLoad = true;
+			this.initialStartDate = true;
+			this.initialEndDate = true; 
 			this.loadAssignmentDetails();					           
 		}
 
 		public startDatePicked(){
-			this.toggleAllDays(false);
-			this.toggleWeekDays(false);
+			if(this.initialStartDate){
+				//console.log('startDate')
+				this.initialStartDate=false
+			}else if(!this.initialEndDate){
+				this.toggleAllDays(false);
+				this.toggleWeekDays(false);
+				this.selectedDays = [] ;
 			this.selectedDays = [] ;            
-            if (this.selectedEndDate.length) {
+				this.selectedDays = [] ;
+			}           
+			if (this.selectedEndDate.length) {
 				this.disableOutOfRangeDays();
 			}
+			
 		}
 
 		public endDatePicked(){
-			this.toggleAllDays(false);
-			this.toggleWeekDays(false);
+			if(this.initialEndDate){
+				//console.log('endDate')
+				this.initialEndDate=false
+			}else if (!this.initialStartDate) {
+				this.toggleAllDays(false);
+				this.toggleWeekDays(false);
+				this.selectedDays = [] ;
 			this.selectedDays = [] ;            
+				this.selectedDays = [] ;
+			}                 
             if (this.selectedStartDate.length) {
 				this.disableOutOfRangeDays();
 			}
