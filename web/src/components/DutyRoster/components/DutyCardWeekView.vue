@@ -169,7 +169,7 @@
                     <label style="margin:1rem .3rem 0 0.5rem;" class="h6 p-0">Comment:</label>
                     <b-form-group class="mx-2 my-2" style="width: 13rem">                        
                         <b-form-input
-                            v-model="dutyBlocksDay[0].comment"
+                            v-model="selectedComment"
                             size="sm"
                             placeholder="Enter a comment"
                             type="text" 
@@ -179,7 +179,7 @@
                     <b-button
                         variant="success"
                         class="p-1 my-2 mx-2"
-                        @click="updateComment(dutyBlocksDay[0].dutyId,dutyBlocksDay[0].comment)"
+                        @click="updateComment(dutyBlocksDay[0].dutyId,selectedComment)"
                         size="sm">
                         <b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"/>
                         Save Comment
@@ -355,6 +355,7 @@
         deleteError = false; 
 
         selectedComments: any[] = [];
+        selectedComment = '';
         //originalComment = '';
         commentSaved = false;
         
@@ -395,7 +396,8 @@
 
         public editDuty(day){
             this.isDutyDataMounted = false;
-            this.dutyBlocksDay = this.dutyBlocks.filter(dutyBlock=>{if(dutyBlock.day==day)return true;})
+            this.dutyBlocksDay = (this.dutyBlocks.filter(dutyBlock=>{if(dutyBlock.day==day)return true;}));
+            this.selectedComment = this.dutyBlocksDay[0].comment
             this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment+'D'+day);
             this.showEditDutyDetails = true;
             this.isDutyDataMounted = true;
@@ -455,6 +457,7 @@
 		public closeEditDutyWindow(){
             this.closeDutySlotForm();
             this.UpdateDutyToBeEdited('');
+            console.log(this.selectedComments)
 			this.showEditDutyDetails = false;
 		}
 

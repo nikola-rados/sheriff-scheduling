@@ -121,7 +121,8 @@
                                 tabindex="7"
                                 v-model="selectedComment"
                                 size="sm"
-                                type="text"                            
+                                type="text"
+                                :formatter="commentFormat"                            
                             ></b-form-input>
                         </b-form-group> 
                     </b-td>
@@ -368,6 +369,10 @@
             }else
                 return false           
         }
+
+        public commentFormat(value) {
+			return value.slice(0,100);
+		}
     }
 </script>
 

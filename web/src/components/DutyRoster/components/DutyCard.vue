@@ -23,7 +23,7 @@
     
         <b 
             v-if="selectedComment.comment"
-            v-b-tooltip.hover.v-info="selectedComment.comment"  
+            v-b-tooltip.hover.right.v-info="selectedComment.comment"  
             :style="{backgroundColor: '#AB0000', gridColumnStart: selectedComment.startTime, gridColumnEnd: selectedComment.endTime, gridRow:'1/3'}"> 
                 <b-icon-chat-square-text-fill font-scale="0.8" variant="white" style="transform: translate(7px,-5px);"/>
         </b>
@@ -445,6 +445,7 @@
 		public closeEditDutyWindow(){
             this.closeDutySlotForm();
             this.UpdateDutyToBeEdited('');
+            this.selectedComment.comment= (this.dutyRosterInfo.attachedDuty && this.dutyRosterInfo.attachedDuty.comment)? this.dutyRosterInfo.attachedDuty.comment: ''
 			this.showEditDutyDetails = false;
 		}
 
