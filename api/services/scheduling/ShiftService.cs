@@ -224,7 +224,7 @@ namespace SS.Api.services.scheduling
                     End = s.EndDate,
                     Timezone = s.Timezone,
                     SheriffEventType = s.TrainingType?.Code,
-                    Comment = s.Comment
+                    Comment = s.Note
                 }));
             });
 
