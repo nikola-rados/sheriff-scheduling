@@ -11,7 +11,9 @@ namespace SS.Db.configuration
         {
             builder.HasOne(b => b.Location).WithMany().HasForeignKey(m => m.LocationId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
+            builder.HasIndex(b => new {b.StartDate, b.EndDate});
+
             base.Configure(builder);
         }
     }
