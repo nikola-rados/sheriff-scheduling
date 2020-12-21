@@ -13,28 +13,32 @@ namespace SS.Api.infrastructure.authorization
     public static class PermissionDataFiltersExtensions
     {
         #region Sheriff
-        public static IQueryable<Sheriff> ApplyPermissionFilters(this IQueryable<Sheriff> query, ClaimsPrincipal currentUser, DateTimeOffset start, DateTimeOffset end)
+        public static IQueryable<Sheriff> ApplyPermissionFilters(this IQueryable<Sheriff> query, ClaimsPrincipal currentUser, DateTimeOffset start, DateTimeOffset end, SheriffDbContext db)
         {
             var currentUserId = currentUser.CurrentUserId();
-            var currentUserHomeLocationId = currentUser.HomeLocationId();
+            var homeLocationId = currentUser.HomeLocationId();
+            var viewProvince = currentUser.HasPermission(Permission.ViewProvince);
+            var viewRegion = currentUser.HasPermission(Permission.ViewRegion);
+            var viewAssignedLocation = currentUser.HasPermission(Permission.ViewAssignedLocation);
+            var viewHomeLocation = currentUser.HasPermission(Permission.ViewHomeLocation);
 
-            if (currentUser.HasPermission(Permission.ViewProfilesInAllLocation)) 
+            if (viewProvince) 
                 return query;
 
-            if (currentUser.HasPermission(Permission.ViewProfilesInOwnLocation))
-                return query.FilterUsersInHomeLocationAndLoanedWithinDays(currentUserHomeLocationId, start, end);
+            var homeRegionId = db.Location.AsNoTracking().Where(s => viewRegion).FirstOrDefault(l => l.Id == homeLocationId)?.RegionId;
+            var locationsWithinRegion = db.Location.AsNoTracking().Where(l => viewRegion && l.RegionId == homeRegionId).SelectToList(l => l.Id);
 
-            return currentUser.HasPermission(Permission.ViewOwnProfile) ? query.Where(s => s.Id == currentUserId) : query.Where(s => false);
+            var assignedLocationIds = db.SheriffAwayLocation.AsNoTracking().Where(sal =>
+                    viewAssignedLocation && sal.SheriffId == currentUserId &&
+                    !(sal.StartDate > end || start > sal.EndDate) && sal.ExpiryDate == null)
+                .SelectDistinctToList(s => s.LocationId);
+
+            return query.Where(s =>
+                (viewRegion && homeRegionId.HasValue && s.HomeLocationId != null && locationsWithinRegion.Contains((int)s.HomeLocationId)) ||
+                (viewAssignedLocation && assignedLocationIds.Any(ali => ali == s.HomeLocationId)) ||
+                ((viewRegion || viewAssignedLocation || viewHomeLocation) && s.HomeLocationId == homeLocationId));
         }
 
-        private static IQueryable<Sheriff> FilterUsersInHomeLocationAndLoanedWithinDays(this IQueryable<Sheriff> query, int homeLocationId, DateTimeOffset start, DateTimeOffset end)
-        {
-            return query.Where(s => s.HomeLocationId == homeLocationId ||
-                             s.AwayLocation.Any(al =>
-                                 al.LocationId == homeLocationId &&
-                                 !(al.StartDate > end || start > al.EndDate) &&
-                                 al.ExpiryDate == null));
-        }
         #endregion
 
         #region Location
@@ -55,7 +59,6 @@ namespace SS.Api.infrastructure.authorization
             //Not sure if we want to put some sort of time limit on this. 
             var assignedLocationIds = db.SheriffAwayLocation.AsNoTracking().Where(sal => sal.SheriffId == currentUserId
                                                                                          && sal.ExpiryDate == null).Select(s => s.LocationId).Distinct().ToList();
-
             return query.Where(loc =>
                 (viewRegion && currentUserRegionId.HasValue && loc.RegionId == currentUserRegionId) ||
                 (viewAssignedLocation && assignedLocationIds.Any(ali => ali == loc.Id)) ||
