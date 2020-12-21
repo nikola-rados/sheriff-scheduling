@@ -47,22 +47,25 @@
                 </b-row>
             </b-col>
             <b-col cols="2" class="m-0 p-0"> 
-				<b-row class="m-0 p-0" style="height:1rem">
-					<div v-if="assignment.assignmentDetail.comment"
-						v-b-tooltip.hover
-						:title="assignment.assignmentDetail.comment">
-						<b-icon-chat-square-text-fill variant="white" font-scale=".7" class="m-1 p-0"/>
-					</div>
-				</b-row>
 				<b-row class="m-0 p-0">
 					<b-button
 						class="bg-white"
-						style="padding:0; height:1.2rem; width:1.2rem; margin:0"
+						style="padding:0; height:1.2rem; width:1.2rem; margin:0.35rem 0"
 						:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
+						v-b-tooltip.hover.righttop
+						:title="getTimeRange"
 						@click="addDuty();"
 						size="sm"> 
 							<b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
 				</b-row>
+				<b-row class="m-0 p-0" >
+					<div v-if="assignment.assignmentDetail.comment"
+						v-b-tooltip.hover.right.v-info
+						:title="assignment.assignmentDetail.comment">
+						<b-icon-chat-square-text-fill variant="white" font-scale=".8" class="ml-1 mb-2 p-0" style="transform:translate(0,-3px);"/>
+					</div>
+				</b-row>
+				
 			</b-col>
         </b-row>
 
@@ -938,6 +941,10 @@
 			else if(this.assignment.FTEnumber == 0) return'0px solid #BBBBBB'
 			else if(this.assignment.FTEnumber == (this.assignment.totalFTE-1))	return'1px solid #BBBBBB'
 			else return '0px solid #BBBBBB'
+		}
+
+		get getTimeRange(){
+			return this.assignment.assignmentDetail.start.substring(0,5)+' - '+this.assignment.assignmentDetail.end.substring(0,5)
 		}
 
 		public timeFormat(value , event) {

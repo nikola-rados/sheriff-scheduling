@@ -125,6 +125,7 @@ export interface attachedDutyInfoType {
     locationId: number;
     startDate: string;
     timezone: string;
+    comment?: string;
 }
 
 export interface assignmentCardTypeInfoType {
@@ -140,6 +141,7 @@ export interface assignDutyInfoType {
     assignmentId: number,
     dutySlots: dutySlotInfoType[],
     timezone: string,
+    comment?: string
 }
 
 export interface dutySlotInfoType {
@@ -195,7 +197,8 @@ export interface dutyBlockWeekInfoType {
     fullDutyStartTime: string,
     fullDutyEndTime: string,
     borderLeft: string,
-    borderRight: string
+    borderRight: string,
+    comment: string
 }
 
 export interface assignDutySlotsInfoType{
