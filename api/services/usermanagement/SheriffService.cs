@@ -76,7 +76,7 @@ namespace SS.Api.services.usermanagement
         {
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
-                .Where(s => sheriffIds.Contains(s.Id))
+                .In(sheriffIds, s => s.Id)
                 .ApplyPermissionFilters(User, start,end)
                 .IncludeSheriffEventsBetweenDates(start, end);
 
