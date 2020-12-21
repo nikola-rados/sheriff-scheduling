@@ -37,6 +37,7 @@ namespace SS.Db.models.scheduling
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string ExpiryReason { get; set; }
+        [MaxLength(200)]
         public string Comment { get; set; }
         public bool IsAvailableOnDate(DateTimeOffset date)
         {
