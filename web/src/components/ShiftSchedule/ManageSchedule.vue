@@ -200,7 +200,8 @@
                                 startInMinutes:0, 
                                 timeDuration:0, 
                                 type:this.getConflictsType(conflict), 
-                                fullday: true
+                                fullday: true,
+                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' 
                             })        
                         }                       
                     }
@@ -262,7 +263,8 @@
                                 startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                 timeDuration:duration.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
-                                fullday:false
+                                fullday:false,
+                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:''
                                 }) 
 
                             }   
@@ -283,7 +285,8 @@
                                 startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                 timeDuration:durationStart.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
-                                fullday:false
+                                fullday:false,
+                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' 
                             })
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
@@ -295,7 +298,8 @@
                                 startInMinutes:0,
                                 timeDuration:durationEnd.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
-                                fullday:false
+                                fullday:false,
+                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' 
                             })        
                         }                       
                     }
