@@ -72,11 +72,11 @@ namespace tests
         [Fact]
         public async Task SheriffDataTask()
         {
-            //Runs at the highest tier.
-            //1. ViewProfilesInAllLocation only.
-            //2. ViewProfilesInOwnLocation only.
-            //3. ViewOwnProfile only.
-            //4. None
+            //1. ViewProvince only.
+            //2. ViewRegion only.
+            //3. ViewAssigned only.
+            //4. ViewHome only.
+            //5. None
 
             var options = new DbContextOptionsBuilder<SheriffDbContext>()
                 .UseInMemoryDatabase("SheriffTestDb")
@@ -148,12 +148,22 @@ namespace tests
             user = SetupClaimsPrincipal(new List<Claim>
             {
                 new Claim(CustomClaimTypes.HomeLocationId, "4"),
-                new Claim(CustomClaimTypes.Permission, Permission.ViewHomeLocation),
+                new Claim(CustomClaimTypes.Permission, Permission.ViewRegion),
             });
 
             sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end, db).ToListAsync();
 
-            Assert.True(sheriffs.Count == 2);
+            Assert.True(sheriffs.Count == 1);
+
+            user = SetupClaimsPrincipal(new List<Claim>
+            {
+                new Claim(CustomClaimTypes.HomeLocationId, "4"),
+                new Claim(CustomClaimTypes.Permission, Permission.ViewAssignedLocation),
+            });
+
+            sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end, db).ToListAsync();
+
+            Assert.True(sheriffs.Count == 1);
 
             user = SetupClaimsPrincipal(new List<Claim>
             {
