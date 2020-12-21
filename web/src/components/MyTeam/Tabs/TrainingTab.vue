@@ -344,7 +344,11 @@
                             this.addToAssignedTrainingList(response.data);
                         else
                             this.modifyAssignedTrainingList(response.data);
-                        if (overrideConflicts)this.cancelTrainingOverride();
+                        if (overrideConflicts){
+                            this.cancelTrainingOverride();
+                            this.closeTrainingForm();
+                            this.$emit('refresh', this.userToEdit.id)
+                        }
                         this.closeTrainingForm();
                     }, err=>{
                         const errMsg = err.response.data.error;

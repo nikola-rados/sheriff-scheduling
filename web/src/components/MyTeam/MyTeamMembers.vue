@@ -88,17 +88,20 @@
                                 <b-tab v-if="editMode" title="Locations"> 
                                     <location-tab 
                                         v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>                                   
                                 </b-tab>
 
                                 <b-tab v-if="editMode" title="Leaves">
                                     <leave-tab 
                                         v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>                                    
                                 </b-tab>
 
                                 <b-tab v-if="editMode"  title="Training"> 
                                     <training-tab
+                                        v-on:refresh="refreshProfile"
                                         v-on:change="getSheriffs()"/>
                                 </b-tab>
 
@@ -368,6 +371,10 @@
                 this.allMyTeamData[index].image = image;
                 this.photokey++;
             }
+        }
+        public refreshProfile(userId){
+            this.closeProfileWindow()
+            this.openMemberDetails(userId)
         }      
 
         public openMemberDetails(userId){           

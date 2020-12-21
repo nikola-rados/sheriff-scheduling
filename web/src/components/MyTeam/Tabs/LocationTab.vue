@@ -282,7 +282,11 @@
                         this.addToAssignedLocationList(response.data);
                     else
                         this.modifyAssignedLocationList(response.data);
-                    if (overrideConflicts)this.cancelAwayLocationOverride();
+                    if (overrideConflicts){
+                        this.cancelAwayLocationOverride();
+                        this.closeLocationForm();
+                        this.$emit('refresh', this.userToEdit.id)
+                    }
                     this.closeLocationForm();
                 }, err=>{   
                     // console.log(err.response.data);

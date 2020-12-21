@@ -257,7 +257,11 @@
                         this.addToLeaveList(response.data);
                     else
                         this.modifyAssignedLeaveList(response.data);
-                    if (overrideConflicts)this.cancelLeaveOverride();
+                    if (overrideConflicts){
+                        this.cancelLeaveOverride();
+                        this.closeLeaveForm();
+                        this.$emit('refresh', this.userToEdit.id)
+                    }
                     this.closeLeaveForm();
                 }, err=>{                    
                     const errMsg = err.response.data.error;
