@@ -77,7 +77,7 @@ namespace SS.Api.services.usermanagement
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
                 .In(sheriffIds, s => s.Id)
-                .ApplyPermissionFilters(User, start,end)
+                .ApplyPermissionFilters(User, start, end, Db)
                 .IncludeSheriffEventsBetweenDates(start, end);
 
             return await sheriffQuery.ToListAsync();
@@ -90,7 +90,7 @@ namespace SS.Api.services.usermanagement
 
             var sheriffQuery = Db.Sheriff.AsNoTracking()
                 .AsSplitQuery()
-                .ApplyPermissionFilters(User, now, sevenDaysFromNow)
+                .ApplyPermissionFilters(User, now, sevenDaysFromNow, Db)
                 .IncludeSheriffEventsBetweenDates(now, sevenDaysFromNow);
          
             return await sheriffQuery.ToListAsync();
@@ -102,7 +102,7 @@ namespace SS.Api.services.usermanagement
             var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
 
             return await Db.Sheriff.AsNoTracking().AsSingleQuery()
-                .ApplyPermissionFilters(User, today, sevenDaysFromNow)
+                .ApplyPermissionFilters(User, today, sevenDaysFromNow, Db)
                 .Include(s=> s.HomeLocation)
                 .Include(s => s.AwayLocation.Where (al => al.EndDate >= today && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)

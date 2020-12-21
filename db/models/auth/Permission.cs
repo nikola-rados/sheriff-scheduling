@@ -11,9 +11,6 @@ namespace SS.Db.models.auth
     public class Permission : BaseEntity
     {
         public const string Login = nameof(Login);
-        public const string ViewOwnProfile = nameof(ViewOwnProfile);
-        public const string ViewProfilesInOwnLocation = nameof(ViewProfilesInOwnLocation);
-        public const string ViewProfilesInAllLocation = nameof(ViewProfilesInAllLocation);
         public const string CreateUsers = nameof(CreateUsers);
         public const string ExpireUsers = nameof(ExpireUsers);
         public const string EditUsers = nameof(EditUsers);

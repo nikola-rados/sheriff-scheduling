@@ -203,7 +203,8 @@ namespace SS.Api.services.scheduling
                     End = s.EndDate, 
                     LocationId = s.LocationId,
                     Location = s.Location,
-                    Timezone = s.Timezone
+                    Timezone = s.Timezone,
+                    Comment = s.Comment
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Leave.Select(s => new ShiftAvailabilityConflict
                 {
@@ -212,7 +213,8 @@ namespace SS.Api.services.scheduling
                     Start = s.StartDate, 
                     End = s.EndDate,
                     Timezone = s.Timezone,
-                    SheriffEventType = s.LeaveType.Code
+                    SheriffEventType = s.LeaveType.Code,
+                    Comment = s.Comment
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Training.Select(s => new ShiftAvailabilityConflict
                 {
@@ -221,7 +223,8 @@ namespace SS.Api.services.scheduling
                     Start = s.StartDate, 
                     End = s.EndDate,
                     Timezone = s.Timezone,
-                    SheriffEventType = s.TrainingType.Code
+                    SheriffEventType = s.TrainingType.Code,
+                    Comment = s.Comment
                 }));
             });
 
@@ -235,7 +238,8 @@ namespace SS.Api.services.scheduling
                 End = s.EndDate, 
                 ShiftId = s.Id,
                 Timezone = s.Timezone,
-                OvertimeHours = s.OvertimeHours
+                OvertimeHours = s.OvertimeHours,
+                Comment = s.Comment
             });
 
             //We've already included this information in the conflicts. 
