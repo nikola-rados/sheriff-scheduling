@@ -25,7 +25,7 @@
             v-if="selectedComment.comment"
             v-b-tooltip.hover.v-info="selectedComment.comment"  
             :style="{backgroundColor: '#AB0000', gridColumnStart: selectedComment.startTime, gridColumnEnd: selectedComment.endTime, gridRow:'1/3'}"> 
-                <b-icon-chat-square-text-fill font-scale="0.8" variant="white" style="transform: translate(4px,-5px);"/>
+                <b-icon-chat-square-text-fill font-scale="0.8" variant="white" style="transform: translate(7px,-5px);"/>
         </b>
 
         <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
@@ -173,7 +173,8 @@
                             v-model="selectedComment.comment"
                             size="sm"
                             placeholder="Enter a comment"
-                            type="text"                            
+                            type="text"
+                            :formatter="commentFormat"                            
                         ></b-form-input>
                     </b-form-group>
                     <b-button
@@ -854,6 +855,10 @@
                     this.assignDutyError = true;
                 })
         }
+
+        public commentFormat(value) {
+			return value.slice(0,100);
+		}
 
     }
 

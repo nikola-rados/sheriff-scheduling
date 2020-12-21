@@ -59,7 +59,8 @@ export interface conflictsInfoType {
     timeDuration: number; 
     type: string; 
     fullday: boolean;
-    sheriffEventType?: string;   
+    sheriffEventType?: string; 
+    comment?: string;  
 }
 
 export interface scheduleBlockInfoType {
@@ -74,6 +75,7 @@ export interface scheduleBlockInfoType {
     headerColor: string;  
     selected: boolean;   
     type: string;
+    comment?: string;
 }
 
 export interface dayOptionsInfoType {

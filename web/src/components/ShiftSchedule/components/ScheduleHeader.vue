@@ -212,7 +212,8 @@
                         <b-form-input
                             v-model="comment"
                             size="sm"
-                            type="text"                            
+                            type="text"
+							:formatter="commentFormat"                            
                         ></b-form-input>
                     </b-form-group>                                    
                 </b-row>
@@ -534,7 +535,11 @@
 		public isChanged(){      
 			if((this.originalSelectedStartTime != this.selectedStartTime) || (this.originalSelectedEndTime != this.selectedEndTime)) return true;
 			return false;            
-        }
+		}
+		
+		public commentFormat(value) {
+			return value.slice(0,100);
+		}
            
         public timeFormat(value , event) {
 			if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1)

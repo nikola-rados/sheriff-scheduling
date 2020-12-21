@@ -201,7 +201,8 @@
                                 timeDuration:0, 
                                 type:this.getConflictsType(conflict), 
                                 fullday: true,
-                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' 
+                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' ,
+                                comment: conflict.comment? conflict.comment :''
                             })        
                         }                       
                     }
@@ -231,7 +232,8 @@
                                     startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                     timeDuration:duration.asMinutes(), 
                                     type:this.getConflictsType(conflict), 
-                                    fullday:false
+                                    fullday:false,
+                                    comment: conflict.comment? conflict.comment :''
                                 }
 
                                 duration = moment.duration(end.diff(regularTimeEnd))
@@ -246,7 +248,8 @@
                                     startInMinutes:moment.duration(regularTimeEnd.diff(moment(regularTimeEnd.format("YYYY-MM-DDTHH:mm:ssZ")).startOf('day'))).asMinutes(),
                                     timeDuration:duration.asMinutes(), 
                                     type:'overTimeShift', 
-                                    fullday:false
+                                    fullday:false,
+                                    comment: conflict.comment? conflict.comment :''
                                 }
                                 // console.log(regularShift)
                                 conflicts.push(regularShift, overTimeShift);                                
@@ -264,7 +267,8 @@
                                 timeDuration:duration.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
                                 fullday:false,
-                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:''
+                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
+                                comment: conflict.comment? conflict.comment :''
                                 }) 
 
                             }   
@@ -286,7 +290,8 @@
                                 timeDuration:durationStart.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
                                 fullday:false,
-                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' 
+                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
+                                comment: conflict.comment? conflict.comment :'' 
                             })
                             conflicts.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
@@ -299,7 +304,8 @@
                                 timeDuration:durationEnd.asMinutes(), 
                                 type:this.getConflictsType(conflict), 
                                 fullday:false,
-                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' 
+                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
+                                comment: conflict.comment? conflict.comment :'' 
                             })        
                         }                       
                     }
