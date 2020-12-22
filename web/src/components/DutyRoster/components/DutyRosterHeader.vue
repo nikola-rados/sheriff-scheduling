@@ -5,6 +5,9 @@
 				<b-navbar-nav >
 					<h3 style="width:11rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal">Duty Roster</h3>
 				</b-navbar-nav>
+				<b-navbar-nav v-if="activetab!='Day'">
+					<h3 style="width:8rem; margin-bottom: 0px;" class="text-white ml-2 mr-auto font-weight-normal"></h3>
+				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
                         <b-row style="margin:.25rem auto .25rem auto; width:7.3rem;">
@@ -30,6 +33,21 @@
 						</b-row>
                     </b-col>
                 </b-navbar-nav>
+				<b-navbar-nav v-if="activetab!='Day'" >
+					<b-tabs nav-wrapper-class = "bg-primary text-dark"
+							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
+							pills
+							no-body
+							class="mx-3">
+						<b-tab 
+							v-for="(tabMapping, index) in tabs12h24h" 
+							:key="index"                 
+							:title="tabMapping"                 
+							v-on:click="tab12h24hChanged(tabMapping)" 
+							v-bind:class="[ active24htab === tabMapping ? 'active mb-0' : 'mb-0' ]"
+							/>
+					</b-tabs>
+				</b-navbar-nav>
 				<b-navbar-nav >
 					<b-tabs nav-wrapper-class = "bg-primary text-dark"
 							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
@@ -223,6 +241,17 @@
 						></b-form-input>
 					</b-form-group>						
 				</b-row>
+				<b-row class="mx-auto my-0 p-0">
+                    <b-form-group class="m-0" style="width: 28.5rem">
+                        <label class="h6 m-0 p-0">Comment</label>
+                        <b-form-input
+                            v-model="selectedComment"
+                            size="sm"
+                            type="text"
+							:formatter="commentFormat"                            
+                        ></b-form-input>
+                    </b-form-group>                                    
+                </b-row>
 			</b-card>
 
 			<template v-slot:modal-footer>
@@ -286,13 +315,19 @@
         public location!: locationInfoType;
 
         @dutyState.Action
-        public UpdateDutyRangeInfo!: (newDutyRangeInfo: dutyRangeInfoType) => void
+		public UpdateDutyRangeInfo!: (newDutyRangeInfo: dutyRangeInfoType) => void
+		
+		@dutyState.Action
+        public UpdateView24h!: (newView24h: boolean) => void
 
 		@commonState.State
 		public userDetails!: userInfoType;
 		
 		@Prop({required: true})
 		runMethod!: any
+
+		active24htab = '12h';
+		tabs12h24h = ['12h','24h'];
 
 		activetab = 'Day';
 		tabs =['Day', 'Week']
@@ -313,6 +348,8 @@
 		isAssignmentDataMounted = false;
 		isSubTypeDataReady = false;
 		nonReoccuring = false;
+
+		selectedComment = '';
 
 		
 		assignment = {} as assignmentInfoType;
@@ -554,6 +591,7 @@
 		public isChanged(){
 			if( this.assignment.name ||
 				this.assignment.type ||
+				this.selectedComment ||
 				this.selectedStartTime || this.selectedEndTime ||
                 this.nonReoccuring || this.selectedDays.length >0) return true;
             return false;           
@@ -599,6 +637,7 @@
 			this.assignmentErrorMsgDesc = '';
 			this.nonReoccuring = false;
 			this.enableAllDayOptions();
+			this.selectedComment = '';
 		}
 
 		public enableAllDayOptions() {
@@ -629,7 +668,9 @@
 			}
 
 			this.assignment.start = this.selectedStartTime;
-			this.assignment.end = this.selectedEndTime;	
+			this.assignment.end = this.selectedEndTime;
+			
+			this.assignment.comment = this.selectedComment;
 
 			const body = this.assignment;	
 			const url = 'api/assignment';
@@ -650,6 +691,15 @@
 		public tabChanged(tabInfo){
 			this.activetab = tabInfo;
 			this.loadNewDateRange();
+		}
+
+		public tab12h24hChanged(tabInfo){
+			this.active24htab = tabInfo;
+			if(tabInfo == '12h')
+				this.UpdateView24h(false)
+			else
+				this.UpdateView24h(true)
+			this.$emit('change',this.activetab);			
 		}
 
         
@@ -703,6 +753,10 @@
 			if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
 			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
 			return value
+		}
+
+		public commentFormat(value) {
+			return value.slice(0,100);
 		}
 
     }

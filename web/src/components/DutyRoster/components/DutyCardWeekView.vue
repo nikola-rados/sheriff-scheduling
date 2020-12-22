@@ -6,16 +6,25 @@
             v-for="block in dutyBlocks" 
             :key="block.id"
             :id="block.id"
-            :style="{gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
-            v-b-tooltip.hover.top                           
-            :title="block.title"
+            :style="{borderLeft:block.borderLeft, borderRight: block.borderRight, gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
+            v-b-tooltip.hover
+            :title="block.title? block.title:''" 
             @dragover.prevent
             @drop.prevent="drop" >
-                <b :style="(dutyBlockStyle + 'font-size: 10px;')">
-                    {{block.title|truncate(((block.endTime - block.startTime)/5)-1)}}
-                </b>     
+                <!-- <b-icon-chat-square-text-fill v-if="block.comment" variant="white" font-scale=".8" class="m-0 p-0"/> -->
+                <b :style="(dutyBlockStyle + 'font-size: 18px;')">
+                    {{block.title|truncate(((block.endTime - block.startTime)/7)-1)}}
+                </b>                    
         </div>
-        <span v-if="localTime.isTodayInView" :style="{borderLeft:'3px solid red', gridColumnStart: (localTime.dayOfWeek*96) +localTime.timeSlot+1,gridColumnEnd:((localTime.dayOfWeek*96) +localTime.timeSlot+2), gridRow:'1/7'}"></span>
+        <span v-if="localTime.isTodayInView" :style="currentTimeStyle"></span>
+
+        <b v-for="commentBlock in selectedComments" 
+            :key="'comment'+commentBlock.day+'t'+commentBlock.startTime"
+            v-b-tooltip.hover.v-info="commentBlock.comment"  
+            :style="{backgroundColor: '#AB0000', gridColumnStart: commentBlock.startTime, gridColumnEnd: commentBlock.endTime, gridRow:'1/3'}"> 
+                <b-icon-chat-square-text-fill font-scale="0.8" variant="white" style="transform: translate(7px,-5px);"/>
+        </b>
+        
     
         <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
             <b-row id="AssignDutyError" class="h4 mx-2 py-2">
@@ -156,6 +165,26 @@
                         </b-table> 
                     </b-card> 
                 </div>
+                <b-row style="height:3rem; border-radius:4px;" class="mx-auto my-0 p-0 bg-primary text-white">
+                    <label style="margin:1rem .3rem 0 0.5rem;" class="h6 p-0">Comment:</label>
+                    <b-form-group class="mx-2 my-2" style="width: 13rem">                        
+                        <b-form-input
+                            v-model="selectedComment"
+                            size="sm"
+                            placeholder="Enter a comment"
+                            type="text" 
+                            :formatter="commentFormat"                           
+                        ></b-form-input>
+                    </b-form-group>
+                    <b-button
+                        variant="success"
+                        class="p-1 my-2 mx-2"
+                        @click="updateComment(dutyBlocksDay[0].dutyId,selectedComment)"
+                        size="sm">
+                        <b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"/>
+                        Save Comment
+                    </b-button>                                    
+                </b-row>
 			</b-card>
 
 			<template v-slot:modal-footer>
@@ -278,6 +307,10 @@
         
         dutyBlocksDay: dutyBlockWeekInfoType[] = []; 
 
+        @dutyState.State
+        public view24h!: boolean;
+        
+
         //fullDutyStartTime=''
         //fullDutyEndTime=''
 
@@ -320,6 +353,11 @@
 
         deleteErrorMsg = '';
         deleteError = false; 
+
+        selectedComments: any[] = [];
+        selectedComment = '';
+        //originalComment = '';
+        commentSaved = false;
         
         confirmUnassign = false;
         dutySlotToUnassign = {} as dutyBlockWeekInfoType;
@@ -358,7 +396,8 @@
 
         public editDuty(day){
             this.isDutyDataMounted = false;
-            this.dutyBlocksDay = this.dutyBlocks.filter(dutyBlock=>{if(dutyBlock.day==day)return true;})
+            this.dutyBlocksDay = (this.dutyBlocks.filter(dutyBlock=>{if(dutyBlock.day==day)return true;}));
+            this.selectedComment = this.dutyBlocksDay[0].comment
             this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment+'D'+day);
             this.showEditDutyDetails = true;
             this.isDutyDataMounted = true;
@@ -418,6 +457,7 @@
 		public closeEditDutyWindow(){
             this.closeDutySlotForm();
             this.UpdateDutyToBeEdited('');
+            console.log(this.selectedComments)
 			this.showEditDutyDetails = false;
 		}
 
@@ -461,11 +501,24 @@
                     const fullDutyEndTime = moment(dutyInfo.endDate).tz(dutyInfo.timezone).format('HH:mm')
 
                     const dutyBin = this.getTimeRangeBins(dutyInfo.startDate, dutyInfo.endDate,startOfDay, dutyInfo.timezone);
+                
+                    if(dutyInfo.comment){
+                        const commentBin = this.convert12h24hView(dutyBin)
+                        this.selectedComments.push({
+                            day:day,
+                            startTime: 1+(96*day)+ commentBin.startBin,
+                            endTime: 1+(96*day)+ commentBin.startBin+13,
+                            comment: dutyInfo.comment? dutyInfo.comment: ''
+                        })
+                    }
+                   
                     let unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyBin.startBin, dutyBin.endBin); 
                                 
                     for(const dutySlot of dutyInfo.dutySlots){
                         let id = 1000;
                         const assignedDutyBin = this.getTimeRangeBins(dutySlot.startDate, dutySlot.endDate,startOfDay, dutySlot.timezone)
+                        const assignedBins = this.convert12h24hView(assignedDutyBin);
+                        
                         unassignedArray = this.fillInArray(unassignedArray,0,assignedDutyBin.startBin, assignedDutyBin.endBin);
                         const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==dutySlot.sheriffId)return true})[0];
                         const isOvertime = this.getOverTime(dutySlot.shiftId, dutySlot.isNotAvailable, dutySlot.isNotRequired, dutySlot.isOvertime);                    
@@ -474,9 +527,13 @@
                         const isNotRequiredOrAvailableSheriffId = dutySlot.isNotRequired? '00000-00000-11111':'00000-00000-22222'
 
                         this.dutyBlocks.push({
-                            id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'D'+day+'n'+id++,                    
-                            startTime: 1+(96*day)+ assignedDutyBin.startBin,
-                            endTime: 1+(96*day)+ assignedDutyBin.endBin,                    
+                            id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'D'+day+'n'+id++, 
+
+                            startTime: 1+(96*day)+ assignedBins.startBin,
+                            endTime: 1+(96*day)+ assignedBins.endBin,
+                            borderLeft: assignedBins.borderLeft,
+                            borderRight: assignedBins.borderRight,                            
+                            
                             color: this.getDutyColor(this.dutyRosterInfo.type.colorCode, dutySlot.isNotAvailable,dutySlot.isNotRequired, isOvertime),
                             height: '2/6',
                             title: this.getTitle(sheriff,dutySlot.isNotAvailable,dutySlot.isNotRequired),
@@ -494,6 +551,7 @@
                             dutyDate: dutyDate,
                             fullDutyStartTime:fullDutyStartTime,
                             fullDutyEndTime:fullDutyEndTime,
+                            comment: dutyInfo.comment? dutyInfo.comment: ''
                         })                
                     }
                     this.unassignedArray = [];
@@ -502,11 +560,16 @@
                     for(const unassignInx in this.unassignedArray){
 
                         const unassignedBin = this.getArrayRangeBins(this.unassignedArray[unassignInx]);
+                        const bins = this.convert12h24hView(unassignedBin);
                         const unassignedSlotTime = this.convertTimeRangeBinsToTime(startOfDay, unassignedBin.startBin, unassignedBin.endBin, this.timezone);
                         this.dutyBlocks.push({
-                            id:'dutySlot'+dutyInfo.id+'D'+day+'n'+unassignInx,                    
-                            startTime: 1+(96*day)+ unassignedBin.startBin,
-                            endTime: 1+(96*day)+ unassignedBin.endBin,                    
+                            id:'dutySlot'+dutyInfo.id+'D'+day+'n'+unassignInx,
+
+                            startTime: 1+(96*day)+ bins.startBin,
+                            endTime: 1+(96*day)+ bins.endBin, 
+                            borderLeft: bins.borderLeft,
+                            borderRight: bins.borderRight,
+
                             color: this.dutyRosterInfo.type.colorCode,
                             height: '2/6',
                             title: '',
@@ -524,12 +587,42 @@
                             dutyDate: dutyDate,
                             fullDutyStartTime:fullDutyStartTime,
                             fullDutyEndTime:fullDutyEndTime,
+                            comment: dutyInfo.comment? dutyInfo.comment: ''
                         })                
                     }                    
                 }
+            }            
+            this.isMounted = true;           
+        }
+
+        public convert12h24hView(time){            
+            if(this.view24h) 
+                return {startBin:time.startBin, endBin:time.endBin , borderLeft:'', borderRight:''}
+            else{
+
+                let start = (time.startBin-26) ;
+                let end = (time.endBin-26);
+                let borderLeft = ''
+                let borderRight = ''
+                if(start>=48)
+                    start = 96;
+                else if(start>=0)
+                    start *=2;
+                else{
+                    start = 0;
+                    borderLeft = '4px solid aqua'
+                }
+
+                if(end<=0)
+                    end = 0;
+                else if(end<=48)
+                    end *=2;
+                else{
+                    end = 96;
+                    borderRight = '4px solid aqua'
+                }
+                return {startBin:start, endBin:end , borderLeft:borderLeft, borderRight:borderRight}
             }
-            
-           this.isMounted = true;           
         }
 
         public extractUnassignedArrays(unassignedArray){
@@ -802,7 +895,8 @@
                         locationId: dutyInfo.locationId,
                         assignmentId: dutyInfo.assignmentId,
                         dutySlots: dutySlots,
-                        timezone: dutyInfo.timezone
+                        timezone: dutyInfo.timezone,
+                        comment: dutyInfo.comment
                     }
                 ];
                 
@@ -820,6 +914,44 @@
                     })
             }
         }
+
+        get currentTimeStyle(){            
+            let time = this.localTime.timeSlot
+            if(!this.view24h){
+                if(this.localTime.timeSlot-26<0) time = 0
+                else  if(this.localTime.timeSlot-26>48) time = 96
+                else time = (this.localTime.timeSlot-26)*2 
+            }   
+            const start = (this.localTime.dayOfWeek*96) +time+1
+            const end =   (this.localTime.dayOfWeek*96) +time+2             
+            return {borderLeft:'3px solid red', gridColumnStart: start,gridColumnEnd:end, gridRow:'1/7'}
+        }
+
+        public updateComment(id: number, comment: string){
+            const url = 'api/dutyroster/updatecomment?dutyId='+id+'&comment='+comment;
+            console.log(url)
+            this.$http.put(url)
+                .then(response => {
+                    console.log(response)
+                    if(response.status == 204){
+                        // Update the duty bar with name;
+                        this.commentSaved = true;
+                        this.$emit('change');
+                    }else{
+                        this.assignDutyErrorMsg = response.data? response.data: (response.status+' '+response.statusText);
+                        this.assignDutyError = true;
+                    }
+                }, err => {
+                    console.log(err.response)
+                    const errMsg = err.response.data.error? err.response.data.error: (err.response.data +'('+err.response.status +' '+err.response.statusText+')') ;
+                    this.assignDutyErrorMsg = errMsg;
+                    this.assignDutyError = true;
+                })
+        }
+
+        public commentFormat(value) {
+			return value.slice(0,100);
+		}
 
     }
 

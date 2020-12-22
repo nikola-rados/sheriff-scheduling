@@ -4,8 +4,8 @@
             <h2 v-if="identificationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="identificationErrorMsgDesc"  variant="danger"> {{identificationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="identificationError = false" /></b-badge></h2>
         </b-card>
 
-        <b-form-group class="mx-1"><label>IDIR User Name<span class="text-danger">*</span></label>
-            <b-form-input :disabled="editMode && !hasPermissionToEditIdir" v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
+        <b-form-group v-if="!(editMode && !hasPermissionToEditIdir)" class="mx-1"><label>IDIR User Name<span class="text-danger">*</span></label>
+            <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
         </b-form-group>
         <h2 class="mx-1 mt-0"><b-badge v-if="duplicateIdir" variant="danger"> Duplicate IDIR</b-badge></h2>
 
@@ -50,7 +50,7 @@
                     v-model="user.homeLocationId"
                     :state = "homeLocationState?null:false">
                         <b-form-select-option
-                            v-for="homelocation in allLocationList" 
+                            v-for="homelocation in locationList" 
                             :key="homelocation.id"
                             :value="homelocation.id">
                                 {{homelocation.name}}
@@ -121,7 +121,7 @@ export default class IdentificationTab extends Vue {
     public location!: locationInfoType;
 
     @commonState.State
-    public allLocationList!: locationInfoType[]; 
+    public locationList!: locationInfoType[]; 
     
     @commonState.State
     public userDetails!: userInfoType;
@@ -244,8 +244,13 @@ export default class IdentificationTab extends Vue {
         let requiredError = false;
 
         if (!this.user.idirUserName) {
-            this.idirUserNameState = false;
-            requiredError = true;
+            if (this.createMode || (this.editMode && this.hasPermissionToEditIdir)) {
+                this.idirUserNameState = false;
+                requiredError = true;
+            } else {
+                this.idirUserNameState = true;
+                this.duplicateIdir = false;
+            }            
         } else {
             this.idirUserNameState = true;
             this.duplicateIdir = false;
@@ -304,6 +309,7 @@ export default class IdentificationTab extends Vue {
             if (this.createMode) this.createProfile();              
 
         } else {
+            this.$emit('enableSave');
             console.log('Error required')
         }             
     }
@@ -342,6 +348,7 @@ export default class IdentificationTab extends Vue {
                     this.identificationErrorMsgDesc = errMsg;
                     this.identificationError = true;
                 }
+                this.$emit('enableSave');
             });
     }
 
@@ -353,13 +360,14 @@ export default class IdentificationTab extends Vue {
                 this.resetProfileWindowState();
                 this.$emit('closeMemberDetails');
                 this.$emit('profileUpdated');
-                
+                this.$emit('enableSave');                
                                                             
             }, err => {                
                 const errMsg = err.response.data.error;
                 this.identificationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                 this.identificationErrorMsgDesc = errMsg;
                 this.identificationError = true;
+                this.$emit('enableSave');
             });       
     }
 
@@ -381,7 +389,8 @@ export default class IdentificationTab extends Vue {
                 if(response.data){
                     this.resetProfileWindowState();
                     this.$emit('closeMemberDetails');
-                    this.$emit('profileUpdated')    
+                    this.$emit('profileUpdated');
+                    this.$emit('enableSave');    
                 }
             }, err => {
                 const errMsg = err.response.data.error;                                
@@ -399,6 +408,7 @@ export default class IdentificationTab extends Vue {
                     this.identificationErrorMsgDesc = errMsg;
                     this.identificationError = true;   
                 }
+                this.$emit('enableSave');
 
             })   
     }
