@@ -36,6 +36,9 @@ services:
       - ASPNETCORE_URLS=${ASPNETCORE_URLS}
       - WebBaseHref=${WEB_BASE_HREF}
       - SiteMinderLogoutUrl=${SiteMinderLogoutUrl}
+      - Logging__LogLevel__Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker=${ControllerLoggingLevel} 
+      - Logging__LogLevel__SS.Api.infrastructure.middleware.ErrorHandlingMiddleware=${MiddlewareLoggingLevel} 
+      - Logging__LogLevel__Microsoft.EntityFrameworkCore.Database.Command=${DatabaseLoggingLevel}
     ports:
       - 5000:5000
     volumes:
