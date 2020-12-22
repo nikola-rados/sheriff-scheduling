@@ -59,7 +59,7 @@ namespace SS.Api.services.scheduling
         }
 
         public async Task<List<int>> GetShiftsLocations(List<int> ids) =>
-            await Db.Shift.AsNoTracking().Where(s => ids.Contains(s.Id)).Select(s => s.LocationId).Distinct().ToListAsync();
+            await Db.Shift.AsNoTracking().In(ids, s => s.Id).Select(s => s.LocationId).Distinct().ToListAsync();
 
         public async Task<List<Shift>> AddShifts(List<Shift> shifts)
         {
@@ -89,7 +89,7 @@ namespace SS.Api.services.scheduling
             if (overlaps.Any()) throw new BusinessLayerException(overlaps.SelectMany(ol => ol.ConflictMessages).ToStringWithPipes());
 
             var shiftIds = shifts.SelectToList(s => s.Id);
-            var savedShifts = Db.Shift.Where(s => shiftIds.Contains(s.Id));
+            var savedShifts = Db.Shift.In(shiftIds, s => s.Id);
 
             foreach (var shift in shifts)
             {
@@ -146,11 +146,11 @@ namespace SS.Api.services.scheduling
                 .Include(s => s.Location)
                 .Include(s => s.Sheriff)
                 .AsNoTracking()
+                .In(sheriffIds, s => s.SheriffId)
                 .Where(s => s.LocationId == locationId &&
                             s.ExpiryDate == null &&
-                            s.StartDate < targetEndDate && targetStartDate < s.EndDate &&
-                            s.SheriffId != null &&
-                            sheriffIds.Contains(s.SheriffId.Value));
+                            s.StartDate < targetEndDate && targetStartDate < s.EndDate
+                           );
 
             var importedShifts = await shiftsToImport.Select(shift => Db.DetachedClone(shift)).ToListAsync();
             foreach (var shift in importedShifts)
@@ -203,7 +203,8 @@ namespace SS.Api.services.scheduling
                     End = s.EndDate, 
                     LocationId = s.LocationId,
                     Location = s.Location,
-                    Timezone = s.Timezone
+                    Timezone = s.Timezone,
+                    Comment = s.Comment
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Leave.Select(s => new ShiftAvailabilityConflict
                 {
@@ -211,7 +212,9 @@ namespace SS.Api.services.scheduling
                     SheriffId = sheriff.Id, 
                     Start = s.StartDate, 
                     End = s.EndDate,
-                    Timezone = s.Timezone
+                    Timezone = s.Timezone,
+                    SheriffEventType = s.LeaveType?.Code,
+                    Comment = s.Comment
                 }));
                 sheriffEventConflicts.AddRange(sheriff.Training.Select(s => new ShiftAvailabilityConflict
                 {
@@ -219,7 +222,9 @@ namespace SS.Api.services.scheduling
                     SheriffId = sheriff.Id, 
                     Start = s.StartDate, 
                     End = s.EndDate,
-                    Timezone = s.Timezone
+                    Timezone = s.Timezone,
+                    SheriffEventType = s.TrainingType?.Code,
+                    Comment = s.Note
                 }));
             });
 
@@ -233,7 +238,8 @@ namespace SS.Api.services.scheduling
                 End = s.EndDate, 
                 ShiftId = s.Id,
                 Timezone = s.Timezone,
-                OvertimeHours = s.OvertimeHours
+                OvertimeHours = s.OvertimeHours,
+                Comment = s.Comment
             });
 
             //We've already included this information in the conflicts. 
@@ -328,7 +334,7 @@ namespace SS.Api.services.scheduling
                 throw new BusinessLayerException("Shifts provided overlap with themselves.");
 
 
-            var sheriffIds = targetShifts.Select(ts => ts.SheriffId).Distinct();
+            var sheriffIds = targetShifts.Select(ts => ts.SheriffId).Distinct().ToList();
             var locationId = targetShifts.First().LocationId;
 
             var conflictingShifts = new List<Shift>();
@@ -336,11 +342,11 @@ namespace SS.Api.services.scheduling
             {
                 conflictingShifts.AddRange(await Db.Shift.AsNoTracking()
                     .Include(s => s.Sheriff)
+                    .In(sheriffIds, s => s.SheriffId)
                     .Where(s =>
                         s.ExpiryDate == null &&
                         s.LocationId == locationId &&
-                        s.StartDate < ts.EndDate && ts.StartDate < s.EndDate &&
-                        sheriffIds.Contains(s.SheriffId)
+                        s.StartDate < ts.EndDate && ts.StartDate < s.EndDate
                     ).ToListAsync());
             }
 
@@ -381,10 +387,9 @@ namespace SS.Api.services.scheduling
         private async Task<List<Shift>> GetShiftsForSheriffs(IEnumerable<Guid> sheriffIds, DateTimeOffset startDate, DateTimeOffset endDate) =>
             await Db.Shift.AsSingleQuery().AsNoTracking()
                     .Include(s => s.Location)
+                    .In(sheriffIds, s => s.SheriffId)
                     .Where(s =>
                         s.StartDate < endDate && startDate < s.EndDate &&
-                        s.SheriffId != null &&
-                        sheriffIds.Contains((Guid)s.SheriffId) &&
                         s.ExpiryDate == null)
                     .ToListAsync();
 

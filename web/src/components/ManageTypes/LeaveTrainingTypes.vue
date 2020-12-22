@@ -78,19 +78,20 @@
                             </template>
 
                             <template v-slot:cell(edit)="data" >                                       
-                                <b-button v-if="hasPermissionToExpireManageTypes && !data.item['_rowVariant']" 
+                                <b-button v-if="!data.item['_rowVariant']" 
                                     class="ml-2 px-1"
                                     style="padding: 1px 2px 1px 2px;" 
                                     size="sm"
                                     v-b-tooltip.hover
                                     title="Expire"  
-                                    variant="warning" 
+                                    variant="warning"
+                                    :disabled="!hasPermissionToExpireManageTypes" 
                                     @click="confirmDeleteLeaveTraining(data.item)">
                                     <b-icon icon="clock" 
                                         font-scale="1" 
                                         variant="white"/>
                                 </b-button>
-                                <b-button v-if="hasPermissionToExpireManageTypes && data.item['_rowVariant']" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireLeaveTraining(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="data.item['_rowVariant']" :disabled="!hasPermissionToExpireManageTypes" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireLeaveTraining(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button v-if="hasPermissionToEditManageTypes" :disabled="data.item['_rowVariant']?true:false" class="my-0 py-0" size="sm" variant="transparent" @click="editLeaveTraining(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 

@@ -54,6 +54,7 @@ export interface assignmentInfoType {
     friday: boolean;
     saturday: boolean;
     sunday: boolean;
+    comment?: string;
 }
 
 export interface assignmentSubTypeInfoType {
@@ -110,6 +111,7 @@ export interface assignmentDetailInfoType {
     sunday: boolean;
     adhocStartDate: string | null;
     adhocEndDate: string | null;
+    comment?: string;
 }
 
 export interface attachedDutyInfoType {
@@ -123,6 +125,7 @@ export interface attachedDutyInfoType {
     locationId: number;
     startDate: string;
     timezone: string;
+    comment?: string;
 }
 
 export interface assignmentCardTypeInfoType {
@@ -138,6 +141,7 @@ export interface assignDutyInfoType {
     assignmentId: number,
     dutySlots: dutySlotInfoType[],
     timezone: string,
+    comment?: string
 }
 
 export interface dutySlotInfoType {
@@ -193,7 +197,8 @@ export interface dutyBlockWeekInfoType {
     fullDutyStartTime: string,
     fullDutyEndTime: string,
     borderLeft: string,
-    borderRight: string
+    borderRight: string,
+    comment: string
 }
 
 export interface assignDutySlotsInfoType{

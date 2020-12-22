@@ -28,7 +28,7 @@ namespace SS.Api.services.scheduling
                 .ThenInclude(ds => ds.Duty)
                 .ThenInclude(ds => ds.Assignment)
                 .ThenInclude(a => a.LookupCode)
-                .Where(s => shiftIds.Contains(s.Id))
+                .In(shiftIds, s => s.Id)
                 .ToListAsync();
 
             foreach (var shiftAvailability in shiftAvailabilities)

@@ -241,6 +241,17 @@
 						></b-form-input>
 					</b-form-group>						
 				</b-row>
+				<b-row class="mx-auto my-0 p-0">
+                    <b-form-group class="m-0" style="width: 28.5rem">
+                        <label class="h6 m-0 p-0">Comment</label>
+                        <b-form-input
+                            v-model="selectedComment"
+                            size="sm"
+                            type="text"
+							:formatter="commentFormat"                            
+                        ></b-form-input>
+                    </b-form-group>                                    
+                </b-row>
 			</b-card>
 
 			<template v-slot:modal-footer>
@@ -337,6 +348,8 @@
 		isAssignmentDataMounted = false;
 		isSubTypeDataReady = false;
 		nonReoccuring = false;
+
+		selectedComment = '';
 
 		
 		assignment = {} as assignmentInfoType;
@@ -578,6 +591,7 @@
 		public isChanged(){
 			if( this.assignment.name ||
 				this.assignment.type ||
+				this.selectedComment ||
 				this.selectedStartTime || this.selectedEndTime ||
                 this.nonReoccuring || this.selectedDays.length >0) return true;
             return false;           
@@ -623,6 +637,7 @@
 			this.assignmentErrorMsgDesc = '';
 			this.nonReoccuring = false;
 			this.enableAllDayOptions();
+			this.selectedComment = '';
 		}
 
 		public enableAllDayOptions() {
@@ -653,7 +668,9 @@
 			}
 
 			this.assignment.start = this.selectedStartTime;
-			this.assignment.end = this.selectedEndTime;	
+			this.assignment.end = this.selectedEndTime;
+			
+			this.assignment.comment = this.selectedComment;
 
 			const body = this.assignment;	
 			const url = 'api/assignment';
@@ -736,6 +753,10 @@
 			if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
 			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
 			return value
+		}
+
+		public commentFormat(value) {
+			return value.slice(0,100);
 		}
 
     }

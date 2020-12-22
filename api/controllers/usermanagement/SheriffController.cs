@@ -56,10 +56,7 @@ namespace SS.Api.controllers.usermanagement
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or,
-            Permission.ViewOwnProfile,
-            Permission.ViewProfilesInOwnLocation,
-            Permission.ViewProfilesInAllLocation)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         public async Task<ActionResult<SheriffDto>> GetSheriffsForTeams()
         {
             var sheriffs = await SheriffService.GetFilteredSheriffsForTeams();
@@ -72,10 +69,7 @@ namespace SS.Api.controllers.usermanagement
         /// <param name="id">Guid of the userid.</param>
         /// <returns>SheriffDto</returns>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or,
-            Permission.ViewOwnProfile,
-            Permission.ViewProfilesInOwnLocation,
-            Permission.ViewProfilesInAllLocation)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         [Route("{id}")]
         public async Task<ActionResult<SheriffWithIdirDto>> GetSheriffForTeam(Guid id)
         {
@@ -94,10 +88,7 @@ namespace SS.Api.controllers.usermanagement
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or,
-            Permission.ViewOwnProfile,
-            Permission.ViewProfilesInOwnLocation,
-            Permission.ViewProfilesInAllLocation)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         [Route("self")]
         public async Task<ActionResult<SheriffDto>> GetSelfSheriff()
         {
@@ -133,10 +124,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpGet]
         [Route("getPhoto/{id}")]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or,
-            Permission.ViewOwnProfile,
-            Permission.ViewProfilesInOwnLocation,
-            Permission.ViewProfilesInAllLocation)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         [ResponseCache(Duration = 15552000, Location = ResponseCacheLocation.Client )]
         public async Task<IActionResult> GetPhoto(Guid id) => File(await SheriffService.GetPhoto(id), "image/jpeg");
 

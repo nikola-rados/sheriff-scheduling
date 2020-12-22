@@ -62,6 +62,7 @@
     <None Remove="migrations\20201210203059_UpdatePermissions_3.sql" />
     <None Remove="migrations\20201212165816_UpdatePermissions_4.sql" />
     <None Remove="migrations\20201215005036_UpdatePermissions_5.sql" />
+    <None Remove="migrations\20201221154933_UpdatePermissions_6.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -80,6 +81,9 @@
     <Content Include="migrations\20201215005036_UpdatePermissions_5.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="migrations\20201221154933_UpdatePermissions_6.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -89,7 +93,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.0">
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
