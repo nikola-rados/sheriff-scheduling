@@ -33,7 +33,7 @@ namespace SS.Api.controllers.scheduling
         {
             if (start >= end) return BadRequest("Start date was on or after end date.");
             if (end.Subtract(start).TotalDays > 30) return BadRequest("End date and start date are more than 30 days apart.");
-            if (!User.HasPermission(Permission.ViewDuties)) includeWorkSection = false;
+            if (!User.HasPermission(Permission.ViewDutyRoster)) includeWorkSection = false;
 
             //Note: This has built in filtering for Sheriffs, based on permissions. 
             var shiftAvailability = await ShiftService.GetShiftAvailability(start, end, sheriffIds);
@@ -48,7 +48,7 @@ namespace SS.Api.controllers.scheduling
             if (start >= end) return BadRequest("Start date was on or after end date.");
             if (end.Subtract(start).TotalDays > 30) return BadRequest("End date and start date are more than 30 days apart.");
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
-            if (!User.HasPermission(Permission.ViewDuties)) includeWorkSection = false;
+            if (!User.HasPermission(Permission.ViewDutyRoster)) includeWorkSection = false;
 
             var shiftAvailability = await ShiftService.GetShiftAvailability(start, end, locationId: locationId);
             var shiftsWithDuties = await DistributeScheduleService.GetDistributeSchedule(shiftAvailability, includeWorkSection);

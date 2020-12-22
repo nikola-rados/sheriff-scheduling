@@ -10,7 +10,7 @@ namespace SS.Api.models.dto.generated
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
         public SheriffDto Sheriff { get; set; }
-        public Guid? SheriffId { get; set; }
+        public Guid SheriffId { get; set; }
         public ICollection<DutySlotDto> DutySlots { get; set; }
         public AssignmentDto AnticipatedAssignment { get; set; }
         public int? AnticipatedAssignmentId { get; set; }

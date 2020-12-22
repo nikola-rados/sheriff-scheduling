@@ -34,6 +34,8 @@ namespace SS.Db.models.scheduling.notmapped
         public string WorkSection { get; set; }
         public string Timezone { get; set; }
         public double OvertimeHours { get; set; }
+        public string SheriffEventType { get; set; }
+        public string Comment { get; set; }
     }
 
     public enum ShiftConflictType

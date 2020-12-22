@@ -21,7 +21,7 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset EndDate { get; set; }
         [ExcludeFromAddAndUpdateDto]
         public Sheriff Sheriff { get; set; }
-        public Guid? SheriffId { get; set; }
+        public Guid SheriffId { get; set; }
         [ExcludeFromAddAndUpdateDto]
         public ICollection<DutySlot> DutySlots { get; set; } = new List<DutySlot>();
         [ExcludeFromAddAndUpdateDto]

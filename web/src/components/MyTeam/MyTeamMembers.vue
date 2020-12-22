@@ -78,7 +78,8 @@
                                     <identification-tab 
                                         :runMethod="identificationTabMethods"                                         
                                         v-on:closeMemberDetails="closeMemberDetailWindow()" 
-                                        v-on:profileUpdated="getSheriffs()"   
+                                        v-on:profileUpdated="getSheriffs()"
+                                        v-on:enableSave="enableSave()"   
                                         v-on:changeTab="changeTab"                                     
                                         :createMode="createMode" 
                                         :editMode="editMode" />
@@ -87,21 +88,24 @@
                                 <b-tab v-if="editMode" title="Locations"> 
                                     <location-tab 
                                         v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>                                   
                                 </b-tab>
 
                                 <b-tab v-if="editMode" title="Leaves">
                                     <leave-tab 
                                         v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>                                    
                                 </b-tab>
 
                                 <b-tab v-if="editMode"  title="Training"> 
                                     <training-tab
+                                        v-on:refresh="refreshProfile"
                                         v-on:change="getSheriffs()"/>
                                 </b-tab>
 
-                                <b-tab v-if="editMode" title="Roles" class="p-0">
+                                <b-tab v-if="editMode && hasPermissionToAssignRoles" title="Roles" class="p-0">
                                     <role-assignment-tab  v-on:change="getSheriffs()"
                                         v-on:closeMemberDetails="closeProfileWindow()"/>
                                 </b-tab>
@@ -119,7 +123,7 @@
                 <b-button     
                     v-if="tabIndex<1"
                     variant="success"
-                    :disabled="editMode && !hasPermissionToEditUsers" 
+                    :disabled="(editMode && !hasPermissionToEditUsers) || saving" 
                     @click="saveMemberProfile()"
                 ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
             </template>            
@@ -207,6 +211,7 @@
         hasPermissionToAddNewUsers = false;
         hasPermissionToExpireUsers = false;
         hasPermissionToEditUsers = false;
+        hasPermissionToAssignRoles = false;
 
         maxRank = 1000;
 
@@ -219,6 +224,7 @@
         isUserDataMounted = false;
         editMode = false;
         createMode = false;
+        saving = false;
         sectionHeader = '';
         photokey = 0;
         // userAllRoles: any[] = [];
@@ -246,6 +252,7 @@
             this.hasPermissionToAddNewUsers = this.userDetails.permissions.includes("CreateUsers");
             this.hasPermissionToExpireUsers = this.userDetails.permissions.includes("ExpireUsers");
             this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
+            this.hasPermissionToAssignRoles = this.userDetails.permissions.includes("CreateAndAssignRoles");
             this.getSheriffs();
             this.sectionHeader = "My Team - " + this.location.name;
             this.itemsPerPage = this.itemsPerRow * this.rowsPerPage;
@@ -364,6 +371,10 @@
                 this.allMyTeamData[index].image = image;
                 this.photokey++;
             }
+        }
+        public refreshProfile(userId){
+            this.closeProfileWindow()
+            this.openMemberDetails(userId)
         }      
 
         public openMemberDetails(userId){           
@@ -372,9 +383,14 @@
             this.loadUserDetails(userId);
         }
 
-        public saveMemberProfile() { 
+        public saveMemberProfile() {
+            this.saving = true; 
             this.identificationTabMethods.$emit('saveMemberProfile');
-        }  
+        }
+        
+        public enableSave() {
+            this.saving = false;
+        }
 
         public closeProfileWindow(){            
             if(this.tabIndex ==0 || this.createMode)
@@ -403,6 +419,7 @@
             this.tabIndex = 0;
             this.createMode = true;
             this.editMode = false;
+            this.saving = false;
             this.isUserDataMounted = true;
             this.showMemberDetails = true;
         }

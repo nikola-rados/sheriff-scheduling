@@ -3,6 +3,7 @@ using System;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SS.Db.models;
@@ -10,9 +11,10 @@ using SS.Db.models;
 namespace SS.Db.Migrations
 {
     [DbContext(typeof(SheriffDbContext))]
-    partial class SheriffDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201218213346_RemoveExpireLocation")]
+    partial class RemoveExpireLocation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,6 +253,30 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Allows the user to login.",
                             Name = "Login"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "View their own profile",
+                            Name = "ViewOwnProfile"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "View profiles in their own location",
+                            Name = "ViewProfilesInOwnLocation"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "View profiles in all locations",
+                            Name = "ViewProfilesInAllLocation"
                         },
                         new
                         {
@@ -1162,7 +1188,7 @@ namespace SS.Db.Migrations
                     b.Property<double>("OvertimeHours")
                         .HasColumnType("double precision");
 
-                    b.Property<Guid>("SheriffId")
+                    b.Property<Guid?>("SheriffId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("StartDate")
@@ -1255,8 +1281,6 @@ namespace SS.Db.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.HasIndex("StartDate", "EndDate");
-
                     b.ToTable("SheriffAwayLocation");
                 });
 
@@ -1280,9 +1304,7 @@ namespace SS.Db.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedOn")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
@@ -1321,8 +1343,6 @@ namespace SS.Db.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.HasIndex("StartDate", "EndDate");
-
                     b.ToTable("SheriffLeave");
                 });
 
@@ -1346,9 +1366,7 @@ namespace SS.Db.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedOn")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("now()");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
@@ -1392,8 +1410,6 @@ namespace SS.Db.Migrations
                     b.HasIndex("TrainingTypeId");
 
                     b.HasIndex("UpdatedById");
-
-                    b.HasIndex("StartDate", "EndDate");
 
                     b.ToTable("SheriffTraining");
                 });
@@ -2062,8 +2078,7 @@ namespace SS.Db.Migrations
                     b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
                         .WithMany()
                         .HasForeignKey("SheriffId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
@@ -2117,8 +2132,7 @@ namespace SS.Db.Migrations
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("CreatedById");
 
                     b.HasOne("ss.db.models.LookupCode", "LeaveType")
                         .WithMany()
@@ -2132,8 +2146,7 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("UpdatedById");
 
                     b.Navigation("CreatedBy");
 
@@ -2148,8 +2161,7 @@ namespace SS.Db.Migrations
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("CreatedById");
 
                     b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
                         .WithMany("Training")
@@ -2163,8 +2175,7 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("UpdatedById");
 
                     b.Navigation("CreatedBy");
 
