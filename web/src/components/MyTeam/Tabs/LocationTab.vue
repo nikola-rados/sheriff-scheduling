@@ -23,10 +23,10 @@
                         :items="assignedAwayLocations"
                         :fields="fields"
                         head-row-variant="primary"
-                        striped
                         borderless
                         small
                         sort-by="startDate"
+                        :sort-desc="true"
                         responsive="sm"
                         >  
                             <template v-slot:cell(isFullDay)="data" >
@@ -173,8 +173,10 @@
 
         locationToSave = {};
         create = false;
+        currentTime = '';
         
         assignedAwayLocations: awayLocationInfoType[] = [];
+
 
         fields =  
         [     
@@ -209,8 +211,13 @@
                     this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'success'}                    
                 }
                 const timezone = location? location.timezone : 'UTC';
+                this.currentTime = moment(new Date()).tz(timezone).format();
                 this.assignedAwayLocations[inx].startDate = moment(this.assignedAwayLocations[inx].startDate).tz(timezone).format();
-                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz(timezone).format();               
+                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz(timezone).format();
+                this.currentTime = moment(new Date()).tz(timezone).format();            
+                this.assignedAwayLocations[inx]['_rowVariant'] = '';
+                if(this.assignedAwayLocations[inx].endDate < this.currentTime)
+                        this.assignedAwayLocations[inx]['_rowVariant'] = 'info';                            
             }
         }
 
@@ -336,6 +343,10 @@
                     this.assignedAwayLocations[index]['isFullDay'] = false;
                     this.assignedAwayLocations[index]['_cellVariants'] = {isFullDay:'success'}                    
                 }
+                this.currentTime = moment(new Date()).tz(timezone).format();
+                this.assignedAwayLocations[index]['_rowVariant'] = '';
+                if(this.assignedAwayLocations[index].endDate < this.currentTime)
+                    this.assignedAwayLocations[index]['_rowVariant'] = 'info';
 
                 this.$emit('change');
             } 
@@ -363,6 +374,11 @@
                 assignedAwayLocation['isFullDay'] = false;
                 assignedAwayLocation['_cellVariants'] = {isFullDay:'success'}                    
             }
+            this.currentTime = moment(new Date()).tz(timezone).format();
+
+            assignedAwayLocation['_rowVariant'] = '';
+            if(assignedAwayLocation.endDate < this.currentTime)
+                assignedAwayLocation['_rowVariant'] = 'info';                
 
             this.assignedAwayLocations.push(assignedAwayLocation); 
             this.$emit('change');                     
