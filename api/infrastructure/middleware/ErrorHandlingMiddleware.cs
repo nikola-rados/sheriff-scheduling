@@ -111,7 +111,7 @@ namespace SS.Api.infrastructure.middleware
                 case DbUpdateConcurrencyException _:
                     code = HttpStatusCode.BadRequest;
                     message = "Data may have been modified or deleted since item was loaded.";
-                    _logger.LogError(ex, ex.Message);
+                    _logger.LogDebug(ex, ex.Message);
                     break;
       
                 case BusinessLayerException _:
@@ -119,7 +119,7 @@ namespace SS.Api.infrastructure.middleware
                 case InvalidOperationException _:
                     code = HttpStatusCode.BadRequest;
                     message = ex.Message;
-                    _logger.LogError(ex, ex.Message);
+                    _logger.LogDebug(ex, ex.Message);
                     break;
 
                 case JCCommon.Clients.LocationServices.ApiException exception:

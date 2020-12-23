@@ -5,7 +5,7 @@
             <b-col class="m-0 p-0" cols="11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
                 <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
-                <duty-roster-day-view v-else :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
+                <duty-roster-day-view v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
                 
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
@@ -95,6 +95,7 @@
         updateMyTeam = 0;
 
         weekView = false;
+        headerReady = false;
 
         headerAddAssignment = new Vue();      
 
@@ -121,6 +122,7 @@
                 this.UpdateDisplayFooter(true)
             }
 
+            this.headerReady = true;
             this.updateDutyRoster++;
 
         }
@@ -131,7 +133,13 @@
         }
 
         public toggleDisplayMyteam(){
-            if(this.displayFooter) this.UpdateDisplayFooter(false)
+            if(this.displayFooter){
+                this.UpdateDisplayFooter(false)
+                const el = document.getElementsByClassName('b-table-sticky-header') 
+                Vue.nextTick(()=>{            
+                    if(el[1]) el[1].scrollLeft = el[0].scrollLeft
+                })
+            }
             else this.UpdateDisplayFooter(true)
         }        
 
@@ -159,12 +167,9 @@
         }
 
         get getheight(){
-            if(this.displayFooter) 
-                return '35rem';
-            else 
-                return '33rem';
+            const height = 0.02811625*(window.innerWidth)-17
+            return (this.displayFooter? (height+3)+'rem' : height+'rem')
         }
-
     }
 </script>
 

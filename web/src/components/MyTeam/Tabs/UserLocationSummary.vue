@@ -83,7 +83,8 @@
         userAwayLocationFields = [
           { key: 'locationName', label: 'Location', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
           { key: 'startDate', label: 'Start', thClass: 'text-primary h3'},
-          { key: 'endDate', label: 'End', thClass: 'text-primary h3'}
+          { key: 'endDate', label: 'End', thClass: 'text-primary h3'},
+          { key: 'comment', label: 'Comment', thClass: 'text-primary h3', tdClass:'text-success'},
         ];
 
         mounted()
@@ -109,7 +110,7 @@
                     loanedInfo.startDate = moment(loanedInfoJson.startDate).tz(timezone).format();
                     loanedInfo.endDate = moment(loanedInfoJson.endDate).tz(timezone).format();
                     loanedInfo.isFullDay = Vue.filter('isDateFullday')(loanedInfo.startDate, loanedInfo.endDate);                    
-
+                    loanedInfo.comment = loanedInfoJson.comment? loanedInfoJson.comment : '';
                     if(loanedInfo.locationId == this.location.id)
                     {
                         loanedInfo.locationName = this.homeLocation;
@@ -137,8 +138,8 @@
  <style scoped>
 
     .tooltip >>> .tooltip-inner{
-        max-width: 500px !important;
-        width: 400px !important;
+        max-width: 700px !important;
+        width: 600px !important;
     }
 
 </style>

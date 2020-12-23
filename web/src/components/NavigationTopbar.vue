@@ -126,14 +126,12 @@
             this.hasPermissionToViewDistributeSchedule = this.userDetails.permissions.includes("ViewDistributeSchedule");
             this.hasPermissionToViewManageSchedule = this.userDetails.permissions.includes("ViewShifts");
             this.hasPermissionToViewSchedulePages = this.hasPermissionToViewDistributeSchedule || this.hasPermissionToViewManageSchedule;
-            const hasViewAssignmentPermission = this.userDetails.permissions.includes("ViewAssignments");
-            const hasViewDutiesPermission = this.userDetails.permissions.includes("ViewDuties");
-            this.hasPermissionToViewDutyRosterPage = hasViewAssignmentPermission && hasViewDutiesPermission && this.hasPermissionToViewManageSchedule;
+            this.hasPermissionToViewDutyRosterPage = this.userDetails.permissions.includes("ViewDutyRoster");
             this.hasPermissionToViewRolesPage = this.userDetails.permissions.includes("ViewRoles");
-            const hasPermissionToViewOwnProfile = this.userDetails.permissions.includes("ViewOwnProfile");
-            const hasPermnissionToViewProfilesInOwnLocation = this.userDetails.permissions.includes("ViewProfilesInOwnLocation");
-            const hasPermnissionToViewProfilesInAllLocation = this.userDetails.permissions.includes("ViewProfilesInAllLocation");
-            this.hasPermissionToViewProfilePage = hasPermissionToViewOwnProfile || hasPermnissionToViewProfilesInOwnLocation || hasPermnissionToViewProfilesInAllLocation;
+            const hasPermissionToViewProvinceProfiles = this.userDetails.permissions.includes("ViewProvince");
+            const hasPermnissionToViewProfilesInOwnLocation = this.userDetails.permissions.includes("ViewHomeLocation") || this.userDetails.permissions.includes("ViewAssignedLocation");
+            const hasPermnissionToViewRegionProfiles = this.userDetails.permissions.includes("ViewRegion");
+            this.hasPermissionToViewProfilePage = hasPermissionToViewProvinceProfiles || hasPermnissionToViewProfilesInOwnLocation || hasPermnissionToViewRegionProfiles;
             this.hasPermissionToViewTeamPages = this.hasPermissionToViewProfilePage || this.hasPermissionToViewRolesPage;
         }
 

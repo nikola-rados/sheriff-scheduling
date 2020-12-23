@@ -11,12 +11,12 @@
 				margin:'0rem 0.1rem 0 0.1rem'}">
         </b-row>
         <b-row v-else :style="{
-				borderTop: '1px solid #BBBBBB',
-				borderBottom: getBorderBottom,
-				height:'2.785rem',
-				backgroundColor:assignment.type.colorCode,
-				borderRadius:getBorderRadius,
-				margin:'0.15rem 0.1rem 0 0.1rem'}" > 
+			borderTop: '1px solid #BBBBBB',
+			borderBottom: getBorderBottom,
+			height:'2.785rem',
+			backgroundColor:assignment.type.colorCode,
+			borderRadius:getBorderRadius,
+			margin:'0.15rem 0.1rem 0 0.1rem'}" > 
             <b-col cols="10" class="m-0 p-0 text-white" @click="editAssignment()">
                                    
                 <b-row                                  
@@ -47,14 +47,26 @@
                 </b-row>
             </b-col>
             <b-col cols="2" class="m-0 p-0"> 
-                <b-button
-                    class="bg-white"
-                    style="padding:0; height:1.2rem; width:1.2rem; margin:.75rem 0"
-					:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
-                    @click="addDuty();"
-                    size="sm"> 
-                        <b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
-            </b-col>
+				<b-row class="m-0 p-0">
+					<b-button
+						class="bg-white"
+						style="padding:0; height:1.2rem; width:1.2rem; margin:0.35rem 0"
+						:disabled="isDeleted || !hasPermissionToAddAssignDuty" 
+						v-b-tooltip.hover.righttop
+						:title="getTimeRange"
+						@click="addDuty();"
+						size="sm"> 
+							<b-icon-plus class="text-dark" font-scale="1" style="transform:translate(0,-3px);"/></b-button>
+				</b-row>
+				<b-row class="m-0 p-0" >
+					<div v-if="assignment.assignmentDetail.comment"
+						v-b-tooltip.hover.right.v-info
+						:title="assignment.assignmentDetail.comment">
+						<b-icon-chat-square-text-fill variant="white" font-scale=".8" class="ml-1 mb-2 p-0" style="transform:translate(0,-3px);"/>
+					</div>
+				</b-row>
+				
+			</b-col>
         </b-row>
 
 		<b-modal v-model="showEditAssignmentDetails" id="bv-modal-edit-assignment-details" centered header-class="bg-primary text-light">
@@ -91,6 +103,7 @@
 						<label class="h6 m-0 p-0">Assignment Category<span class="text-danger">*</span></label>
 						<b-form-select 
 							size="sm"
+							:disabled="true"
 							@change="loadSubTypes"
 							v-model="assignmentToEditType"
 							:state = "selectedTypeState?null:false">
@@ -106,7 +119,7 @@
 						<label class="h6 my-0 ml-1 p-0">Assignment Sub category<span class="text-danger">*</span></label>
 						<b-form-select 
 							size="sm"
-							:disabled="!isSubTypeDataReady"
+							:disabled="true"
 							v-model="assignmentToEditSubType.id"
 							:state = "selectedSubTypeState?null:false">
 								<b-form-select-option
@@ -231,11 +244,22 @@
 						></b-form-input>
 					</b-form-group>						
 				</b-row>
+				<b-row class="mx-auto my-0 p-0">
+                    <b-form-group class="m-0" style="width: 28.5rem">
+                        <label class="h6 m-0 p-0">Comment</label>
+                        <b-form-input
+                            v-model="selectedComment"
+                            size="sm"
+                            type="text" 
+							:formatter="commentFormat"                           
+                        ></b-form-input>
+                    </b-form-group>                                    
+                </b-row>
 			</b-card>
 
 			<template v-slot:modal-footer>
 				<b-button
-						:disabled="!hasPermissionToExpireAssignment"
+						v-if="hasPermissionToExpireAssignment"
 						size="sm"
 						variant="danger"
 						class="mr-auto"
@@ -401,6 +425,7 @@
 		isDeleted = false;
 
 		selectedExipryDate = ''
+		selectedComment = ''
 
 		nameState = true;
 		selectedTypeState = true;
@@ -412,6 +437,9 @@
 		selectedDayState = true;		
 		allDaysSelected = false;
 		weekDaysSelected = false;
+
+		initialStartDate = false;
+		initialEndDate = false;
 
 		weekDayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
 
@@ -481,7 +509,8 @@
 			if (this.assignmentDeleteReason.length) {
 				this.confirmDelete = false;
 				this.deleteError = false;
-				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason+ '&expiryDate='+this.selectedExipryDate;
+				const expDate = moment.tz(this.selectedExipryDate, this.location.timezone).utc().format();
+				const url = 'api/assignment?id=' + this.assignmentToEdit.id + '&expiryReason=' + this.assignmentDeleteReason+ '&expiryDate='+expDate;
 			
 				this.$http.delete(url)
 					.then(response => {
@@ -494,31 +523,47 @@
 						this.deleteError = true;
 					});
 					this.assignmentDeleteReason = '';
-			}
-			
+			}			
 		}
 
         public editAssignment(){
 			if(this.isDeleted)return;			
 			this.isSubTypeDataReady = false;
 			this.enableAllDayOptions();
-			this.initialLoad = true; 
+			this.initialLoad = true;
+			this.initialStartDate = true;
+			this.initialEndDate = true; 
 			this.loadAssignmentDetails();					           
 		}
 
 		public startDatePicked(){
-			this.toggleAllDays(false);
-			this.toggleWeekDays(false);
+			if(this.initialStartDate){
+				//console.log('startDate')
+				this.initialStartDate=false
+			}else if(!this.initialEndDate){
+				this.toggleAllDays(false);
+				this.toggleWeekDays(false);
+				this.selectedDays = [] ;
 			this.selectedDays = [] ;            
-            if (this.selectedEndDate.length) {
+				this.selectedDays = [] ;
+			}           
+			if (this.selectedEndDate.length) {
 				this.disableOutOfRangeDays();
 			}
+			
 		}
 
 		public endDatePicked(){
-			this.toggleAllDays(false);
-			this.toggleWeekDays(false);
+			if(this.initialEndDate){
+				//console.log('endDate')
+				this.initialEndDate=false
+			}else if (!this.initialStartDate) {
+				this.toggleAllDays(false);
+				this.toggleWeekDays(false);
+				this.selectedDays = [] ;
 			this.selectedDays = [] ;            
+				this.selectedDays = [] ;
+			}                 
             if (this.selectedStartDate.length) {
 				this.disableOutOfRangeDays();
 			}
@@ -559,6 +604,7 @@
         }
 		
 		public loadAssignmentDetails() {
+
 			const assignmentInfo = this.assignment.assignmentDetail;
 			this.originalAssignmentToEdit.id = this.assignmentToEdit.id = assignmentInfo.id;
 			this.originalAssignmentToEdit.name = this.assignmentToEdit.name = assignmentInfo.name;			
@@ -566,6 +612,8 @@
 			this.originalAssignmentToEdit.end = this.selectedEndTime = assignmentInfo.end.substring(0,5);
 			this.originalAssignmentToEdit.locationId = this.assignmentToEdit.locationId = assignmentInfo.locationId;
 			this.originalAssignmentToEdit.timezone = this.assignmentToEdit.timezone = assignmentInfo.timezone;
+			this.originalAssignmentToEdit.comment = this.selectedComment = assignmentInfo.comment?assignmentInfo.comment:''
+
 			if (assignmentInfo.adhocStartDate) {
 				this.nonReoccuring = true;
 				this.selectedStartDate = assignmentInfo.adhocStartDate? assignmentInfo.adhocStartDate: '';
@@ -828,7 +876,8 @@
 			}
 
 			this.assignmentToEdit.start = this.selectedStartTime;
-			this.assignmentToEdit.end = this.selectedEndTime;	
+			this.assignmentToEdit.end = this.selectedEndTime;
+			this.assignmentToEdit.comment = this.selectedComment;	
 		}
 
 		public saveAssignmentChanges() {
@@ -915,6 +964,10 @@
 			else return '0px solid #BBBBBB'
 		}
 
+		get getTimeRange(){
+			return this.assignment.assignmentDetail.start.substring(0,5)+' - '+this.assignment.assignmentDetail.end.substring(0,5)
+		}
+
 		public timeFormat(value , event) {
 			if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1)
 			if(value.length!=3 && value.slice(-1) == ':') return value.slice(0,-1);
@@ -939,6 +992,10 @@
 			if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
 			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
 			return value
+		}
+
+		public commentFormat(value) {
+			return value.slice(0,100);
 		}
     }
 </script>

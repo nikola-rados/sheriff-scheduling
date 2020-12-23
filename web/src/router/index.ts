@@ -38,13 +38,13 @@ async function checkPermission(to: any, from: any, next: any) {
 		await waitFor(() => {
 			const userPermissions = store.state.CommonInformation.userDetails.permissions;
 			if(to.name == "DustyRoster") {
-				if (userPermissions.includes("ViewDuties") && userPermissions.includes("ViewAssignments") && userPermissions.includes("ViewShifts")){        
+				if (userPermissions.includes("ViewDutyRoster")){        
 					next();	
 				} else {
 					next({ path: "/" });
 				}
 			} else if(to.name == "MyTeamMembers") {
-				if (userPermissions.includes("ViewOwnProfile") || userPermissions.includes("ViewProfilesInOwnLocation") || userPermissions.includes("ViewProfilesInAllLocation")){        
+				if (userPermissions.includes("ViewProvince") || userPermissions.includes("ViewRegion") || userPermissions.includes("ViewHomeLocation") || userPermissions.includes("ViewAssignedLocation")){        
 					displayFooter(to, from, next);	
 				} else {
 					next({ path: "/duty-roster" });

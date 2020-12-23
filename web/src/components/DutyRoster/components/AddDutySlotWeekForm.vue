@@ -21,7 +21,7 @@
                                             v-for="sheriff in filteredShiftAvailabilityInfo"
                                             :key="sheriff.sheriffId"
                                             :value="sheriff">
-                                                    {{sheriff.firstName|capitalize}} {{sheriff.lastName|capitalize}}
+                                                    {{sheriff.lastName|capitalize}}, {{sheriff.firstName|capitalize}} 
                                         </b-form-select-option>
                                 </b-form-select>
                             </b-form-group>

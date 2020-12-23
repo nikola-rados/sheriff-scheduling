@@ -111,6 +111,24 @@
                         >&times;</b-button>
                     </template>
                 </b-modal>
+                <b-modal v-model="confirmOverride" id="bv-modal-confirm-override" header-class="bg-warning text-light">
+                    <template v-slot:modal-title>
+                            <h2 class="mb-0 text-light">Conflicting Event</h2>                    
+                    </template>
+                    <h4>The following events conflict with this training</h4>
+                    <p v-for="event in overlappingList"
+                        :key="event"> {{event}}
+                    </p>
+                    <template v-slot:modal-footer>
+                        <b-button variant="danger" @click="saveTraining(trainingToSave, create, true)">Confirm</b-button>
+                        <b-button variant="primary" @click="cancelTrainingOverride()">Cancel</b-button>
+                    </template>            
+                    <template v-slot:modal-header-close>                 
+                        <b-button variant="outline-warning" class="text-light closeButton" @click="cancelTrainingOverride()"
+                        >&times;</b-button>
+                    </template>
+                </b-modal> 
+
             </div>                                     
         </b-card>
     </div>
@@ -151,12 +169,17 @@
         latestEditData;
         isEditOpen = false;
 
+        trainingToSave = {};
+        create = false;
+
         trainingError = false;
         trainingErrorMsg = '';
         trainingErrorMsgDesc = '';
+        overlappingList = [] as string[];
         updateTable = 0;
 
         confirmDelete = false;
+        confirmOverride = false;
         trainingToDelete = {} as userTrainingInfoType;
         
         assignedTrainings: userTrainingInfoType[] = [];
@@ -183,8 +206,8 @@
         mounted()
         {
             this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
-            this.hasPermissionToRemoveCompletedTraining = this.userDetails.permissions.includes("RemoveTraining"); 
-            this.hasPermissionToEditCompletedTraining = this.userDetails.permissions.includes("EditTraining");                                
+            this.hasPermissionToRemoveCompletedTraining = this.userDetails.permissions.includes("RemovePastTraining"); 
+            this.hasPermissionToEditCompletedTraining = this.userDetails.permissions.includes("EditPastTraining");                                
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.currentTime = moment(new Date()).tz(this.timezone).format();
             // console.log(this.currentTime)  
@@ -229,6 +252,7 @@
                     assignedTraining.endDate = moment(training.endDate).tz(this.timezone).format();
                     assignedTraining.expiryDate = training.trainingCertificationExpiry;
                     assignedTraining.comment = training.comment;
+                    assignedTraining.note = training['note'];
                     assignedTraining['_rowVariant'] = '';
                     if(assignedTraining.endDate < this.currentTime)
                         assignedTraining['_rowVariant'] = 'info';
@@ -307,11 +331,11 @@
             }  
         }
 
-        public saveTraining(body, iscreate){
+        public saveTraining(body, iscreate, overrideConflicts){
                 this.trainingError   = false; 
                 body['sheriffId']= this.userToEdit.id;
                 const method = iscreate? 'post' :'put';            
-                const url = 'api/sheriff/training'  
+                const url = overrideConflicts?'api/sheriff/training?overrideConflicts=true':'api/sheriff/training'  
                 const options = { method: method, url:url, data:body}
                
                 this.$http(options)
@@ -320,15 +344,31 @@
                             this.addToAssignedTrainingList(response.data);
                         else
                             this.modifyAssignedTrainingList(response.data);
-                        
+                        if (overrideConflicts){
+                            this.cancelTrainingOverride();
+                            this.closeTrainingForm();
+                            this.$emit('refresh', this.userToEdit.id)
+                        }
                         this.closeTrainingForm();
                     }, err=>{
                         const errMsg = err.response.data.error;
                         this.trainingErrorMsg = errMsg;
                         this.trainingErrorMsgDesc = errMsg;
-                        this.trainingError = true;
-                        location.href = '#TrainingError'
+                        if (errMsg.toLowerCase().includes("overlaps")) {
+                            console.log("overlap")
+                            this.overlappingList = this.trainingErrorMsg.split('||');
+                            this.trainingToSave = body;
+                            this.create = iscreate;
+                            this.confirmOverride = true;
+                        } else {
+                            this.trainingError = true;
+                            location.href = '#TrainingError'
+                        }
                     });                
+        }
+
+        public cancelTrainingOverride() {
+            this.confirmOverride = false;
         }
 
         public modifyAssignedTrainingList(modifiedTrainingInfo){            
@@ -344,6 +384,7 @@
                 this.assignedTrainings[index].trainingName = trainingType.description;
                 this.assignedTrainings[index].expiryDate = modifiedTrainingInfo.trainingCertificationExpiry? modifiedTrainingInfo.trainingCertificationExpiry:'';
                 this.assignedTrainings[index].comment = modifiedTrainingInfo.comment?modifiedTrainingInfo.comment:'';
+                this.assignedTrainings[index].note = modifiedTrainingInfo.note?modifiedTrainingInfo.note:'';
                 if(Vue.filter('isDateFullday')( this.assignedTrainings[index].startDate, this.assignedTrainings[index].endDate)){ 
                     this.assignedTrainings[index]['isFullDay'] = true;                 
                 }else{
@@ -369,7 +410,8 @@
                 startDate: moment(addedTrainingInfo.startDate).tz(this.timezone).format(),
                 endDate: moment(addedTrainingInfo.endDate).tz(this.timezone).format(),
                 expiryDate: addedTrainingInfo.trainingCertificationExpiry,
-                comment: addedTrainingInfo.comment              
+                comment: addedTrainingInfo.comment,
+                note: addedTrainingInfo.note              
             }
             
             if(Vue.filter('isDateFullday')(assignedTraining.startDate,assignedTraining.endDate)){ 
