@@ -27,6 +27,7 @@
 				<b-navbar-nav class="mr-2">
 					<b-nav-form> 
 						<div v-b-tooltip.hover
+							v-if="hasPermissionToEditShifts"
 							:title="selectedShifts.length==0?'Please select shifts':''">
 								<b-button 
 									style="max-height: 40px;" 
@@ -39,6 +40,7 @@
 								</b-button>
 						</div>
 						<div v-b-tooltip.hover
+							v-if="hasPermissionToExpireShifts"
 							:title="selectedShifts.length==0?'Please select shifts':''">
 								<b-button 
 									style="max-height: 40px;" 
@@ -51,6 +53,7 @@
 								</b-button>
 						</div>
 						<div v-b-tooltip.hover
+							v-if="hasPermissionToImportShifts"
 							title="Import shifts from previous week">
 								<b-button 
 									style="max-height: 40px;" 
@@ -161,23 +164,23 @@
 					</b-col>
                 </b-row>
 
-                <b-row v-if="shiftTimesDiffer" id="shiftTimesDifferError" style="border-radius:5px; max-width: 30rem;" class="h4 mx-2 py-2 bg-warning">
+                <b-row v-if="shiftsDiffer" id="shiftsDifferError" style="border-radius:5px; max-width: 30rem;" class="h4 mx-2 py-2 bg-warning">
 					<b-col cols="11">
-						<span class="p-0">{{shiftTimesDifferMsg}}</span>
+						<span class="p-0">{{shiftsDifferMsg}}</span>
 					</b-col>
 					<b-col cols="1" style=" padding:0; margin:auto 0;">
 						<b-icon
 							icon = x-square-fill
-							@click="shiftTimesDiffer = false"/>
+							@click="shiftsDiffer = false"/>
 					</b-col>
                 </b-row>
 
-                <b-row class="mx-1 my-0 p-0">
+                <b-row class="mx-auto my-0 p-0">
                     <b-form-group class="mr-3" style="width: 7rem">
                         <label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
                         <b-form-input
                             v-model="selectedStartTime"
-                            @click="startTimeState=true;shiftTimesDiffer=false;"
+                            @click="startTimeState=true;shiftsDiffer=false;"
                             size="sm"
                             type="text"
                             autocomplete="off"
@@ -188,11 +191,11 @@
                         ></b-form-input>
                     </b-form-group>
 
-                    <b-form-group class="mr-5" style="width: 7rem;">
+                    <b-form-group class="m-0" style="width: 7rem;">
                         <label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
                         <b-form-input
                             v-model="selectedEndTime"
-                            @click="endTimeState=true;shiftTimesDiffer=false;"
+                            @click="endTimeState=true;shiftsDiffer=false;"
                             size="sm"
                             type="text"
                             autocomplete="off"
@@ -203,6 +206,18 @@
                         ></b-form-input>
                     </b-form-group>                
                 </b-row>
+				<b-row class="mx-auto my-0 p-0">
+                    <b-form-group class="m-0" style="width: 28.5rem">
+                        <label class="h6 m-0 p-0">Comment</label>
+                        <b-form-input
+                            v-model="comment"
+                            size="sm"
+                            type="text"
+							:formatter="commentFormat"                            
+                        ></b-form-input>
+                    </b-form-group>                                    
+                </b-row>
+
             </b-card>
 
             <template v-slot:modal-footer>
@@ -256,13 +271,16 @@
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 	import { importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
-	import { locationInfoType } from '../../../types/common';
+	import { locationInfoType, userInfoType } from '../../../types/common';
 	
 	@Component
 	export default class ScheduleHeader extends Vue {		
 
 		@commonState.State
 		public location!: locationInfoType;
+
+		@commonState.State
+        public userDetails!: userInfoType;
 				
 		@shiftState.State
 		public shiftRangeInfo!: shiftRangeInfoType;
@@ -281,8 +299,10 @@
 		selectedDate = '';
 		selectedStartTime = '';
 		selectedEndTime = '';
+		comment = '';
 		originalSelectedStartTime = '';
 		originalSelectedEndTime = '';
+		originalComment = '';
 		showEditShiftDetails = false;
 		showEditShiftCancelWarning = false;
 		confirmDelete = false;
@@ -292,12 +312,16 @@
 		endTimeState = true;
 
 		datePickerOpened = false;
+		
+        hasPermissionToEditShifts = false;
+		hasPermissionToExpireShifts = false;		
+        hasPermissionToImportShifts = false;
 
 		shiftError = false;
 		shiftErrorMsg = '';
 
-		shiftTimesDiffer = false;
-		shiftTimesDifferMsg = '';
+		shiftsDiffer = false;
+		shiftsDifferMsg = '';
 
 		deleteErrorMsg = '';
         deleteErrorMsgDesc = '';
@@ -313,6 +337,10 @@
 
 		mounted() {
 			console.log('header')
+
+			this.hasPermissionToImportShifts = this.userDetails.permissions.includes("ImportShifts");
+			this.hasPermissionToExpireShifts = this.userDetails.permissions.includes("ExpireShifts");
+			this.hasPermissionToEditShifts = this.userDetails.permissions.includes("EditShifts");            
 			
 			if(!this.shiftRangeInfo.startDate){
 				this.selectedDate = moment().format().substring(0,10);
@@ -321,7 +349,7 @@
 				this.selectedDate = this.shiftRangeInfo.startDate;
 				this.$emit('change');
 			}
-			console.log(this.selectedDate)
+			//console.log(this.selectedDate)
 			
 
 			this.$root.$on('editShifts', () => {
@@ -334,8 +362,8 @@
 			this.shiftError = false;
 			this.shiftErrorMsg = '';
 
-			this.shiftTimesDiffer = false;
-			this.shiftTimesDifferMsg = '';
+			this.shiftsDiffer = false;
+			this.shiftsDifferMsg = '';
 			this.getShiftsToEdit();
 		}
 		
@@ -343,10 +371,12 @@
 			this.shiftsToEdit = [];
 			const startTimes = [] as string[];
 			const endTimes = [] as string[];
+			const comments = [] as string[];
 			let numberOfStartTimes = 0;
 			let numberOfEndTimes= 0;
-			this.shiftTimesDiffer = false;
-			this.shiftTimesDifferMsg = '';
+			let numberOfComments= 0;
+			this.shiftsDiffer = false;
+			this.shiftsDifferMsg = '';
 
 			const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
 
@@ -358,10 +388,16 @@
 						for (const shift of this.shiftsToEdit) {							
 							startTimes.push(this.extractTime(shift.startDate, shift.timezone));
 							endTimes.push(this.extractTime(shift.endDate, shift.timezone));
+							if (shift.comment) {
+								comments.push(shift.comment)
+							}else{
+								comments.push('')
+							}
 						}
 						
 						numberOfStartTimes = (new Set(startTimes)).size;
 						numberOfEndTimes = (new Set(endTimes)).size;
+						numberOfComments = (new Set(comments)).size;
 
 						if (numberOfStartTimes == 1) {
 							this.startTimeState = true;
@@ -369,7 +405,7 @@
 						} else {
 							this.originalSelectedStartTime = this.selectedStartTime = '';
 							this.startTimeState = false;
-							this.shiftTimesDiffer = true;							
+							this.shiftsDiffer = true;							
 						}
 
 						if (numberOfEndTimes == 1) {
@@ -378,16 +414,26 @@
 						} else {
 							this.originalSelectedEndTime = this.selectedEndTime = '';
 							this.endTimeState = false;
-							this.shiftTimesDiffer = true;
+							this.shiftsDiffer = true;
 						}
 
-						if (this.shiftTimesDiffer) {
-							if (numberOfEndTimes > 1 && numberOfStartTimes > 1) {
-								this.shiftTimesDifferMsg = "The start and end times of the selected shifts do not match."
+						if (numberOfComments == 1) {							
+							this.originalComment = this.comment = comments[0];
+						}else {
+							this.originalComment = this.comment = '';
+						}
+
+						if (this.shiftsDiffer) {
+							if (numberOfEndTimes > 1 && numberOfStartTimes > 1 && numberOfComments > 1) {
+								this.shiftsDifferMsg = "The comments, start and end times of the selected shifts do not match."
+							} else if (numberOfEndTimes > 1 && numberOfStartTimes > 1) {
+								this.shiftsDifferMsg = "The start and end times of the selected shifts do not match."
 							} else if (numberOfStartTimes > 1) {
-								this.shiftTimesDifferMsg = "The start times of the selected shifts do not match."
+								this.shiftsDifferMsg = "The start times of the selected shifts do not match."
 							} else if (numberOfEndTimes > 1) {
-								this.shiftTimesDifferMsg = "The end times of the selected shifts do not match."
+								this.shiftsDifferMsg = "The end times of the selected shifts do not match."
+							} else if (numberOfComments > 1) {
+								this.shiftsDifferMsg = "The comments of the selected shifts do not match."
 							}
 						}
 
@@ -398,7 +444,7 @@
 		}
 
 		public saveShift() {         
-            this.shiftTimesDiffer = false;
+            this.shiftsDiffer = false;
 			let requiredError = false;
 			
 			if (!this.selectedStartTime) {
@@ -458,14 +504,17 @@
 				const newStartDate = this.completeDate(shift.startDate,this.selectedStartTime);
 				const newEndDate = this.completeDate(shift.endDate,this.selectedEndTime);
 				//console.log(shift)
-				body.push({
+				const editedShift: shiftInfoType = {
 					id: shift.id,
 					startDate: newStartDate,
-					endDate: newEndDate,    
-					timezone: shift.timezone ,
+					endDate: newEndDate,
+					timezone: shift.timezone,
 					locationId: shift.locationId ,     
 					sheriffId: shift.sheriffId
-				});				
+				};
+
+				if(this.comment) editedShift.comment = this.comment;				
+				body.push(editedShift)
 			}
 			const url = 'api/shift';
 			this.$http.put(url, body)
@@ -486,7 +535,11 @@
 		public isChanged(){      
 			if((this.originalSelectedStartTime != this.selectedStartTime) || (this.originalSelectedEndTime != this.selectedEndTime)) return true;
 			return false;            
-        }
+		}
+		
+		public commentFormat(value) {
+			return value.slice(0,100);
+		}
            
         public timeFormat(value , event) {
 			if(isNaN(Number(value.slice(-1))) && value.slice(-1) != ':') return value.slice(0,-1)
@@ -556,6 +609,7 @@
 		public ClearFormState(){
 			this.startTimeState = true;
 			this.endTimeState = true;
+			this.comment = '';
 		}
 
 		public confirmDeleteShift(){

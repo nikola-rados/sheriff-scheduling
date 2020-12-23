@@ -35,7 +35,7 @@
                 <h2 v-if="assignmentError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="assignmentErrorMsgDesc"  variant="danger"> {{assignmentErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="assignmentError = false" /></b-badge></h2>
             </b-card>
 
-            <div v-if="selectedAssignmentType.name != 'CourtRoom' && userIsAdmin">
+            <div v-if="selectedAssignmentType.name != 'CourtRoom' && hasPermissionToCreateManageTypes">
                 <b-card  v-if="!addNewAssignmentForm">                
                     <b-button size="sm" variant="success" @click="addNewAssignment"> <b-icon icon="plus" /> Add </b-button>
                 </b-card>
@@ -85,20 +85,21 @@
                             </template>
 
                             <template v-slot:cell(edit)="data" >                                  
-                                <b-button v-if="userIsAdmin && !data.item['_rowVariant']" 
+                                <b-button v-if="!data.item['_rowVariant']" 
                                     class="ml-2 px-1"
                                     style="padding: 1px 2px 1px 2px;" 
                                     size="sm" 
                                     v-b-tooltip.hover
                                     title="Expire" 
-                                    variant="warning" 
+                                    variant="warning"
+                                    :disabled="!hasPermissionToExpireManageTypes" 
                                     @click="confirmDeleteAssignment(data.item)">
                                     <b-icon icon="clock" 
                                         font-scale="1" 
                                         variant="white"/>
                                 </b-button>
-                                <b-button v-if="userIsAdmin && data.item['_rowVariant']" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireAssignment(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button v-if="userIsAdmin && selectedAssignmentType.name != 'CourtRoom'" :disabled="data.item['_rowVariant']?true:false" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="data.item['_rowVariant']" :disabled="!hasPermissionToExpireManageTypes" class="my-0 ml-2 py-0 px-1" size="sm" variant="warning" @click="confirmUnexpireAssignment(data.item)"><b-icon icon="arrow-counterclockwise" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="hasPermissionToEditManageTypes && selectedAssignmentType.name != 'CourtRoom'" :disabled="data.item['_rowVariant']?true:false" class="my-0 py-0" size="sm" variant="transparent" @click="editAssignment(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -167,7 +168,9 @@
         @manageTypesState.State
         public sortingAssignmentInfo!: {prvIndex: number; newIndex: number};
 
-        userIsAdmin = true;
+        hasPermissionToEditManageTypes = false;
+        hasPermissionToCreateManageTypes = false;
+        hasPermissionToExpireManageTypes = false;
 
         sectionHeader = 'Assignments';
         isAssignmentDataMounted = false;
@@ -237,9 +240,14 @@
 
         mounted () 
         {  
-            // this.userIsAdmin = this.userDetails.roles.includes("Administrator");
-            this.userIsAdmin = true;
+            this.getAssignmentTypesPermissions();
             this.getAssignments()       
+        }
+
+        public getAssignmentTypesPermissions() {
+            this.hasPermissionToEditManageTypes = this.userDetails.permissions.includes("EditTypes");
+            this.hasPermissionToExpireManageTypes = this.userDetails.permissions.includes("ExpireTypes");
+            this.hasPermissionToCreateManageTypes = this.userDetails.permissions.includes("CreateTypes");
         }
 
         public getAssignments() {

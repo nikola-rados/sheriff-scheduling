@@ -87,7 +87,7 @@ namespace SS.Api.infrastructure.middleware
                 case KeyNotFoundException _:
                     code = HttpStatusCode.BadRequest;
                     message = "Item does not exist.";
-                    _logger.LogDebug(ex, "Middleware caught unhandled exception.");
+                    _logger.LogError(ex, "Middleware caught unhandled exception.");
                     break;
 
                 case NotAuthorizedException _:
@@ -105,11 +105,13 @@ namespace SS.Api.infrastructure.middleware
                 case NotFoundException _:
                     code = HttpStatusCode.NotFound;
                     message = ex.Message;
+                    _logger.LogError(ex, ex.Message);
                     break;
 
                 case DbUpdateConcurrencyException _:
                     code = HttpStatusCode.BadRequest;
                     message = "Data may have been modified or deleted since item was loaded.";
+                    _logger.LogDebug(ex, ex.Message);
                     break;
       
                 case BusinessLayerException _:
@@ -117,6 +119,7 @@ namespace SS.Api.infrastructure.middleware
                 case InvalidOperationException _:
                     code = HttpStatusCode.BadRequest;
                     message = ex.Message;
+                    _logger.LogDebug(ex, ex.Message);
                     break;
 
                 case JCCommon.Clients.LocationServices.ApiException exception:

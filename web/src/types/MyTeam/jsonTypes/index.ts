@@ -90,7 +90,8 @@ export interface awayLocationsJsontype {
     expiryDate : string,
     isFullDay : boolean,
     sheriffId : string,
-    concurrencyToken : number  
+    concurrencyToken : number ,
+    comment?: string 
 }
 
 export interface trainingJsontype {  
@@ -111,7 +112,8 @@ export interface trainingJsontype {
     trainingCertificationExpiry :string,
     sheriffId : string,
     concurrencyToken : number,
-    comment : string 
+    comment?: string,
+    note?: string,
 }
 
 

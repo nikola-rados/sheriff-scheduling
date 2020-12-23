@@ -1,25 +1,27 @@
 <template>
-    <div v-if="isSheriffFuelGauge">
+    <div>
         <b-row  class="m-0 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
                 <b-table
                     :items="myTeamMembers" 
                     :fields="gaugeFields"
                     small
+                    head-row-variant="transparant"
+                    style="overflow-x:hidden"
                     sort-by="availability"
                     :sort-desc="true"
                     class="gauge"                   
-                    sticky-header="200px"                        
-                    bordered                    
+                    sticky-header="7rem"                        
+                    borderless
                     fixed>
                         <template v-slot:table-colgroup> 
-                            <col>                                      
-                            <col style="width:7.7rem">
+                            <col style="width:9rem">
+                            <col>
                         </template>
 
                         <template v-slot:head(availability) >
                             <div class="gridfuel24">
-                                <div v-for="i in 24" :key="i" :style="{gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/1'}">{{getBeautifyTime(24-i)}}</div>
+                                <div v-for="i in 24" :key="i" :style="{gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/1'}">{{getBeautifyTime(i-1)}}</div>
                             </div>
                         </template>
 
@@ -27,7 +29,8 @@
                             <sheriff-availability-card class="m-0 p-0" :sheriffInfo="data.item" />
                         </template>
 
-                        <template v-slot:head(name) >                           
+                        <template v-slot:head(name) > 
+                             My Team                          
                             <b-button
                                 @click="closeDisplayMyteam()"
                                 v-b-tooltip.hover.right                            
@@ -36,15 +39,15 @@
                                 size="sm">
                                     <b-icon-bar-chart-steps /> 
                             </b-button>
-                             My Team
+                            
                         </template>
 
                          <template v-slot:cell(name)="data" >
                             <div
                                 :id="'gauge--'+data.item.sheriff.sheriffId"
-                                :draggable="true" 
+                                :draggable="hasPermissionToAddAssignDuty" 
                                 v-on:dragstart="DragStart"
-                                style="height:1rem; font-size:9px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
+                                style="height:1rem; font-size:12px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
                                 v-b-tooltip.hover.right                             
                                 :title="data.item.fullName">
                                     {{data.value}}
@@ -55,8 +58,8 @@
             <b-col class="m-0 p-0" cols="1" >
                 <b-card 
                 class="bg-light"
-                    header="Colors" 
-                    header-class=" m-0 p-0 bg-primary text-white text-center" 
+                    header="Colours" 
+                    header-class=" m-0 p-0 bg-primary text-white text-center no-top-rounding" 
                     no-body>
                     <b-row style="margin:0 0 .25rem .25rem; width:7.6rem;">
                         <div
@@ -75,10 +78,11 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import SheriffAvailabilityCard from './SheriffAvailabilityCard.vue'
     import { myTeamShiftInfoType, dutiesDetailInfoType} from '../../../types/DutyRoster';
-
+    import { userInfoType } from '../../../types/common';
+    
     import moment from 'moment-timezone';
 
     import { namespace } from "vuex-class";   
@@ -101,20 +105,30 @@
         @commonState.Action
         public UpdateDisplayFooter!: (newDisplayFooter: boolean) => void
        
-        isSheriffFuelGauge = false;
+        @commonState.State
+        public userDetails!: userInfoType;
+        
+        hasPermissionToAddAssignDuty = false;
 
         myTeamMembers: any[] = []
 
         gaugeFields = [
-            {key:'availability', label:'', thClass:'text-white bg-primary', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'},
-            {key:'name', label:'My Team', thClass:'text-center text-white bg-primary', tdClass:' py-0 my-0', thStyle:'margin:0; padding:0;'}            
+            {key:'name', label:'My Team', stickyColumn: true, thClass:'text-center text-white', tdClass:'border-bottom py-0 my-0', thStyle:'margin:0; padding:0;background-color:#556077;'},
+            {key:'availability', label:'', thClass:'', tdClass:'p-0 m-0 bg-white', thStyle:'margin:0; padding:0;'},
+            
         ]
+
+        @Watch('shiftAvailabilityInfo')
+        shiftAvailability() 
+        {
+            this.extractSheriffAvailability()
+        }
 
         mounted()
         {
-            this.isSheriffFuelGauge = false;
             //console.log(this.shiftAvailabilityInfo)
-            this.extractSheriffAvailability()                                    
+            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
+            this.extractSheriffAvailability() 
         }
 
         dutyColors = [
@@ -125,7 +139,7 @@
             {name:'overtime',colorCode:'#e85a0e'},
             {name:'free',   colorCode:'#e6d9e2'}            
         ]
-            
+
         public extractSheriffAvailability(){
             this.myTeamMembers = [];
             for(const sheriff of this.shiftAvailabilityInfo){
@@ -139,7 +153,6 @@
                     availabilityDetail: this.findAvailabilitySlots(sheriff.availability)
                 })
             }
-            this.isSheriffFuelGauge = true;
         }
 
         public findAvailabilitySlots(array){
@@ -204,15 +217,14 @@
         border: white;
     }
 
-    .gauge {
-        direction:rtl;
+    .gauge {       
         position: sticky;
         overflow-y: scroll;
     }
 
-     .gridfuel24 {        
+    .gridfuel24 {        
         display:grid;
-        grid-template-columns: repeat(24, 4.1666%);
+        grid-template-columns: repeat(24, 8.333%);
         grid-template-rows: 1.57rem;
         inline-size: 100%;
         font-size: 9px;         
@@ -221,5 +233,8 @@
     .gridfuel24 > * {      
         padding: .25rem 0;
         border: 1px dotted rgb(185, 143, 143);
+        background-color: #003366;
+        color: white;
+        font-size: 12px;
     }
 </style>

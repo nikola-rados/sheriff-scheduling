@@ -8,20 +8,22 @@
             sort-by="assignment"
             small
             head-row-variant="primary"   
-            borderless                   
+            borderless
+            sticky-header="37rem"                  
             fixed>
                 <template v-slot:table-colgroup>
                     <col style="width:9rem">                            
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item" :weekview="true"/>
+                    <duty-roster-assignment v-on:change="getData()" :assignment="data.item" :weekview="true"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >
                     <div style="float: left; margin:0 1rem; padding:0;">
                         <div style="float: left; margin:.15rem .25rem 0  0; font-size:14px">{{data.label}}</div>
                         <b-button
+                            v-if="hasPermissionToAddAssignments"
                             variant="success"
                             style="padding:0; height:1rem; width:1rem; margin:auto 0" 
                             @click="addAssignment();"
@@ -39,7 +41,7 @@
                 </template>
 
                 <template v-slot:cell(h0)="data" >
-                    <duty-card-week-view v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/>
+                    <duty-card-week-view v-on:change="getData()" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
         <b-card><br></b-card>
@@ -61,7 +63,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {localTimeInfoType, locationInfoType } from '../../types/common';
+    import {localTimeInfoType, locationInfoType, userInfoType } from '../../types/common';
     import { assignmentCardWeekInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
@@ -76,6 +78,9 @@
         @commonState.State
         public location!: locationInfoType;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
         // @commonState.State
         // public displayFooter!: boolean;
 
@@ -89,6 +94,7 @@
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
         isDutyRosterDataMounted = false;
+        hasPermissionToAddAssignments = false;
 
         dutyRosterAssignments: assignmentCardWeekInfoType[] = [];
 
@@ -111,18 +117,35 @@
         ]
 
         @Watch('location.id', { immediate: true })
-        locationChange()
+        async locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                this.getDutyRosters();                                
+                this.getData();
             }            
         } 
 
-        mounted()
+        async mounted()
         {
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
-            this.getDutyRosters()
+            this.getData();
+        }
+
+        public async getData() {
+            const response = await Promise.all([
+                this.getDutyRosters(),
+                this.getAssignments(),
+                this.getShifts()
+            ]);
+
+            this.dutyRostersJson = response[0].data;
+            this.dutyRosterAssignmentsJson = response[1].data;
+
+            const shiftsData = response[2].data
+            Vue.nextTick(() => {
+                this.extractTeamShiftInfo(shiftsData);                        
+                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);  
+            })
         }
 
         public getBeautifyTime(day: number){
@@ -130,40 +153,20 @@
         }
 
         public getDutyRosters(){
+            this.hasPermissionToAddAssignments = this.userDetails.permissions.includes("CreateAssignments");
             const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        this.dutyRostersJson = response.data; 
-                        console.log(response.data);
-                        this.getAssignments();                                                                   
-                    }                                   
-                })      
+            return this.$http.get(url)
         }
 
         public getAssignments(){
             const url = 'api/assignment?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)
-                        this.dutyRosterAssignmentsJson = response.data; 
-                        this.getShifts();                             
-                    }                                   
-                })      
+            return this.$http.get(url)
         }
 
-        public getShifts(){
+        public async getShifts(){
             this.isDutyRosterDataMounted = false;
             const url = 'api/shift?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate +'&includeDuties=true';
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
-                        this.extractTeamShiftInfo(response.data);                        
-                        this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);                                               
-                    }                                   
-                })      
+            return this.$http.get(url)
         }        
 
         public extractTeamShiftInfo(shiftsJson){

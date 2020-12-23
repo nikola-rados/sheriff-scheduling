@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using SS.Api.helpers;
 using SS.Api.helpers.extensions;
@@ -40,11 +42,11 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPost]
         [PermissionClaimAuthorize(perm: Permission.CreateUsers)]
-        public async Task<ActionResult<SheriffDto>> AddSheriff(CreateSheriffDto sheriffDto)
+        public async Task<ActionResult<SheriffDto>> AddSheriff(SheriffWithIdirDto addSheriff)
         {
-            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriffDto.HomeLocationId)) return Forbid();
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, addSheriff.HomeLocationId)) return Forbid();
 
-            var sheriff = sheriffDto.Adapt<Sheriff>();
+            var sheriff = addSheriff.Adapt<Sheriff>();
             sheriff = await SheriffService.AddSheriff(sheriff);
             return Ok(sheriff.Adapt<SheriffDto>());
         }
@@ -54,10 +56,7 @@ namespace SS.Api.controllers.usermanagement
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or,
-            Permission.ViewOwnProfile,
-            Permission.ViewProfilesInOwnLocation,
-            Permission.ViewProfilesInAllLocation)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         public async Task<ActionResult<SheriffDto>> GetSheriffsForTeams()
         {
             var sheriffs = await SheriffService.GetFilteredSheriffsForTeams();
@@ -70,18 +69,18 @@ namespace SS.Api.controllers.usermanagement
         /// <param name="id">Guid of the userid.</param>
         /// <returns>SheriffDto</returns>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or,
-            Permission.ViewOwnProfile,
-            Permission.ViewProfilesInOwnLocation,
-            Permission.ViewProfilesInAllLocation)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         [Route("{id}")]
-        public async Task<ActionResult<SheriffDto>> GetSheriffForTeam(Guid id)
+        public async Task<ActionResult<SheriffWithIdirDto>> GetSheriffForTeam(Guid id)
         {
             var sheriff = await SheriffService.GetFilteredSheriffForTeams(id);
             if (sheriff == null) return NotFound(CouldNotFindSheriffError);
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, sheriff.HomeLocationId)) return Forbid();
 
-            return Ok(sheriff.Adapt<SheriffDto>());
+            var sheriffDto = sheriff.Adapt<SheriffWithIdirDto>();
+            //Prevent exposing Idirs to regular users. 
+            sheriffDto.IdirName = User.HasPermission(Permission.EditIdir) ? sheriff.IdirName : null;
+            return Ok(sheriffDto);
         }
 
         /// <summary>
@@ -89,10 +88,7 @@ namespace SS.Api.controllers.usermanagement
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or,
-            Permission.ViewOwnProfile,
-            Permission.ViewProfilesInOwnLocation,
-            Permission.ViewProfilesInAllLocation)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         [Route("self")]
         public async Task<ActionResult<SheriffDto>> GetSelfSheriff()
         {
@@ -103,12 +99,14 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpPut]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffDto sheriffDto)
+        public async Task<ActionResult<SheriffDto>> UpdateSheriff(SheriffWithIdirDto updateSheriff)
         {
-            await CheckForAccessToSheriffByLocation(sheriffDto.Id);
+            await CheckForAccessToSheriffByLocation(updateSheriff.Id);
 
-            var sheriff = sheriffDto.Adapt<Sheriff>();
-            sheriff = await SheriffService.UpdateSheriff(sheriff);
+            var canEditIdir = User.HasPermission(Permission.EditIdir);
+            var sheriff = updateSheriff.Adapt<Sheriff>();
+            sheriff = await SheriffService.UpdateSheriff(sheriff, canEditIdir);
+
             return Ok(sheriff.Adapt<SheriffDto>());
         }
 
@@ -126,10 +124,7 @@ namespace SS.Api.controllers.usermanagement
 
         [HttpGet]
         [Route("getPhoto/{id}")]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or,
-            Permission.ViewOwnProfile,
-            Permission.ViewProfilesInOwnLocation,
-            Permission.ViewProfilesInAllLocation)]
+        [PermissionClaimAuthorize(perm: Permission.Login)]
         [ResponseCache(Duration = 15552000, Location = ResponseCacheLocation.Client )]
         public async Task<IActionResult> GetPhoto(Guid id) => File(await SheriffService.GetPhoto(id), "image/jpeg");
 
@@ -160,24 +155,24 @@ namespace SS.Api.controllers.usermanagement
         [HttpPost]
         [Route("awayLocation")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult<SheriffAwayLocationDto>> AddSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto)
+        public async Task<ActionResult<SheriffAwayLocationDto>> AddSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto, bool overrideConflicts = false)
         {
             await CheckForAccessToSheriffByLocation(sheriffAwayLocationDto.SheriffId);
 
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
-            var createdSheriffAwayLocation = await SheriffService.AddSheriffAwayLocation(sheriffAwayLocation);
+            var createdSheriffAwayLocation = await SheriffService.AddSheriffAwayLocation(sheriffAwayLocation, overrideConflicts);
             return Ok(createdSheriffAwayLocation.Adapt<SheriffAwayLocationDto>());
         }
 
         [HttpPut]
         [Route("awayLocation")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult<SheriffAwayLocationDto>> UpdateSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto)
+        public async Task<ActionResult<SheriffAwayLocationDto>> UpdateSheriffAwayLocation(SheriffAwayLocationDto sheriffAwayLocationDto, bool overrideConflicts = false)
         {
             await CheckForAccessToSheriffByLocation<SheriffAwayLocation>(sheriffAwayLocationDto.Id);
 
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
-            var updatedSheriffAwayLocation = await SheriffService.UpdateSheriffAwayLocation(sheriffAwayLocation);
+            var updatedSheriffAwayLocation = await SheriffService.UpdateSheriffAwayLocation(sheriffAwayLocation, overrideConflicts);
             return Ok(updatedSheriffAwayLocation.Adapt<SheriffAwayLocationDto>());
         }
 
@@ -197,24 +192,24 @@ namespace SS.Api.controllers.usermanagement
         [HttpPost]
         [Route("leave")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult<SheriffLeaveDto>> AddSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
+        public async Task<ActionResult<SheriffLeaveDto>> AddSheriffLeave(SheriffLeaveDto sheriffLeaveDto, bool overrideConflicts = false)
         {
             await CheckForAccessToSheriffByLocation(sheriffLeaveDto.SheriffId);
 
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
-            var createdSheriffLeave = await SheriffService.AddSheriffLeave(sheriffLeave);
+            var createdSheriffLeave = await SheriffService.AddSheriffLeave(sheriffLeave, overrideConflicts);
             return Ok(createdSheriffLeave.Adapt<SheriffLeaveDto>());
         }
 
         [HttpPut]
         [Route("leave")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult<SheriffLeaveDto>> UpdateSheriffLeave(SheriffLeaveDto sheriffLeaveDto)
+        public async Task<ActionResult<SheriffLeaveDto>> UpdateSheriffLeave(SheriffLeaveDto sheriffLeaveDto, bool overrideConflicts = false)
         {
             await CheckForAccessToSheriffByLocation<SheriffLeave>(sheriffLeaveDto.Id);
 
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
-            var updatedSheriffLeave = await SheriffService.UpdateSheriffLeave(sheriffLeave);
+            var updatedSheriffLeave = await SheriffService.UpdateSheriffLeave(sheriffLeave, overrideConflicts);
             return Ok(updatedSheriffLeave.Adapt<SheriffLeaveDto>());
         }
 
@@ -234,24 +229,31 @@ namespace SS.Api.controllers.usermanagement
         [HttpPost]
         [Route("training")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult<SheriffTrainingDto>> AddSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
+        public async Task<ActionResult<SheriffTrainingDto>> AddSheriffTraining(SheriffTrainingDto sheriffTrainingDto, bool overrideConflicts = false)
         {
             await CheckForAccessToSheriffByLocation(sheriffTrainingDto.SheriffId);
 
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
-            var createdSheriffTraining = await SheriffService.AddSheriffTraining(sheriffTraining);
+            var createdSheriffTraining = await SheriffService.AddSheriffTraining(sheriffTraining, overrideConflicts);
             return Ok(createdSheriffTraining.Adapt<SheriffTrainingDto>());
         }
 
         [HttpPut]
         [Route("training")]
         [PermissionClaimAuthorize(perm: Permission.EditUsers)]
-        public async Task<ActionResult<SheriffTrainingDto>> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto)
+        public async Task<ActionResult<SheriffTrainingDto>> UpdateSheriffTraining(SheriffTrainingDto sheriffTrainingDto, bool overrideConflicts = false)
         {
             await CheckForAccessToSheriffByLocation<SheriffTraining>(sheriffTrainingDto.Id);
 
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
-            var updatedSheriffTraining = await SheriffService.UpdateSheriffTraining(sheriffTraining);
+            if (!User.HasPermission(Permission.EditPastTraining))
+            {
+                var savedSheriffTraining = Db.SheriffTraining.AsNoTracking().FirstOrDefault(st => st.Id == sheriffTrainingDto.Id);
+                if (savedSheriffTraining?.EndDate <= DateTimeOffset.UtcNow)
+                    throw new BusinessLayerException("No permission to edit training that has completed.");
+            }
+
+            var updatedSheriffTraining = await SheriffService.UpdateSheriffTraining(sheriffTraining, overrideConflicts);
             return Ok(updatedSheriffTraining.Adapt<SheriffTrainingDto>());
         }
 
@@ -261,6 +263,13 @@ namespace SS.Api.controllers.usermanagement
         public async Task<ActionResult> RemoveSheriffTraining(int id, string expiryReason)
         {
             await CheckForAccessToSheriffByLocation<SheriffTraining>(id);
+
+            if (!User.HasPermission(Permission.RemovePastTraining))
+            {
+                var sheriffTraining = Db.SheriffTraining.AsNoTracking().FirstOrDefault(st => st.Id == id);
+                if (sheriffTraining?.EndDate <= DateTimeOffset.UtcNow)
+                    throw new BusinessLayerException("No permission to remove training that has completed.");
+            }
 
             await SheriffService.RemoveSheriffTraining(id, expiryReason);
             return NoContent();

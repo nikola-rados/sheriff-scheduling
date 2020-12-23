@@ -11,9 +11,6 @@ namespace SS.Db.models.auth
     public class Permission : BaseEntity
     {
         public const string Login = nameof(Login);
-        public const string ViewOwnProfile = nameof(ViewOwnProfile);
-        public const string ViewProfilesInOwnLocation = nameof(ViewProfilesInOwnLocation);
-        public const string ViewProfilesInAllLocation = nameof(ViewProfilesInAllLocation);
         public const string CreateUsers = nameof(CreateUsers);
         public const string ExpireUsers = nameof(ExpireUsers);
         public const string EditUsers = nameof(EditUsers);
@@ -24,9 +21,7 @@ namespace SS.Db.models.auth
         public const string CreateTypes = nameof(CreateTypes);
         public const string EditTypes = nameof(EditTypes);
         public const string ExpireTypes = nameof(ExpireTypes);
-        public const string ViewMyShifts = nameof(ViewMyShifts);
-        public const string ViewAllShiftsAtMyLocation = nameof(ViewAllShiftsAtMyLocation);
-        public const string ViewAllShifts = nameof(ViewAllShifts);
+        public const string ViewShifts = nameof(ViewShifts);
         public const string CreateAndAssignShifts = nameof(CreateAndAssignShifts);
         public const string ExpireShifts = nameof(ExpireShifts);
         public const string EditShifts = nameof(EditShifts);
@@ -37,14 +32,16 @@ namespace SS.Db.models.auth
         public const string ViewRegion = nameof(ViewRegion);
         public const string ViewProvince = nameof(ViewProvince);
         public const string ExpireLocation = nameof(ExpireLocation);
-        public const string ViewAssignments = nameof(ViewAssignments);
         public const string CreateAssignments = nameof(CreateAssignments);
         public const string EditAssignments = nameof(EditAssignments);
         public const string ExpireAssignments = nameof(ExpireAssignments);
-        public const string ViewDuties = nameof(ViewDuties);
+        public const string ViewDutyRoster = nameof(ViewDutyRoster);
         public const string CreateAndAssignDuties = nameof(CreateAndAssignDuties);
         public const string EditDuties = nameof(EditDuties);
         public const string ExpireDuties = nameof(ExpireDuties);
+        public const string EditIdir = nameof(EditIdir);
+        public const string EditPastTraining = nameof(EditPastTraining);
+        public const string RemovePastTraining = nameof(RemovePastTraining);
 
         [Key]
         public int Id { get; set; }

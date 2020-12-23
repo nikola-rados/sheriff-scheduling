@@ -1,19 +1,20 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>
-
         <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
-                <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
-                <duty-roster-day-view v-else :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
+                <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="calculateTableHeight()" />
+                <duty-roster-day-view v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="calculateTableHeight()"
+                 />
                 
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
                 <b-card 
-                    v-if="isDutyRosterDataMounted"
-                    :key="updateMyTeam" 
+                     
                     body-class="mx-2 p-0"
-                    class="bg-dark m-0 p-0">
+                    style="overflow-x: hidden;"
+                    class="bg-dark m-0 p-0 no-top-rounding">
+                    <div class="myTeamHeader">
                         <b-card-header header-class="m-0 text-white py-2 px-0"> 
                             My Team
                             <b-button
@@ -28,7 +29,10 @@
                         </b-card-header>
                         <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
                         <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/> 
+                    </div>
+                    <div :style="{overflowX: 'hidden', overflowY: 'auto', height: getHeight}">
                         <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
+                    </div>
                 </b-card>
             </b-col>
         </b-row>
@@ -84,29 +88,41 @@
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
 
-        memberNotRequired = {} as myTeamShiftInfoType;
-        memberNotAvailable = {} as myTeamShiftInfoType;
-        isDutyRosterDataMounted = false;
+        memberNotRequired = { sheriffId: '00000-00000-11111' } as myTeamShiftInfoType;
+        memberNotAvailable = { sheriffId: '00000-00000-22222' } as myTeamShiftInfoType;
 
         updateDutyRoster = 0;
-        updateMyTeam = 0;
 
         weekView = false;
+        headerReady = false;
+        windowHeight = 0;
+        bottomHeight = 0;
+        gageHeight = 0;
+        tableHeight = 0;
 
         headerAddAssignment = new Vue();      
 
-        mounted()
+        @Watch('displayFooter')
+        footerChange() 
         {
-            this.isDutyRosterDataMounted = false;
-            this.memberNotRequired.sheriffId ='00000-00000-11111';
-            this.memberNotAvailable.sheriffId ='00000-00000-22222';
-            
-
-            window.setTimeout(this.updateCurrentTimeCallBack, 1000);
+            Vue.nextTick(() => 
+            {
+                this.calculateTableHeight()
+            })
         }
 
+        mounted()
+        {
+            window.setTimeout(this.updateCurrentTimeCallBack, 1000);
+            window.addEventListener('resize', this.getWindowHeight);
+            this.getWindowHeight()
+        }
+
+        beforeDestroy() {
+            window.removeEventListener('resize', this.getWindowHeight);
+        }
+        
         public reloadDutyRosters(type){
-            this.isDutyRosterDataMounted = false;
             console.log(type)
             console.log('reload dutyroster')                
             this.updateCurrentTime();
@@ -118,17 +134,41 @@
                 this.UpdateDisplayFooter(true)
             }
 
+            this.headerReady = true;
             this.updateDutyRoster++;
-
         }
 
-        public reloadMyTeam(){
-            this.isDutyRosterDataMounted=true
-            this.updateMyTeam++;
+       public getWindowHeight() {
+            this.windowHeight = document.documentElement.clientHeight;   
+            this.calculateTableHeight()     
+        }
+
+        get getHeight() {
+            return this.windowHeight - this.tableHeight + 'px';
+        }
+
+        public calculateTableHeight() {
+            const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
+            const myTeamHeader =  110;
+            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
+            this.gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            this.bottomHeight = this.displayFooter ? footerHeight : this.gageHeight;
+            console.log('My Team - Window: ' + this.windowHeight)
+            console.log('My Team - Top: ' + topHeaderHeight)
+            console.log('My Team - TeamHeader: ' + myTeamHeader)
+            console.log('My Team - BottomHeight: ' + this.bottomHeight)
+            console.log('My Team - New height: ' + (this.windowHeight - topHeaderHeight - myTeamHeader - this.bottomHeight))
+            this.tableHeight = (topHeaderHeight + myTeamHeader + this.bottomHeight)
         }
 
         public toggleDisplayMyteam(){
-            if(this.displayFooter) this.UpdateDisplayFooter(false)
+            if(this.displayFooter){
+                this.UpdateDisplayFooter(false)
+                const el = document.getElementsByClassName('b-table-sticky-header') 
+                Vue.nextTick(()=>{            
+                    if(el[1]) el[1].scrollLeft = el[0].scrollLeft
+                })
+            }
             else this.UpdateDisplayFooter(true)
         }        
 

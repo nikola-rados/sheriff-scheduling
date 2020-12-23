@@ -6,8 +6,6 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.infrastructure.exceptions;
-using SS.Api.models;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using SS.Db.models;
@@ -36,12 +34,11 @@ namespace SS.Api.controllers.scheduling
         /// This is used in the main shift screen, also used in duty roster to populate the available sheriffs on the right hand side. 
         /// </summary>
         [HttpGet]
-        [PermissionClaimAuthorize(AuthorizeOperation.Or, Permission.ViewAllShifts, Permission.ViewMyShifts,
-            Permission.ViewAllShiftsAtMyLocation)]
+        [PermissionClaimAuthorize(AuthorizeOperation.Or, Permission.ViewShifts, Permission.ViewDutyRoster)]
         public async Task<ActionResult<List<ShiftDto>>> GetShifts(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeDuties = false)
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
-            if (!User.HasPermission(Permission.ViewDuties)) includeDuties = false;
+            if (!User.HasPermission(Permission.ViewDutyRoster)) includeDuties = false;
 
             var shifts = await ShiftService.GetShiftsForLocation(locationId, start, end, includeDuties);
             return Ok(shifts.Adapt<List<ShiftDto>>());
@@ -102,7 +99,7 @@ namespace SS.Api.controllers.scheduling
         /// </summary>
         [HttpGet]
         [Route("shiftAvailability")]
-        [PermissionClaimAuthorize(perm: Permission.CreateAndAssignShifts)]
+        [PermissionClaimAuthorize(perm: Permission.ViewShifts)]
         public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetAvailability(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
             if (start >= end) return BadRequest("Start date was on or after end date.");

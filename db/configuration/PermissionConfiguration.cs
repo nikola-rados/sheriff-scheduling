@@ -13,9 +13,6 @@ namespace SS.Db.configuration
 
             builder.HasData(
                 new Permission { Id = 1, Name = Permission.Login, Description = "Allows the user to login."},
-                new Permission { Id = 2, Name = Permission.ViewOwnProfile, Description = "View their own profile" },
-                new Permission { Id = 3, Name = Permission.ViewProfilesInOwnLocation, Description = "View profiles in their own location" },
-                new Permission { Id = 4, Name = Permission.ViewProfilesInAllLocation, Description = "View profiles in all locations" },
                 new Permission { Id = 5, Name = Permission.CreateUsers, Description = "Create Profile (User)" },
                 new Permission { Id = 6, Name = Permission.ExpireUsers, Description = "Expire Profile (User)" },
                 new Permission { Id = 7, Name = Permission.EditUsers, Description = "Edit Profile (User)" },
@@ -26,9 +23,7 @@ namespace SS.Db.configuration
                 new Permission { Id = 13, Name = Permission.CreateTypes, Description = "Create Types" },
                 new Permission { Id = 14, Name = Permission.EditTypes, Description = "Edit Types" },
                 new Permission { Id = 15, Name = Permission.ExpireTypes, Description = "Expire Types" },
-                new Permission { Id = 16, Name = Permission.ViewMyShifts, Description = "View their own shifts" },
-                new Permission { Id = 17, Name = Permission.ViewAllShiftsAtMyLocation, Description = "View Shifts at their location" },
-                new Permission { Id = 18, Name = Permission.ViewAllShifts, Description = "View all Shifts" },
+                new Permission { Id = 16, Name = Permission.ViewShifts, Description = "View shifts" },
                 new Permission { Id = 19, Name = Permission.CreateAndAssignShifts, Description = "Create and Assign Shifts" },
                 new Permission { Id = 20, Name = Permission.ExpireShifts, Description = "Expire Shifts" },
                 new Permission { Id = 21, Name = Permission.EditShifts, Description = "Edit Shifts" },
@@ -36,17 +31,18 @@ namespace SS.Db.configuration
                 new Permission { Id = 23, Name = Permission.ViewAssignedLocation, Description = "View Assigned Location" },
                 new Permission { Id = 24, Name = Permission.ViewRegion, Description = "View Region (all locations within region)" },
                 new Permission { Id = 25, Name = Permission.ViewProvince, Description = "View Province (all regions, all locations)" },
-                new Permission { Id = 26, Name = Permission.ExpireLocation, Description = "Expire Location" },
                 new Permission { Id = 27, Name = Permission.ViewHomeLocation, Description = "View Home Location" },
                 new Permission { Id = 28, Name = Permission.ImportShifts, Description = "Import Shifts" },
-                new Permission { Id = 29, Name = Permission.ViewAssignments, Description = "View Assignments" },
                 new Permission { Id = 30, Name = Permission.CreateAssignments, Description = "Create Assignments" },
                 new Permission { Id = 31, Name = Permission.EditAssignments, Description = "Edit Assignments" },
                 new Permission { Id = 32, Name = Permission.ExpireAssignments, Description = "Expire Assignments" },
-                new Permission { Id = 33, Name = Permission.ViewDuties, Description = "View Duties" },
+                new Permission { Id = 33, Name = Permission.ViewDutyRoster, Description = "View Duties" },
                 new Permission { Id = 34, Name = Permission.CreateAndAssignDuties, Description = "Create Duties" },
                 new Permission { Id = 35, Name = Permission.EditDuties, Description = "Edit Duties" },
-                new Permission { Id = 36, Name = Permission.ExpireDuties, Description = "Expire Duties" }
+                new Permission { Id = 36, Name = Permission.ExpireDuties, Description = "Expire Duties" },
+                new Permission { Id = 37, Name = Permission.EditIdir, Description = "Edit Idir" },
+                new Permission { Id = 38, Name = Permission.EditPastTraining, Description = "Edit Past Training" },
+                new Permission { Id = 39, Name = Permission.RemovePastTraining, Description = "Remove Past Training" }
             );
             base.Configure(builder);
         }

@@ -5,7 +5,7 @@
                 <page-header :pageHeaderText="sectionHeader"></page-header>
             </b-col>
             <b-col style="padding: 0;">
-                <b-button v-if="userIsAdmin" style="max-height: 40px;" size="sm" variant="success" @click="AddRole()"><b-icon-plus/>Add Role</b-button>
+                <b-button v-if="hasPermissionToAddNewRoles" style="max-height: 40px;" size="sm" variant="success" @click="AddRole()"><b-icon-plus/>Add Role</b-button>
             </b-col>
         </b-row>
 
@@ -27,7 +27,7 @@
                         responsive="sm"
                         >
                         <template v-slot:cell(edit)="row">
-                        <b-button size="sm" variant="transparent" @click="removeRole(row.item, row.index)">
+                        <b-button v-if="hasPermissionToExpireRoles" size="sm" variant="transparent" @click="removeRole(row.item, row.index)">
                             <b-icon-trash-fill font-scale="1.75" variant="danger"></b-icon-trash-fill>                    
                         </b-button>
                         <b-button size="sm" variant="transparent" @click="openRoleDetails(row.item.id)">
@@ -92,7 +92,8 @@
                   @click="closeRoleWindow()"                  
                 ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>Cancel</b-button>
                 <b-button                 
-                  variant="success" 
+                  variant="success"
+                  :disabled="!hasPermissionToEditRoles && editMode" 
                   @click="saveRole('testing updates')"
                 ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
             </template>            
@@ -180,7 +181,10 @@
         sectionHeader = "";
         errorCode = 0;
         errorText = '';
-        userIsAdmin = false;
+        //userIsAdmin = false;
+        hasPermissionToAddNewRoles = false;
+        hasPermissionToEditRoles = false;
+        hasPermissionToExpireRoles = false;
         selectedPermissions: string[] = [];
         originalSelectedPermissions: string[] = [];
         permissions: permissionOptionInfoType[] = []
@@ -199,8 +203,11 @@
         roleData: roleInfoType[] = [];
 
         mounted() {
-            // this.userIsAdmin = this.userDetails.roles.includes("Administrator");
-            this.userIsAdmin = true;
+            this.hasPermissionToAddNewRoles = this.userDetails.permissions.includes("CreateAndAssignRoles");
+            this.hasPermissionToEditRoles = this.userDetails.permissions.includes("EditRoles");
+            this.hasPermissionToExpireRoles = this.userDetails.permissions.includes("ExpireRoles");
+            
+            //this.userIsAdmin = true;
             this.getRoles();
             this.sectionHeader = "Manage System Roles and Access";
         }
@@ -304,7 +311,6 @@
         
         public permissionChanged(){
             Vue.nextTick().then(()=>{
-                console.log(this.selectedPermissions)
                 for(const permissionInx in this.permissions)
                     this.permissions[permissionInx].selected = this.selectedPermissions.includes(this.permissions[permissionInx].value)
                 

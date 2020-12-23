@@ -1,27 +1,27 @@
 <template>
     <div>
-        <loading-spinner v-if="!isDutyRosterDataMounted" />
-        <b-table 
-            v-else              
+        <b-table
             :items="dutyRosterAssignments" 
             :fields="fields"
             sort-by="assignment"
-            small
-            head-row-variant="primary"   
-            borderless                   
+            :style="{ overflowX: 'scroll', height: getHeight, maxHeight: '100%', marginBottom: '0px' }" 
+            small   
+            borderless
+            :sticky-header="getHeight"                  
             fixed>
                 <template v-slot:table-colgroup>
-                    <col style="width:9rem">                            
+                    <col style="width:9rem">                         
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getDutyRosters()" :assignment="data.item" :weekview="false"/>
+                    <duty-roster-assignment v-on:change="getData()" :assignment="data.item" :weekview="false"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >
                     <div style="float: left; margin:0 1rem; padding:0;">
                         <div style="float: left; margin:.15rem .25rem 0  0; font-size:14px">{{data.label}}</div>
                         <b-button
+                            v-if="hasPermissionToAddAssignments"
                             variant="success"
                             style="padding:0; height:1rem; width:1rem; margin:auto 0" 
                             @click="addAssignment();"
@@ -37,11 +37,10 @@
                 </template>
 
                 <template v-slot:cell(h0)="data" >
-                    <duty-card v-on:change="getDutyRosters()" :dutyRosterInfo="data.item"/>
+                    <duty-card v-on:change="getData()" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
-        <b-card><br></b-card>
-        <sheriff-fuel-gauge v-if="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
+        <sheriff-fuel-gauge v-show="!displayFooter" class="fixed-bottom bg-white"/>
     </div>
 </template>
 
@@ -61,7 +60,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {localTimeInfoType, locationInfoType } from '../../types/common';
+    import {localTimeInfoType, locationInfoType, userInfoType } from '../../types/common';
     import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
@@ -80,6 +79,9 @@
         @commonState.State
         public displayFooter!: boolean;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
         @dutyState.State
         public dutyRangeInfo!: dutyRangeInfoType;
 
@@ -90,14 +92,18 @@
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
         isDutyRosterDataMounted = false;
+        hasPermissionToAddAssignments = false;
 
         dutyRosterAssignments: assignmentCardInfoType[] = [];
 
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
 
+        windowHeight = 0;
+        tableHeight = 0;
+
         fields =[
-            {key:'assignment', label:'Assignments', thClass:' m-0 p-0', tdClass:'p-0 m-0', thStyle:''},
+            {key:'assignment', stickyColumn: true, label:'Assignments', thClass:'text-white m-0 p-0', tdClass:'p-0 m-0', thStyle:'background-color: #556077;'},
             {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
         ]
 
@@ -112,59 +118,94 @@
         ]
 
         @Watch('location.id', { immediate: true })
-        locationChange()
+        async locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                this.getDutyRosters();                                
+                this.getData();
             }            
         } 
 
-        mounted()
+        @Watch('displayFooter')
+        footerChange() 
+        {
+            Vue.nextTick(() => 
+            {
+                this.calculateTableHeight()
+            })
+        }
+        
+        async mounted()
         {
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
-            this.getDutyRosters()
+            this.getData();
+            window.addEventListener('resize', this.getWindowHeight);
+            this.getWindowHeight()
+        }
+        
+        beforeDestroy() {
+            window.removeEventListener('resize', this.getWindowHeight);
+        }
+
+        public getWindowHeight() {
+            this.windowHeight = document.documentElement.clientHeight;
+            this.calculateTableHeight()
+        }
+
+        get getHeight() {
+            return this.windowHeight - this.tableHeight + 'px'
+        }
+
+        public calculateTableHeight() {
+            const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
+            const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
+            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
+            const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            const bottomHeight = this.displayFooter ? footerHeight : gageHeight;
+            console.log('DutyRosterDay - Window: ' + this.windowHeight)
+            console.log('DutyRosterDay - Top: ' + topHeaderHeight)
+            console.log('DutyRosterDay - SecondHeader: ' + secondHeader)
+            console.log('DutyRosterDay - BottomHeight: ' + bottomHeight)
+            console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
+            this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader)
         }
 
         public getBeautifyTime(hour: number){
             return( hour>9? hour+':00': '0'+hour+':00')
         }
 
+        public async getData() {
+            const response = await Promise.all([
+                this.getDutyRosters(),
+                this.getAssignments(),
+                this.getShifts()
+            ]);
+
+            this.dutyRostersJson = response[0].data;
+            this.dutyRosterAssignmentsJson = response[1].data;
+            const shiftsData = response[2].data
+            Vue.nextTick(() => {
+                this.extractTeamShiftInfo(shiftsData);                        
+                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson); 
+                this.calculateTableHeight() 
+            })
+        }
+
         public getDutyRosters(){
+            this.hasPermissionToAddAssignments = this.userDetails.permissions.includes("CreateAssignments");			
             const url = 'api/dutyroster?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        this.dutyRostersJson = response.data; 
-                        console.log(response.data);
-                        this.getAssignments();                                                                   
-                    }                                   
-                })      
+            return this.$http.get(url)
         }
 
         public getAssignments(){
             const url = 'api/assignment?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate;
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)
-                        this.dutyRosterAssignmentsJson = response.data; 
-                        this.getShifts();                             
-                    }                                   
-                })      
+            return this.$http.get(url)
         }
 
         public getShifts(){
             this.isDutyRosterDataMounted = false;
             const url = 'api/shift?locationId='+this.location.id+'&start='+this.dutyRangeInfo.startDate+'&end='+this.dutyRangeInfo.endDate +'&includeDuties=true';
-            this.$http.get(url)
-                .then(response => {
-                    if(response.data){
-                        console.log(response.data)                        
-                        this.extractTeamShiftInfo(response.data);                        
-                        this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);                                               
-                    }                                   
-                })      
+            return this.$http.get(url)
         }        
 
         public extractTeamShiftInfo(shiftsJson){
@@ -275,8 +316,16 @@
 
             this.isDutyRosterDataMounted = true;
             this.$emit('dataready')
+            Vue.nextTick(()=>{
+                const el = document.getElementsByClassName('b-table-sticky-header')                
+                const scrollSize = window.innerWidth*0.9173-185
+                if(el[0]) el[0].addEventListener("scroll",()=>{
+                    if(el[1]) el[1].scrollLeft = el[0].scrollLeft
+                })
+                if(el[0]) el[0].scrollLeft = (scrollSize*0.5425)
+                if(el[1]) el[1].scrollLeft = (scrollSize*0.5425)
+            })
         }
-        
         public getType(type: string){
             for(const color of this.dutyColors){
                 if(type.toLowerCase().includes(color.name))return color
@@ -310,9 +359,8 @@
         }
 
         public addAssignment(){ 
-            this.$emit('addAssignmentClicked');
+            this.$emit('addAssignmentClicked');            
         }
-        
     }
 </script>
 
@@ -329,7 +377,7 @@
 
     .grid24 {        
         display:grid;
-        grid-template-columns: repeat(24, 4.1666%);
+        grid-template-columns: repeat(24, 8.333%);
         grid-template-rows: 1.65rem;
         inline-size: 100%;
         font-size: 10px;
@@ -339,6 +387,9 @@
     .grid24 > * {      
         padding: 0.3rem 0;
         border: 1px dotted rgb(185, 143, 143);
+        color: white;
+        background-color:   #003366;
+        font-size: 12px;
     }
 
 </style>

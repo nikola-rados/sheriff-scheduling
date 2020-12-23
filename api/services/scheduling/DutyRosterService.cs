@@ -38,8 +38,9 @@ namespace SS.Api.services.scheduling
                             d.ExpiryDate == null)
                 .ToListAsync();
 
+
         public async Task<List<int>> GetDutiesLocations(List<int> ids) =>
-            await Db.Duty.AsNoTracking().Where(d => ids.Contains(d.Id)).Select(d => d.LocationId).Distinct().ToListAsync();
+            await Db.Duty.AsNoTracking().In(ids, d => d.Id).Select(d => d.LocationId).Distinct().ToListAsync();
 
         public async Task<Duty> GetDuty(int id) =>
             await Db.Duty.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
@@ -79,7 +80,8 @@ namespace SS.Api.services.scheduling
             var dutyIds = duties.SelectToList(duty => duty.Id);
             var savedDuties = Db.Duty.AsSingleQuery()
                 .Include(d => d.DutySlots)
-                .Where(s => dutyIds.Contains(s.Id) && s.ExpiryDate == null);
+                .In(dutyIds, s => s.Id)
+                .Where(s => s.ExpiryDate == null);
 
             var shiftIds = duties
                 .SelectMany(d => d.DutySlots.Select(ds => ds.ShiftId)).ToList()
@@ -139,6 +141,9 @@ namespace SS.Api.services.scheduling
 
             fromDutySlot.EndDate = toDutySlotStart;
 
+            if (fromDutySlot.StartDate == fromDutySlot.EndDate)
+                Db.DutySlot.Remove(fromDutySlot);
+
             var toDuty = await Db.Duty.Include(d=> d.DutySlots).FirstOrDefaultAsync(d => d.Id == toDutyId);
             if (!(toDutySlotStart < toDuty.EndDate && toDuty.StartDate < toDutySlotStart))
                 throw new BusinessLayerException("Duty doesn't have room. You may need to adjust the duty.");
@@ -194,8 +199,15 @@ namespace SS.Api.services.scheduling
 
         public async Task ExpireDuties(List<int> ids)
         {
-            await Db.DutySlot.Where(ds => ids.Contains(ds.DutyId)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
-            await Db.Duty.Where(d => ids.Contains(d.Id)).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            await Db.DutySlot.In(ids, ds => ds.DutyId).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            await Db.Duty.In(ids, d => d.Id).ForEachAsync(d => d.ExpiryDate = DateTimeOffset.UtcNow);
+            await Db.SaveChangesAsync();
+        }
+
+        public async Task UpdateDutyComment(int dutyId, string comment)
+        {
+            var savedDuty = await Db.Duty.FirstOrDefaultAsync(d => d.Id == dutyId);
+            savedDuty.Comment = comment;
             await Db.SaveChangesAsync();
         }
 
@@ -203,7 +215,7 @@ namespace SS.Api.services.scheduling
 
         private async Task HandleShiftAdjustmentsAndOvertime(List<int?> shiftIds)
         {
-            var shifts = await Db.Shift.Where(ds => shiftIds.Contains(ds.Id)).ToListAsync();
+            var shifts = await Db.Shift.In(shiftIds, s => s.Id).ToListAsync();
             foreach (var shift in shifts)
             {
                 var dutySlotsForShift = Db.DutySlot.Where(ds => ds.ShiftId == shift.Id && ds.ExpiryDate == null);
@@ -269,18 +281,18 @@ namespace SS.Api.services.scheduling
                 dutySlots.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
                 throw new BusinessLayerException($"{nameof(DutySlot)} provided overlap with themselves.");
 
-            var sheriffIds = dutySlots.Select(ts => ts.SheriffId).Where(sId => sId != null).Distinct();
+            var sheriffIds = dutySlots.Select(ts => ts.SheriffId).Where(sId => sId != null).Distinct().ToList();
 
             var conflictingDutySlots = new List<DutySlot>();
             foreach (var ts in dutySlots)
             {
                 conflictingDutySlots.AddRange(await Db.DutySlot.AsNoTracking()
                     .Include(s => s.Sheriff)
+                    .In(sheriffIds, ds => ds.SheriffId)
                     .Where(s =>
                         s.ExpiryDate == null &&
                         s.LocationId == locationId &&
-                        s.StartDate < ts.EndDate && ts.StartDate < s.EndDate &&
-                        sheriffIds.Contains(s.SheriffId)
+                        s.StartDate < ts.EndDate && ts.StartDate < s.EndDate
                     ).ToListAsync());
             }
 

@@ -4,7 +4,7 @@
             <b-card id="LeaveError" no-body>
                 <h2 v-if="leaveError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="leaveErrorMsgDesc" style="word-break: break-word;white-space: normal;" variant="danger"> {{leaveErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="leaveError = false" /></b-badge></h2>
             </b-card>
-            <b-card  v-if="!addNewLeaveForm">                
+            <b-card  v-if="!addNewLeaveForm && hasPermissionToEditUsers">                
                 <b-button size="sm" variant="success" @click="addNewLeave"> <b-icon icon="plus" /> Add </b-button>
             </b-card>
 
@@ -52,8 +52,8 @@
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
                             <template v-slot:cell(editLeave)="data" >                                       
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -94,6 +94,23 @@
                 >&times;</b-button>
             </template>
         </b-modal>        
+        <b-modal v-model="confirmOverride" id="bv-modal-confirm-override" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Conflicting Event</h2>                    
+            </template>
+            <h4>The following events conflict with this leave</h4>
+            <p v-for="event in overlappingList"
+                :key="event"> {{event}}
+            </p>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="saveLeave(leaveToSave, create, true)">Confirm</b-button>
+                <b-button variant="primary" @click="cancelLeaveOverride()">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="cancelLeaveOverride()"
+                >&times;</b-button>
+            </template>
+        </b-modal>        
     </div>
 </template>
 
@@ -102,10 +119,12 @@
     import moment from 'moment-timezone';    
     import { namespace } from 'vuex-class';
     import AddLeaveForm from './AddForms/AddLeaveForm.vue'
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
     import "@store/modules/TeamMemberInformation";
     const TeamMemberState = namespace("TeamMemberInformation");
     import {teamMemberInfoType, userLeaveInfoType} from '../../../types/MyTeam';
-    import {leaveInfoType} from '../../../types/common';
+    import {leaveInfoType, userInfoType} from '../../../types/common';
     import { leaveTypeJson } from '../../../types/common/jsonTypes';
 
     @Component({
@@ -115,24 +134,32 @@
     })  
     export default class LeaveTab extends Vue {        
 
+        @commonState.State
+        public userDetails!: userInfoType;
+        
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;                
 
+        hasPermissionToEditUsers = false;
         leaveTypeInfoList: leaveInfoType[] = [];
-        leaveTabDataReady = false;
-        
+        leaveTabDataReady = false;        
 
         addNewLeaveForm = false;
         addFormColor = 'secondary';
         latestEditData;
         isEditOpen = false;
 
+        leaveToSave = {};
+        create = false;
+
         leaveError = false;
         leaveErrorMsg = '';
         leaveErrorMsgDesc = '';
+        overlappingList = [] as string[];
         updateTable=0;
 
         confirmDelete = false;
+        confirmOverride = false;
         leaveToDelete = {} as userLeaveInfoType;
         
         assignedLeaves: userLeaveInfoType[] = [];
@@ -152,6 +179,7 @@
 
         mounted()
         {
+            this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");                         
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
             this.leaveTabDataReady = false;
             this.extractLeaves();                     
@@ -216,11 +244,11 @@
             }
         }
 
-        public saveLeave(body, iscreate) {
+        public saveLeave(body, iscreate, overrideConflicts) {
             this.leaveError  = false; 
             body['sheriffId']= this.userToEdit.id;
             const method = iscreate? 'post' :'put';            
-            const url = 'api/sheriff/leave'  
+            const url = overrideConflicts? 'api/sheriff/leave?overrideConflicts=true':'api/sheriff/leave'  
             const options = { method: method, url:url, data:body}
             
             this.$http(options)
@@ -229,13 +257,28 @@
                         this.addToLeaveList(response.data);
                     else
                         this.modifyAssignedLeaveList(response.data);
+                    if (overrideConflicts){
+                        this.cancelLeaveOverride();
+                        this.closeLeaveForm();
+                        this.$emit('refresh', this.userToEdit.id)
+                    }
                     this.closeLeaveForm();
-                }, err=>{
+                }, err=>{                    
                     const errMsg = err.response.data.error;
-                    this.leaveErrorMsg = errMsg;//.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.leaveErrorMsg = errMsg;
                     this.leaveErrorMsgDesc = errMsg;
-                    this.leaveError = true;
-                    location.href = '#LeaveError'
+                    if (errMsg.toLowerCase().includes("overlaps")) {
+                        console.log("overlap")
+                        this.overlappingList = this.leaveErrorMsg.split('||');
+                        this.leaveToSave = body;
+                        this.create = iscreate;
+                        this.confirmOverride = true;
+                    } else {
+                        
+                        this.leaveError = true;
+                        location.href = '#LeaveError'
+                    }
+                    
                 });
         }
 
@@ -327,6 +370,10 @@
         public cancelDeletion() {
             this.confirmDelete = false;
             this.leaveDeleteReason = '';
+        }
+
+        public cancelLeaveOverride() {
+            this.confirmOverride = false;
         }
 
         public deleteLeave() {

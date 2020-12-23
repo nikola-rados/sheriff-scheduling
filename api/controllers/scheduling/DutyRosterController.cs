@@ -32,7 +32,7 @@ namespace SS.Api.controllers.scheduling
         /// This is for the center of the DutyRoster screen. Specifically when assignments are created into Duties. 
         /// </summary>
         [HttpGet]
-        [PermissionClaimAuthorize(perm: Permission.ViewDuties)]
+        [PermissionClaimAuthorize(perm: Permission.ViewDutyRoster)]
         public async Task<ActionResult<List<DutyDto>>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
@@ -65,6 +65,18 @@ namespace SS.Api.controllers.scheduling
 
             var duties = await DutyRosterService.UpdateDuties(editDuties.Adapt<List<Duty>>(), overrideValidation);
             return Ok(duties.Adapt<List<DutyDto>>());
+        }
+
+        [HttpPut("updateComment")]
+        [PermissionClaimAuthorize(perm: Permission.EditDuties)]
+        public async Task<ActionResult> UpdateDutyComment(int dutyId, string comment)
+        {
+            var locationIds = await DutyRosterService.GetDutiesLocations(new List<int> {dutyId});
+            if (locationIds.Count != 1) return BadRequest(CannotUpdateCrossLocationError);
+            if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationIds.First())) return Forbid();
+
+            await DutyRosterService.UpdateDutyComment(dutyId, comment);
+            return NoContent();
         }
 
         [HttpPut("moveSheriff")]

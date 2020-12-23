@@ -47,6 +47,10 @@
                     head-row-variant="primary"   
                     bordered
                     fixed>
+
+                    <template v-slot:table-colgroup>
+                        <col style="width:20rem">                            
+                    </template>
                         
                         <template v-slot:head() = "data" >
                             <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
@@ -57,34 +61,34 @@
                         </template>
 
                         <template v-slot:cell(myteam) = "data" >  
-                            <span style="font-size: 0.75rem;">{{data.item.myteam.name}}</span>
+                            <span style="font-size: 1rem;">{{data.item.myteam.name}}</span>
                             <div style="height:1rem;"                    
                                 v-if="data.item.myteam.homeLocation != location.name">
                                 <div class="m-0 p-0 text-jail"> 
                                     <b-icon-box-arrow-in-right style="float:left;margin:0 .2rem 0 0;"/>
-                                    <div style="font-size:10px;">Loaned in from </div>
+                                    <div style="float:left;font-size:10px; margin:0 .1rem 0 0;">Loaned in from </div>
                                 </div> 
-                                <div class=" m-0 p-0 text-jail" style="font-size:10px">{{data.item.myteam.homeLocation|truncate(25)}} </div>
+                                <div class=" m-0 p-0 text-jail" style="font-size:10px"> {{data.item.myteam.homeLocation|truncate(35)}} </div>
                             </div>
                         </template>
                         
                         <template v-slot:cell() = "data">                     
-                            <b-card style="font-size: 0.75rem;" class="ml-auto" body-class="p-1" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
-                                <b-row v-if="event.type == 'Shift'" class="m-0 p-0">
-                                    <div v-if="event.workSection" :style="{backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
-                                    <div v-else style="background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0;"></div>
-                                    <div class="ml-1 p-0">{{event.startTime}} - {{event.endTime}}</div>
-                                </b-row>
-                                <span v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</span>
-                                <span v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</span>
-                                <span v-else>                                    
+                            <b-card style="font-size: 1rem;" class="ml-auto" body-class="p-1" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
+                                <div v-if="event.type == 'Shift'">
+                                    <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
+                                    <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
+                                    <div style=" text-align: center; " class="m-0 p-0">{{event.startTime}} - {{event.endTime}}</div>
+                                </div>
+                                <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
+                                <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
+                                <div class="text-center" v-else>                                    
                                     <b-badge v-if="event.type == 'Leave'" class="bg-primary">Leave</b-badge>       
                                     <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge>
                                     <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
                                     <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
                                     <span v-else > FullDay </span>   
                                     <div v-if="event.type == 'Loaned'" style="display:block;">{{event.location}}</div>                               
-                                </span>                          
+                                </div>                          
                             </b-card>
                         </template>
                         

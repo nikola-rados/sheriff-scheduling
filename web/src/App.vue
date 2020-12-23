@@ -51,6 +51,12 @@
         public UpdateLocationList!: (newLocationList: locationInfoType[]) => void
 
         @commonState.State
+        public allLocationList!: locationInfoType[];
+        
+        @commonState.Action
+        public UpdateAllLocationList!: (newAllLocationList: locationInfoType[]) => void
+
+        @commonState.State
         public displayFooter!: boolean;
 
         errorCode = 0;
@@ -59,8 +65,13 @@
         sheriffRankList: sheriffRankInfoType[] = []
         currentLocation;
        
-        mounted() {            
-            this.loadUserDetails()
+        mounted() {
+            this.isCommonDataReady = false; 
+            //console.log(Vue.$cookies.get("logout"))           
+            if (Vue.$cookies.isKey("logout"))
+                this.isCommonDataReady = true;            
+            else 
+                this.loadUserDetails();
         }
 
         public loadUserDetails() {
@@ -69,11 +80,21 @@
                 .then(response => {
                     if(response.data){
                         const userData = response.data;
-                        this.UpdateUser({
-                            roles: userData.roles,
-                            homeLocationId: userData.homeLocationId
-                        }) 
-                        this.getLocations()                        
+                        if(userData.permissions.length == 0){
+                            this.isCommonDataReady = true;
+                            if(this.$route.name != 'RequestAccess')
+                                this.$router.push({path:'/request-access'}) 
+                        }
+                        else {                            
+                            this.UpdateUser({
+                                firstName: userData.firstName,
+                                lastName: userData.lastName,
+                                roles: userData.roles,
+                                homeLocationId: userData.homeLocationId,
+                                permissions: userData.permissions
+                            }) 
+                            this.getAllLocations()  
+                        }                      
                     }                   
                 })  
         }
@@ -88,6 +109,8 @@
                         this.userDetails.roles.length>0 && this.locationList.length>0)
                         {                              
                             this.isCommonDataReady = true;
+                            if(this.$route.name == 'Home')
+                                this.$router.push({path:'/duty-roster'})
                         }
                     }                   
                 })          
@@ -104,26 +127,41 @@
                 sheriffRankList: this.sheriffRankList 
             })
         }
-        
-        public getLocations(): void {
 
+        public getAllLocations() {
+            const url = 'api/location/all'
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.extractLocationInfo(response.data, true);
+                        this.getLocations();
+                    }                   
+                }) 
+        }
+        
+        public getLocations() {
             const url = 'api/location'
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        this.extractLocationInfo(response.data);
+                        this.extractLocationInfo(response.data, false);
                         this.loadSheriffRankList();
                     }                   
                 }) 
         }
         
-        public extractLocationInfo(locationListJson){            
-            //let locationJson: locationJsonType;
+        public extractLocationInfo(locationListJson, allLocations: boolean){            
+            const locations: locationInfoType[] = [];
             for(const locationJson of locationListJson){                
                 const locationInfo: locationInfoType = {id: locationJson.id, name: locationJson.name, regionId: locationJson.regionId, timezone: locationJson.timezone}
-                this.locationList.push(locationInfo)
+                locations.push(locationInfo)
+            }
+            if (allLocations) {
+                this.UpdateAllLocationList(_.sortBy(locations,'name'));
+            } else {
+                this.UpdateLocationList(_.sortBy(locations,'name'));
             }                       
-            this.UpdateLocationList(_.sortBy(this.locationList,'name'));
+            
         }
         
      }

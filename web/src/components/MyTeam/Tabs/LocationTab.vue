@@ -5,7 +5,7 @@
                 <h2 v-if="locationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="locationErrorMsgDesc" style="word-break: break-word;white-space: normal;"  variant="danger"> {{locationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="locationError = false" /></b-badge></h2>
             </b-card>
             
-            <b-card v-if="!addNewLocationForm">
+            <b-card v-if="!addNewLocationForm && hasPermissionToEditUsers">
                 <b-button size="sm" variant="success" @click="addNewLocation"> <b-icon icon="plus" /> Add </b-button>
             </b-card> 
 
@@ -54,8 +54,8 @@
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
                             <template v-slot:cell(edit)="data" >                                      
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
-                                <b-button class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
+                                <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
+                                <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
 
                             <template v-slot:row-details="data">
@@ -98,6 +98,24 @@
                  >&times;</b-button>
             </template>
         </b-modal>
+        <b-modal v-model="confirmOverride" id="bv-modal-confirm-override" header-class="bg-warning text-light">
+            <template v-slot:modal-title>
+                    <h2 class="mb-0 text-light">Conflicting Event</h2>                    
+            </template>
+            <h4>The following events conflict with this location</h4>
+            <p v-for="event in overlappingList"
+                :key="event"> {{event}}
+            </p>
+            <template v-slot:modal-footer>
+                <b-button variant="danger" @click="saveAwayLocation(locationToSave, create, true)">Confirm</b-button>
+                <b-button variant="primary" @click="cancelAwayLocationOverride()">Cancel</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="cancelAwayLocationOverride()"
+                >&times;</b-button>
+            </template>
+        </b-modal> 
+
     </div>
 </template>
 
@@ -105,7 +123,7 @@
     import { Component, Vue} from 'vue-property-decorator';
     import moment from 'moment-timezone';
     import {teamMemberInfoType, awayLocationInfoType} from '../../../types/MyTeam';
-    import {locationInfoType} from '../../../types/common';
+    import {locationInfoType, userInfoType} from '../../../types/common';
     import AddLocationForm from './AddForms/AddLocationForm.vue'
     import { namespace } from 'vuex-class';
     import "@store/modules/CommonInformation";
@@ -122,23 +140,32 @@
     export default class LocationTab extends Vue {
 
         @commonState.State
-        public locationList!: locationInfoType[];
+        public allLocationList!: locationInfoType[];
+
+        @commonState.State
+        public userDetails!: userInfoType;
 
         @TeamMemberState.State
         public userToEdit!: teamMemberInfoType;
 
+        hasPermissionToEditUsers = false;
         addNewLocationForm = false;
         locationError = false;
         locationErrorMsg = '';
         locationErrorMsgDesc = '';
+        overlappingList = [] as string[];
 
         confirmDelete = false;
+        confirmOverride = false;
         locationToDelete = {} as awayLocationInfoType;
 
         addFormColor = 'secondary';
         latestEditData;
         isEditOpen = false;
         locationDeleteReason = '';
+
+        locationToSave = {};
+        create = false;
         
         assignedAwayLocations: awayLocationInfoType[] = [];
 
@@ -154,7 +181,8 @@
         ];
 
         mounted()
-        {                         
+        {
+            this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");                         
             this.extractAwayLocations();          
         }
 
@@ -242,13 +270,11 @@
             }                        
         }
 
-        public saveAwayLocation(body, iscreate){
+        public saveAwayLocation(body, iscreate, overrideConflicts){
             this.locationError  = false;                        
             body['sheriffId']= this.userToEdit.id;
-            //console.log(body)
-            //console.log(iscreate)
             const method = iscreate? 'post' :'put';
-            const url = 'api/sheriff/awaylocation'  
+            const url = overrideConflicts?'api/sheriff/awaylocation?overrideConflicts=true':'api/sheriff/awaylocation'  
             const options = { method: method, url:url, data:body}
             this.$http(options)
                 .then(response => {                    
@@ -256,15 +282,32 @@
                         this.addToAssignedLocationList(response.data);
                     else
                         this.modifyAssignedLocationList(response.data);
+                    if (overrideConflicts){
+                        this.cancelAwayLocationOverride();
+                        this.closeLocationForm();
+                        this.$emit('refresh', this.userToEdit.id)
+                    }
                     this.closeLocationForm();
                 }, err=>{   
-                    console.log(err.response.data);
+                    // console.log(err.response.data);
                     const errMsg = err.response.data.error;
-                    this.locationErrorMsg = errMsg;//.slice(0,60) + (errMsg.length>60?' ...':'');
+                    this.locationErrorMsg = errMsg;                    
                     this.locationErrorMsgDesc = errMsg;
-                    this.locationError = true;
-                    location.href = '#LocationError'
+                    if (errMsg.toLowerCase().includes("overlaps")) {
+                        console.log("overlap")
+                        this.overlappingList = this.locationErrorMsg.split('||');
+                        this.locationToSave = body;
+                        this.create = iscreate;
+                        this.confirmOverride = true;
+                    } else {
+                        this.locationError = true;
+                        location.href = '#LocationError'
+                    }
                 });                
+        }
+
+         public cancelAwayLocationOverride() {
+            this.confirmOverride = false;
         }
 
         public modifyAssignedLocationList(modifiedLocationInfo){
@@ -277,7 +320,8 @@
                 this.assignedAwayLocations[index].startDate = moment(modifiedLocationInfo.startDate).tz(timezone).format();
                 this.assignedAwayLocations[index].endDate = moment(modifiedLocationInfo.endDate).tz(timezone).format();                
                 this.assignedAwayLocations[index]['locationNm'] = location? location.name :'' ;
-                
+                this.assignedAwayLocations[index].comment = modifiedLocationInfo.comment? modifiedLocationInfo.comment :'' ;
+
                 if(Vue.filter('isDateFullday')( this.assignedAwayLocations[index].startDate, this.assignedAwayLocations[index].endDate)){ 
                     this.assignedAwayLocations[index]['isFullDay'] = true;
                     this.assignedAwayLocations[index]['_cellVariants'] = {isFullDay:'danger'}                 
@@ -300,7 +344,8 @@
                 sheriffId : addedLocationInfo.sheriffId,    
                 locationId: addedLocationInfo.locationId,
                 startDate: moment(addedLocationInfo.startDate).tz(timezone).format(),
-                endDate: moment(addedLocationInfo.endDate).tz(timezone).format(),               
+                endDate: moment(addedLocationInfo.endDate).tz(timezone).format(), 
+                comment: addedLocationInfo.comment,              
             }
             
             assignedAwayLocation['locationNm'] = location? location.name :''
@@ -326,8 +371,8 @@
         }
 
         public getLocation(locationId: number|null){
-            const index = this.locationList.findIndex(location=>{if(location.id == locationId)return true})
-            if(index>=0) return this.locationList[index]; else return "";
+            const index = this.allLocationList.findIndex(location=>{if(location.id == locationId)return true})
+            if(index>=0) return this.allLocationList[index]; else return "";
         }
 
     }

@@ -4,7 +4,7 @@
             <h2 v-if="identificationError" class="mx-1 mt-2"><b-badge v-b-tooltip.hover :title="identificationErrorMsgDesc"  variant="danger"> {{identificationErrorMsg}} <b-icon class="ml-3" icon = x-square-fill @click="identificationError = false" /></b-badge></h2>
         </b-card>
 
-        <b-form-group v-if="createMode"><label>IDIR User Name<span class="text-danger">*</span></label>
+        <b-form-group v-if="!(editMode && !hasPermissionToEditIdir)" class="mx-1"><label>IDIR User Name<span class="text-danger">*</span></label>
             <b-form-input v-model="user.idirUserName" placeholder="Enter IDIR User Name" :state = "idirUserNameState?null:false"></b-form-input>
         </b-form-group>
         <h2 class="mx-1 mt-0"><b-badge v-if="duplicateIdir" variant="danger"> Duplicate IDIR</b-badge></h2>
@@ -100,7 +100,7 @@
 <script lang="ts">
 import { Component, Vue, Prop } from 'vue-property-decorator';
 import {teamMemberInfoType} from '../../../types/MyTeam';
-import {commonInfoType, locationInfoType} from '../../../types/common';
+import {commonInfoType, locationInfoType, userInfoType} from '../../../types/common';
 import * as _ from 'underscore';
 
 import { namespace } from 'vuex-class';
@@ -121,7 +121,16 @@ export default class IdentificationTab extends Vue {
     public location!: locationInfoType;
 
     @commonState.State
-    public locationList!: locationInfoType[];
+    public locationList!: locationInfoType[]; 
+    
+    @commonState.State
+    public userDetails!: userInfoType;
+
+    @TeamMemberState.State
+    public userToEdit!: teamMemberInfoType;
+
+    @TeamMemberState.Action
+    public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
 
     @Prop({required: true})
     createMode!: boolean;
@@ -131,12 +140,6 @@ export default class IdentificationTab extends Vue {
 
     @Prop({required: true})
     runMethod!: any;
-
-    @TeamMemberState.State
-    public userToEdit!: teamMemberInfoType;
-
-    @TeamMemberState.Action
-    public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
 
     genderOptions = [{text:"Male", value: gender.Male}, {text:"Female", value: gender.Female}, {text:"Other", value: gender.Other}]
     genderValues = [0, 1, 2]
@@ -151,6 +154,7 @@ export default class IdentificationTab extends Vue {
     duplicateBadge = false;
     duplicateIdir = false;
 
+    hasPermissionToEditIdir = false;
     showCancelWarning = false;
     cancelMessage ='cancel';
 
@@ -169,6 +173,7 @@ export default class IdentificationTab extends Vue {
         this.runMethod.$on('switchTab', this.switchTab)
         this.runMethod.$on('closeProfileWindow', this.closeProfileWindow)
         this.runMethod.$on('saveMemberProfile', this.saveMemberProfile)
+        this.hasPermissionToEditIdir = this.userDetails.permissions.includes("EditIdir");            
     }
 
     public refreshTabInformation()
@@ -221,6 +226,7 @@ export default class IdentificationTab extends Vue {
             (this.userToEdit.lastName != this.user.lastName) ||
             (this.userToEdit.gender != this.user.gender) ||
             (this.userToEdit.email != this.user.email) ||
+            (this.userToEdit.idirUserName != this.user.idirUserName) ||
             (this.userToEdit.badgeNumber != this.user.badgeNumber) ||
             (this.userToEdit.rank != this.user.rank) ||                    
             (this.userToEdit.homeLocationId != this.user.homeLocationId)) return true;
@@ -237,9 +243,14 @@ export default class IdentificationTab extends Vue {
     public saveMemberProfile() {     
         let requiredError = false;
 
-        if (this.createMode && !this.user.idirUserName) {
-            this.idirUserNameState = false;
-            requiredError = true;
+        if (!this.user.idirUserName) {
+            if (this.createMode || (this.editMode && this.hasPermissionToEditIdir)) {
+                this.idirUserNameState = false;
+                requiredError = true;
+            } else {
+                this.idirUserNameState = true;
+                this.duplicateIdir = false;
+            }            
         } else {
             this.idirUserNameState = true;
             this.duplicateIdir = false;
@@ -298,6 +309,7 @@ export default class IdentificationTab extends Vue {
             if (this.createMode) this.createProfile();              
 
         } else {
+            this.$emit('enableSave');
             console.log('Error required')
         }             
     }
@@ -336,6 +348,7 @@ export default class IdentificationTab extends Vue {
                     this.identificationErrorMsgDesc = errMsg;
                     this.identificationError = true;
                 }
+                this.$emit('enableSave');
             });
     }
 
@@ -347,13 +360,14 @@ export default class IdentificationTab extends Vue {
                 this.resetProfileWindowState();
                 this.$emit('closeMemberDetails');
                 this.$emit('profileUpdated');
-                
+                this.$emit('enableSave');                
                                                             
             }, err => {                
                 const errMsg = err.response.data.error;
                 this.identificationErrorMsg = errMsg.slice(0,60) + (errMsg.length>60?' ...':'');
                 this.identificationErrorMsgDesc = errMsg;
                 this.identificationError = true;
+                this.$emit('enableSave');
             });       
     }
 
@@ -375,7 +389,8 @@ export default class IdentificationTab extends Vue {
                 if(response.data){
                     this.resetProfileWindowState();
                     this.$emit('closeMemberDetails');
-                    this.$emit('profileUpdated')    
+                    this.$emit('profileUpdated');
+                    this.$emit('enableSave');    
                 }
             }, err => {
                 const errMsg = err.response.data.error;                                
@@ -393,6 +408,7 @@ export default class IdentificationTab extends Vue {
                     this.identificationErrorMsgDesc = errMsg;
                     this.identificationError = true;   
                 }
+                this.$emit('enableSave');
 
             })   
     }

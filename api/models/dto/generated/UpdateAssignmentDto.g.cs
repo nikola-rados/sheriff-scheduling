@@ -22,6 +22,7 @@ namespace SS.Api.models.dto.generated
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }
         public string ExpiryReason { get; set; }
+        public string Comment { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

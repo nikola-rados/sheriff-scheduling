@@ -58,7 +58,10 @@ Vue.filter('capitalize', function(str: string){
 })
 
 Vue.filter('truncate', function (text: string, stop: number) {
-    return (stop+3 < text.length) ? text.slice(0, stop)+'...' : text
+	if(text)
+		return (stop+3 < text.length) ? text.slice(0, stop)+'...' : text
+	else
+		return ''
 })
 
 Vue.filter('truncateleft', function (text: string, stop: number) {

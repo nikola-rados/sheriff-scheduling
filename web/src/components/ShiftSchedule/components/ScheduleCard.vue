@@ -8,22 +8,21 @@
             no-body>
                 <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%"> 
                     <h6 class="m-0 mb-1 p-0" :style="{ backgroundColor:scheduleColor(block).header, color: 'white', textAlign: 'center', fontSize:'10px', lineHeight: '16px' }"
-                        v-b-tooltip.hover                                
-                        :title="block.title + ' ' + block.timeStamp">
+                        v-b-tooltip.hover.html="'<b>'+block.title + ' ' + block.timeStamp+' </b>'+(block.comment?'<br/><b class=\' px-1 bg-info \'>'+block.comment+'</b>':'')">
                         <font-awesome-icon v-if="block.title.includes('Loaned')" style="transform: rotate(180deg); font-size: .55rem;"  icon="sign-out-alt" /> 
                         <font-awesome-icon v-if="block.title=='Leave'" style="font-size: .55rem;"  icon="suitcase"/> 
                         <font-awesome-icon v-if="block.title=='Training'" style="font-size: .5rem;" icon="graduation-cap"/> 
                         <b-icon-person-fill v-if="block.title=='Shift'"/>
                         <b-icon-calendar2-x v-if="block.title=='Unavailable'"/>
+                        <b-icon-chat-square-text-fill v-if="block.comment" font-scale="0.9" class="ml-1" />
                     </h6>
                     <div class="m-0 p-0" style="text-align: center;font-size:10px; line-height: 12px; display: block;">{{block.timeStamp}}</div>
                 </span>
                 <span v-else @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%">
                     <h6 
-                        v-b-tooltip.hover                                
-                        :title="block.title + ' ' + block.timeStamp"
+                        v-b-tooltip.hover.html="'<b>'+block.title + ' ' + block.timeStamp+' </b>'+(block.comment?'<br/><b class=\' px-1 bg-info \'>'+block.comment+'</b>':'')"
                         :style="'background-color:'+scheduleColor(block).header+'; color:white; text-align: center; font-size:6px; line-height: 16px;'">
-                        ...
+                        ...<b-icon-chat-square-text-fill v-if="block.comment" font-scale="0.9" class="ml-1" />
                     </h6>                    
                 </span>
         </b-card>
@@ -36,7 +35,10 @@
     import * as _ from 'underscore';
     import "@store/modules/ShiftScheduleInformation";   
     const shiftState = namespace("ShiftScheduleInformation");
+    import "@store/modules/CommonInformation";
+    const commonState = namespace("CommonInformation");
     import {conflictsInfoType, scheduleBlockInfoType} from '../../../types/ShiftSchedule/index'
+    import { userInfoType } from '@/types/common';
 
     @Component
     export default class ScheduleCard extends Vue {
@@ -47,6 +49,9 @@
         @Prop({required: true})
         sheriffId!: string;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+        
         @shiftState.State
         public selectedShifts!: string[];
 
@@ -57,13 +62,15 @@
 
         blockDrop = false;
         updateBoxes =0;
+        hasPermissionToEditShifts = false;
 
         isMounted = false;
 
         mounted()
         {
-            // console.log(this.scheduleInfo)
+            //console.log(this.scheduleInfo)
             this.isMounted = false;
+            this.hasPermissionToEditShifts = this.userDetails.permissions.includes("EditShifts");
 
             const sortedScheduleInfo: conflictsInfoType[] = _.sortBy(this.scheduleInfo,'startInMinutes')
            
@@ -77,13 +84,14 @@
                         key: this.sheriffId+schedule.date +'Z' +schedule.startTime,
                         startTime: schedule.startInMinutes *5 /72 -widthOtherElements,
                         timeDuration: schedule.timeDuration * 5 /72,
-                        timeStamp: schedule.startTime +'-'+schedule.endTime,
+                        timeStamp: (schedule.type == 'Leave' || schedule.type == 'Training')?schedule.sheriffEventType + ': ' + schedule.startTime +'-'+schedule.endTime:schedule.startTime +'-'+schedule.endTime,
                         title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: (schedule.type=='overTimeShift'? 'Shift':schedule.type),
                         color: this.getScheduleColor(schedule.type).body, //unused now
                         originalColor: this.getScheduleColor(schedule.type).body, //unused now
                         headerColor: this.getScheduleColor(schedule.type).header, //unused now
                         selected: false,
-                        type: schedule.type
+                        type: schedule.type,
+                        comment: schedule.comment
                     })
                     widthOtherElements += (schedule.timeDuration * 5 /72);
                     //console.log(this.scheduleBlocks)
@@ -94,13 +102,14 @@
                         key: this.sheriffId+schedule.date +'Z' +schedule.startTime,
                         startTime: 0,
                         timeDuration: 100,
-                        timeStamp: 'Full Day',
+                        timeStamp: (schedule.type == 'Leave' || schedule.type == 'Training')?schedule.sheriffEventType + ': Full Day': 'Full Day',
                         title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: schedule.type,
                         color: this.getScheduleColor(schedule.type).body, //unused now
                         originalColor: this.getScheduleColor(schedule.type).body, //unused now
                         headerColor: this.getScheduleColor(schedule.type).header, //unused now
                         selected: false, //unused now
-                        type: schedule.type
+                        type: schedule.type,
+                        comment: schedule.comment
                     })
                 }                    
             }
@@ -108,7 +117,7 @@
         }
 
         public selectOnlyCard(block){
-            if(block.title=='Shift') {
+            if(this.hasPermissionToEditShifts && block.title=='Shift') {
                 this.UpdateSelectedShifts([ block.id ]);
                 this.$root.$emit('editShifts');
             }

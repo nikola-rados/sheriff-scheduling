@@ -13,9 +13,13 @@ class CommonInformation extends VuexModule {
 
   public locationList: locationInfoType[] = [];
 
-  public userDetails: userInfoType = {roles: [], homeLocationId: 0}
+  public allLocationList: locationInfoType[] = [];
+
+  public userDetails: userInfoType = {firstName:'', lastName:'', roles: [], homeLocationId: 0, permissions: []}
 
   public displayFooter = true;
+
+  public displayHeader = true;
 
   public token = '';
   public tokenExpiry: Date = new Date();
@@ -34,6 +38,16 @@ class CommonInformation extends VuexModule {
   } 
 
 
+  @Mutation
+  public setDisplayHeader(displayHeader: boolean): void {   
+    this.displayHeader = displayHeader
+  }
+
+  @Action
+  public UpdateDisplayHeader(newDisplayHeader: boolean): void {
+    this.context.commit('setDisplayHeader', newDisplayHeader)
+  }
+  
   @Mutation
   public setDisplayFooter(displayFooter: boolean): void {   
     this.displayFooter = displayFooter
@@ -62,6 +76,16 @@ class CommonInformation extends VuexModule {
   @Action
   public UpdateLocationList(newLocationList): void {
     this.context.commit('setLocationList', newLocationList)
+  }
+
+  @Mutation
+  public setAllLocationList(allLocationList): void {   
+    this.allLocationList = allLocationList
+  }
+
+  @Action
+  public UpdateAllLocationList(newAllLocationList): void {
+    this.context.commit('setAllLocationList', newAllLocationList)
   }
 
   @Mutation

@@ -21,7 +21,7 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset EndDate { get; set; }
         [ExcludeFromAddAndUpdateDto]
         public Sheriff Sheriff { get; set; }
-        public Guid? SheriffId { get; set; }
+        public Guid SheriffId { get; set; }
         [ExcludeFromAddAndUpdateDto]
         public ICollection<DutySlot> DutySlots { get; set; } = new List<DutySlot>();
         [ExcludeFromAddAndUpdateDto]
@@ -33,6 +33,8 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset? ExpiryDate { get; set; }
         public string Timezone { get; set; }
         public double OvertimeHours { get; set; }
+        [MaxLength(200)]
+        public string Comment { get; set; }
         [ExcludeFromAddAndUpdateDto]
         [NotMapped]
         public string WorkSection => DutySlots.FirstOrDefault(ds =>

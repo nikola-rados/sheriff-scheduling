@@ -7,20 +7,27 @@
             :key="block.id"
             :id="block.id"
             :style="{gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
-            v-b-tooltip.hover                            
-            :title="block.title" 
+            v-b-tooltip.hover="block.title? block.title:''" 
             @dragover.prevent
             @drop.prevent="drop" >
-                <b 
+                <div 
                     :id="'moveduty'+block.dutySlotId"
-                    :draggable="localTime.isTodayInView" 
+                    :draggable="localTime.isTodayInView && hasPermissionToAddAssignDuty && hasPermissionToEditDuty" 
                     v-on:dragstart="DragStart"
-                    :style="dutyBlocks.length>1?dutyBlockStyle:(dutyBlockStyle + 'font-size: 16px;')">
-                        {{block.title|truncate(block.endTime - block.startTime-1)}}
-                </b>     
+                    class="m-0 p-0"
+                    :style="dutyBlocks.length>1?(dutyBlockStyle+'font-size: 15px;transform:translate(0,-5px)'):(dutyBlockStyle + 'font-size: 19px;')">
+                       {{block.title|truncate((block.endTime - block.startTime-1)*2)}}
+                </div>     
         </div>
         <span v-if="localTime.isTodayInView" :style="{borderLeft:'3px solid red', gridColumnStart: localTime.timeSlot+1,gridColumnEnd:(localTime.timeSlot+2), gridRow:'1/7'}"></span>
     
+        <b 
+            v-if="selectedComment.comment"
+            v-b-tooltip.hover.right.v-info="selectedComment.comment"  
+            :style="{backgroundColor: '#AB0000', gridColumnStart: selectedComment.startTime, gridColumnEnd: selectedComment.endTime, gridRow:'1/3'}"> 
+                <b-icon-chat-square-text-fill font-scale="0.8" variant="white" style="transform: translate(7px,-5px);"/>
+        </b>
+
         <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
             <b-row id="AssignDutyError" class="h4 mx-2 py-2">
 				<span class="p-0">{{assignDutyErrorMsg}}</span>
@@ -110,7 +117,7 @@
                                     {{data.value}}</div>
                             </template>
 
-                            <template v-slot:cell(editDutySlot)="data" >          
+                            <template v-if="hasPermissionToEditDuty" v-slot:cell(editDutySlot)="data" >          
                                 <b-button style="width:1.2rem;float:right" 
                                         class="ml-1 mr-0 my-0 py-0"
                                         size="sm" 
@@ -159,10 +166,31 @@
                         </b-table> 
                     </b-card> 
                 </div>
+                <b-row style="height:3rem; border-radius:4px;" class="mx-auto my-0 p-0 bg-primary text-white">
+                    <label style="margin:1rem .3rem 0 0.5rem;" class="h6 p-0">Comment:</label>
+                    <b-form-group class="mx-2 my-2" style="width: 13rem">                        
+                        <b-form-input
+                            v-model="selectedComment.comment"
+                            size="sm"
+                            placeholder="Enter a comment"
+                            type="text"
+                            :formatter="commentFormat"                            
+                        ></b-form-input>
+                    </b-form-group>
+                    <b-button
+                        variant="success"
+                        class="p-1 my-2 mx-2"
+                        @click="updateComment()"
+                        size="sm">
+                        <b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"/>
+                        Save Comment
+                    </b-button>                                    
+                </b-row>
 			</b-card>
 
 			<template v-slot:modal-footer>
 				<b-button
+                        :disabled="!hasPermissionToExpireDuty"
 						size="sm"
 						variant="danger"
 						class="mr-auto"
@@ -240,7 +268,7 @@
     import moment from 'moment-timezone';
     import AddDutySlotForm from './AddDutySlotForm.vue'
     import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
-    import {localTimeInfoType} from '../../../types/common';
+    import {localTimeInfoType, userInfoType} from '../../../types/common';
 
     import { namespace } from "vuex-class";
     import "@store/modules/CommonInformation";
@@ -257,6 +285,9 @@
 
         @commonState.State
         public localTime!: localTimeInfoType;
+
+        @commonState.State
+        public userDetails!: userInfoType;
 
         @Prop({required: true})
         dutyRosterInfo!: assignmentCardInfoType;
@@ -278,7 +309,7 @@
         addNewDutySlotForm = false;
         addFormColor = 'secondary';
 
-        dutyBlockStyle = 'text-transform: capitalize; margin:  0 padding:0; color:white;';
+        dutyBlockStyle = 'text-transform: capitalize; margin:0; padding:0; color:white;';
 
         isEditOpen = false;
         updateTable=0;
@@ -300,8 +331,15 @@
         assignmentName = '';
         dutyId = 0;
 
+        selectedComment = {startTime:0, endTime:0, comment:''};
+        originalComment = '';
+        commentSaved = false;
+
         showEditDutyDetails = false;
         isDutyDataMounted = false;
+        hasPermissionToEditDuty = false;
+        hasPermissionToExpireDuty = false;
+        hasPermissionToAddAssignDuty = false;
         showEditCancelWarning = false;
         confirmDelete = false;
         dutySlotToDelete = {} as dutyBlockInfoType;
@@ -327,13 +365,15 @@
 
         mounted()
         {
-            //console.log(this.dutyRosterInfo)
+            console.log(this.dutyRosterInfo)
+            this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");
+            this.hasPermissionToExpireDuty = this.userDetails.permissions.includes("ExpireDuties");    
+            this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
             this.assignmentName = this.getDutyName()
             this.dutyId = (this.dutyRosterInfo && this.dutyRosterInfo.attachedDuty)? this.dutyRosterInfo.attachedDuty.id:0;
             this.isMounted = false;
             this.dutyBlocks = [];
             this.extractDuty();
-            console.log(this.dutyRosterInfo.assignment)
             if(this.dutyRosterInfo.assignment == this.dutyToBeEdited) Vue.nextTick(()=>this.editDuty())
             
         }
@@ -346,15 +386,16 @@
 
         public editDuty(){			
 			this.isDutyDataMounted = false;
-            console.log(this.dutyBlocks);
             this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
             this.showEditDutyDetails = true;
-            this.isDutyDataMounted = true;					           
+            this.isDutyDataMounted = true;
         }
 
         public confirmDeleteDuty(){
-			this.deleteError = false;
-			this.confirmDelete = true;
+            if (this.hasPermissionToExpireDuty) {
+                this.deleteError = false;
+                this.confirmDelete = true;
+            }
         }
         
         public cancelDeletion() {
@@ -366,11 +407,11 @@
 			
             this.confirmDelete = false;
             this.deleteError = false;
-            const url = 'api/dutyroster?id=' + this.dutyId;
+            const body = [this.dutyId]
+            const url = 'api/dutyroster';
         
-            this.$http.delete(url)
+            this.$http.delete(url, {data:body})
                 .then(response => {
-                    // console.log(response);
                     this.confirmDelete = false;
                     this.UpdateDutyToBeEdited('');
                     this.$emit('change');                    
@@ -384,7 +425,6 @@
 		}
         
         public confirmUnassignDutySlot(slotinfo){
-            console.log(slotinfo)
             this.dutySlotToUnassign = slotinfo
             this.confirmUnassign = true;
         }
@@ -405,6 +445,7 @@
 		public closeEditDutyWindow(){
             this.closeDutySlotForm();
             this.UpdateDutyToBeEdited('');
+            this.selectedComment.comment= (this.dutyRosterInfo.attachedDuty && this.dutyRosterInfo.attachedDuty.comment)? this.dutyRosterInfo.attachedDuty.comment: ''
 			this.showEditDutyDetails = false;
 		}
 
@@ -448,9 +489,14 @@
 
                 const dutyBin = this.getTimeRangeBins(dutyInfo.startDate, dutyInfo.endDate,startOfDay, dutyInfo.timezone);
                 let unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyBin.startBin, dutyBin.endBin); 
-                              
+                       
+                this.selectedComment={
+                    startTime: 1+dutyBin.startBin,
+                    endTime:   1+dutyBin.startBin+1,
+                    comment: dutyInfo.comment? dutyInfo.comment: ''
+                }
+
                 for(const dutySlot of dutyInfo.dutySlots){
-                    // console.log(dutySlot)
                     let id = 1000;
                     const assignedDutyBin = this.getTimeRangeBins(dutySlot.startDate, dutySlot.endDate,startOfDay, dutySlot.timezone)
                     unassignedArray = this.fillInArray(unassignedArray,0,assignedDutyBin.startBin, assignedDutyBin.endBin);
@@ -459,7 +505,6 @@
                     const isNotRequiredOrAvailable = (dutySlot.isNotAvailable || dutySlot.isNotRequired)
                     const isNotRequiredOrAvailableTitle = dutySlot.isNotRequired? 'Not Required':'Not Available'
                     const isNotRequiredOrAvailableSheriffId = dutySlot.isNotRequired? '00000-00000-11111':'00000-00000-22222'
-                    //console.log(isNotRequiredOrAvailable)                    
 
                     this.dutyBlocks.push({
                         id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'n'+id++,                    
@@ -483,8 +528,7 @@
                 this.extractUnassignedArrays(unassignedArray);
 
                 for(const unassignInx in this.unassignedArray){
-                    //console.log(unassignInx)
-                    // console.log(this.unassignedArray[unassignInx])
+        
                     const unassignedBin = this.getArrayRangeBins(this.unassignedArray[unassignInx]);
                     const unassignedSlotTime = this.convertTimeRangeBinsToTime(startOfDay, unassignedBin.startBin, unassignedBin.endBin);
                     this.dutyBlocks.push({
@@ -507,7 +551,6 @@
                 }
 
                 this.dutyBlocks = _.sortBy(this.dutyBlocks,'startTime')
-                //console.log(unassignedArray)
 
                 if(this.dutyBlocks.length>1)
                     for(const dutyBlockInx in this.dutyBlocks){
@@ -516,7 +559,6 @@
 
                 
             }
-            //console.log(this.dutyBlocks)
 
             this.isMounted = true;           
         }
@@ -528,12 +570,9 @@
                 if((unassignedArray[valueInx]>0 && valueInx==0)||(unassignedArray[valueInx]>0 && unassignedArray[valueInx-1]==0)) startBin = valueInx;
                 
                 if((unassignedArray[valueInx]>0 && valueInx==(unassignedArray.length-1))||(unassignedArray[valueInx]>0 && unassignedArray[valueInx+1]==0)){
-                    //console.log(startBin)
-                    //console.log(valueInx)
+
                     const array = this.fillInArray(Array(96).fill(0),1, startBin, valueInx+1)
-                    //console.log(array)
                     this.unassignedArray.push(array)
-                    //console.log(this.unassignedArray)
                 } 
             }
         }
@@ -561,23 +600,21 @@
         
         public drop(event: any) 
         {
-            console.log(event.target.id)
+
             if(event.target.id){
                 const cardid = event.dataTransfer.getData('text');
                 if(cardid.includes('moveduty')){
-                    console.log('moved')
-                    console.log()
                     const fromDutySlotId = cardid.slice(8)
                     this.moveSheriff(fromDutySlotId,this.dutyId,this.localTime.timeString)
                     return
                 }
                 const blockId: string = event.target.id;
                 const unassignedBlockId = Number(blockId.substring(blockId.indexOf('n')+1));
-                console.log(unassignedBlockId)
+
                 if(unassignedBlockId>=1000) return
-                // console.log(cardid)
+
                 const sheriffId = cardid.slice(7)
-                // console.log(sheriffId)
+
                 const unassignedArray = this.unassignedArray[unassignedBlockId]
 
                 if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'){
@@ -595,32 +632,22 @@
 
                 const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
                 const availability = sheriff.availability
-                const duties = sheriff.duties
-                // console.log(sheriff)
-                // console.log(unassignedArray)
-                // console.log(availability)
-                // console.log(duties)                
+                const duties = sheriff.duties          
 
                 const unionUnassignAvail = this.unionArrays(unassignedArray, availability)
-                console.log(unionUnassignAvail)
                 
                 if(this.sumOfArrayElements(unionUnassignAvail)>0){
-                    console.log('call assign')
+
                     const editedDutySlots: assignDutySlotsInfoType[] =[]
 
                     const discontinuity = this.findDiscontinuity(unionUnassignAvail);
                     const iterationNum = Math.floor((this.sumOfArrayElements(discontinuity) +1)/2);
-                    console.log(iterationNum);
-                    console.log(discontinuity);
 
                     for(let i=0; i< iterationNum; i++){
                         const inx1 = discontinuity.indexOf(1)
                         let inx2 = discontinuity.indexOf(2)
                         discontinuity[inx1]=0
                         if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
-                        console.error(inx1 + ' ' +inx2) 
-                        //console.log(unionSelectedRangeAvail.slice(inx1,inx2).includes(1))
-                        //console.log(unionSelectedRangeAvail[inx1])
                         const slotTime = this.convertTimeRangeBinsToTime(this.dutyDate, inx1, inx2)
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
@@ -629,17 +656,15 @@
                             dutySlotId: null,
                         })
                     }
-                    console.log(editedDutySlots)
+
                     this.assignDuty(sheriffId, editedDutySlots, false)
                     
                 }else{
                     const unionUnassignDuties = this.unionArrays(unassignedArray, duties)
                     if(this.sumOfArrayElements(unionUnassignDuties)>0){
-                        console.log('overtime conflicts')
                         this.assignDutyErrorMsg = "This team member is already assigned to conflicting duties.";
                         this.assignDutyError = true;
                     }else{
-                        console.log('call assign overtime')
                         const timeRangeBins = this.getArrayRangeBins(unassignedArray);
                         this.overTimeTimeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
                         this.overTimeSheriffId = sheriffId;
@@ -687,8 +712,6 @@
             const array = _.clone(arrayOriginal);
             const startBin: number = array.findIndex(arr=>{if(arr>0) return true });
             const binValue: number = startBin>=0? array[startBin]: 1;
-            //console.log(startBin)
-            //console.log(array[startBin])
             return({
                 startBin: startBin ,
                 endBin: (96-array.reverse().findIndex(arr=>{if(arr>0) return true })),
@@ -726,13 +749,9 @@
                 
                 const dutySlots: dutySlotInfoType[] = [];
                 const dutySlotIds: number[] = [];
-                console.log(dutyInfo)
                 
                 for(const dutySlot of editedDutySlots){
-                    console.log(dutySlot.startDate)
-                    console.log(dutySlot.endDate)
-                    console.log(dutySlot.shiftId)
-                    console.log(dutySlot.dutySlotId)
+
                     if(dutySlot.dutySlotId) dutySlotIds.push(dutySlot.dutySlotId)
 
                     if(!unassignSheriff)
@@ -777,11 +796,11 @@
                         locationId: dutyInfo.locationId,
                         assignmentId: dutyInfo.assignmentId,
                         dutySlots: dutySlots,
-                        timezone: dutyInfo.timezone
+                        timezone: dutyInfo.timezone,
+                        comment: dutyInfo.comment
                     }
                 ];
                 
-                console.log(body)
                 const url = 'api/dutyroster';
                 this.$http.put(url, body )
                     .then(response => {
@@ -797,27 +816,50 @@
             }
         }
 
-        public DragStart(event: any) 
-        { 
+        public DragStart(event: any){ 
             event.dataTransfer.setData('text', event.target.id);
-            console.log(event.target.id)
         }
 
         public  moveSheriff(fromDutySlotId,toDutyId,separationTime){
-            console.log(separationTime)
             const url = 'api/dutyroster/movesheriff?fromDutySlotId='+fromDutySlotId+'&toDutyId='+toDutyId+'&separationTime='+separationTime;
-                this.$http.put(url)
-                    .then(response => {
-                        if(response.data){
-                            // Update the duty bar with name;
-                            this.$emit('change');
-                        }
-                    }, err => {
-                        const errMsg = err.response.data.error;
-                        this.assignDutyErrorMsg = errMsg;
-                        this.assignDutyError = true;
-                    })
+            this.$http.put(url)
+                .then(response => {
+                    if(response.data){
+                        // Update the duty bar with name;
+                        this.$emit('change');
+                    }
+                }, err => {
+                    const errMsg = err.response.data.error;
+                    this.assignDutyErrorMsg = errMsg;
+                    this.assignDutyError = true;
+                })
         }
+
+        public updateComment(){
+            const url = 'api/dutyroster/updatecomment?dutyId='+this.dutyId+'&comment='+this.selectedComment.comment;
+            console.log(url)
+            this.$http.put(url)
+                .then(response => {
+                    console.log(response)
+                    if(response.status == 204){
+                        // Update the duty bar with name;
+                        this.commentSaved = true;
+                        this.$emit('change');
+                    }else{
+                        this.assignDutyErrorMsg = response.data? response.data: (response.status+' '+response.statusText);
+                        this.assignDutyError = true;
+                    }
+                }, err => {
+                    console.log(err.response)
+                    const errMsg = err.response.data.error? err.response.data.error: (err.response.data +'('+err.response.status +' '+err.response.statusText+')') ;
+                    this.assignDutyErrorMsg = errMsg;
+                    this.assignDutyError = true;
+                })
+        }
+
+        public commentFormat(value) {
+			return value.slice(0,100);
+		}
 
     }
 
@@ -832,7 +874,7 @@
 
     .grid {        
         display:grid;
-        grid-template-columns: repeat(96, 1.041666%);
+        grid-template-columns: repeat(96, 2.0832%);
         grid-template-rows: repeat(6,.5rem);
         inline-size: 100%; 
         background-color: #EEEEEE; 

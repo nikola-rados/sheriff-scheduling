@@ -15,7 +15,8 @@
                     </b-row>
                 </b-col>
                 <b-col cols="3" class="m-0 p-0">                    
-                    <b-button 
+                    <b-button
+                        v-if="hasPermissionToCreateShifts" 
                         style="margin:.7rem 0 0 0; padding:0;"                   
                         size="sm" 
                         variant="success" 
@@ -54,8 +55,7 @@
                             icon = x-square-fill
                             @click="shiftError = false"
                     /></b-badge>                    
-                </b-row>              
-
+                </b-row> 
 
                 <b-row class="mx-1 my-3">
                     <b-form-group class="bg-light">
@@ -107,7 +107,7 @@
                     </b-form-group>
                 </b-row>
 
-                <b-row class="mx-1 my-0 p-0">
+                <b-row class="mx-auto my-0 p-0">
                     <b-form-group class="mr-3" style="width: 7rem">
                         <label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
                         <b-form-input
@@ -123,7 +123,7 @@
                         ></b-form-input>
                     </b-form-group>
 
-                    <b-form-group class="mr-5" style="width: 7rem;">
+                    <b-form-group class="m-0" style="width: 7rem;">
                         <label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
                         <b-form-input
                             v-model="selectedEndTime"
@@ -137,6 +137,17 @@
                             :state = "endTimeState?null:false"
                         ></b-form-input>
                     </b-form-group>                
+                </b-row>
+                <b-row class="mx-auto my-0 p-0">
+                    <b-form-group class="m-0" style="width: 28.5rem">
+                        <label class="h6 m-0 p-0">Comment</label>
+                        <b-form-input
+                            v-model="comment"
+                            size="sm"
+                            type="text"
+                            :formatter="commentFormat"                            
+                        ></b-form-input>
+                    </b-form-group>                                    
                 </b-row>
             </b-card>
 
@@ -191,7 +202,7 @@
     import ConflictsIcon from './ConflictsIcon.vue'
     import { dayOptionsInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
     import moment from 'moment-timezone';
-    import { locationInfoType } from '../../../types/common';
+    import { locationInfoType, userInfoType } from '../../../types/common';
     @Component({
         components: {
             ConflictsIcon
@@ -205,12 +216,16 @@
         @commonState.State
         public location!: locationInfoType;
 
+        @commonState.State
+        public userDetails!: userInfoType;
+
         @Prop({required: true})
         public sheriffInfo!: sheriffAvailabilityInfoType;
 
         sheriffId = '';
 
         isDataMounted = false;
+        hasPermissionToCreateShifts = false; 
         fullName = '';
 
         halfUnavailStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), white);"
@@ -219,7 +234,8 @@
         WeekDay = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 		selectedStartTime = '';
-		selectedEndTime = '';
+        selectedEndTime = '';
+        comment = '';
 		showShiftDetails = false;
 		isShiftDataMounted = false;
 		shift = {} as shiftInfoType;
@@ -243,6 +259,7 @@
         mounted()
         {  
             this.isDataMounted = false;
+            this.hasPermissionToCreateShifts = this.userDetails.permissions.includes("CreateAndAssignShifts");        
             this.sheriffId = this.sheriffInfo.sheriffId;          
             this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
 
@@ -402,6 +419,7 @@
                 this.shiftErrorMsg = '';
                 this.shiftErrorMsgDesc = '';
                 this.LoanedInDesc = '';
+                this.comment = '';
         }
         
         public getListOfDates(days){
@@ -421,14 +439,16 @@
 
                     for(const shift of shifts){
                         if(shift.start>=shift.end)continue;
-                        listOfDates.push({
+                        const editedShift = {
                             id: 0,
                             startDate: moment(shift.start).utc().format(),
                             endDate: moment(shift.end).utc().format(),
                             sheriffId: this.sheriffId,
                             locationId: this.location.id,
                             timezone: this.location.timezone
-                        })
+                        }
+                        if(this.comment) editedShift['comment'] = this.comment;				
+                        listOfDates.push(editedShift)
                     }
                 }                
 			}
@@ -498,6 +518,10 @@
 			if(value.length==5 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,5)) || value.slice(2,3)!=':') )return '';
 			if(value.length==4 && ( isNaN(value.slice(0,2)) || isNaN(value.slice(3,4)) || value.slice(2,3)!=':') )return '';
 			return value
+        }
+        
+        public commentFormat(value) {
+			return value.slice(0,100);
 		}
 
     }

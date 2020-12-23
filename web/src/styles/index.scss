@@ -8,6 +8,11 @@ $bcgov-font-path: "../../node_modules/@bcgov/bootstrap-theme/dist/fonts/";
 @import '~bootstrap-vue/dist/bootstrap-vue.css';
 @import "~bootstrap-vue/src/index.scss";
 
+.no-top-rounding {
+  border-top-left-radius: 0px !important; 
+  border-top-right-radius: 0px !important;
+}
+
 .breadcrumb {
   margin-bottom: 0;
 }

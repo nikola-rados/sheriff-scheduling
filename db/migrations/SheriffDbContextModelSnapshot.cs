@@ -18,7 +18,7 @@ namespace SS.Db.Migrations
             modelBuilder
                 .UseIdentityByDefaultColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
-                .HasAnnotation("ProductVersion", "5.0.0");
+                .HasAnnotation("ProductVersion", "5.0.1");
 
             modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
                 {
@@ -254,30 +254,6 @@ namespace SS.Db.Migrations
                         },
                         new
                         {
-                            Id = 2,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "View their own profile",
-                            Name = "ViewOwnProfile"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "View profiles in their own location",
-                            Name = "ViewProfilesInOwnLocation"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "View profiles in all locations",
-                            Name = "ViewProfilesInAllLocation"
-                        },
-                        new
-                        {
                             Id = 5,
                             ConcurrencyToken = 0u,
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -361,24 +337,8 @@ namespace SS.Db.Migrations
                             Id = 16,
                             ConcurrencyToken = 0u,
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "View their own shifts",
-                            Name = "ViewMyShifts"
-                        },
-                        new
-                        {
-                            Id = 17,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "View Shifts at their location",
-                            Name = "ViewAllShiftsAtMyLocation"
-                        },
-                        new
-                        {
-                            Id = 18,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "View all Shifts",
-                            Name = "ViewAllShifts"
+                            Description = "View shifts",
+                            Name = "ViewShifts"
                         },
                         new
                         {
@@ -438,14 +398,6 @@ namespace SS.Db.Migrations
                         },
                         new
                         {
-                            Id = 26,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "Expire Location",
-                            Name = "ExpireLocation"
-                        },
-                        new
-                        {
                             Id = 27,
                             ConcurrencyToken = 0u,
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
@@ -459,14 +411,6 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Import Shifts",
                             Name = "ImportShifts"
-                        },
-                        new
-                        {
-                            Id = 29,
-                            ConcurrencyToken = 0u,
-                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "View Assignments",
-                            Name = "ViewAssignments"
                         },
                         new
                         {
@@ -498,7 +442,7 @@ namespace SS.Db.Migrations
                             ConcurrencyToken = 0u,
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "View Duties",
-                            Name = "ViewDuties"
+                            Name = "ViewDutyRoster"
                         },
                         new
                         {
@@ -523,6 +467,30 @@ namespace SS.Db.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Expire Duties",
                             Name = "ExpireDuties"
+                        },
+                        new
+                        {
+                            Id = 37,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Edit Idir",
+                            Name = "EditIdir"
+                        },
+                        new
+                        {
+                            Id = 38,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Edit Past Training",
+                            Name = "EditPastTraining"
+                        },
+                        new
+                        {
+                            Id = 39,
+                            ConcurrencyToken = 0u,
+                            CreatedOn = new DateTimeOffset(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Remove Past Training",
+                            Name = "RemovePastTraining"
                         });
                 });
 
@@ -733,7 +701,7 @@ namespace SS.Db.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .UseIdentityByDefaultColumn()
-                        .HasIdentityOptions(100L, null, null, null, null, null);
+                        .HasIdentityOptions(5000L, null, null, null, null, null);
 
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
@@ -931,6 +899,10 @@ namespace SS.Db.Migrations
                     b.Property<DateTimeOffset?>("AdhocStartDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Comment")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -1020,6 +992,10 @@ namespace SS.Db.Migrations
                     b.Property<int?>("AssignmentId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Comment")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -1064,6 +1040,8 @@ namespace SS.Db.Migrations
                     b.HasIndex("LocationId");
 
                     b.HasIndex("UpdatedById");
+
+                    b.HasIndex("StartDate", "EndDate");
 
                     b.ToTable("Duty");
                 });
@@ -1157,6 +1135,10 @@ namespace SS.Db.Migrations
                     b.Property<int?>("AnticipatedAssignmentId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Comment")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -1183,7 +1165,7 @@ namespace SS.Db.Migrations
                     b.Property<double>("OvertimeHours")
                         .HasColumnType("double precision");
 
-                    b.Property<Guid?>("SheriffId")
+                    b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("StartDate")
@@ -1210,6 +1192,8 @@ namespace SS.Db.Migrations
 
                     b.HasIndex("UpdatedById");
 
+                    b.HasIndex("StartDate", "EndDate");
+
                     b.ToTable("Shift");
                 });
 
@@ -1221,7 +1205,8 @@ namespace SS.Db.Migrations
                         .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Comment")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
@@ -1274,6 +1259,8 @@ namespace SS.Db.Migrations
 
                     b.HasIndex("UpdatedById");
 
+                    b.HasIndex("StartDate", "EndDate");
+
                     b.ToTable("SheriffAwayLocation");
                 });
 
@@ -1285,7 +1272,8 @@ namespace SS.Db.Migrations
                         .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Comment")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
@@ -1297,7 +1285,9 @@ namespace SS.Db.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
@@ -1336,6 +1326,8 @@ namespace SS.Db.Migrations
 
                     b.HasIndex("UpdatedById");
 
+                    b.HasIndex("StartDate", "EndDate");
+
                     b.ToTable("SheriffLeave");
                 });
 
@@ -1347,7 +1339,8 @@ namespace SS.Db.Migrations
                         .UseIdentityByDefaultColumn();
 
                     b.Property<string>("Comment")
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<uint>("ConcurrencyToken")
                         .IsConcurrencyToken()
@@ -1359,7 +1352,9 @@ namespace SS.Db.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedOn")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTimeOffset>("EndDate")
                         .HasColumnType("timestamp with time zone");
@@ -1369,6 +1364,10 @@ namespace SS.Db.Migrations
 
                     b.Property<string>("ExpiryReason")
                         .HasColumnType("text");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<Guid>("SheriffId")
                         .HasColumnType("uuid");
@@ -1400,6 +1399,8 @@ namespace SS.Db.Migrations
                     b.HasIndex("TrainingTypeId");
 
                     b.HasIndex("UpdatedById");
+
+                    b.HasIndex("StartDate", "EndDate");
 
                     b.ToTable("SheriffTraining");
                 });
@@ -1739,6 +1740,9 @@ namespace SS.Db.Migrations
                     b.Property<string>("Rank")
                         .HasColumnType("text");
 
+                    b.HasIndex("BadgeNumber")
+                        .IsUnique();
+
                     b.HasDiscriminator().HasValue("Sheriff");
                 });
 
@@ -2065,7 +2069,8 @@ namespace SS.Db.Migrations
                     b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
                         .WithMany()
                         .HasForeignKey("SheriffId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .IsRequired();
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
@@ -2119,7 +2124,8 @@ namespace SS.Db.Migrations
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("ss.db.models.LookupCode", "LeaveType")
                         .WithMany()
@@ -2133,7 +2139,8 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("CreatedBy");
 
@@ -2148,7 +2155,8 @@ namespace SS.Db.Migrations
                 {
                     b.HasOne("SS.Db.models.auth.User", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("CreatedById");
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("SS.Db.models.sheriff.Sheriff", "Sheriff")
                         .WithMany("Training")
@@ -2162,7 +2170,8 @@ namespace SS.Db.Migrations
 
                     b.HasOne("SS.Db.models.auth.User", "UpdatedBy")
                         .WithMany()
-                        .HasForeignKey("UpdatedById");
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("CreatedBy");
 

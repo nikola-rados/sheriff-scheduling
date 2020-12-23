@@ -14,6 +14,7 @@ namespace SS.Api.models.dto.generated
         public int? AssignmentId { get; set; }
         public ICollection<UpdateDutySlotDto> DutySlots { get; set; }
         public string Timezone { get; set; }
+        public string Comment { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }

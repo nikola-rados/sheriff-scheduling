@@ -58,10 +58,30 @@
 
   <ItemGroup>
     <None Remove="migrations\20201113230451_UpdatePermissions.sql" />
+    <None Remove="migrations\20201209182004_UpdatePermissions_2.sql" />
+    <None Remove="migrations\20201210203059_UpdatePermissions_3.sql" />
+    <None Remove="migrations\20201212165816_UpdatePermissions_4.sql" />
+    <None Remove="migrations\20201215005036_UpdatePermissions_5.sql" />
+    <None Remove="migrations\20201221154933_UpdatePermissions_6.sql" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="migrations\20201113230451_UpdatePermissions.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="migrations\20201209182004_UpdatePermissions_2.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="migrations\20201210203059_UpdatePermissions_3.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="migrations\20201212165816_UpdatePermissions_4.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="migrations\20201215005036_UpdatePermissions_5.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="migrations\20201221154933_UpdatePermissions_6.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -71,14 +91,14 @@
     <PackageReference Include="Mapster" Version="6.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="3.1.9" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.0">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.0-rc1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.1" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
