@@ -41,7 +41,7 @@ async function checkPermission(to: any, from: any, next: any) {
 				if (userPermissions.includes("ViewDutyRoster")){        
 					next();	
 				} else {
-					next({ path: "/" });
+					next({ path: "/request-access" });
 				}
 			} else if(to.name == "MyTeamMembers") {
 				if (userPermissions.includes("ViewProvince") || userPermissions.includes("ViewRegion") || userPermissions.includes("ViewHomeLocation") || userPermissions.includes("ViewAssignedLocation")){        
