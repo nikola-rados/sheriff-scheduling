@@ -16,7 +16,7 @@
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getData()" :assignment="data.item" :weekview="true"/>
+                    <duty-roster-assignment v-on:change="getData" :assignment="data.item" :weekview="true"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >
@@ -41,7 +41,7 @@
                 </template>
 
                 <template v-slot:cell(h0)="data" >
-                    <duty-card-week-view v-on:change="getData()" :dutyRosterInfo="data.item"/>
+                    <duty-card-week-view v-on:change="getData" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
         <b-card><br></b-card>
@@ -101,6 +101,8 @@
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
 
+        scrollPositions = {scrollDuty:0, scrollGauge:0, scrollTeamMember:0 };
+
         fields =[
             {key:'assignment', label:'Assignments', thClass:' m-0 p-0', tdClass:'p-0 m-0', thStyle:''},
             {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
@@ -120,7 +122,7 @@
         async locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                this.getData();
+                this.getData(this.scrollPositions);
             }            
         } 
 
@@ -128,10 +130,11 @@
         {
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
-            this.getData();
+            this.getData(this.scrollPositions);
         }
 
-        public async getData() {
+        public async getData(dutyScroll) {
+            this.scrollPositions = dutyScroll? dutyScroll : {scrollDuty:0, scrollGauge:0, scrollTeamMember:0 }
             const response = await Promise.all([
                 this.getDutyRosters(),
                 this.getAssignments(),
@@ -335,6 +338,20 @@
 
            this.isDutyRosterDataMounted = true;
            this.$emit('dataready');
+
+            Vue.nextTick(()=>{
+
+console.log(this.scrollPositions)
+                const el = document.getElementsByClassName('b-table-sticky-header') 
+                if(el[0]){                    
+                    el[0].scrollTop = this.scrollPositions.scrollDuty;
+                }                
+
+                const eltm = document.getElementById('dutyrosterteammember');
+                if(eltm){
+                    eltm.scrollTop = this.scrollPositions.scrollTeamMember;
+                }
+            })
         }
         
         public getType(type: string){
