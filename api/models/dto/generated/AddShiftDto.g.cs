@@ -6,7 +6,7 @@ namespace SS.Api.models.dto.generated
     {
         public DateTimeOffset StartDate { get; set; }
         public DateTimeOffset EndDate { get; set; }
-        public Guid? SheriffId { get; set; }
+        public Guid SheriffId { get; set; }
         public int? AnticipatedAssignmentId { get; set; }
         public int LocationId { get; set; }
         public DateTimeOffset? ExpiryDate { get; set; }

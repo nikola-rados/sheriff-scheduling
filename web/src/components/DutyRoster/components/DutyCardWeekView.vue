@@ -7,15 +7,24 @@
             :key="block.id"
             :id="block.id"
             :style="{borderLeft:block.borderLeft, borderRight: block.borderRight, gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
-            v-b-tooltip.hover.top                           
-            :title="block.title"
+            v-b-tooltip.hover
+            :title="block.title? block.title:''" 
             @dragover.prevent
             @drop.prevent="drop" >
+                <!-- <b-icon-chat-square-text-fill v-if="block.comment" variant="white" font-scale=".8" class="m-0 p-0"/> -->
                 <b :style="(dutyBlockStyle + 'font-size: 18px;')">
                     {{block.title|truncate(((block.endTime - block.startTime)/7)-1)}}
-                </b>     
+                </b>                    
         </div>
         <span v-if="localTime.isTodayInView" :style="currentTimeStyle"></span>
+
+        <b v-for="commentBlock in selectedComments" 
+            :key="'comment'+commentBlock.day+'t'+commentBlock.startTime"
+            v-b-tooltip.hover.v-info="commentBlock.comment"  
+            :style="{backgroundColor: '#AB0000', gridColumnStart: commentBlock.startTime, gridColumnEnd: commentBlock.endTime, gridRow:'1/3'}"> 
+                <b-icon-chat-square-text-fill font-scale="0.8" variant="white" style="transform: translate(7px,-5px);"/>
+        </b>
+        
     
         <b-modal v-model="assignDutyError" id="bv-modal-assign-duty-error" header-class="bg-warning text-light">
             <b-row id="AssignDutyError" class="h4 mx-2 py-2">
@@ -156,6 +165,26 @@
                         </b-table> 
                     </b-card> 
                 </div>
+                <b-row style="height:3rem; border-radius:4px;" class="mx-auto my-0 p-0 bg-primary text-white">
+                    <label style="margin:1rem .3rem 0 0.5rem;" class="h6 p-0">Comment:</label>
+                    <b-form-group class="mx-2 my-2" style="width: 13rem">                        
+                        <b-form-input
+                            v-model="selectedComment"
+                            size="sm"
+                            placeholder="Enter a comment"
+                            type="text" 
+                            :formatter="commentFormat"                           
+                        ></b-form-input>
+                    </b-form-group>
+                    <b-button
+                        variant="success"
+                        class="p-1 my-2 mx-2"
+                        @click="updateComment(dutyBlocksDay[0].dutyId,selectedComment)"
+                        size="sm">
+                        <b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"/>
+                        Save Comment
+                    </b-button>                                    
+                </b-row>
 			</b-card>
 
 			<template v-slot:modal-footer>
@@ -324,6 +353,11 @@
 
         deleteErrorMsg = '';
         deleteError = false; 
+
+        selectedComments: any[] = [];
+        selectedComment = '';
+        //originalComment = '';
+        commentSaved = false;
         
         confirmUnassign = false;
         dutySlotToUnassign = {} as dutyBlockWeekInfoType;
@@ -362,7 +396,8 @@
 
         public editDuty(day){
             this.isDutyDataMounted = false;
-            this.dutyBlocksDay = this.dutyBlocks.filter(dutyBlock=>{if(dutyBlock.day==day)return true;})
+            this.dutyBlocksDay = (this.dutyBlocks.filter(dutyBlock=>{if(dutyBlock.day==day)return true;}));
+            this.selectedComment = this.dutyBlocksDay[0].comment
             this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment+'D'+day);
             this.showEditDutyDetails = true;
             this.isDutyDataMounted = true;
@@ -422,6 +457,7 @@
 		public closeEditDutyWindow(){
             this.closeDutySlotForm();
             this.UpdateDutyToBeEdited('');
+            console.log(this.selectedComments)
 			this.showEditDutyDetails = false;
 		}
 
@@ -465,6 +501,17 @@
                     const fullDutyEndTime = moment(dutyInfo.endDate).tz(dutyInfo.timezone).format('HH:mm')
 
                     const dutyBin = this.getTimeRangeBins(dutyInfo.startDate, dutyInfo.endDate,startOfDay, dutyInfo.timezone);
+                
+                    if(dutyInfo.comment){
+                        const commentBin = this.convert12h24hView(dutyBin)
+                        this.selectedComments.push({
+                            day:day,
+                            startTime: 1+(96*day)+ commentBin.startBin,
+                            endTime: 1+(96*day)+ commentBin.startBin+13,
+                            comment: dutyInfo.comment? dutyInfo.comment: ''
+                        })
+                    }
+                   
                     let unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyBin.startBin, dutyBin.endBin); 
                                 
                     for(const dutySlot of dutyInfo.dutySlots){
@@ -504,6 +551,7 @@
                             dutyDate: dutyDate,
                             fullDutyStartTime:fullDutyStartTime,
                             fullDutyEndTime:fullDutyEndTime,
+                            comment: dutyInfo.comment? dutyInfo.comment: ''
                         })                
                     }
                     this.unassignedArray = [];
@@ -539,12 +587,12 @@
                             dutyDate: dutyDate,
                             fullDutyStartTime:fullDutyStartTime,
                             fullDutyEndTime:fullDutyEndTime,
+                            comment: dutyInfo.comment? dutyInfo.comment: ''
                         })                
                     }                    
                 }
-            }
-            
-           this.isMounted = true;           
+            }            
+            this.isMounted = true;           
         }
 
         public convert12h24hView(time){            
@@ -847,7 +895,8 @@
                         locationId: dutyInfo.locationId,
                         assignmentId: dutyInfo.assignmentId,
                         dutySlots: dutySlots,
-                        timezone: dutyInfo.timezone
+                        timezone: dutyInfo.timezone,
+                        comment: dutyInfo.comment
                     }
                 ];
                 
@@ -877,6 +926,32 @@
             const end =   (this.localTime.dayOfWeek*96) +time+2             
             return {borderLeft:'3px solid red', gridColumnStart: start,gridColumnEnd:end, gridRow:'1/7'}
         }
+
+        public updateComment(id: number, comment: string){
+            const url = 'api/dutyroster/updatecomment?dutyId='+id+'&comment='+comment;
+            console.log(url)
+            this.$http.put(url)
+                .then(response => {
+                    console.log(response)
+                    if(response.status == 204){
+                        // Update the duty bar with name;
+                        this.commentSaved = true;
+                        this.$emit('change');
+                    }else{
+                        this.assignDutyErrorMsg = response.data? response.data: (response.status+' '+response.statusText);
+                        this.assignDutyError = true;
+                    }
+                }, err => {
+                    console.log(err.response)
+                    const errMsg = err.response.data.error? err.response.data.error: (err.response.data +'('+err.response.status +' '+err.response.statusText+')') ;
+                    this.assignDutyErrorMsg = errMsg;
+                    this.assignDutyError = true;
+                })
+        }
+
+        public commentFormat(value) {
+			return value.slice(0,100);
+		}
 
     }
 

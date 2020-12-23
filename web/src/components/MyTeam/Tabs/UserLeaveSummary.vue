@@ -49,7 +49,8 @@
         userLeaveFields = [
           { key: 'leaveName', label: 'Leave Type', thClass: 'text-primary h3', tdClass: 'font-weight-bold'},
           { key: 'startDate', label: 'Start', thClass: 'text-primary h3'},
-          { key: 'endDate', label: 'End', thClass: 'text-primary h3'}
+          { key: 'endDate', label: 'End', thClass: 'text-primary h3'},
+          { key: 'comment', label: 'Comment', thClass: 'text-primary h3', tdClass:'text-success'},
         ];
 
         mounted()
@@ -72,6 +73,8 @@
                     leaveInfo.startDate = moment(leaveInfoJson.startDate).tz(this.timezone).format();
                     leaveInfo.endDate = moment(leaveInfoJson.endDate).tz(this.timezone).format();
                     leaveInfo.isFullDay = Vue.filter('isDateFullday')(leaveInfo.startDate, leaveInfo.endDate);
+                    leaveInfo.comment = leaveInfoJson.comment? leaveInfoJson.comment : '';
+                    
                     this.userLeaveInfo.push(leaveInfo);
                 }
                 if(this.userLeaveInfo.length) this.displayLeave = true;       
@@ -86,8 +89,8 @@
  <style scoped>
 
     .tooltip >>> .tooltip-inner{
-        max-width: 500px !important;
-        width: 400px !important;
+        max-width: 700px !important;
+        width: 600px !important;
     } 
 
 </style>

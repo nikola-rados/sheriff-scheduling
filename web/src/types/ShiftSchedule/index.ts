@@ -8,6 +8,7 @@ export interface shiftInfoType {
     timezone: string;
     locationId: string;     
     sheriffId: string;
+    comment?: string;
 }
 
 export interface distributeTeamMemberInfoType {        
@@ -57,7 +58,9 @@ export interface conflictsInfoType {
     startInMinutes:number;
     timeDuration: number; 
     type: string; 
-    fullday: boolean;   
+    fullday: boolean;
+    sheriffEventType?: string; 
+    comment?: string;  
 }
 
 export interface scheduleBlockInfoType {
@@ -72,6 +75,7 @@ export interface scheduleBlockInfoType {
     headerColor: string;  
     selected: boolean;   
     type: string;
+    comment?: string;
 }
 
 export interface dayOptionsInfoType {
