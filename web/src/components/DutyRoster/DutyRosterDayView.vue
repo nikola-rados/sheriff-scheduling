@@ -1,15 +1,13 @@
 <template>
     <div>
-        <loading-spinner v-if="!isDutyRosterDataMounted" />
-        <b-table         
-            v-else              
+        <b-table
             :items="dutyRosterAssignments" 
             :fields="fields"
             sort-by="assignment"
-            style="overflow-x:scroll"
+            :style="{ overflowX: 'scroll', height: getHeight, maxHeight: '100%', marginBottom: '0px' }" 
             small   
             borderless
-            :sticky-header="tableHeight"                  
+            :sticky-header="getHeight"                  
             fixed>
                 <template v-slot:table-colgroup>
                     <col style="width:9rem">                         
@@ -42,8 +40,7 @@
                     <duty-card v-on:change="getData()" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
-        <b-card><br></b-card>
-        <sheriff-fuel-gauge v-if="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
+        <sheriff-fuel-gauge v-show="!displayFooter" class="fixed-bottom bg-white"/>
     </div>
 </template>
 
@@ -102,6 +99,9 @@
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
 
+        windowHeight = 0;
+        tableHeight = 0;
+
         fields =[
             {key:'assignment', stickyColumn: true, label:'Assignments', thClass:'text-white m-0 p-0', tdClass:'p-0 m-0', thStyle:'background-color: #556077;'},
             {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
@@ -125,11 +125,49 @@
             }            
         } 
 
+        @Watch('displayFooter')
+        footerChange() 
+        {
+            Vue.nextTick(() => 
+            {
+                this.calculateTableHeight()
+            })
+        }
+        
         async mounted()
         {
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
             this.getData();
+            window.addEventListener('resize', this.getWindowHeight);
+            this.getWindowHeight()
+        }
+        
+        beforeDestroy() {
+            window.removeEventListener('resize', this.getWindowHeight);
+        }
+
+        public getWindowHeight() {
+            this.windowHeight = document.documentElement.clientHeight;
+            this.calculateTableHeight()
+        }
+
+        get getHeight() {
+            return this.windowHeight - this.tableHeight + 'px'
+        }
+
+        public calculateTableHeight() {
+            const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
+            const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
+            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
+            const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            const bottomHeight = this.displayFooter ? footerHeight : gageHeight;
+            console.log('DutyRosterDay - Window: ' + this.windowHeight)
+            console.log('DutyRosterDay - Top: ' + topHeaderHeight)
+            console.log('DutyRosterDay - SecondHeader: ' + secondHeader)
+            console.log('DutyRosterDay - BottomHeight: ' + bottomHeight)
+            console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
+            this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader)
         }
 
         public getBeautifyTime(hour: number){
@@ -148,7 +186,8 @@
             const shiftsData = response[2].data
             Vue.nextTick(() => {
                 this.extractTeamShiftInfo(shiftsData);                        
-                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);  
+                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson); 
+                this.calculateTableHeight() 
             })
         }
 
@@ -322,12 +361,6 @@
         public addAssignment(){ 
             this.$emit('addAssignmentClicked');            
         }
-
-        get tableHeight(){
-            const height = 0.02811625*(window.innerWidth)-14
-            return (this.displayFooter? (height+3)+'rem' : height+'rem')
-        }
-        
     }
 </script>
 
