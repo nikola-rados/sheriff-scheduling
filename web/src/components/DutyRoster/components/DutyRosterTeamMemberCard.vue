@@ -12,13 +12,13 @@
                     <div style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</div>
                     <div 
                         style="font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
-                        v-b-tooltip.hover                                
+                        v-b-tooltip.hover.noninteractive                               
                         :title="fullName.length>13?fullName:''">
                             {{fullName|truncate(11)}}
                     </div>
 
                     <b-row v-if="!weekView">
-                        <b-badge v-b-tooltip.hover.v-warning.html="allShifts" class="mx-auto mt-1">{{shifts[0]}}<span v-if="shifts.length>1"> ...</span></b-badge>
+                        <b-badge v-b-tooltip.hover.noninteractive.v-warning.html="allShifts" class="mx-auto mt-1">{{shifts[0]}}<span v-if="shifts.length>1"> ...</span></b-badge>
                     </b-row>
 
                     <b-row v-else style="margin:0; padding:0; font-size:10px;">
@@ -32,7 +32,7 @@
                                 {{sch.text}}                            
                         
 
-                            <b-tooltip v-if="sch.shifts.length>0" :target="'sch'+sheriffId+'-'+sch.weekday" variant="warning" show.sync ="true" triggers="hover" placement="topright">
+                            <b-tooltip v-if="sch.shifts.length>0" noninteractive :target="'sch'+sheriffId+'-'+sch.weekday" variant="warning" show.sync ="true" triggers="hover" placement="topright">
                                 <h2 class="text-danger  mb-1 mx-0 p-0">{{sch.name}}</h2>
                                 <b-card bg-variant="dark" header-class="text-warning m-0 p-0" body-class="m-0 p-0" header="Sheriff Shifts:">             
                                     <b-table  
@@ -173,7 +173,7 @@
                         weekday: dayOffset, 
                         text:this.WeekDay[dayOffset],
                         name:this. weekDayNames[dayOffset], 
-                        variant:'danger',  
+                        variant:'white',  
                         style:'', 
                         shifts:[],
                         duties:[]
@@ -200,7 +200,7 @@
                 const filteredShifts = this.sheriffInfo.shifts.filter(shift=>{if(shift.startDate.substring(0,10)==schedule.date.substring(0,10))return true;});
                 const filteredDuties = this.sheriffInfo.dutiesDetail.filter(duty=>{if(duty.startTime && duty.startTime.substring(0,10)==schedule.date.substring(0,10))return true;});
                 if (filteredShifts.length == 0) {
-                    this.sheriffSchedules[scheduleIndex].variant = 'white';
+                    this.sheriffSchedules[scheduleIndex].variant = 'danger';
                 } else {
                     this.sheriffSchedules[scheduleIndex].shifts = filteredShifts 
                     this.sheriffSchedules[scheduleIndex].duties = filteredDuties

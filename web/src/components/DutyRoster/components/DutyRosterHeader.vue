@@ -10,9 +10,13 @@
 				</b-navbar-nav>
 				<b-navbar-nav class="custom-navbar">
                     <b-col>
-                        <b-row style="margin:.25rem auto .25rem auto; width:7.3rem;">
-                            <b-button style="height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0"><b-icon-chevron-left /></b-button>
-                            <b-form-datepicker
+                        <b-row  :style="activetab=='Day'?'width:17.5rem':'width:25rem'">
+                            <b-button style=" height: 2rem;" size="sm" variant="secondary" @click="previousDateRange" class="my-0 mx-1"><b-icon-chevron-left /></b-button>
+                            
+							<div v-if="activetab=='Day'" class="m-0 bg-white" style="padding:0.2rem 0.52rem; border-radius:3px; font-weight:bold;">{{selectedDate|beautify-date-weekday}}</div>
+							<div v-else class="m-0 p-1 bg-white" style=" border-radius:3px; font-weight:bold;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
+						
+							<b-form-datepicker
                                     class="my-0 py-0 mx-1"
                                     size = "sm"
                                     style="height: 2rem;"
@@ -27,31 +31,28 @@
                             </b-form-datepicker>
                             <b-button style="height: 2rem;" size="sm" variant="secondary" @click="nextDateRange" class="my-0"><b-icon-chevron-right/></b-button>
                         </b-row>
-                        <b-row  style="margin:0 auto .25rem auto; width:17rem;">
-                            <div v-if="activetab=='Day'" class="bg-white" style="margin:0 auto; border-radius:3px; width:9rem; font-weight:bold;">{{selectedDate|beautify-date-weekday}}</div>
-							<div v-else class="bg-white" style="border-radius:3px; width:17rem; font-weight:bold;">{{selectedDateBegin|beautify-date-weekday}} - {{selectedDateEnd|beautify-date-weekday}}</div>
-						</b-row>
+                        
                     </b-col>
                 </b-navbar-nav>
 				<b-navbar-nav v-if="activetab!='Day'" >
 					<b-tabs nav-wrapper-class = "bg-primary text-dark"
 							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
-							pills
+							pills							
 							no-body
 							class="mx-3">
 						<b-tab 
 							v-for="(tabMapping, index) in tabs12h24h" 
 							:key="index"                 
-							:title="tabMapping"                 
+							:title="tabMapping"
 							v-on:click="tab12h24hChanged(tabMapping)" 
-							v-bind:class="[ active24htab === tabMapping ? 'active mb-0' : 'mb-0' ]"
+							v-bind:class="[ active24htab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
 							/>
 					</b-tabs>
 				</b-navbar-nav>
 				<b-navbar-nav >
-					<b-tabs nav-wrapper-class = "bg-primary text-dark"
+					<b-tabs nav-wrapper-class = "bg-primary text-dark my-1 p-0"
 							active-nav-item-class="text-uppercase font-weight-bold text-warning bg-primary"                     
-							pills
+							pills							
 							no-body
 							class="mx-3">
 						<b-tab 
@@ -59,7 +60,7 @@
 							:key="index"                 
 							:title="tabMapping"                 
 							v-on:click="tabChanged(tabMapping)" 
-							v-bind:class="[ activetab === tabMapping ? 'active mb-0' : 'mb-0' ]"
+							v-bind:class="[ activetab === tabMapping ? 'active p-0 my-0' : 'p-0 my-0' ]"
 							/>
 					</b-tabs>
 				</b-navbar-nav>

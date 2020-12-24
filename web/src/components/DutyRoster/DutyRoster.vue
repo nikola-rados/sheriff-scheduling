@@ -29,8 +29,8 @@
                         </b-card-header>
                         <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
                         <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/> 
-                    </div>
-                    <div :style="{overflowX: 'hidden', overflowY: 'auto', height: getHeight}">
+                    </div>                   
+                    <div id="dutyrosterteammember" :style="{overflowX: 'hidden', overflowY: 'auto', height: getHeight}">
                         <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
                     </div>
                 </b-card>

@@ -46,7 +46,7 @@
 
 				<b-navbar-nav class="mr-2">
 					<b-nav-form>
-						<div :class="showWorkSectionChecked?'bg-success':''" :style="'border-radius:5px;'+(showWorkSectionChecked?'width: 6rem;':'width: 6rem;')">
+						<div v-if="hasPermissionToViewDutyRoster" :class="showWorkSectionChecked?'bg-success':''" :style="'border-radius:5px;'+(showWorkSectionChecked?'width: 6rem;':'width: 6rem;')">
 							<b-form-checkbox class="ml-2 my-1" v-model="showWorkSectionChecked" @change="getSchedule()" size="lg" switch>
 								{{viewStatus}}
 							</b-form-checkbox>
@@ -79,7 +79,7 @@
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
 	import { distributeTeamMemberInfoType, importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
-	import { locationInfoType } from '../../../types/common';
+	import { locationInfoType, userInfoType } from '../../../types/common';
 
 	import { Printd } from 'printd'
 
@@ -108,6 +108,9 @@
 		@commonState.State
 		public location!: locationInfoType;
 
+		@commonState.State
+        public userDetails!: userInfoType;
+
 		@shiftState.State
 		public teamMemberList!: distributeTeamMemberInfoType[];
 				
@@ -119,7 +122,9 @@
 
 		selectedDate = '';
 		datePickerOpened = false;
-		showWorkSectionChecked = false;
+		showWorkSectionChecked = false;		
+		hasPermissionToViewDutyRoster = false;
+
 		selectedTeamMember = {sheriffId: '', name: 'All'} as distributeTeamMemberInfoType;
 
 		@Watch('location.id', { immediate: true })
@@ -132,6 +137,7 @@
 		mounted() {
 
 			this.showWorkSectionChecked = false;
+			this.hasPermissionToViewDutyRoster = this.userDetails.permissions.includes("ViewDutyRoster");
 			
 			
 			if(!this.shiftRangeInfo.startDate){

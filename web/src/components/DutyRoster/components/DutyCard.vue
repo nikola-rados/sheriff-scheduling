@@ -7,7 +7,7 @@
             :key="block.id"
             :id="block.id"
             :style="{gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
-            v-b-tooltip.hover="block.title? block.title:''" 
+            v-b-tooltip.hover.noninteractive="block.title? block.title:''" 
             @dragover.prevent
             @drop.prevent="drop" >
                 <div 
@@ -23,7 +23,7 @@
     
         <b 
             v-if="selectedComment.comment"
-            v-b-tooltip.hover.right.v-info="selectedComment.comment"  
+            v-b-tooltip.hover.right.noninteractive.v-info="selectedComment.comment"  
             :style="{backgroundColor: '#AB0000', gridColumnStart: selectedComment.startTime, gridColumnEnd: selectedComment.endTime, gridRow:'1/3'}"> 
                 <b-icon-chat-square-text-fill font-scale="0.8" variant="white" style="transform: translate(7px,-5px);"/>
         </b>
@@ -106,7 +106,7 @@
                             <template v-slot:cell(title)="data" >
                                 <div
                                     :style="(data.value=='Not Available'||data.value=='Not Required')?'color:'+data.item.color:''"
-                                    v-b-tooltip.hover.right                                
+                                    v-b-tooltip.hover.right.noninteractive                                
                                     :title="data.item.title>20? data.item.title:''">
                                     {{data.item.title | truncate(20)}}</div>
                             </template>
@@ -245,7 +245,7 @@
                     <h2 class="mb-0 text-light">Confirm Unassign Duty</h2>                    
             </template>
             
-            <h4>Are you sure you want to unassign the "{{assignmentName}}" duty from {{dutySlotToUnassign.lastName}}, {{dutySlotToUnassign.firstName}}?</h4>
+            <h4 v-if="dutySlotToUnassign">Are you sure you want to unassign the "{{assignmentName}}" duty from {{dutySlotToUnassign.lastName}}, {{dutySlotToUnassign.firstName}}?</h4>
             
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="unassignDutySlot()">Confirm</b-button>
@@ -365,7 +365,7 @@
 
         mounted()
         {
-            console.log(this.dutyRosterInfo)
+            //console.log(this.dutyRosterInfo)
             this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");
             this.hasPermissionToExpireDuty = this.userDetails.permissions.includes("ExpireDuties");    
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
@@ -414,7 +414,7 @@
                 .then(response => {
                     this.confirmDelete = false;
                     this.UpdateDutyToBeEdited('');
-                    this.$emit('change');                    
+                    this.$emit('change', this.scrollPositions());                    
                 }, err=>{
                     const errMsg = err.response.data.error;
                     console.log(err.response)
@@ -513,9 +513,9 @@
                         color: this.getDutyColor(this.dutyRosterInfo.type.colorCode, dutySlot.isNotAvailable,dutySlot.isNotRequired, isOvertime),
                         height: '2/6',
                         title: this.getTitle(sheriff,dutySlot.isNotAvailable,dutySlot.isNotRequired),
-                        lastName: isNotRequiredOrAvailable? isNotRequiredOrAvailableTitle: Vue.filter('capitalize')(sheriff.lastName),
-                        firstName: isNotRequiredOrAvailable? '' : Vue.filter('capitalize')(sheriff.firstName),
-                        sheriffId: isNotRequiredOrAvailable? isNotRequiredOrAvailableSheriffId: sheriff.sheriffId,
+                        lastName: isNotRequiredOrAvailable? isNotRequiredOrAvailableTitle: (sheriff? Vue.filter('capitalize')(sheriff.lastName):''),
+                        firstName: isNotRequiredOrAvailable? '' : (sheriff? Vue.filter('capitalize')(sheriff.firstName):''),
+                        sheriffId: isNotRequiredOrAvailable? isNotRequiredOrAvailableSheriffId:  (sheriff? sheriff.sheriffId: ''),
                         startTimeString: moment(dutySlot.startDate).tz(dutySlot.timezone).format('HH:mm'),
                         endTimeString: moment(dutySlot.endDate).tz(dutySlot.timezone).format('HH:mm'),
                         timezone: dutySlot.timezone, 
@@ -805,8 +805,8 @@
                 this.$http.put(url, body )
                     .then(response => {
                         if(response.data){
-                            // Update the duty bar with name;
-                            this.$emit('change');
+                            // Update the duty bar with name;                            
+                            this.$emit('change', this.scrollPositions());
                         }
                     }, err => {
                         const errMsg = err.response.data.error;
@@ -826,7 +826,7 @@
                 .then(response => {
                     if(response.data){
                         // Update the duty bar with name;
-                        this.$emit('change');
+                        this.$emit('change', this.scrollPositions());
                     }
                 }, err => {
                     const errMsg = err.response.data.error;
@@ -844,7 +844,7 @@
                     if(response.status == 204){
                         // Update the duty bar with name;
                         this.commentSaved = true;
-                        this.$emit('change');
+                        this.$emit('change', this.scrollPositions());
                     }else{
                         this.assignDutyErrorMsg = response.data? response.data: (response.status+' '+response.statusText);
                         this.assignDutyError = true;
@@ -859,7 +859,18 @@
 
         public commentFormat(value) {
 			return value.slice(0,100);
-		}
+        }
+        
+        public scrollPositions(){
+            const el = document.getElementsByClassName('b-table-sticky-header')
+            const scrollDuty = el[0]? el[0].scrollTop : 0;
+            const scrollGauge = el[1]? el[1].scrollTop : 0;
+
+            const eltm = document.getElementById('dutyrosterteammember');
+            const scrollTeamMember = eltm? eltm.scrollTop : 0;
+
+            return {scrollDuty: scrollDuty, scrollGauge: scrollGauge, scrollTeamMember:scrollTeamMember }
+        }
 
     }
 
