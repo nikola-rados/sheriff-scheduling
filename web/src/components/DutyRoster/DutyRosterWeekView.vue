@@ -9,7 +9,8 @@
             small
             head-row-variant="primary"   
             borderless
-            sticky-header="37rem"                  
+            :style="{ height: getHeight, maxHeight: '100%', marginBottom: '0px' }"             
+            :sticky-header="getHeight"                  
             fixed>
                 <template v-slot:table-colgroup>
                     <col style="width:9rem">                            
@@ -102,6 +103,8 @@
         dutyRosterAssignmentsJson;
 
         scrollPositions = {scrollDuty:0, scrollGauge:0, scrollTeamMember:0 };
+        windowHeight = 0;
+        tableHeight = 0;
 
         fields =[
             {key:'assignment', label:'Assignments', thClass:' m-0 p-0', tdClass:'p-0 m-0', thStyle:''},
@@ -131,6 +134,31 @@
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
             this.getData(this.scrollPositions);
+            window.addEventListener('resize', this.getWindowHeight);
+            this.getWindowHeight()
+        }
+
+        beforeDestroy() {
+            window.removeEventListener('resize', this.getWindowHeight);
+        }
+        public getWindowHeight() {
+            this.windowHeight = document.documentElement.clientHeight;
+            this.calculateTableHeight()
+        }
+        get getHeight() {
+            return this.windowHeight - this.tableHeight + 'px'
+        }
+        public calculateTableHeight() {
+            const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
+            const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
+            const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            const bottomHeight = gageHeight;
+            console.log('DutyRosterWeek - Window: ' + this.windowHeight)
+            console.log('DutyRosterWeek - Top: ' + topHeaderHeight)
+            console.log('DutyRosterWeek - SecondHeader: ' + secondHeader)
+            console.log('DutyRosterWeek - BottomHeight: ' + bottomHeight)
+            console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
+            this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader+1)
         }
 
         public async getData(dutyScroll) {
@@ -341,7 +369,7 @@
 
             Vue.nextTick(()=>{
 
-console.log(this.scrollPositions)
+                this.calculateTableHeight();
                 const el = document.getElementsByClassName('b-table-sticky-header') 
                 if(el[0]){                    
                     el[0].scrollTop = this.scrollPositions.scrollDuty;

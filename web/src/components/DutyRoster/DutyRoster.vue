@@ -14,7 +14,7 @@
                     body-class="mx-2 p-0"
                     style="overflow-x: hidden;"
                     class="bg-dark m-0 p-0 no-top-rounding">
-                    <div id="myTeamHeader">
+                    <div id="myTeamHeader" class="mb-2">
                         <b-card-header header-class="m-0 text-white py-2 px-0"> 
                             My Team
                             <b-button
@@ -168,7 +168,7 @@
             console.log('My Team - TeamHeader: ' + myTeamHeader)
             console.log('My Team - BottomHeight: ' + this.bottomHeight)
             console.log('My Team - New height: ' + (this.windowHeight - topHeaderHeight - myTeamHeader - this.bottomHeight))
-            this.tableHeight = (topHeaderHeight + myTeamHeader + this.bottomHeight)
+            this.tableHeight = (topHeaderHeight + myTeamHeader + this.bottomHeight+8)
         }
 
         public toggleDisplayMyteam(){
