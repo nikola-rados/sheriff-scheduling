@@ -33,6 +33,7 @@ namespace SS.Db.models.scheduling
         public DateTimeOffset? ExpiryDate { get; set; }
         public string Timezone { get; set; }
         public double OvertimeHours { get; set; }
+        [MaxLength(200)]
         public string Comment { get; set; }
         [ExcludeFromAddAndUpdateDto]
         [NotMapped]

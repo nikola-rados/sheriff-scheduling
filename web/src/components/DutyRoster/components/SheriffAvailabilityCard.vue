@@ -5,7 +5,7 @@
             v-for="(block,index) in sheriffInfo.availabilityDetail"
             :key="index+2000"
             :style="{gridColumnStart: (1+block.startBin),gridColumnEnd:(1+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0 }"
-            v-b-tooltip.hover.right                             
+            v-b-tooltip.hover.bottom                             
             :title="block.name">
                 <div style="text-transform: capitalize; margin:0 padding: 0; font-size: 13px;transform:translate(0,-4px)">
                     {{block.name|truncate((block.endTime - block.startTime-1)*2)}}
@@ -15,7 +15,7 @@
             v-for="(block,index) in sheriffInfo.sheriff.dutiesDetail"
             :key="index+1000"
             :style="{gridColumnStart: (1+block.startBin),gridColumnEnd:(1+block.endBin), gridRow:'1/1',  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0, color:'white' }"
-            v-b-tooltip.hover.right                             
+            v-b-tooltip.hover.bottom                             
             :title="block.name +'-'+ block.code">
                 <div style="text-transform: capitalize; margin:0 padding: 0;font-size: 13px;transform:translate(0,-4px)">
                     {{getBlockTitle(block.name,block.code,(block.endTime - block.startTime-1)*2)}}

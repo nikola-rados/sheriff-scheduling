@@ -1,22 +1,23 @@
 <template>
     <div>
-        <loading-spinner v-if="!isDutyRosterDataMounted" />
-        <b-table         
-            v-else              
+        <loading-spinner v-if="!isDutyRosterDataMounted" />      
+            
+        <b-table
+            v-else
             :items="dutyRosterAssignments" 
             :fields="fields"
             sort-by="assignment"
-            style="overflow-x:scroll"
+            :style="{ overflowX: 'scroll', height: getHeight, maxHeight: '100%', marginBottom: '0px' }" 
             small   
             borderless
-            :sticky-header="tableHeight"                  
+            :sticky-header="getHeight"                  
             fixed>
                 <template v-slot:table-colgroup>
                     <col style="width:9rem">                         
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getData()" :assignment="data.item" :weekview="false"/>
+                    <duty-roster-assignment v-on:change="getData" :assignment="data.item" :weekview="false"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >
@@ -39,11 +40,10 @@
                 </template>
 
                 <template v-slot:cell(h0)="data" >
-                    <duty-card v-on:change="getData()" :dutyRosterInfo="data.item"/>
+                    <duty-card v-on:change="getData" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
-        <b-card><br></b-card>
-        <sheriff-fuel-gauge v-if="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
+        <sheriff-fuel-gauge v-show="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
     </div>
 </template>
 
@@ -102,6 +102,10 @@
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
 
+        windowHeight = 0;
+        tableHeight = 0;
+        scrollPositions = {scrollDuty:0, scrollGauge:0, scrollTeamMember:0 };
+
         fields =[
             {key:'assignment', stickyColumn: true, label:'Assignments', thClass:'text-white m-0 p-0', tdClass:'p-0 m-0', thStyle:'background-color: #556077;'},
             {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
@@ -121,22 +125,61 @@
         async locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                this.getData();
+                this.getData(this.scrollPositions);
             }            
         } 
 
+        @Watch('displayFooter')
+        footerChange() 
+        {
+            Vue.nextTick(() => 
+            {
+                this.calculateTableHeight()
+            })
+        }
+        
         async mounted()
         {
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
-            this.getData();
+            this.getData(this.scrollPositions);
+            window.addEventListener('resize', this.getWindowHeight);
+            this.getWindowHeight()
+        }
+        
+        beforeDestroy() {
+            window.removeEventListener('resize', this.getWindowHeight);
+        }
+
+        public getWindowHeight() {
+            this.windowHeight = document.documentElement.clientHeight;
+            this.calculateTableHeight()
+        }
+
+        get getHeight() {
+            return this.windowHeight - this.tableHeight + 'px'
+        }
+
+        public calculateTableHeight() {
+            const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
+            const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
+            const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
+            const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            const bottomHeight = this.displayFooter ? footerHeight : gageHeight;
+            console.log('DutyRosterDay - Window: ' + this.windowHeight)
+            console.log('DutyRosterDay - Top: ' + topHeaderHeight)
+            console.log('DutyRosterDay - SecondHeader: ' + secondHeader)
+            console.log('DutyRosterDay - BottomHeight: ' + bottomHeight)
+            console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
+            this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader)
         }
 
         public getBeautifyTime(hour: number){
             return( hour>9? hour+':00': '0'+hour+':00')
         }
 
-        public async getData() {
+        public async getData(dutyScroll) {
+            this.scrollPositions = dutyScroll? dutyScroll : {scrollDuty:0, scrollGauge:0, scrollTeamMember:0 }
             const response = await Promise.all([
                 this.getDutyRosters(),
                 this.getAssignments(),
@@ -148,7 +191,7 @@
             const shiftsData = response[2].data
             Vue.nextTick(() => {
                 this.extractTeamShiftInfo(shiftsData);                        
-                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);  
+                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);                 
             })
         }
 
@@ -278,13 +321,29 @@
             this.isDutyRosterDataMounted = true;
             this.$emit('dataready')
             Vue.nextTick(()=>{
+                this.calculateTableHeight();
                 const el = document.getElementsByClassName('b-table-sticky-header')                
                 const scrollSize = window.innerWidth*0.9173-185
+
                 if(el[0]) el[0].addEventListener("scroll",()=>{
                     if(el[1]) el[1].scrollLeft = el[0].scrollLeft
                 })
-                if(el[0]) el[0].scrollLeft = (scrollSize*0.5425)
-                if(el[1]) el[1].scrollLeft = (scrollSize*0.5425)
+
+                if(el[0]){
+                    el[0].scrollLeft = (scrollSize*0.5425);
+                    el[0].scrollTop = this.scrollPositions.scrollDuty;
+                }
+
+                if(el[1]){
+                    el[1].scrollLeft = (scrollSize*0.5425);
+                    //el[1].scrollTop = this.scrollPositions.scrollGauge;
+                }
+
+                const eltm = document.getElementById('dutyrosterteammember');
+                if(eltm){
+                    eltm.scrollTop = this.scrollPositions.scrollTeamMember;
+                }
+
             })
         }
         public getType(type: string){
@@ -322,12 +381,6 @@
         public addAssignment(){ 
             this.$emit('addAssignmentClicked');            
         }
-
-        get tableHeight(){
-            const height = 0.02811625*(window.innerWidth)-14
-            return (this.displayFooter? (height+3)+'rem' : height+'rem')
-        }
-        
     }
 </script>
 

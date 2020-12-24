@@ -6,7 +6,7 @@
             :draggable="hasPermissionToAddAssignDuty" 
             v-on:dragstart="DragStart" 
             style="border-radius:5px"          
-            :class="bgcolor+' mb-2 p-1'">
+            :class="bgcolor+' p-1'">
                 <b-col v-if="!specialMember" class="b-0 p-0">
                     <div style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</div>
                     <div style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</div>
@@ -127,7 +127,7 @@
         allShifts = {title:''};
 
         specialMember = false;
-        bgcolor='bg-white';
+        bgcolor='bg-white mb-2';
 
         shiftFields = [
             {key:'startDate', label:'Start', thClass:'text-info m-0 p-0', tdClass:'text-white p-0 m-0', thStyle:''},
@@ -157,7 +157,7 @@
             this.sheriffId = this.sheriffInfo.sheriffId; 
             if(this.sheriffId== '00000-00000-11111'){
                 this.fullName = 'Not Required'
-                this.bgcolor='bg-success'
+                this.bgcolor='bg-success mb-2'
                 this.specialMember = true
             } else if(this.sheriffId== '00000-00000-22222'){
                 this.fullName = 'Not Available'
@@ -165,7 +165,7 @@
                 this.specialMember = true
             }else{      
                 this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
-                this.bgcolor='bg-white'
+                this.bgcolor='bg-white mb-2'
                 for(let dayOffset=0; dayOffset<7; dayOffset++){
                     const date= moment(this.dutyRangeInfo.startDate).add(dayOffset,'days').format()
                     this.sheriffSchedules.push({
