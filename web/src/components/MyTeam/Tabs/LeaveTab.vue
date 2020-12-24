@@ -22,10 +22,10 @@
                         :items="assignedLeaves"
                         :fields="fields"
                         head-row-variant="primary"
-                        striped
                         borderless
                         small
                         sort-by="startDate"
+                        :sort-desc="true"
                         responsive="sm"
                         >  
                             <template v-slot:cell(isFullDay)="data" >
@@ -171,6 +171,7 @@
         
         assignedLeaves: userLeaveInfoType[] = [];
         timezone = 'UTC';
+        currentTime = '';
         leaveDeleteReason = '';
 
         fields =  
@@ -188,6 +189,7 @@
         {
             this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");                         
             this.timezone = this.userToEdit.homeLocation? this.userToEdit.homeLocation.timezone :'UTC';
+            this.currentTime = moment(new Date()).tz(this.timezone).format();
             this.leaveTabDataReady = false;
             this.extractLeaves();                     
         }
@@ -213,6 +215,9 @@
                 
                 leave.startDate = moment(leaveJson.startDate).tz(this.timezone).format();
                 leave.endDate = moment(leaveJson.endDate).tz(this.timezone).format();
+                leave['_rowVariant'] = '';
+                if(leave.endDate < this.currentTime)
+                        leave['_rowVariant'] = 'info'; 
                 this.assignedLeaves.push(leave);               
             }
             
@@ -308,6 +313,11 @@
                     this.assignedLeaves[index]['isFullDay'] = false;
                     this.assignedLeaves[index]['_cellVariants'] = {isFullDay:'success'}                    
                 }
+
+                this.assignedLeaves[index]['_rowVariant'] = '';
+                if(this.assignedLeaves[index].endDate < this.currentTime)
+                    this.assignedLeaves[index]['_rowVariant'] = 'info';
+
                 this.$emit('change');
             } 
         }
@@ -329,6 +339,10 @@
                 leave.isFullDay = false;
                 leave['_cellVariants'] = {isFullDay:'success'}                    
             }
+
+            leave['_rowVariant'] = '';
+            if(leave.endDate < this.currentTime)
+                leave['_rowVariant'] = 'info';
 
             this.assignedLeaves.push(leave); 
             this.$emit('change');                     
