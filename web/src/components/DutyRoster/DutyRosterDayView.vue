@@ -1,6 +1,9 @@
 <template>
     <div>
+        <loading-spinner v-if="!isDutyRosterDataMounted" />      
+            
         <b-table
+            v-else
             :items="dutyRosterAssignments" 
             :fields="fields"
             sort-by="assignment"
@@ -40,7 +43,7 @@
                     <duty-card v-on:change="getData()" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
-        <sheriff-fuel-gauge v-show="!displayFooter" class="fixed-bottom bg-white"/>
+        <sheriff-fuel-gauge v-show="isDutyRosterDataMounted && !displayFooter" class="fixed-bottom bg-white"/>
     </div>
 </template>
 
@@ -186,8 +189,7 @@
             const shiftsData = response[2].data
             Vue.nextTick(() => {
                 this.extractTeamShiftInfo(shiftsData);                        
-                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson); 
-                this.calculateTableHeight() 
+                this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);                 
             })
         }
 
@@ -317,6 +319,7 @@
             this.isDutyRosterDataMounted = true;
             this.$emit('dataready')
             Vue.nextTick(()=>{
+                this.calculateTableHeight();
                 const el = document.getElementsByClassName('b-table-sticky-header')                
                 const scrollSize = window.innerWidth*0.9173-185
                 if(el[0]) el[0].addEventListener("scroll",()=>{
