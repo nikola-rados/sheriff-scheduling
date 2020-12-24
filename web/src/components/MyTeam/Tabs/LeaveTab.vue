@@ -51,7 +51,10 @@
                             <template v-slot:cell(endTime)="data" >
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
-                            <template v-slot:cell(editLeave)="data" >                                       
+                            <template v-slot:cell(editLeave)="data" >
+                                <b-button  size="sm" variant="transparent" style="margin:0; padding:0; width:1.2rem; float: left;">
+                                    <b-icon-chat-square-text-fill v-if="data.item.comment" v-b-tooltip.hover.left="data.item.comment"  class="mr-2" variant="info" font-scale="0.99"/>                                       
+                                </b-button>
                                 <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLeave(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="editLeave(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
@@ -99,9 +102,13 @@
                     <h2 class="mb-0 text-light">Conflicting Event</h2>                    
             </template>
             <h4>The following events conflict with this leave</h4>
-            <p v-for="event in overlappingList"
-                :key="event"> {{event}}
-            </p>
+                <ul>
+                    <li v-for="event in overlappingList"
+                        :key="event"
+                        class="mb-1"> {{event}}
+                    </li>
+                </ul>
+            <h4 class="mt-4 mb-0 text-danger">Do you want to override the conflicting event(s) listed above? </h4>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="saveLeave(leaveToSave, create, true)">Confirm</b-button>
                 <b-button variant="primary" @click="cancelLeaveOverride()">Cancel</b-button>

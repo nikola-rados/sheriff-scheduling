@@ -7,7 +7,7 @@
             :key="block.id"
             :id="block.id"
             :style="{gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
-            v-b-tooltip.hover="block.title? block.title:''" 
+            v-b-tooltip.hover.noninteractive="block.title? block.title:''" 
             @dragover.prevent
             @drop.prevent="drop" >
                 <div 
@@ -23,7 +23,7 @@
     
         <b 
             v-if="selectedComment.comment"
-            v-b-tooltip.hover.right.v-info="selectedComment.comment"  
+            v-b-tooltip.hover.right.noninteractive.v-info="selectedComment.comment"  
             :style="{backgroundColor: '#AB0000', gridColumnStart: selectedComment.startTime, gridColumnEnd: selectedComment.endTime, gridRow:'1/3'}"> 
                 <b-icon-chat-square-text-fill font-scale="0.8" variant="white" style="transform: translate(7px,-5px);"/>
         </b>
@@ -106,7 +106,7 @@
                             <template v-slot:cell(title)="data" >
                                 <div
                                     :style="(data.value=='Not Available'||data.value=='Not Required')?'color:'+data.item.color:''"
-                                    v-b-tooltip.hover.right                                
+                                    v-b-tooltip.hover.right.noninteractive                                
                                     :title="data.item.title>20? data.item.title:''">
                                     {{data.item.title | truncate(20)}}</div>
                             </template>
@@ -365,7 +365,7 @@
 
         mounted()
         {
-            console.log(this.dutyRosterInfo)
+            //console.log(this.dutyRosterInfo)
             this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");
             this.hasPermissionToExpireDuty = this.userDetails.permissions.includes("ExpireDuties");    
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
