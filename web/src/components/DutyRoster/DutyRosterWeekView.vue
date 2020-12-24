@@ -9,14 +9,15 @@
             small
             head-row-variant="primary"   
             borderless
-            sticky-header="37rem"                  
+            :style="{ height: getHeight, maxHeight: '100%', marginBottom: '0px' }"             
+            :sticky-header="getHeight"                  
             fixed>
                 <template v-slot:table-colgroup>
                     <col style="width:9rem">                            
                 </template>
                 
                 <template v-slot:cell(assignment) ="data"  >
-                    <duty-roster-assignment v-on:change="getData()" :assignment="data.item" :weekview="true"/>
+                    <duty-roster-assignment v-on:change="getData" :assignment="data.item" :weekview="true"/>
                 </template>
 
                 <template v-slot:head(assignment)="data" >
@@ -41,7 +42,7 @@
                 </template>
 
                 <template v-slot:cell(h0)="data" >
-                    <duty-card-week-view v-on:change="getData()" :dutyRosterInfo="data.item"/>
+                    <duty-card-week-view v-on:change="getData" :dutyRosterInfo="data.item"/>
                 </template>
         </b-table>                
         <b-card><br></b-card>
@@ -101,6 +102,10 @@
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
 
+        scrollPositions = {scrollDuty:0, scrollGauge:0, scrollTeamMember:0 };
+        windowHeight = 0;
+        tableHeight = 0;
+
         fields =[
             {key:'assignment', label:'Assignments', thClass:' m-0 p-0', tdClass:'p-0 m-0', thStyle:''},
             {key:'h0', label:'', thClass:'', tdClass:'p-0 m-0', thStyle:'margin:0; padding:0;'}
@@ -120,7 +125,7 @@
         async locationChange()
         {
             if (this.isDutyRosterDataMounted) {
-                this.getData();
+                this.getData(this.scrollPositions);
             }            
         } 
 
@@ -128,10 +133,36 @@
         {
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
-            this.getData();
+            this.getData(this.scrollPositions);
+            window.addEventListener('resize', this.getWindowHeight);
+            this.getWindowHeight()
         }
 
-        public async getData() {
+        beforeDestroy() {
+            window.removeEventListener('resize', this.getWindowHeight);
+        }
+        public getWindowHeight() {
+            this.windowHeight = document.documentElement.clientHeight;
+            this.calculateTableHeight()
+        }
+        get getHeight() {
+            return this.windowHeight - this.tableHeight + 'px'
+        }
+        public calculateTableHeight() {
+            const topHeaderHeight = (document.getElementsByClassName("app-header")[0] as HTMLElement)?.offsetHeight || 0;
+            const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
+            const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
+            const bottomHeight = gageHeight;
+            console.log('DutyRosterWeek - Window: ' + this.windowHeight)
+            console.log('DutyRosterWeek - Top: ' + topHeaderHeight)
+            console.log('DutyRosterWeek - SecondHeader: ' + secondHeader)
+            console.log('DutyRosterWeek - BottomHeight: ' + bottomHeight)
+            console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
+            this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader+1)
+        }
+
+        public async getData(dutyScroll) {
+            this.scrollPositions = dutyScroll? dutyScroll : {scrollDuty:0, scrollGauge:0, scrollTeamMember:0 }
             const response = await Promise.all([
                 this.getDutyRosters(),
                 this.getAssignments(),
@@ -335,6 +366,20 @@
 
            this.isDutyRosterDataMounted = true;
            this.$emit('dataready');
+
+            Vue.nextTick(()=>{
+
+                this.calculateTableHeight();
+                const el = document.getElementsByClassName('b-table-sticky-header') 
+                if(el[0]){                    
+                    el[0].scrollTop = this.scrollPositions.scrollDuty;
+                }                
+
+                const eltm = document.getElementById('dutyrosterteammember');
+                if(eltm){
+                    eltm.scrollTop = this.scrollPositions.scrollTeamMember;
+                }
+            })
         }
         
         public getType(type: string){

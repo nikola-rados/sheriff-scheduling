@@ -141,6 +141,9 @@ namespace SS.Api.services.scheduling
 
             fromDutySlot.EndDate = toDutySlotStart;
 
+            if (fromDutySlot.StartDate == fromDutySlot.EndDate)
+                Db.DutySlot.Remove(fromDutySlot);
+
             var toDuty = await Db.Duty.Include(d=> d.DutySlots).FirstOrDefaultAsync(d => d.Id == toDutyId);
             if (!(toDutySlotStart < toDuty.EndDate && toDuty.StartDate < toDutySlotStart))
                 throw new BusinessLayerException("Duty doesn't have room. You may need to adjust the duty.");

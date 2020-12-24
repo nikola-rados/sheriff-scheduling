@@ -98,15 +98,15 @@ namespace SS.Api.services.usermanagement
 
         public async Task<Sheriff> GetFilteredSheriffForTeams(Guid id)
         {
-            var today = DateTimeOffset.UtcNow;
+            var fourWeeksAgo = DateTimeOffset.UtcNow.AddDays(-28);
             var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
 
             return await Db.Sheriff.AsNoTracking().AsSingleQuery()
-                .ApplyPermissionFilters(User, today, sevenDaysFromNow, Db)
+                .ApplyPermissionFilters(User, fourWeeksAgo, sevenDaysFromNow, Db)
                 .Include(s=> s.HomeLocation)
-                .Include(s => s.AwayLocation.Where (al => al.EndDate >= today && al.ExpiryDate == null))
+                .Include(s => s.AwayLocation.Where (al => al.EndDate >= fourWeeksAgo && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)
-                .Include(s => s.Leave.Where(l => l.EndDate >= today && l.ExpiryDate == null))
+                .Include(s => s.Leave.Where(l => l.EndDate >= fourWeeksAgo && l.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
                 .Include(s => s.Training.Where(t => t.ExpiryDate == null))
                 .ThenInclude(t => t.TrainingType)
