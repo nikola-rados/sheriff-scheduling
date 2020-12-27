@@ -17,6 +17,7 @@ namespace SS.Db.models
         public Guid SheriffId { get; set; }
         [AdaptIgnore]
         public virtual Sheriff Sheriff { get; set; }
+        [MaxLength(200)]
         public string Comment { get; set; }
         public string Timezone { get; set; }
     }

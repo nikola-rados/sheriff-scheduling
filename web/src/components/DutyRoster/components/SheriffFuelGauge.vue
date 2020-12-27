@@ -1,5 +1,5 @@
 <template>
-    <div v-if="isSheriffFuelGauge">
+    <div>
         <b-row  class="m-0 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
                 <b-table
@@ -12,7 +12,7 @@
                     :sort-desc="true"
                     class="gauge"                   
                     sticky-header="7rem"                        
-                    borderless                   
+                    borderless
                     fixed>
                         <template v-slot:table-colgroup> 
                             <col style="width:9rem">
@@ -48,7 +48,7 @@
                                 :draggable="hasPermissionToAddAssignDuty" 
                                 v-on:dragstart="DragStart"
                                 style="height:1rem; font-size:12px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
-                                v-b-tooltip.hover.right                             
+                                v-b-tooltip.hover.right                            
                                 :title="data.item.fullName">
                                     {{data.value}}
                             </div>
@@ -78,7 +78,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import SheriffAvailabilityCard from './SheriffAvailabilityCard.vue'
     import { myTeamShiftInfoType, dutiesDetailInfoType} from '../../../types/DutyRoster';
     import { userInfoType } from '../../../types/common';
@@ -108,7 +108,6 @@
         @commonState.State
         public userDetails!: userInfoType;
         
-        isSheriffFuelGauge = false;
         hasPermissionToAddAssignDuty = false;
 
         myTeamMembers: any[] = []
@@ -119,12 +118,17 @@
             
         ]
 
+        @Watch('shiftAvailabilityInfo')
+        shiftAvailability() 
+        {
+            this.extractSheriffAvailability()
+        }
+
         mounted()
         {
-            this.isSheriffFuelGauge = false;
             //console.log(this.shiftAvailabilityInfo)
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
-            this.extractSheriffAvailability()                                    
+            this.extractSheriffAvailability() 
         }
 
         dutyColors = [
@@ -135,7 +139,7 @@
             {name:'overtime',colorCode:'#e85a0e'},
             {name:'free',   colorCode:'#e6d9e2'}            
         ]
-            
+
         public extractSheriffAvailability(){
             this.myTeamMembers = [];
             for(const sheriff of this.shiftAvailabilityInfo){
@@ -149,7 +153,6 @@
                     availabilityDetail: this.findAvailabilitySlots(sheriff.availability)
                 })
             }
-            this.isSheriffFuelGauge = true;
         }
 
         public findAvailabilitySlots(array){
@@ -217,6 +220,7 @@
     .gauge {       
         position: sticky;
         overflow-y: scroll;
+        margin-bottom: 0;
     }
 
     .gridfuel24 {        
