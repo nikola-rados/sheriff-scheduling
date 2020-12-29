@@ -115,14 +115,16 @@ namespace SS.Api.services.scheduling
         {
             foreach (var id in ids)
             {
-                var entity = await Db.Shift.FirstOrDefaultAsync(s => s.Id == id);
-                entity.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
-                entity!.ExpiryDate = DateTimeOffset.UtcNow;
-                var dutySlots = Db.DutySlot.Where(d => d.ShiftId == id);
+                var shift = await Db.Shift.FirstOrDefaultAsync(s => s.Id == id);
+                shift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
+                shift!.ExpiryDate = DateTimeOffset.UtcNow;
+                var dutySlots = Db.DutySlot.Where(d =>
+                    d.SheriffId == shift.SheriffId &&
+                    shift.StartDate <= d.StartDate &&
+                    shift.EndDate >= d.EndDate);
                 await dutySlots.ForEachAsync(ds =>
                 {
-                    ds.SheriffId = null;
-                    ds.ShiftId = null;
+                    ds.ExpiryDate = DateTimeOffset.UtcNow;
                 });
             }
             await Db.SaveChangesAsync();

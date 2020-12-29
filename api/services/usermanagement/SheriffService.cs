@@ -453,13 +453,21 @@ namespace SS.Api.services.usermanagement
                     }
                 }
 
-                foreach (var shift in shiftConflicts.Select(shiftConflict => Db.Shift.First(s => s.Id == shiftConflict.Id)))
+                foreach (var shift in shiftConflicts.Select(shiftConflict =>
+                    Db.Shift.First(s => s.Id == shiftConflict.Id)))
+                {
                     shift.ExpiryDate = DateTimeOffset.UtcNow;
-
-                var shiftConflictIds = shiftConflicts.SelectToList(sc => sc.Id);
-                var dutySlots = Db.DutySlot.Where(ds => ds.ShiftId != null && shiftConflictIds.Contains((int)ds.ShiftId));
-                foreach (var dutySlot in dutySlots)
-                    dutySlot.ExpiryDate = DateTimeOffset.UtcNow;
+                    var dutySlots = Db.DutySlot.Where(d =>
+                        d.ExpiryDate != null &&
+                        d.SheriffId != null &&
+                        d.SheriffId == shift.SheriffId &&
+                        shift.StartDate <= d.StartDate &&
+                        shift.EndDate >= d.EndDate);
+                    foreach (var dutySlot in dutySlots)
+                    {
+                        dutySlot.ExpiryDate = DateTimeOffset.UtcNow;
+                    }
+                }
 
                 await Db.SaveChangesAsync();
             }
