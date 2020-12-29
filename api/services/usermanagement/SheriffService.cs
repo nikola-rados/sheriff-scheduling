@@ -5,6 +5,8 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using SS.Api.helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
@@ -23,9 +25,11 @@ namespace SS.Api.services.usermanagement
     {
         private ClaimsPrincipal User { get; }
         private SheriffDbContext Db { get; }
-        public SheriffService(SheriffDbContext db, IHttpContextAccessor httpContextAccessor = null)
+        private IConfiguration Configuration { get; }
+        public SheriffService(SheriffDbContext db, IConfiguration configuration, IHttpContextAccessor httpContextAccessor = null)
         {
             Db = db;
+            Configuration = configuration;
             User = httpContextAccessor?.HttpContext.User;
         }
 
@@ -98,15 +102,16 @@ namespace SS.Api.services.usermanagement
 
         public async Task<Sheriff> GetFilteredSheriffForTeams(Guid id)
         {
-            var fourWeeksAgo = DateTimeOffset.UtcNow.AddDays(-28);
+            var daysPrevious = int.Parse(Configuration.GetNonEmptyValue("DaysInPastToIncludeAwayLocationAndTraining"));
+            var minDateForAwayAndTraining = DateTimeOffset.UtcNow.AddDays(-daysPrevious);
             var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
 
             return await Db.Sheriff.AsNoTracking().AsSingleQuery()
-                .ApplyPermissionFilters(User, fourWeeksAgo, sevenDaysFromNow, Db)
+                .ApplyPermissionFilters(User, minDateForAwayAndTraining, sevenDaysFromNow, Db)
                 .Include(s=> s.HomeLocation)
-                .Include(s => s.AwayLocation.Where (al => al.EndDate >= fourWeeksAgo && al.ExpiryDate == null))
+                .Include(s => s.AwayLocation.Where (al => al.EndDate >= minDateForAwayAndTraining && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)
-                .Include(s => s.Leave.Where(l => l.EndDate >= fourWeeksAgo && l.ExpiryDate == null))
+                .Include(s => s.Leave.Where(l => l.EndDate >= minDateForAwayAndTraining && l.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
                 .Include(s => s.Training.Where(t => t.ExpiryDate == null))
                 .ThenInclude(t => t.TrainingType)
