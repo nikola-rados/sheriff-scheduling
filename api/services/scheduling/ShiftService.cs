@@ -119,6 +119,7 @@ namespace SS.Api.services.scheduling
                 shift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
                 shift!.ExpiryDate = DateTimeOffset.UtcNow;
                 var dutySlots = Db.DutySlot.Where(d =>
+                    d.ExpiryDate == null && 
                     d.SheriffId == shift.SheriffId &&
                     shift.StartDate <= d.StartDate &&
                     shift.EndDate >= d.EndDate);

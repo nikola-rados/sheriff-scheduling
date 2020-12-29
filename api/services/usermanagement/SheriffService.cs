@@ -458,8 +458,7 @@ namespace SS.Api.services.usermanagement
                 {
                     shift.ExpiryDate = DateTimeOffset.UtcNow;
                     var dutySlots = Db.DutySlot.Where(d =>
-                        d.ExpiryDate != null &&
-                        d.SheriffId != null &&
+                        d.ExpiryDate == null &&
                         d.SheriffId == shift.SheriffId &&
                         shift.StartDate <= d.StartDate &&
                         shift.EndDate >= d.EndDate);
