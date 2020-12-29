@@ -30,7 +30,7 @@ namespace tests.controllers
         public ShiftControllerTests() : base(false)
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db), environment.Configuration), Db)
+            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db, environment.Configuration), environment.Configuration), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };

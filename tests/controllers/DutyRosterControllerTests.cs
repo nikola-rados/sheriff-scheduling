@@ -29,7 +29,7 @@ namespace tests.controllers
         public DutyRosterControllerTests() : base(false)
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            _controller = new DutyRosterController(new DutyRosterService(Db, environment.Configuration, new ShiftService(Db, new SheriffService(Db), environment.Configuration)), Db)
+            _controller = new DutyRosterController(new DutyRosterService(Db, environment.Configuration, new ShiftService(Db, new SheriffService(Db, environment.Configuration), environment.Configuration)), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
