@@ -23,10 +23,10 @@
                         :items="assignedAwayLocations"
                         :fields="fields"
                         head-row-variant="primary"
-                        striped
                         borderless
                         small
                         sort-by="startDate"
+                        :sort-desc="true"
                         responsive="sm"
                         >  
                             <template v-slot:cell(isFullDay)="data" >
@@ -53,7 +53,10 @@
                             <template v-slot:cell(endTime)="data" >
                                 <span v-if="!data.item.isFullDay">{{data.item.endDate | beautify-time }}</span> 
                             </template>
-                            <template v-slot:cell(edit)="data" >                                      
+                            <template v-slot:cell(edit)="data" >
+                                <b-button  size="sm" variant="transparent" style="margin:0; padding:0; width:1.2rem; float: left;">
+                                    <b-icon-chat-square-text-fill v-if="data.item.comment" v-b-tooltip.hover.left="data.item.comment"  class="mr-2" variant="info" font-scale=".99"/>                                       
+                                </b-button>                                      
                                 <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="confirmDeleteLocation(data.item)"><b-icon icon="trash-fill" font-scale="1.25" variant="danger"/></b-button>
                                 <b-button v-if="hasPermissionToEditUsers" class="my-0 py-0" size="sm" variant="transparent" @click="editLocation(data)"><b-icon icon="pencil-square" font-scale="1.25" variant="primary"/></b-button>
                             </template>
@@ -103,9 +106,13 @@
                     <h2 class="mb-0 text-light">Conflicting Event</h2>                    
             </template>
             <h4>The following events conflict with this location</h4>
-            <p v-for="event in overlappingList"
-                :key="event"> {{event}}
-            </p>
+                <ul>
+                    <li v-for="event in overlappingList"
+                        :key="event"
+                        class="mb-1"> {{event}}
+                    </li>
+                </ul>
+            <h4 class="mt-4 mb-0 text-danger">Do you want to override the conflicting event(s) listed above? </h4>
             <template v-slot:modal-footer>
                 <b-button variant="danger" @click="saveAwayLocation(locationToSave, create, true)">Confirm</b-button>
                 <b-button variant="primary" @click="cancelAwayLocationOverride()">Cancel</b-button>
@@ -166,8 +173,10 @@
 
         locationToSave = {};
         create = false;
+        currentTime = '';
         
         assignedAwayLocations: awayLocationInfoType[] = [];
+
 
         fields =  
         [     
@@ -202,8 +211,13 @@
                     this.assignedAwayLocations[inx]['_cellVariants'] = {isFullDay:'success'}                    
                 }
                 const timezone = location? location.timezone : 'UTC';
+                this.currentTime = moment(new Date()).tz(timezone).format();
                 this.assignedAwayLocations[inx].startDate = moment(this.assignedAwayLocations[inx].startDate).tz(timezone).format();
-                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz(timezone).format();               
+                this.assignedAwayLocations[inx].endDate = moment(this.assignedAwayLocations[inx].endDate).tz(timezone).format();
+                this.currentTime = moment(new Date()).tz(timezone).format();            
+                this.assignedAwayLocations[inx]['_rowVariant'] = '';
+                if(this.assignedAwayLocations[inx].endDate < this.currentTime)
+                        this.assignedAwayLocations[inx]['_rowVariant'] = 'info';                            
             }
         }
 
@@ -329,6 +343,10 @@
                     this.assignedAwayLocations[index]['isFullDay'] = false;
                     this.assignedAwayLocations[index]['_cellVariants'] = {isFullDay:'success'}                    
                 }
+                this.currentTime = moment(new Date()).tz(timezone).format();
+                this.assignedAwayLocations[index]['_rowVariant'] = '';
+                if(this.assignedAwayLocations[index].endDate < this.currentTime)
+                    this.assignedAwayLocations[index]['_rowVariant'] = 'info';
 
                 this.$emit('change');
             } 
@@ -356,6 +374,11 @@
                 assignedAwayLocation['isFullDay'] = false;
                 assignedAwayLocation['_cellVariants'] = {isFullDay:'success'}                    
             }
+            this.currentTime = moment(new Date()).tz(timezone).format();
+
+            assignedAwayLocation['_rowVariant'] = '';
+            if(assignedAwayLocation.endDate < this.currentTime)
+                assignedAwayLocation['_rowVariant'] = 'info';                
 
             this.assignedAwayLocations.push(assignedAwayLocation); 
             this.$emit('change');                     

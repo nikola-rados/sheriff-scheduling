@@ -118,9 +118,10 @@
 
             this.headerDate();
 
-            const endDate = moment(this.shiftRangeInfo.endDate).endOf('day').format();
+            const endDate = moment.tz(this.shiftRangeInfo.endDate, this.location.timezone).endOf('day').utc().format();
+            const startDate = moment.tz(this.shiftRangeInfo.startDate, this.location.timezone).startOf('day').utc().format();
 
-            const url = 'api/shift/shiftavailability?locationId='+this.location.id+'&start='+this.shiftRangeInfo.startDate+'&end='+endDate;
+            const url = 'api/shift/shiftavailability?locationId='+this.location.id+'&start='+startDate+'&end='+endDate;
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
@@ -219,7 +220,7 @@
                             
                             if (conflict.conflict == "Scheduled" && conflict.overtimeHours !=0) {
                                 
-                                const regularTimeEnd = moment(conflict.end).subtract(conflict.overtimeHours, 'h');
+                                const regularTimeEnd = moment(conflict.end).subtract(conflict.overtimeHours, 'h').tz(this.location.timezone);
                                 let duration = moment.duration(regularTimeEnd.diff(start));
                                 
                                 const regularShift = {
@@ -228,7 +229,7 @@
                                     dayOffset: Number(dateIndex), 
                                     date:this.headerDates[dateIndex], 
                                     startTime:Vue.filter('beautify-time')(conflict.start), 
-                                    endTime:Vue.filter('beautify-time')(regularTimeEnd.format("YYYY-MM-DDTHH:mm:ssZ")), 
+                                    endTime:Vue.filter('beautify-time')(regularTimeEnd.format()), 
                                     startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
                                     timeDuration:duration.asMinutes(), 
                                     type:this.getConflictsType(conflict), 
@@ -243,9 +244,9 @@
                                     location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
                                     dayOffset: Number(dateIndex), 
                                     date:this.headerDates[dateIndex], 
-                                    startTime:Vue.filter('beautify-time')(regularTimeEnd.format("YYYY-MM-DDTHH:mm:ssZ")), 
+                                    startTime:Vue.filter('beautify-time')(regularTimeEnd.format()), 
                                     endTime:Vue.filter('beautify-time')(conflict.end), 
-                                    startInMinutes:moment.duration(regularTimeEnd.diff(moment(regularTimeEnd.format("YYYY-MM-DDTHH:mm:ssZ")).startOf('day'))).asMinutes(),
+                                    startInMinutes:moment.duration(regularTimeEnd.diff(moment(regularTimeEnd.format()).startOf('day'))).asMinutes(),
                                     timeDuration:duration.asMinutes(), 
                                     type:'overTimeShift', 
                                     fullday:false,

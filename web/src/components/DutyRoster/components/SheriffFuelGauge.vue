@@ -48,7 +48,7 @@
                                 :draggable="hasPermissionToAddAssignDuty" 
                                 v-on:dragstart="DragStart"
                                 style="height:1rem; font-size:12px; line-height: 16px; text-transform: capitalize; margin:0; padding:0"
-                                v-b-tooltip.hover.right                             
+                                v-b-tooltip.hover.right                            
                                 :title="data.item.fullName">
                                     {{data.value}}
                             </div>
@@ -220,6 +220,7 @@
     .gauge {       
         position: sticky;
         overflow-y: scroll;
+        margin-bottom: 0;
     }
 
     .gridfuel24 {        

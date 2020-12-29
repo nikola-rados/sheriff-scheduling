@@ -6,19 +6,19 @@
             :draggable="hasPermissionToAddAssignDuty" 
             v-on:dragstart="DragStart" 
             style="border-radius:5px"          
-            :class="bgcolor+' mb-2 p-1'">
+            :class="bgcolor+' p-1'">
                 <b-col v-if="!specialMember" class="b-0 p-0">
                     <div style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</div>
                     <div style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</div>
                     <div 
                         style="font-size:12px; line-height: 16px; font-weight: bold; text-transform: Capitalize;" 
-                        v-b-tooltip.hover                                
+                        v-b-tooltip.hover.noninteractive                               
                         :title="fullName.length>13?fullName:''">
                             {{fullName|truncate(11)}}
                     </div>
 
                     <b-row v-if="!weekView">
-                        <b-badge v-b-tooltip.hover.v-warning.html="allShifts" class="mx-auto mt-1">{{shifts[0]}}<span v-if="shifts.length>1"> ...</span></b-badge>
+                        <b-badge v-b-tooltip.hover.noninteractive.v-warning.html="allShifts" class="mx-auto mt-1">{{shifts[0]}}<span v-if="shifts.length>1"> ...</span></b-badge>
                     </b-row>
 
                     <b-row v-else style="margin:0; padding:0; font-size:10px;">
@@ -32,7 +32,7 @@
                                 {{sch.text}}                            
                         
 
-                            <b-tooltip v-if="sch.shifts.length>0" :target="'sch'+sheriffId+'-'+sch.weekday" variant="warning" show.sync ="true" triggers="hover" placement="topright">
+                            <b-tooltip v-if="sch.shifts.length>0" noninteractive :target="'sch'+sheriffId+'-'+sch.weekday" variant="warning" show.sync ="true" triggers="hover" placement="topright">
                                 <h2 class="text-danger  mb-1 mx-0 p-0">{{sch.name}}</h2>
                                 <b-card bg-variant="dark" header-class="text-warning m-0 p-0" body-class="m-0 p-0" header="Sheriff Shifts:">             
                                     <b-table  
@@ -127,7 +127,7 @@
         allShifts = {title:''};
 
         specialMember = false;
-        bgcolor='bg-white';
+        bgcolor='bg-white mb-2';
 
         shiftFields = [
             {key:'startDate', label:'Start', thClass:'text-info m-0 p-0', tdClass:'text-white p-0 m-0', thStyle:''},
@@ -157,7 +157,7 @@
             this.sheriffId = this.sheriffInfo.sheriffId; 
             if(this.sheriffId== '00000-00000-11111'){
                 this.fullName = 'Not Required'
-                this.bgcolor='bg-success'
+                this.bgcolor='bg-success mb-2'
                 this.specialMember = true
             } else if(this.sheriffId== '00000-00000-22222'){
                 this.fullName = 'Not Available'
@@ -165,7 +165,7 @@
                 this.specialMember = true
             }else{      
                 this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
-                this.bgcolor='bg-white'
+                this.bgcolor='bg-white mb-2'
                 for(let dayOffset=0; dayOffset<7; dayOffset++){
                     const date= moment(this.dutyRangeInfo.startDate).add(dayOffset,'days').format()
                     this.sheriffSchedules.push({
@@ -173,7 +173,7 @@
                         weekday: dayOffset, 
                         text:this.WeekDay[dayOffset],
                         name:this. weekDayNames[dayOffset], 
-                        variant:'danger',  
+                        variant:'white',  
                         style:'', 
                         shifts:[],
                         duties:[]
@@ -200,7 +200,7 @@
                 const filteredShifts = this.sheriffInfo.shifts.filter(shift=>{if(shift.startDate.substring(0,10)==schedule.date.substring(0,10))return true;});
                 const filteredDuties = this.sheriffInfo.dutiesDetail.filter(duty=>{if(duty.startTime && duty.startTime.substring(0,10)==schedule.date.substring(0,10))return true;});
                 if (filteredShifts.length == 0) {
-                    this.sheriffSchedules[scheduleIndex].variant = 'white';
+                    this.sheriffSchedules[scheduleIndex].variant = 'danger';
                 } else {
                     this.sheriffSchedules[scheduleIndex].shifts = filteredShifts 
                     this.sheriffSchedules[scheduleIndex].duties = filteredDuties

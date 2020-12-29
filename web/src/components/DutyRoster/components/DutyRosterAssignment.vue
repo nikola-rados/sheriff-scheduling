@@ -515,7 +515,7 @@
 				this.$http.delete(url)
 					.then(response => {
 						this.confirmDelete = false;
-						this.$emit('change');                    
+						this.$emit('change', this.scrollPositions());                    
 					}, err=>{
 						const errMsg = err.response.data.error;
 						console.log(err.response)
@@ -888,7 +888,7 @@
 				.then(response => {
 					if(response.data){
 							this.confirmedCloseEditAssignmentWindow();
-							this.$emit('change');
+							this.$emit('change', this.scrollPositions());
 					}
 				}, err => {
 					const errMsg = err.response.data;
@@ -942,7 +942,7 @@
 			this.$http.post(url, body )
 				.then(response => {
 					if(response.data){
-							this.$emit('change');
+							this.$emit('change', this.scrollPositions());
 					}
 				}, err => {
 					this.dutyErrorMsg = err.response.data.error;
@@ -997,6 +997,17 @@
 		public commentFormat(value) {
 			return value.slice(0,100);
 		}
+
+		public scrollPositions(){
+            const el = document.getElementsByClassName('b-table-sticky-header')
+            const scrollDuty = el[0]? el[0].scrollTop : 0;
+            const scrollGauge = el[1]? el[1].scrollTop : 0;
+
+            const eltm = document.getElementById('dutyrosterteammember');
+            const scrollTeamMember = eltm? eltm.scrollTop : 0;
+
+            return {scrollDuty: scrollDuty, scrollGauge: scrollGauge, scrollTeamMember:scrollTeamMember }
+        }
     }
 </script>
 
