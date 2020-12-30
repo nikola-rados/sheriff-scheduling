@@ -16,6 +16,8 @@ namespace SS.Db.configuration
             builder.HasOne(d => d.Duty).WithMany(d => d.DutySlots).HasForeignKey(d => d.DutyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            builder.HasIndex(b => new { b.StartDate, b.EndDate });
+
             base.Configure(builder);
         }
     }
