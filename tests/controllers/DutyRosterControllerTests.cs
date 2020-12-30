@@ -348,8 +348,7 @@ namespace tests.controllers
                         Id = 50000,
                         DutyId = 50000,
                         StartDate = shiftStartDate.AddHours(9),
-                        EndDate = shiftStartDate.AddHours(18),
-                        ShiftId = shift.Id
+                        EndDate = shiftStartDate.AddHours(18)
                     }
                 }
             };
@@ -375,8 +374,7 @@ namespace tests.controllers
                         Id = 50001,
                         DutyId = 50000,
                         StartDate = shiftStartDate.AddHours(8),
-                        EndDate = shiftStartDate.AddHours(18),
-                        ShiftId = shift.Id
+                        EndDate = shiftStartDate.AddHours(18)
                     }
                 }
             };
@@ -402,8 +400,7 @@ namespace tests.controllers
                         Id = 50001,
                         DutyId = 50000,
                         StartDate = shiftStartDate.AddHours(9),
-                        EndDate = shiftStartDate.AddHours(17),
-                        ShiftId = shift.Id
+                        EndDate = shiftStartDate.AddHours(17)
                     }
                 }
             };
