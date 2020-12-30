@@ -46,6 +46,19 @@
                 </template>
         </b-table>                
         <b-card><br></b-card>
+
+        <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
+            <b-card class="h4 mx-2 py-2">
+				<span class="p-0">{{errorText}}</span>
+            </b-card>        
+            <template v-slot:modal-footer>
+                <b-button variant="primary" @click="openErrorModal=false">Ok</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="openErrorModal=false"
+                >&times;</b-button>
+            </template>
+        </b-modal>
     </div>
 </template>
 
@@ -105,6 +118,9 @@
         scrollPositions = {scrollDuty:0, scrollGauge:0, scrollTeamMember:0 };
         windowHeight = 0;
         tableHeight = 0;
+
+        errorText=''
+		openErrorModal=false;
 
         fields =[
             {key:'assignment', label:'Assignments', thClass:' m-0 p-0', tdClass:'p-0 m-0', thStyle:''},
@@ -167,7 +183,7 @@
                 this.getDutyRosters(),
                 this.getAssignments(),
                 this.getShifts()
-            ]);
+            ]).catch(err=>{this.errorText=err.response.statusText+' '+err.response.status; this.openErrorModal=true;this.isDutyRosterDataMounted=true;});
 
             this.dutyRostersJson = response[0].data;
             this.dutyRosterAssignmentsJson = response[1].data;

@@ -163,11 +163,11 @@
             const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
             this.gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
             this.bottomHeight = this.displayFooter ? footerHeight : this.gageHeight;
-            console.log('My Team - Window: ' + this.windowHeight)
-            console.log('My Team - Top: ' + topHeaderHeight)
-            console.log('My Team - TeamHeader: ' + myTeamHeader)
-            console.log('My Team - BottomHeight: ' + this.bottomHeight)
-            console.log('My Team - New height: ' + (this.windowHeight - topHeaderHeight - myTeamHeader - this.bottomHeight))
+            // console.log('My Team - Window: ' + this.windowHeight)
+            // console.log('My Team - Top: ' + topHeaderHeight)
+            // console.log('My Team - TeamHeader: ' + myTeamHeader)
+            // console.log('My Team - BottomHeight: ' + this.bottomHeight)
+            // console.log('My Team - New height: ' + (this.windowHeight - topHeaderHeight - myTeamHeader - this.bottomHeight))
             this.tableHeight = (topHeaderHeight + myTeamHeader + this.bottomHeight+8)
         }
 

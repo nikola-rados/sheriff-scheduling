@@ -33,6 +33,20 @@
                 </div>
             </b-overlay>
         <b-card><br></b-card>
+
+        <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
+            <b-card class="h4 mx-2 py-2">
+				<span class="p-0">{{errorText}}</span>
+            </b-card>                        
+            <template v-slot:modal-footer>
+                <b-button variant="primary" @click="openErrorModal=false">Ok</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="openErrorModal=false"
+                >&times;</b-button>
+            </template>
+        </b-modal>
+
            
     </b-card>
 </template>
@@ -83,6 +97,10 @@
         numberOfheaderDates = 7;
         updateTable=0;
 
+        errorText =''
+        openErrorModal=false
+        
+
         fields=[
             {key:'myteam', label:'My Team', tdClass:'px-0 mx-0', thClass:'text-center'},
             {key:'Sun', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
@@ -128,7 +146,7 @@
                         console.log(response.data)
                         this.extractTeamAvailabilityInfo(response.data);                        
                     }                                   
-                })            
+                },err => {this.errorText = err; this.openErrorModal=true; this.isManageScheduleDataMounted=true;})            
         }
 
         public headerDate() {
@@ -217,10 +235,18 @@
                         {  
                             const start = moment(conflict.start)
                             const end = moment(conflict.end)
+
+                            console.log(conflict)
                             
                             if (conflict.conflict == "Scheduled" && conflict.overtimeHours !=0) {
                                 
-                                const regularTimeEnd = moment(conflict.end).subtract(conflict.overtimeHours, 'h').tz(this.location.timezone);
+                                const conflictDuration = moment.duration(end.diff(start)).asHours();
+                                const overtime = (conflictDuration <= conflict.overtimeHours)? conflictDuration : conflict.overtimeHours
+                                const regularTimeEnd = moment(conflict.end).subtract(overtime, 'h').tz(this.location.timezone);
+                                console.log(overtime)
+                                console.log(conflictDuration)
+                                console.log(conflict.overtimeHours)
+                                
                                 let duration = moment.duration(regularTimeEnd.diff(start));
                                 
                                 const regularShift = {
@@ -253,7 +279,8 @@
                                     comment: conflict.comment? conflict.comment :''
                                 }
                                 // console.log(regularShift)
-                                conflicts.push(regularShift, overTimeShift);                                
+                                if(conflictDuration > conflict.overtimeHours)conflicts.push(regularShift);
+                                conflicts.push(overTimeShift);                                
 
                             } else {
                                 const duration = moment.duration(end.diff(start));//duration.asMinutes()
