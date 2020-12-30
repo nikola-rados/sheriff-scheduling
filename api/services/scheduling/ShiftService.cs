@@ -39,23 +39,38 @@ namespace SS.Api.services.scheduling
                 .ToListAsync();
 
             var shifts = await Db.Shift.AsSingleQuery().AsNoTracking()
-                .Include( s=> s.Location)
+                .Include(s=> s.Location)
                 .Include(s => s.Sheriff)
                 .Include(s => s.AnticipatedAssignment)
-                .Include(d => d.DutySlots.Where(ds => includeDuties))
-                .ThenInclude(ds => ds.Duty)
-                .ThenInclude(d => d.Assignment)
-                .ThenInclude(a => a.LookupCode)
                 .Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
                             s.StartDate < end && start < s.EndDate)
                 .ToListAsync();
 
-                return shifts.OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff?.Rank)
-                    ?.SortOrder.FirstOrDefault()
-                    ?.SortOrder)
-                .ThenBy(s => s.Sheriff.LastName)
-                .ThenBy(s => s.Sheriff.FirstName)
-                .ToList();
+            var dutySlots = await Db.DutySlot.AsSingleQuery()
+                .AsNoTracking()
+                .Include(ds => ds.Duty)
+                .ThenInclude(d => d.Assignment)
+                .ThenInclude(a => a.LookupCode)
+                .Where(ds =>
+                    includeDuties &&
+                    ds.LocationId == locationId &&
+                    ds.ExpiryDate == null &&
+                    ds.StartDate < end &&
+                    start < ds.EndDate)
+                .ToListAsync();
+
+            foreach (var shift in shifts)
+                shift.DutySlots = dutySlots.Where(ds =>
+                        ds.SheriffId == shift.SheriffId && ds.StartDate < shift.EndDate &&
+                        shift.StartDate < ds.EndDate)
+                    .ToList();
+
+            return shifts.OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff?.Rank)
+                ?.SortOrder.FirstOrDefault()
+                ?.SortOrder)
+            .ThenBy(s => s.Sheriff.LastName)
+            .ThenBy(s => s.Sheriff.FirstName)
+            .ToList();
         }
 
         public async Task<List<int>> GetShiftsLocations(List<int> ids) =>
@@ -115,14 +130,17 @@ namespace SS.Api.services.scheduling
         {
             foreach (var id in ids)
             {
-                var entity = await Db.Shift.FirstOrDefaultAsync(s => s.Id == id);
-                entity.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
-                entity!.ExpiryDate = DateTimeOffset.UtcNow;
-                var dutySlots = Db.DutySlot.Where(d => d.ShiftId == id);
+                var shift = await Db.Shift.FirstOrDefaultAsync(s => s.Id == id);
+                shift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
+                shift!.ExpiryDate = DateTimeOffset.UtcNow;
+                var dutySlots = Db.DutySlot.Where(d =>
+                    d.ExpiryDate == null && 
+                    d.SheriffId == shift.SheriffId &&
+                    shift.StartDate <= d.StartDate &&
+                    shift.EndDate >= d.EndDate);
                 await dutySlots.ForEachAsync(ds =>
                 {
-                    ds.SheriffId = null;
-                    ds.ShiftId = null;
+                    ds.ExpiryDate = DateTimeOffset.UtcNow;
                 });
             }
             await Db.SaveChangesAsync();

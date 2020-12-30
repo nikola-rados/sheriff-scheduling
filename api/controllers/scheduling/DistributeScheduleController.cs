@@ -27,20 +27,6 @@ namespace SS.Api.controllers.scheduling
             Db = db;
         }
 
-        [HttpGet("sheriffs")]
-        [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
-        public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetDistributeScheduleForSheriffs(List<Guid> sheriffIds, DateTimeOffset start, DateTimeOffset end, bool includeWorkSection)
-        {
-            if (start >= end) return BadRequest("Start date was on or after end date.");
-            if (end.Subtract(start).TotalDays > 30) return BadRequest("End date and start date are more than 30 days apart.");
-            if (!User.HasPermission(Permission.ViewDutyRoster)) includeWorkSection = false;
-
-            //Note: This has built in filtering for Sheriffs, based on permissions. 
-            var shiftAvailability = await ShiftService.GetShiftAvailability(start, end, sheriffIds);
-            var shiftsWithDuties = await DistributeScheduleService.GetDistributeSchedule(shiftAvailability, includeWorkSection);
-            return Ok(shiftsWithDuties.Adapt<List<ShiftAvailabilityDto>>());
-        }
-
         [HttpGet("location")]
         [PermissionClaimAuthorize(perm: Permission.ViewDistributeSchedule)]
         public async Task<ActionResult<List<ShiftAvailabilityDto>>> GetDistributeScheduleForLocation(int locationId, DateTimeOffset start, DateTimeOffset end, bool includeWorkSection)
@@ -51,7 +37,7 @@ namespace SS.Api.controllers.scheduling
             if (!User.HasPermission(Permission.ViewDutyRoster)) includeWorkSection = false;
 
             var shiftAvailability = await ShiftService.GetShiftAvailability(start, end, locationId: locationId);
-            var shiftsWithDuties = await DistributeScheduleService.GetDistributeSchedule(shiftAvailability, includeWorkSection);
+            var shiftsWithDuties = await DistributeScheduleService.GetDistributeSchedule(shiftAvailability, includeWorkSection, start, end, locationId);
             return Ok(shiftsWithDuties.Adapt<List<ShiftAvailabilityDto>>());
         }
     }
