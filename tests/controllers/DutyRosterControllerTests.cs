@@ -29,7 +29,7 @@ namespace tests.controllers
         public DutyRosterControllerTests() : base(false)
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            _controller = new DutyRosterController(new DutyRosterService(Db, environment.Configuration, new ShiftService(Db, new SheriffService(Db), environment.Configuration)), Db)
+            _controller = new DutyRosterController(new DutyRosterService(Db, environment.Configuration, new ShiftService(Db, new SheriffService(Db, environment.Configuration), environment.Configuration)), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -348,8 +348,7 @@ namespace tests.controllers
                         Id = 50000,
                         DutyId = 50000,
                         StartDate = shiftStartDate.AddHours(9),
-                        EndDate = shiftStartDate.AddHours(18),
-                        ShiftId = shift.Id
+                        EndDate = shiftStartDate.AddHours(18)
                     }
                 }
             };
@@ -360,7 +359,6 @@ namespace tests.controllers
             Assert.NotNull(result.First());
             Assert.NotNull(result.First().DutySlots.First());
             Assert.Equal(50000, result.First().DutySlots.First().Id);
-            Assert.True(result.First().DutySlots.First().IsOvertime);
 
             //Extend in the morning
             updateDutyDto = new UpdateDutyDto
@@ -375,8 +373,7 @@ namespace tests.controllers
                         Id = 50001,
                         DutyId = 50000,
                         StartDate = shiftStartDate.AddHours(8),
-                        EndDate = shiftStartDate.AddHours(18),
-                        ShiftId = shift.Id
+                        EndDate = shiftStartDate.AddHours(18)
                     }
                 }
             };
@@ -387,7 +384,6 @@ namespace tests.controllers
             Assert.NotNull(result.First());
             Assert.NotNull(result.First().DutySlots.First());
             Assert.Equal(50001, result.First().DutySlots.First().Id);
-            Assert.True(result.First().DutySlots.First().IsOvertime);
 
             //Shrink shift back early + later? Should move shift from 8 am -> 6pm to 9 am to 5pm.
             updateDutyDto = new UpdateDutyDto
@@ -402,8 +398,7 @@ namespace tests.controllers
                         Id = 50001,
                         DutyId = 50000,
                         StartDate = shiftStartDate.AddHours(9),
-                        EndDate = shiftStartDate.AddHours(17),
-                        ShiftId = shift.Id
+                        EndDate = shiftStartDate.AddHours(17)
                     }
                 }
             };
@@ -451,7 +446,18 @@ namespace tests.controllers
                 }
             };
 
+            var shift = new Shift
+            {
+                Id = 50000,
+                LocationId = locationId,
+                StartDate = startDate,
+                EndDate = startDate.Date.AddHours(20),
+                Timezone = "America/Vancouver",
+                SheriffId = newSheriffId
+            };
+
             await Db.Duty.AddAsync(fromDuty);
+            await Db.Shift.AddAsync(shift);
             await Db.SaveChangesAsync();
 
             //It ends early and you'd like to move someone from 3pm -> 5pm into another duty
