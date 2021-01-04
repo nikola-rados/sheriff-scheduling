@@ -113,7 +113,20 @@
                 <b-button variant="outline-warning" class="text-light closeButton" @click="cancelDeletion()"
                 >&times;</b-button>
             </template>
-        </b-modal>     
+        </b-modal> 
+
+        <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
+            <b-card class="h4 mx-2 py-2">
+				<span class="p-0">{{errorText}}</span>
+            </b-card>                        
+            <template v-slot:modal-footer>
+                <b-button variant="primary" @click="openErrorModal=false">Ok</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="openErrorModal=false"
+                >&times;</b-button>
+            </template>
+        </b-modal>    
     </div>
 </template>
 
@@ -175,6 +188,9 @@
         roleDeleteReason = '';
         selectedRoleView = 'active';
 
+        errorText = ''
+        openErrorModal=false;
+
         timezone = 'UTC';
 
         roleFields =  
@@ -203,7 +219,7 @@
                         this.rolesJson = response.data
                         this.extractRoles();                        
                     }                                   
-                })
+                },err => {this.errorText = err;this.openErrorModal=true;})
         }
       
         public extractRoles(){
@@ -258,7 +274,7 @@
                         this.historicRolesJson = response.data
                         this.extractHistoricRoles();                        
                     }                                   
-                })
+                },err => {this.errorText = err;this.openErrorModal=true;})
         }
 
         public extractHistoricRoles(){
