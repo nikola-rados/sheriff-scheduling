@@ -120,7 +120,20 @@
                 <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-confirm-delete')"
                 >&times;</b-button>
             </template>
-        </b-modal>    
+        </b-modal> 
+
+        <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
+            <b-card class="h4 mx-2 py-2">
+				<span class="p-0">{{errorText}}</span>
+            </b-card>                        
+            <template v-slot:modal-footer>
+                <b-button variant="primary" @click="openErrorModal=false">Ok</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="openErrorModal=false"
+                >&times;</b-button>
+            </template>
+        </b-modal>
 
     </b-card>
 </template>
@@ -177,6 +190,9 @@
 
         sortIndex = 0;
         expiredViewChecked = false;
+
+        errorText=''
+		openErrorModal=false;
 
         saveOrderFlag = false;
 
@@ -249,7 +265,7 @@
                             this.extractLeaveTrainings(response.data);                        
                         }
                         this.isLeaveTrainingDataMounted = true;
-                    }) 
+                    },err => {this.errorText = err;this.openErrorModal=true;this.isLeaveTrainingDataMounted=true;}) 
             });       
         }
 

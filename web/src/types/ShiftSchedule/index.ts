@@ -86,6 +86,7 @@ export interface dayOptionsInfoType {
         Training: conflictsInfoType[],
         Leave: conflictsInfoType[],
         Loaned: conflictsInfoType[],
+        AllShifts:conflictsInfoType[], 
         Shift: conflictsInfoType[],
         overTimeShift: conflictsInfoType[],
         Unavailable: conflictsInfoType[]
