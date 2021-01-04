@@ -262,7 +262,7 @@
                         endBin: dutyRangeBin.endBin,
                         name: color.name,
                         colorCode: color.colorCode,
-                        color: duty.shiftId? color.colorCode: this.dutyColors[5].colorCode,
+                        color: duty.isOvertime? this.dutyColors[5].colorCode:color.colorCode,
                         type: duty.assignmentLookupCode.type,
                         code: duty.assignmentLookupCode.code
                     })
@@ -337,32 +337,34 @@
 
             this.isDutyRosterDataMounted = true;
             this.$emit('dataready')
-            Vue.nextTick(()=>{
-                this.calculateTableHeight();
-                const el = document.getElementsByClassName('b-table-sticky-header')                
-                const scrollSize = window.innerWidth*0.9173-185
-
-                if(el[0]) el[0].addEventListener("scroll",()=>{
-                    if(el[1]) el[1].scrollLeft = el[0].scrollLeft
-                })
-
-                if(el[0]){
-                    el[0].scrollLeft = (scrollSize*0.5425);
-                    el[0].scrollTop = this.scrollPositions.scrollDuty;
-                }
-
-                if(el[1]){
-                    el[1].scrollLeft = (scrollSize*0.5425);
-                    //el[1].scrollTop = this.scrollPositions.scrollGauge;
-                }
-
-                const eltm = document.getElementById('dutyrosterteammember');
-                if(eltm){
-                    eltm.scrollTop = this.scrollPositions.scrollTeamMember;
-                }
-
-            })
+            Vue.nextTick(()=>this.scrollAdjustment())
         }
+
+        public scrollAdjustment(){
+            this.calculateTableHeight();
+            const el = document.getElementsByClassName('b-table-sticky-header')                
+            const scrollSize = window.innerWidth*0.9173-185
+
+            if(el[0]) el[0].addEventListener("scroll",()=>{
+                if(el[1]) el[1].scrollLeft = el[0].scrollLeft
+            })
+
+            if(el[0]){
+                el[0].scrollLeft = (scrollSize*0.5425);
+                el[0].scrollTop = this.scrollPositions.scrollDuty;
+            }
+
+            if(el[1]){
+                el[1].scrollLeft = (scrollSize*0.5425);
+                //el[1].scrollTop = this.scrollPositions.scrollGauge;
+            }
+
+            const eltm = document.getElementById('dutyrosterteammember');
+            if(eltm){
+                eltm.scrollTop = this.scrollPositions.scrollTeamMember;
+            }
+        }
+
         public getType(type: string){
             for(const color of this.dutyColors){
                 if(type.toLowerCase().includes(color.name))return color

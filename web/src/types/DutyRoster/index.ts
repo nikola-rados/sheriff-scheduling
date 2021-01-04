@@ -204,6 +204,6 @@ export interface dutyBlockWeekInfoType {
 export interface assignDutySlotsInfoType{
     startDate: string,
     endDate: string,
-    shiftId: number|null,
+    isOvertime:boolean,
     dutySlotId: number|null,    
 }

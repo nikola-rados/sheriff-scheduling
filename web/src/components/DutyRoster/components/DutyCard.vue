@@ -136,13 +136,13 @@
                                 <b-button style="width:.75rem;float:right" 
                                         class="mx-1 my-0 py-0" 
                                         size="sm" 
-                                        :disabled="data.item.note?true:false" 
+                                         
                                         variant="transparent" 
                                         @click="editDutySlotInfo(data)"
                                         v-b-tooltip.hover                                
                                         title="Edit"
                                         ><b-icon 
-                                            v-if="!data.item.note" 
+                                             
                                             icon="pencil-square" 
                                             font-scale="1.25" 
                                             variant="primary" 
@@ -435,7 +435,7 @@
                 const editedDutySlots: assignDutySlotsInfoType[] =[{
                     startDate: '',
                     endDate: '',
-                    shiftId:null,
+                    isOvertime:false,
                     dutySlotId:this.dutySlotToUnassign.dutySlotId
                 }]
                 this.assignDuty(this.dutySlotToUnassign.sheriffId, editedDutySlots, true);        
@@ -592,9 +592,8 @@
         }
 
         public getOverTime(shiftId, isNotAvailable, isNotRequired, isOverTime) {
-            if(isOverTime) return true;
-            else if(isNotRequired || isNotAvailable) return  false;
-            else if(!shiftId) return true;
+            if(isNotRequired || isNotAvailable) return  false;
+            else if(isOverTime) return true;
             else return false;
         }
         
@@ -623,7 +622,7 @@
                     const editedDutySlots: assignDutySlotsInfoType[] =[{
                         startDate: timeRangeDate.startTime,
                         endDate: timeRangeDate.endTime,
-                        shiftId:null,
+                        isOvertime:false,
                         dutySlotId:null
                     }]
                     this.assignDuty(sheriffId, editedDutySlots, false);
@@ -652,7 +651,8 @@
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
                             endDate: slotTime.endTime,                        
-                            shiftId: unionUnassignAvail[inx1],
+                            //shiftId: unionUnassignAvail[inx1],
+                            isOvertime:false,
                             dutySlotId: null,
                         })
                     }
@@ -681,7 +681,7 @@
             const editedDutySlots: assignDutySlotsInfoType[] =[{
                 startDate: this.overTimeTimeRangeDate.startTime,
                 endDate: this.overTimeTimeRangeDate.endTime,
-                shiftId:null,
+                isOvertime:true,
                 dutySlotId:null
             }]
 
@@ -761,11 +761,11 @@
                             endDate: dutySlot.endDate,
                             dutyId: dutyInfo.id,
                             sheriffId: sheriffId,
-                            shiftId: dutySlot.shiftId,
+                            shiftId: null,
                             timezone: dutyInfo.timezone,
                             isNotRequired: isNotRequired,
                             isNotAvailable: isNotAvailable,
-                            isOvertime: false
+                            isOvertime: dutySlot.isOvertime
                         })
                     
                 }

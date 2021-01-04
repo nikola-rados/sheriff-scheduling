@@ -249,7 +249,7 @@
                         endTime:moment(duty.endDate).tz(this.location.timezone).format(),
                         name: color.name,
                         colorCode: color.colorCode,
-                        color: duty.shiftId? color.colorCode: this.dutyColors[5].colorCode,
+                        color: duty.isOvertime? this.dutyColors[5].colorCode:color.colorCode,
                         type: duty.assignmentLookupCode.type,
                         code: duty.assignmentLookupCode.code
                     })
@@ -383,8 +383,11 @@
            this.isDutyRosterDataMounted = true;
            this.$emit('dataready');
 
-            Vue.nextTick(()=>{
+           Vue.nextTick(()=>this.scrollAdjustment())
 
+        }
+        
+        public scrollAdjustment(){
                 this.calculateTableHeight();
                 const el = document.getElementsByClassName('b-table-sticky-header') 
                 if(el[0]){                    
@@ -395,7 +398,6 @@
                 if(eltm){
                     eltm.scrollTop = this.scrollPositions.scrollTeamMember;
                 }
-            })
         }
         
         public getType(type: string){
