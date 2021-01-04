@@ -1,8 +1,15 @@
 <template>    
-    <div class="app-outer fill-body" id="app" v-if= "isCommonDataReady" style="user-select: none;">
-        <navigation-topbar />
-        <router-view></router-view>
-        <navigation-footer id="footer" v-if="displayFooter"/>
+    <div class="app-outer fill-body" id="app"  style="user-select: none;">
+        <div v-if= "isCommonDataReady">
+            <navigation-topbar />
+            <router-view></router-view>
+            <navigation-footer id="footer" v-if="displayFooter"/>
+        </div>
+        <div v-else>
+            <b-card v-if="errorText" border-variant="white" class="bg-warning">
+            {{errorText}}
+            </b-card>
+        </div>
     </div>
 </template>
 
@@ -95,8 +102,8 @@
                             }) 
                             this.getAllLocations()  
                         }                      
-                    }                   
-                })  
+                    } 
+                },err => this.errorText = err)
         }
 
         public loadSheriffRankList(){  
@@ -113,7 +120,7 @@
                                 this.$router.push({path:'/duty-roster'})
                         }
                     }                   
-                })          
+                },err => this.errorText = err)          
         }        
 
         public extractSheriffRankInfo(sheriffRankList){
@@ -136,7 +143,7 @@
                         this.extractLocationInfo(response.data, true);
                         this.getLocations();
                     }                   
-                }) 
+                },err => this.errorText = err) 
         }
         
         public getLocations() {
@@ -147,7 +154,7 @@
                         this.extractLocationInfo(response.data, false);
                         this.loadSheriffRankList();
                     }                   
-                }) 
+                },err => this.errorText = err) 
         }
         
         public extractLocationInfo(locationListJson, allLocations: boolean){            

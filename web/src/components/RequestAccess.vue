@@ -28,8 +28,10 @@
             </b-row>
             <b-button :disabled="submitted" variant="primary" class="py-2 px-5 text-warning" @click="requestAccess()"> Submit Your Request</b-button>  
             <b-row class="mx-auto my-4 p-0">
-                <b-badge v-if="submitted" style="font-size:20px;" class="px-5 mx-auto bg-success" > Submitted successfully </b-badge>
+                <b-badge v-if="submitted" style="font-size:20px;" class="px-5 mx-auto bg-success" > Your request has been submitted successfully!<br/> We will get back to you soon.</b-badge>
             </b-row>
+            <b-card v-if="errorText" class="text-danger">An unexpected error occurred ({{errorText}})
+            </b-card>
         </b-card>
 
     </b-card>
@@ -47,9 +49,9 @@
         selectedEmail = '';
         emailState = true;
         submitted = false;
+        errorText ='';
 
         public requestAccess(){
-
             if(this.selectedEmail){
                 this.emailState = true;
                 const url = 'api/auth/requestaccess?currentEmailAddress='+this.selectedEmail
@@ -57,8 +59,8 @@
                     .then(response => {
                        this.submitted = true;
                        console.log(response)
-                       this.signout()                 
-                    }) 
+                       window.setTimeout(()=>this.signout(),5000);                 
+                    },err => this.errorText = err) 
             }else{
                 this.emailState = false
             }
