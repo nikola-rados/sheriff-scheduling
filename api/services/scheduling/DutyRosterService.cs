@@ -11,6 +11,7 @@ using SS.Api.helpers;
 using SS.Api.infrastructure.exceptions;
 using SS.Common.helpers.extensions;
 using SS.Db.models.sheriff;
+using SS.Api.models;
 
 namespace SS.Api.services.scheduling
 {
@@ -210,12 +211,14 @@ namespace SS.Api.services.scheduling
             var startRange = targetDate.DateOnly();
             var endRange = startRange.TranslateDateForDaylightSavingsByHours(timezone, 24);
 
+            var shiftExpansions = new List<ShiftExpansion>();
             foreach (var sheriff in sheriffsForDuties.Where(sheriff => sheriff != null))
             {
                 var shiftsForDay = await Db.Shift.Where(s =>
                     s.ExpiryDate == null && s.SheriffId == sheriff && s.LocationId == locationId && s.StartDate >= startRange && s.StartDate < endRange).ToListAsync();
 
                 if (shiftsForDay.Count == 0) continue;
+                var referenceShift = shiftsForDay.First();
 
                 var earliestShift = shiftsForDay.FirstOrDefault(s => s.StartDate == shiftsForDay.Min(s2 => s2.StartDate));
                 var latestShift = shiftsForDay.FirstOrDefault(s => s.EndDate == shiftsForDay.Max(s2 => s2.EndDate));
@@ -226,24 +229,42 @@ namespace SS.Api.services.scheduling
                 var earliestDutySlot = dutySlotsForSheriffOnDay.FirstOrDefault(ds => ds.StartDate == dutySlotsForSheriffOnDay.Min(ds2 => ds2.StartDate));
                 var latestDutySlot = dutySlotsForSheriffOnDay.FirstOrDefault(ds => ds.EndDate == dutySlotsForSheriffOnDay.Max(ds2 => ds2.EndDate));
 
-                var shiftExpandedByDutySlotIds = new List<int>();
+    
                 if (latestShift!.EndDate < latestDutySlot?.EndDate)
                 {
-                    latestShift.EndDate = latestDutySlot.EndDate;
-                    shiftExpandedByDutySlotIds.Add(latestDutySlot.Id);
+                    Db.Shift.Add(new Shift
+                    {
+                        SheriffId = sheriff.Value,
+                        Timezone = referenceShift.Timezone,
+                        LocationId = referenceShift.LocationId,
+                        StartDate = latestShift.EndDate,
+                        EndDate = latestDutySlot.EndDate
+                    });
+                    shiftExpansions.Add(new ShiftExpansion { SheriffId = sheriff.Value, Date = earliestDutySlot.StartDate, Timezone = earliestShift.Timezone });
                 }
 
                 if (earliestShift!.StartDate > earliestDutySlot?.StartDate)
                 {
-                    earliestShift.StartDate = earliestDutySlot.StartDate;
-                    shiftExpandedByDutySlotIds.Add(earliestDutySlot.Id);
+                    Db.Shift.Add(new Shift
+                    {
+                        SheriffId = sheriff.Value,
+                        Timezone = referenceShift.Timezone,
+                        LocationId = referenceShift.LocationId,
+                        StartDate = earliestDutySlot.StartDate,
+                        EndDate = earliestShift.StartDate
+                    });
+                    shiftExpansions.Add(new ShiftExpansion { SheriffId = sheriff.Value, Date = earliestDutySlot.StartDate, Timezone = earliestShift.Timezone });
                 }
+            }
 
-                if (!shiftExpandedByDutySlotIds.Any()) continue;
+            if (!shiftExpansions.Any()) return;
+            await Db.SaveChangesAsync();
 
+            foreach (var shiftExpansion in shiftExpansions.Distinct())
+            {
                 await ShiftService.CalculateOvertimeHoursForSheriffOnDay(
-                    earliestShift.SheriffId, earliestShift.StartDate,
-                    earliestShift.Timezone);
+                    shiftExpansion.SheriffId, shiftExpansion.Date,
+                    shiftExpansion.Timezone);
             }
         }
 
