@@ -87,7 +87,7 @@
                                 :key="day.diff">
                                 <b-tr style="float:left">
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Unavailable" type="Unavailable" :index="day.diff" /></b-td>
-                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Shift" type="Shift" :index="day.diff" /></b-td>
+                                    <b-td><conflicts-icon  :conflictsInfo="day.conflicts.AllShifts" type="Shift" :index="day.diff" /></b-td>
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Loaned" type="Loaned" :index="day.diff" /></b-td>
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Leave" type="Leave" :index="day.diff" /></b-td>                    
                                     <b-td><conflicts-icon  :conflictsInfo="day.conflicts.Training" type="Training" :index="day.diff" /></b-td>                                
@@ -264,16 +264,16 @@
             this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
 
             this.dayOptions = [
-                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
-                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
-                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
-                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
-                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
-                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}},
-                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], Shift:[], overTimeShift:[], Unavailable:[]}}
+                {name:'Sun', diff:0, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Mon', diff:1, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Tue', diff:2, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Wed', diff:3, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Thu', diff:4, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Fri', diff:5, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}},
+                {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}}
             ];        
             this.extractConflicts();
-            //console.log(this.dayOptions[4].conflicts.Training)
+            //console.log(this.dayOptions[3].conflicts)
         }
 
         public extractConflicts() {
@@ -283,6 +283,11 @@
             for(const conflict of this.sheriffInfo.conflicts){
                 this.dayOptions[conflict.dayOffset].conflicts[conflict.type].push(conflict); 
                 this.dayOptions[conflict.dayOffset].fullday = this.dayOptions[conflict.dayOffset].fullday || conflict.fullday               
+            }
+
+            for(const dayOptionInx in this.dayOptions){
+                this.dayOptions[dayOptionInx].conflicts.AllShifts.push(...this.dayOptions[dayOptionInx].conflicts.Shift);
+                this.dayOptions[dayOptionInx].conflicts.AllShifts.push(...this.dayOptions[dayOptionInx].conflicts.overTimeShift);
             }
             
             Vue.nextTick(()=>{this.isDataMounted = true;})                     
