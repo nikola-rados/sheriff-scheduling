@@ -38,7 +38,7 @@
                                     <b-table  
                                         :items="sch.shifts"
                                         :fields="shiftFields"
-                                        sort-by="startTime"                
+                                        sort-by="startDate"                
                                         borderless
                                         striped
                                         small 
@@ -46,10 +46,10 @@
                                         class="my-0 py-0 text-white"
                                         >
                                         <template v-slot:cell(startDate)="data" >
-                                            <span  >{{data.value | beautify-time}}</span> 
+                                            <span :class="data.item.overtimeHours?'text-danger':''"  >{{data.value | beautify-time}}</span> 
                                         </template>
                                         <template v-slot:cell(endDate)="data" >
-                                            <span  >{{data.value | beautify-time}}</span> 
+                                            <span :class="data.item.overtimeHours?'text-danger':''" >{{data.value | beautify-time}}</span> 
                                         </template>
                                     </b-table>
                                 </b-card> 
@@ -67,10 +67,13 @@
                                         class="my-0 py-0"
                                         >
                                         <template v-slot:cell(startTime)="data" >
-                                            <span >{{data.value | beautify-time}}</span> 
+                                            <span :class="data.item.color=='#e85a0e'?'text-danger':''" >{{data.value | beautify-time}}</span> 
                                         </template>
                                         <template v-slot:cell(endTime)="data" >
-                                            <span>{{data.value | beautify-time}}</span> 
+                                            <span :class="data.item.color=='#e85a0e'?'text-danger':''" >{{data.value | beautify-time}}</span> 
+                                        </template>
+                                        <template v-slot:cell()="data" >
+                                            <span :class="data.item.color=='#e85a0e'?'text-danger':''" >{{data.value}}</span> 
                                         </template>
                                     </b-table>     
                                 </b-card>                                   
@@ -210,10 +213,12 @@
                         const duties = this.getSheriffDuties(filteredDuties, schedule.date) 
                         availability = this.subtractUnionOfArrays(availability,duties) 
                         //console.log(availability)
+                        //console.log(duties)
                         this.sheriffSchedules[scheduleIndex].variant = 'info';
                         if(this.sumOfArrayElements(availability)==0)
                             this.sheriffSchedules[scheduleIndex].style =''
-                        else this.sheriffSchedules[scheduleIndex].style = this.halfSchStyle;
+                        else 
+                            this.sheriffSchedules[scheduleIndex].style = this.halfSchStyle;
                     }
                 }
                 
@@ -227,8 +232,12 @@
             let tooltipTitle = '<div>';
             const sortedShifts = _.sortBy(this.sheriffInfo.shifts,'startDate');
             for(const shift of sortedShifts){
+
                 this.shifts.push(shift.startDate.substring(11,16) +' - '+shift.endDate.substring(11,16))
-                tooltipTitle += shift.startDate.substring(11,16) +' - '+shift.endDate.substring(11,16)+'<br/>'
+                tooltipTitle += (shift.overtimeHours>0)? ' <div style=\'color:red;\'> ':'<div>'
+                tooltipTitle += shift.startDate.substring(11,16) +' - '+shift.endDate.substring(11,16)
+                tooltipTitle +='<br/>'
+                tooltipTitle +='</div>'
             }
 
             tooltipTitle += '</div>'
@@ -245,9 +254,11 @@
             //console.log(shifts)
             let availability = Array(96).fill(0)
             for(const shift of shifts){
-                const rangeBin = this.getTimeRangeBins(shift.startDate, shift.endDate, startOfDay, this.location.timezone);
-                //console.log(rangeBin)
-                availability = this.fillInArray(availability, shift.id , rangeBin.startBin,rangeBin.endBin)
+                if(shift.overtimeHours==0){
+                    const rangeBin = this.getTimeRangeBins(shift.startDate, shift.endDate, startOfDay, this.location.timezone);
+                    //console.log(rangeBin)
+                    availability = this.fillInArray(availability, shift.id , rangeBin.startBin,rangeBin.endBin);
+                }
             }
             return availability            
         }

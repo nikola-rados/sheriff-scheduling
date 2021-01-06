@@ -169,11 +169,11 @@
             const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
             const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
             const bottomHeight = gageHeight;
-            console.log('DutyRosterWeek - Window: ' + this.windowHeight)
-            console.log('DutyRosterWeek - Top: ' + topHeaderHeight)
-            console.log('DutyRosterWeek - SecondHeader: ' + secondHeader)
-            console.log('DutyRosterWeek - BottomHeight: ' + bottomHeight)
-            console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
+            // console.log('DutyRosterWeek - Window: ' + this.windowHeight)
+            // console.log('DutyRosterWeek - Top: ' + topHeaderHeight)
+            // console.log('DutyRosterWeek - SecondHeader: ' + secondHeader)
+            // console.log('DutyRosterWeek - BottomHeight: ' + bottomHeight)
+            // console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
             this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader+1)
         }
 
@@ -222,10 +222,12 @@
             for(const dutyRoster of this.dutyRostersJson)                
                     allDutySlots.push(...dutyRoster.dutySlots)
            
-            console.log(allDutySlots)
+            //console.log(allDutySlots)
             for(const shiftJson of shiftsJson)
             {
                 //console.log(shiftJson)
+                
+
                 const availabilityInfo = {} as myTeamShiftInfoType;
                 const shiftInfo = {} as shiftInfoType;
                 shiftInfo.id = shiftJson.id;
@@ -234,29 +236,60 @@
                 shiftInfo.timezone = shiftJson.timezone;
                 shiftInfo.sheriffId = shiftJson.sheriffId;
                 shiftInfo.locationId = shiftJson.locationId;
+                shiftInfo.overtimeHours = shiftJson.overtimeHours;
+
+                const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId);
 
                 const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId && dutyslot.startDate.substring(0,10)==shiftInfo.startDate.substring(0,10))return true})
                 const dutiesDetail: dutiesDetailInfoType[] = [];
+                const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, shiftInfo.timezone);
+                const shiftArray = this.fillInArray(Array(96).fill(0), 1 , rangeBin.startBin,rangeBin.endBin)
+
+
                 for(const duty of dutySlots){
                     //console.log(duty)
                     const color = this.getType(duty.assignmentLookupCode.type)
-                    const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);                    
-                    dutiesDetail.push({
-                        id:duty.id ,
-                        startBin:dutyRangeBin.startBin, 
-                        endBin: dutyRangeBin.endBin,
-                        startTime:moment(duty.startDate).tz(this.location.timezone).format(),
-                        endTime:moment(duty.endDate).tz(this.location.timezone).format(),
-                        name: color.name,
-                        colorCode: color.colorCode,
-                        color: duty.isOvertime? this.dutyColors[5].colorCode:color.colorCode,
-                        type: duty.assignmentLookupCode.type,
-                        code: duty.assignmentLookupCode.code
-                    })
+                    const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
+                    const dutyArray = this.fillInArray(Array(96).fill(0), 1 , dutyRangeBin.startBin,dutyRangeBin.endBin);
+
+                    // console.log(dutyRangeBin)
+                    // console.log(rangeBin)
+                    // console.log(this.unionArrays(dutyArray,shiftArray))
+                    
+                    if( this.sumOfArrayElements(this.unionArrays(dutyArray,shiftArray))>0){
+
+                        //console.log('____IN__')
+                    
+                        if(shiftInfo.overtimeHours>0){
+                            const dutyRosterIndex = this.dutyRostersJson.findIndex(dutyroster=>{if(dutyroster.id == duty.dutyId)return true}) 
+                            const dutySlotIndex = this.dutyRostersJson[dutyRosterIndex].dutySlots.findIndex(dutyslot=>{if(dutyslot.id == duty.id)return true})
+
+                            //console.log(this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex])
+                            this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex].isOvertime = true
+                        } 
+
+                        if(index!= -1){
+                            const duplicateIndex =this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(duty=>{if(duty.startBin==dutyRangeBin.startBin && duty.endBin==dutyRangeBin.endBin)return true})
+                            //console.log(duplicateIndex)
+                            if(duplicateIndex != -1) continue;
+                        }  
+                        
+                        dutiesDetail.push({
+                            id:duty.id ,
+                            startBin:dutyRangeBin.startBin, 
+                            endBin: dutyRangeBin.endBin,
+                            startTime:moment(duty.startDate).tz(this.location.timezone).format(),
+                            endTime:moment(duty.endDate).tz(this.location.timezone).format(),
+                            name: color.name,
+                            colorCode: color.colorCode,
+                            color: duty.isOvertime? this.dutyColors[5].colorCode:color.colorCode,
+                            type: duty.assignmentLookupCode.type,
+                            code: duty.assignmentLookupCode.code
+                        })
+                    }
                     //console.log(dutiesDetail)
                 }
 
-                const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
                 
                 if (index != -1) {
                     // if(this.shiftAvailabilityInfo[index].sheriffId =='96d3a24e-506a-4e98-a15a-b9e4f33f499c'){
@@ -264,12 +297,13 @@
                     //                     console.log(shiftInfo.startDate)
                     //                     }
 
-                    const indexSimilarDuties = this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(dutydetail=> {if(dutydetail.startTime && dutydetail.startTime.substring(0,10)==shiftInfo.startDate.substring(0,10))return true})
+                    //const indexSimilarDuties = this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(dutydetail=> {if(dutydetail.startTime && dutydetail.startTime.substring(0,10)==shiftInfo.startDate.substring(0,10))return true})
                     //console.log(indexSimilarDuties)
                     this.shiftAvailabilityInfo[index].duties = [];
                     this.shiftAvailabilityInfo[index].availability = [];
                     this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
-                    if(indexSimilarDuties<0)this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
+                    //if(indexSimilarDuties<0)
+                    this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
                 } else {
                     availabilityInfo.shifts = [shiftInfo];
                     availabilityInfo.sheriffId = shiftJson.sheriff.id;
@@ -283,6 +317,7 @@
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
             }
+            //console.log(this.shiftAvailabilityInfo)
             this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
         }
 
@@ -378,7 +413,7 @@
                 }
             }
 
-            console.log(this.dutyRosterAssignments)
+            //console.log(this.dutyRosterAssignments)
 
            this.isDutyRosterDataMounted = true;
            this.$emit('dataready');
@@ -414,6 +449,10 @@
         // public addArrays(arrayA, arrayB){
         //     return arrayA.map((arr,index) =>{return arr+arrayB[index]});
         // }
+
+        public sumOfArrayElements(arrayA){
+            return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)
+        }
 
         public unionArrays(arrayA, arrayB){
             return arrayA.map((arr,index) =>{return arr*arrayB[index]});

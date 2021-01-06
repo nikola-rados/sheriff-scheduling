@@ -447,7 +447,8 @@
                 const editedDutySlots: assignDutySlotsInfoType[] =[{
                     startDate: '',
                     endDate: '',
-                    shiftId:null,
+                    //shiftId:null,
+                    isOvertime:false,
                     dutySlotId:this.dutySlotToUnassign.dutySlotId
                 }]
                 this.assignDuty(this.dutySlotToUnassign.sheriffId, editedDutySlots, true,this.dutyBlocksDay[0].day);        
@@ -492,6 +493,7 @@
             for(let day=0; day<7; day++){            
                 if(this.dutyRosterInfo[day]){
                     const dutyInfo = this.dutyRosterInfo[day];
+                    console.log(dutyInfo)
                     const dutyStartTime = moment(dutyInfo.startDate).tz(dutyInfo.timezone);
                     const startOfDay = moment(dutyStartTime).startOf("day");
                     const dutyDate = startOfDay.format();
@@ -654,9 +656,8 @@
         }
 
         public getOverTime(shiftId, isNotAvailable, isNotRequired, isOverTime) {
-            if(isOverTime) return true;
-            else if(isNotRequired || isNotAvailable) return  false;
-            else if(!shiftId) return true;
+            if(isNotRequired || isNotAvailable) return  false;
+            else if(isOverTime) return true;
             else return false;
         }
         
@@ -678,7 +679,8 @@
                     const editedDutySlots: assignDutySlotsInfoType[] =[{
                         startDate: this.dutyRosterInfo[dutySlotDay].startDate,
                         endDate: this.dutyRosterInfo[dutySlotDay].endDate,
-                        shiftId:null,
+                        //shiftId:null,
+                        isOvertime:false,
                         dutySlotId:null
                     }]
                     this.assignDuty(sheriffId, editedDutySlots, false, dutySlotDay);
@@ -715,8 +717,9 @@
                         const slotTime = this.convertTimeRangeBinsToTime(this.dutyWeekDates[dutySlotDay], inx1, inx2, this.timezone)
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
-                            endDate: slotTime.endTime,                        
-                            shiftId: unionUnassignAvail[inx1],
+                            endDate: slotTime.endTime, 
+                            isOvertime:false,                       
+                            //shiftId: unionUnassignAvail[inx1],
                             dutySlotId: null,
                         })
                     }
@@ -748,7 +751,8 @@
             const editedDutySlots: assignDutySlotsInfoType[] =[{
                 startDate: this.overTimeTimeRangeDate.startTime,
                 endDate: this.overTimeTimeRangeDate.endTime,
-                shiftId:null,
+                isOvertime:true,
+                //shiftId:null,
                 dutySlotId:null
             }]
 
@@ -760,8 +764,11 @@
                 const shifts = sheriff.shifts.filter(shift=>{if(shift.startDate.substring(0,10)==startOfDay.substring(0,10))return true}) 
                 let availability = Array(96).fill(0)
                 for(const shift of shifts){
-                    const rangeBin = this.getTimeRangeBins(shift.startDate, shift.endDate, startOfDay, this.timezone);
-                    availability = this.fillInArray(availability, shift.id , rangeBin.startBin,rangeBin.endBin)
+                    console.log(shift)
+                    if(shift.overtimeHours==0){
+                        const rangeBin = this.getTimeRangeBins(shift.startDate, shift.endDate, startOfDay, this.timezone);
+                        availability = this.fillInArray(availability, shift.id , rangeBin.startBin,rangeBin.endBin);
+                    }
                 }
                 return availability
             }else{
@@ -860,11 +867,11 @@
                             endDate: dutySlot.endDate,
                             dutyId: dutyInfo.id,
                             sheriffId: sheriffId,
-                            shiftId: dutySlot.shiftId,
+                            shiftId: null,//dutySlot.shiftId,
                             timezone: dutyInfo.timezone,
                             isNotRequired: isNotRequired,
                             isNotAvailable: isNotAvailable,
-                            isOvertime: false
+                            isOvertime: dutySlot.isOvertime
                         })
                     
                 }
