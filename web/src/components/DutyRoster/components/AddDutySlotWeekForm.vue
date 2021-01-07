@@ -383,9 +383,10 @@
 
                 
                 if(!isNotRequiredOrAvailable  && sheriffId == this.formData.sheriffId){
-            
-                    const startTime = (this.formData.startTime-1)%96;
-                    const endTime = (this.formData.endTime-1)%96;                   
+                    //console.log(this.formData)
+                    const dutytimeBins = this.getTimeRangeBins(this.formData.startTimeString, this.formData.endTimeString, this.startOfDay, this.timezone);
+                    const startTime = dutytimeBins.startBin;
+                    const endTime = dutytimeBins.endBin;                   
                     const dutyArrayOfOriginalSlot = this.fillInArray(Array(96).fill(0), 1, startTime, endTime);
                     availability = this.addArrays(dutyArrayOfOriginalSlot, availability);                    
                     duties = this.subtractUnionOfArrays(duties,dutyArrayOfOriginalSlot)                    
