@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Mapster;
 using Microsoft.Extensions.Configuration;
 using SS.Api.helpers;
 using SS.Api.models;
@@ -76,21 +77,23 @@ namespace SS.Api.services.scheduling
         public async Task<List<int>> GetShiftsLocations(List<int> ids) =>
             await Db.Shift.AsNoTracking().In(ids, s => s.Id).Select(s => s.LocationId).Distinct().ToListAsync();
 
+
         public async Task<List<Shift>> AddShifts(List<Shift> shifts)
         {
             var overlaps = await GetShiftConflicts(shifts);
             if (overlaps.Any()) throw new BusinessLayerException(overlaps.SelectMany(ol => ol.ConflictMessages).ToStringWithPipes());
 
+            if (shifts.Any(s => s.StartDate >= s.EndDate))
+                throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
+
+            if (shifts.Any(s => s.Timezone.GetTimezone() == null))
+                throw new BusinessLayerException($"A valid {nameof(Shift.Timezone)} needs to be included in the {nameof(Shift)}.");
+
+            shifts = SplitLongShifts(shifts);
+
             foreach (var shift in shifts)
-            {
-                if (shift.StartDate > shift.EndDate) throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
-                shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(shift.Timezone)} needs to be included in the {nameof(Shift)}.");
-                shift.ExpiryDate = null;
-                shift.Sheriff = await Db.Sheriff.FindAsync(shift.SheriffId);
-                shift.AnticipatedAssignment = await Db.Assignment.FindAsync(shift.AnticipatedAssignmentId);
-                shift.Location = await Db.Location.FindAsync(shift.LocationId);
-                await Db.Shift.AddAsync(shift);
-            }
+                await AddShift(shift);
+
             await Db.SaveChangesAsync();
 
             await CalculateOvertimeHoursForShifts(shifts);
@@ -106,12 +109,25 @@ namespace SS.Api.services.scheduling
             var shiftIds = shifts.SelectToList(s => s.Id);
             var savedShifts = Db.Shift.In(shiftIds, s => s.Id);
 
+            if (shifts.Any(s => s.StartDate >= s.EndDate))
+                throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
+
+            if (shifts.Any(s => s.Timezone.GetTimezone() == null))
+                throw new BusinessLayerException($"A valid {nameof(Shift.Timezone)} needs to be included in the {nameof(Shift)}.");
+
+            shifts = SplitLongShifts(shifts);
+
             foreach (var shift in shifts)
             {
+                //Need to add shifts, because some of the shifts were split.
+                if (shift.Id == 0)
+                {
+                    await AddShift(shift);
+                    continue;
+                }
+
                 var savedShift = savedShifts.FirstOrDefault(s => s.Id == shift.Id);
                 savedShift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with the id: {shift.Id} could not be found.");
-                if (shift.StartDate > shift.EndDate) throw new BusinessLayerException($"{nameof(Shift)} Start date cannot come after end date.");
-                shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull($"A valid {nameof(shift.Timezone)} needs to be included in the {nameof(Shift)}.");
                 Db.Entry(savedShift!).CurrentValues.SetValues(shift);
                 Db.Entry(savedShift).Property(x => x.LocationId).IsModified = false;
                 Db.Entry(savedShift).Property(x => x.ExpiryDate).IsModified = false;
@@ -128,13 +144,12 @@ namespace SS.Api.services.scheduling
 
         public async Task ExpireShifts(List<int> ids)
         {
-            foreach (var id in ids)
+            var removedShifts = await Db.Shift.In(ids, s => s.Id).ToListAsync();
+            foreach (var shift in removedShifts)
             {
-                var shift = await Db.Shift.FirstOrDefaultAsync(s => s.Id == id);
-                shift.ThrowBusinessExceptionIfNull($"{nameof(Shift)} with id: {id} could not be found.");
                 shift!.ExpiryDate = DateTimeOffset.UtcNow;
                 var dutySlots = Db.DutySlot.Where(d =>
-                    d.ExpiryDate == null && 
+                    d.ExpiryDate == null &&
                     d.SheriffId == shift.SheriffId &&
                     shift.StartDate <= d.StartDate &&
                     shift.EndDate >= d.EndDate);
@@ -143,8 +158,14 @@ namespace SS.Api.services.scheduling
                     ds.ExpiryDate = DateTimeOffset.UtcNow;
                 });
             }
+
+            await Db.SaveChangesAsync();
+
+            await CalculateOvertimeHoursForShifts(removedShifts);
+
             await Db.SaveChangesAsync();
         }
+
 
         public async Task<ImportedShifts> ImportWeeklyShifts(int locationId, DateTimeOffset start)
         {
@@ -309,6 +330,7 @@ namespace SS.Api.services.scheduling
             var shiftsForSheriffOnDay = await Db.Shift.Where(s =>
                 s.ExpiryDate == null && s.SheriffId == sheriffId &&
                 startOfDayInTimezone <= s.StartDate && endOfDayInTimezone >= s.EndDate)
+                .OrderBy(s => s.StartDate)
                 .ToListAsync();
 
             if (!shiftsForSheriffOnDay.Any())
@@ -325,8 +347,10 @@ namespace SS.Api.services.scheduling
             {
                 //Place the overtime on the other shifts. This is the scenario where an outside shift(s) are created, and the OT needs to be placed on the outer shifts.
                 //For example 8-9am, 9am-5pm, 5pm-6pm
-                var outsideShifts = shiftsForSheriffOnDay.Where(s =>
-                    !s.StartDate.HourDifference(s.EndDate, s.Timezone).Equals(OvertimeHoursPerDay)).ToList();
+                var earliestBeforeOvertimeThresholdShift = shiftsForSheriffOnDay.First(s =>
+                    s.StartDate.HourDifference(s.EndDate, s.Timezone).Equals(OvertimeHoursPerDay));
+
+                var outsideShifts = shiftsForSheriffOnDay.Where(s => s.Id != earliestBeforeOvertimeThresholdShift.Id);
 
                 foreach (var shift in outsideShifts)
                     shift.OvertimeHours = shift.StartDate.HourDifference(shift.EndDate, shift.Timezone);
@@ -344,6 +368,44 @@ namespace SS.Api.services.scheduling
             return overtimeHoursForDay;
         }
 
+
+        private List<Shift> SplitLongShifts(List<Shift> shifts)
+        {
+            var shiftsToSplit = shifts.Where(s => s.StartDate.HourDifference(s.EndDate, s.Timezone) > OvertimeHoursPerDay).ToList();
+            foreach (var shift in shiftsToSplit)
+            {
+                var hourDifference = shift.StartDate.HourDifference(shift.EndDate, shift.Timezone);
+                shift.EndDate = shift.StartDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, OvertimeHoursPerDay);
+                hourDifference -= OvertimeHoursPerDay;
+                var lastEndDate = shift.EndDate;
+                while (hourDifference > 0)
+                {
+                    var newShiftHours = Math.Min(hourDifference, OvertimeHoursPerDay);
+                    var newShift = shift.Adapt<Shift>();
+                    newShift.Id = 0;
+                    newShift.StartDate = lastEndDate;
+                    newShift.EndDate = lastEndDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, newShiftHours);
+                    shifts.Add(newShift);
+                    lastEndDate = newShift.EndDate;
+                    hourDifference -= newShiftHours;
+                }
+            }
+            return shifts;
+        }
+
+
+        #region Add Shift
+
+        private async Task AddShift(Shift shift)
+        {
+            shift.ExpiryDate = null;
+            shift.Sheriff = await Db.Sheriff.FindAsync(shift.SheriffId);
+            shift.AnticipatedAssignment = await Db.Assignment.FindAsync(shift.AnticipatedAssignmentId);
+            shift.Location = await Db.Location.FindAsync(shift.LocationId);
+            await Db.Shift.AddAsync(shift);
+        }
+
+        #endregion Add Shift
         #region Availability
 
         public async Task<List<ShiftConflict>> GetShiftConflicts(List<Shift> shifts)
