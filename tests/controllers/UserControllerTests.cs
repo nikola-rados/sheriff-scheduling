@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using SS.Api.controllers.usermanagement;
 using SS.Api.models.dto;
 using SS.Api.services;
+using SS.Api.services.scheduling;
 using SS.Api.services.usermanagement;
 using SS.Db.models.auth;
 using tests.api.helpers;
@@ -28,7 +29,9 @@ namespace tests.controllers
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
             var httpContextAccessor = new HttpContextAccessor { HttpContext = HttpResponseTest.SetupHttpContext() };
-            _controller = new SheriffController(new SheriffService(Db, environment.Configuration, httpContextAccessor), new UserService(Db), environment.Configuration, Db)
+            var sheriffService = new SheriffService(Db, environment.Configuration, httpContextAccessor);
+            var shiftService = new ShiftService(Db, sheriffService, environment.Configuration);
+            _controller = new SheriffController(sheriffService, shiftService, new UserService(Db), environment.Configuration, Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
