@@ -685,6 +685,8 @@
                 dutySlotId:null
             }]
 
+            console.log(editedDutySlots)
+
             this.assignDuty(this.overTimeSheriffId, editedDutySlots, false);
         }
 
@@ -757,8 +759,8 @@
                     if(!unassignSheriff)
                         dutySlots.push( { 
                             id: dutySlot.dutySlotId,                      
-                            startDate: dutySlot.startDate,
-                            endDate: dutySlot.endDate,
+                            startDate: moment.tz(dutySlot.startDate,this.dutyTimezone).utc().format(),
+                            endDate: moment.tz(dutySlot.endDate,this.dutyTimezone).utc().format(),
                             dutyId: dutyInfo.id,
                             sheriffId: sheriffId,
                             shiftId: null,
