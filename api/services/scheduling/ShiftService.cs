@@ -385,6 +385,8 @@ namespace SS.Api.services.scheduling
                     newShift.Id = 0;
                     newShift.StartDate = lastEndDate;
                     newShift.EndDate = lastEndDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, newShiftHours);
+                    if (newShift.EndDate.Subtract(newShift.StartDate).TotalSeconds < 60)
+                        break;
                     shifts.Add(newShift);
                     lastEndDate = newShift.EndDate;
                     hourDifference -= newShiftHours;
