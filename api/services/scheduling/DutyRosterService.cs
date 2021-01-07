@@ -321,11 +321,16 @@ namespace SS.Api.services.scheduling
 
         private async Task<DateTimeOffset> FindContinuousEndDateOverShifts(int locationId, Guid sheriffId, DateTimeOffset targetDate, string timezone)
         {
-            var startRange = targetDate;
+            var startRange = targetDate.ConvertToTimezone(timezone);
             var endRange = startRange.DateOnly().TranslateDateForDaylightSavingsByHours(timezone, 24);
             
             var shifts = await Db.Shift.Where(s =>
-                s.ExpiryDate == null && s.LocationId == locationId && s.SheriffId == sheriffId && s.EndDate >= startRange && s.StartDate < endRange).ToListAsync();
+                s.ExpiryDate == null &&
+                s.LocationId == locationId &&
+                s.SheriffId == sheriffId &&
+                s.EndDate >= startRange &&
+                s.StartDate < endRange)
+                .ToListAsync();
 
             Shift previousShift = null;
             DateTimeOffset endDate = default;
