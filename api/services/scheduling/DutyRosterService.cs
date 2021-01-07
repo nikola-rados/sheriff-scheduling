@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using SS.Api.helpers;
 using SS.Api.infrastructure.exceptions;
 using SS.Common.helpers.extensions;
@@ -20,11 +21,13 @@ namespace SS.Api.services.scheduling
         private SheriffDbContext Db { get; }
         private ShiftService ShiftService { get; }
         private double OvertimeHoursPerDay { get; }
-        public DutyRosterService(SheriffDbContext db, IConfiguration configuration, ShiftService shiftService)
+        private ILogger<DutyRosterService> Logger { get; }
+        public DutyRosterService(SheriffDbContext db, IConfiguration configuration, ShiftService shiftService, ILogger<DutyRosterService> logger)
         {
             Db = db;
             ShiftService = shiftService;
             OvertimeHoursPerDay = double.Parse(configuration.GetNonEmptyValue("OvertimeHoursPerDay"));
+            Logger = logger;
         }
 
         public async Task<List<Duty>> GetDutiesForLocation(int locationId, DateTimeOffset start, DateTimeOffset end) =>
@@ -42,9 +45,6 @@ namespace SS.Api.services.scheduling
 
         public async Task<List<int>> GetDutiesLocations(List<int> ids) =>
             await Db.Duty.AsNoTracking().In(ids, d => d.Id).Select(d => d.LocationId).Distinct().ToListAsync();
-
-        public async Task<Duty> GetDuty(int id) =>
-            await Db.Duty.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
 
         public async Task<Duty> GetDutyByDutySlot(int dutySlotId) =>
             await Db.Duty.AsNoTracking().FirstOrDefaultAsync(d => d.DutySlots.Any(ds => ds.Id == dutySlotId));
@@ -208,7 +208,7 @@ namespace SS.Api.services.scheduling
 
         private async Task HandleShiftAdjustmentsAndOvertime(int locationId, DateTimeOffset targetDate, string timezone, IEnumerable<Guid?> sheriffsForDuties)
         {
-            var startRange = targetDate.DateOnly();
+            var startRange = targetDate.ConvertToTimezone(timezone).DateOnly();
             var endRange = startRange.TranslateDateForDaylightSavingsByHours(timezone, 24);
 
             var shiftExpansions = new List<ShiftExpansion>();
@@ -232,7 +232,7 @@ namespace SS.Api.services.scheduling
     
                 if (latestShift!.EndDate < latestDutySlot?.EndDate)
                 {
-                    Db.Shift.Add(new Shift
+                    await Db.Shift.AddAsync(new Shift
                     {
                         SheriffId = sheriff.Value,
                         Timezone = referenceShift.Timezone,
@@ -245,7 +245,7 @@ namespace SS.Api.services.scheduling
 
                 if (earliestShift!.StartDate > earliestDutySlot?.StartDate)
                 {
-                    Db.Shift.Add(new Shift
+                    await Db.Shift.AddAsync(new Shift
                     {
                         SheriffId = sheriff.Value,
                         Timezone = referenceShift.Timezone,
@@ -321,11 +321,16 @@ namespace SS.Api.services.scheduling
 
         private async Task<DateTimeOffset> FindContinuousEndDateOverShifts(int locationId, Guid sheriffId, DateTimeOffset targetDate, string timezone)
         {
-            var startRange = targetDate;
+            var startRange = targetDate.ConvertToTimezone(timezone);
             var endRange = startRange.DateOnly().TranslateDateForDaylightSavingsByHours(timezone, 24);
             
             var shifts = await Db.Shift.Where(s =>
-                s.ExpiryDate == null && s.LocationId == locationId && s.SheriffId == sheriffId && s.EndDate >= startRange && s.StartDate < endRange).ToListAsync();
+                s.ExpiryDate == null &&
+                s.LocationId == locationId &&
+                s.SheriffId == sheriffId &&
+                s.EndDate >= startRange &&
+                s.StartDate < endRange)
+                .ToListAsync();
 
             Shift previousShift = null;
             DateTimeOffset endDate = default;
