@@ -269,7 +269,7 @@
                         } 
 
                         if(index!= -1){
-                            const duplicateIndex =this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(duty=>{if(duty.startBin==dutyRangeBin.startBin && duty.endBin==dutyRangeBin.endBin)return true})
+                            const duplicateIndex =this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(dupDuty=>{if(dupDuty.startBin==dutyRangeBin.startBin && dupDuty.endBin==dutyRangeBin.endBin && dupDuty.id==duty.id)return true})
                             //console.log(duplicateIndex)
                             if(duplicateIndex != -1) continue;
                         }  

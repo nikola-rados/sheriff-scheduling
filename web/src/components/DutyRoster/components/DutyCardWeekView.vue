@@ -135,13 +135,13 @@
                                 <b-button style="width:.75rem;float:right" 
                                         class="mx-1 my-0 py-0" 
                                         size="sm" 
-                                        :disabled="data.item.note?true:false" 
+                                        
                                         variant="transparent" 
                                         @click="editDutySlotInfo(data)"
                                         v-b-tooltip.hover                                
                                         title="Edit"
                                         ><b-icon 
-                                            v-if="!data.item.note" 
+                                            
                                             icon="pencil-square" 
                                             font-scale="1.25" 
                                             variant="primary" 
