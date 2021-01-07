@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
@@ -29,7 +30,12 @@ namespace tests.controllers
         public DutyRosterControllerTests() : base(false)
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            _controller = new DutyRosterController(new DutyRosterService(Db, environment.Configuration, new ShiftService(Db, new SheriffService(Db, environment.Configuration), environment.Configuration)), Db)
+            var shiftService = new ShiftService(Db, new SheriffService(Db, environment.Configuration),
+                environment.Configuration);
+            var dutyRosterService = new DutyRosterService(Db, environment.Configuration,
+                 shiftService, environment.LogFactory.CreateLogger<DutyRosterService>());
+
+            _controller = new DutyRosterController(dutyRosterService, Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
