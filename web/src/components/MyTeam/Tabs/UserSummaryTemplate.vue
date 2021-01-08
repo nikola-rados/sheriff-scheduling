@@ -21,7 +21,7 @@
 
         <b-card-sub-title class="my-1">{{user.badgeNumber}}</b-card-sub-title>
         <b-card-title>{{user.fullName}}</b-card-title>        
-        <b-card-sub-title class="my-1">{{user.rank|capitalize}}</b-card-sub-title>
+        <b-card-sub-title class="my-1">{{user.rank}}</b-card-sub-title>
         <b-card-text 
             style="color: #8a3078; font-size: 0.75rem;" 
             class="my-1">
