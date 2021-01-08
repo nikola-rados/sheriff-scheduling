@@ -520,14 +520,15 @@
 			for (const shift of this.shiftsToEdit) {							
 				const newStartDate = this.completeDate(shift.startDate,this.selectedStartTime);
 				const newEndDate = this.completeDate(shift.endDate,this.selectedEndTime);
-				//console.log(shift)
+				console.log(shift)
 				const editedShift: shiftInfoType = {
 					id: shift.id,
 					startDate: newStartDate,
 					endDate: newEndDate,
 					timezone: shift.timezone,
 					locationId: shift.locationId ,     
-					sheriffId: shift.sheriffId
+					sheriffId: shift.sheriffId,
+					overtimeHours: shift.overtimeHours
 				};
 
 				if(this.comment) editedShift.comment = this.comment;				

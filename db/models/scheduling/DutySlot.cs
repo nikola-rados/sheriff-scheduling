@@ -27,10 +27,6 @@ namespace SS.Db.models.scheduling
         public Sheriff Sheriff { get; set; }
         public Guid? SheriffId { get; set; }
         [ExcludeFromAddAndUpdateDto]
-        [AdaptIgnore]
-        public Shift Shift { get; set; }
-        public int? ShiftId { get; set; }
-        [ExcludeFromAddAndUpdateDto]
         public Location Location { get; set; }
         [ExcludeFromAddAndUpdateDto]
         public int LocationId { get; set; }
