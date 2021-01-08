@@ -206,6 +206,11 @@
             this.dutyRostersJson = response[0].data;
             this.dutyRosterAssignmentsJson = response[1].data;
             const shiftsData = response[2].data
+
+            // console.log(this.dutyRostersJson)
+            // console.log(this.dutyRosterAssignmentsJson)
+            // console.log(shiftsData)
+
             Vue.nextTick(() => {
                 this.extractTeamShiftInfo(shiftsData);                        
                 this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);                 
@@ -247,43 +252,68 @@
                 shiftInfo.timezone = shiftJson.timezone;
                 shiftInfo.sheriffId = shiftJson.sheriffId;
                 shiftInfo.locationId = shiftJson.locationId;
+                shiftInfo.overtimeHours = shiftJson.overtimeHours
                 const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, this.location.timezone);
-
+//console.log(shiftInfo.overtimeHours)
                 const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId)return true})
+//console.log(dutySlots)
                 let duties = Array(96).fill(0)
                 const dutiesDetail: dutiesDetailInfoType[] = [];
+                const shiftArray = this.fillInArray(Array(96).fill(0), 1 , rangeBin.startBin,rangeBin.endBin)
                 for(const duty of dutySlots){
-                    console.log(duty)
+                    //console.log(duty)
                     const color = this.getType(duty.assignmentLookupCode.type)
                     const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
-                    dutiesDetail.push({
-                        id:duty.id , 
-                        startBin:dutyRangeBin.startBin, 
-                        endBin: dutyRangeBin.endBin,
-                        name: color.name,
-                        colorCode: color.colorCode,
-                        color: duty.shiftId? color.colorCode: this.dutyColors[5].colorCode,
-                        type: duty.assignmentLookupCode.type,
-                        code: duty.assignmentLookupCode.code
-                    })
-                    //console.log(dutiesDetail)
-                    duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
+                    const dutyArray = this.fillInArray(Array(96).fill(0), 1 , dutyRangeBin.startBin,dutyRangeBin.endBin)
+
+                    //console.log(dutyRangeBin)
+                    //console.log(rangeBin)
+                    //console.log(this.unionArrays(dutyArray,shiftArray))
+                    if( this.sumOfArrayElements(this.unionArrays(dutyArray,shiftArray))>0){
+                        //console.log('__in__')
+                        if(shiftInfo.overtimeHours>0){
+                            const dutyRosterIndex = this.dutyRostersJson.findIndex(dutyroster=>{if(dutyroster.id == duty.dutyId)return true}) 
+                            const dutySlotIndex = this.dutyRostersJson[dutyRosterIndex].dutySlots.findIndex(dutyslot=>{if(dutyslot.id == duty.id)return true})
+
+                            //console.log(this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex])
+                            this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex].isOvertime = true
+                        }                        
+
+                        dutiesDetail.push({
+                            id:duty.id , 
+                            startBin:dutyRangeBin.startBin, 
+                            endBin: dutyRangeBin.endBin,
+                            name: color.name,
+                            colorCode: color.colorCode,
+                            color: (duty.isOvertime||shiftInfo.overtimeHours>0)? this.dutyColors[5].colorCode:color.colorCode,
+                            type: duty.assignmentLookupCode.type,
+                            code: duty.assignmentLookupCode.code
+                        })
+                        //console.log(dutiesDetail)
+                        duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
+                    }
                 }
 
                 const index = this.shiftAvailabilityInfo.findIndex(shift => shift.sheriffId == shiftInfo.sheriffId)
                 
                 if (index != -1) {
-                    let availability = this.fillInArray(this.shiftAvailabilityInfo[index].availability, shiftJson.id , rangeBin.startBin,rangeBin.endBin)
+                    let availability = this.shiftAvailabilityInfo[index].availability
+                    if(shiftInfo.overtimeHours==0)
+                        availability = this.fillInArray(this.shiftAvailabilityInfo[index].availability, shiftJson.id , rangeBin.startBin,rangeBin.endBin)
+                    
                     const newavailability = this.subtractUnionOfArrays(availability, duties);
-                    availability =this.unionArrays(availability, newavailability);
+                    availability = this.unionArrays(availability, newavailability);
                     this.shiftAvailabilityInfo[index].duties = duties;
                     this.shiftAvailabilityInfo[index].availability = availability;
                     this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
                     this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
                 } else {
-                    let availability = this.fillInArray(Array(96).fill(0), shiftJson.id , rangeBin.startBin,rangeBin.endBin)
+                    let availability = Array(96).fill(0);
+                    if(shiftInfo.overtimeHours==0)
+                        availability = this.fillInArray(Array(96).fill(0), shiftJson.id , rangeBin.startBin,rangeBin.endBin)
+                    
                     const newavailability = this.subtractUnionOfArrays(availability, duties);
-                    availability =this.unionArrays(availability, newavailability);
+                    availability = this.unionArrays(availability, newavailability);
                     availabilityInfo.shifts = [shiftInfo];
                     availabilityInfo.sheriffId = shiftJson.sheriff.id;
                     availabilityInfo.badgeNumber = shiftJson.sheriff.badgeNumber;
@@ -296,7 +326,8 @@
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
             }
-            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
+            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo); 
+            //console.log(this.shiftAvailabilityInfo)           
         }
 
         public extractAssignmentsInfo(assignments){
@@ -337,32 +368,34 @@
 
             this.isDutyRosterDataMounted = true;
             this.$emit('dataready')
-            Vue.nextTick(()=>{
-                this.calculateTableHeight();
-                const el = document.getElementsByClassName('b-table-sticky-header')                
-                const scrollSize = window.innerWidth*0.9173-185
-
-                if(el[0]) el[0].addEventListener("scroll",()=>{
-                    if(el[1]) el[1].scrollLeft = el[0].scrollLeft
-                })
-
-                if(el[0]){
-                    el[0].scrollLeft = (scrollSize*0.5425);
-                    el[0].scrollTop = this.scrollPositions.scrollDuty;
-                }
-
-                if(el[1]){
-                    el[1].scrollLeft = (scrollSize*0.5425);
-                    //el[1].scrollTop = this.scrollPositions.scrollGauge;
-                }
-
-                const eltm = document.getElementById('dutyrosterteammember');
-                if(eltm){
-                    eltm.scrollTop = this.scrollPositions.scrollTeamMember;
-                }
-
-            })
+            Vue.nextTick(()=>this.scrollAdjustment())
         }
+
+        public scrollAdjustment(){
+            this.calculateTableHeight();
+            const el = document.getElementsByClassName('b-table-sticky-header')                
+            const scrollSize = window.innerWidth*0.9173-185
+
+            if(el[0]) el[0].addEventListener("scroll",()=>{
+                if(el[1]) el[1].scrollLeft = el[0].scrollLeft
+            })
+
+            if(el[0]){
+                el[0].scrollLeft = (scrollSize*0.5425);
+                el[0].scrollTop = this.scrollPositions.scrollDuty;
+            }
+
+            if(el[1]){
+                el[1].scrollLeft = (scrollSize*0.5425);
+                //el[1].scrollTop = this.scrollPositions.scrollGauge;
+            }
+
+            const eltm = document.getElementById('dutyrosterteammember');
+            if(eltm){
+                eltm.scrollTop = this.scrollPositions.scrollTeamMember;
+            }
+        }
+
         public getType(type: string){
             for(const color of this.dutyColors){
                 if(type.toLowerCase().includes(color.name))return color
@@ -384,6 +417,10 @@
 
         public subtractUnionOfArrays(arrayA, arrayB){
             return arrayA.map((arr,index) =>{return arr&&(arrayB[index]>0?0:1)});
+        }
+
+        public sumOfArrayElements(arrayA){
+            return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)
         }
 
         public getTimeRangeBins(startDate, endDate, timezone){

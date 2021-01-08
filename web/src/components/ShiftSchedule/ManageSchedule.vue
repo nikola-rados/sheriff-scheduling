@@ -236,16 +236,16 @@
                             const start = moment(conflict.start)
                             const end = moment(conflict.end)
 
-                            console.log(conflict)
+                            //console.log(conflict)
                             
                             if (conflict.conflict == "Scheduled" && conflict.overtimeHours !=0) {
                                 
                                 const conflictDuration = moment.duration(end.diff(start)).asHours();
                                 const overtime = (conflictDuration <= conflict.overtimeHours)? conflictDuration : conflict.overtimeHours
                                 const regularTimeEnd = moment(conflict.end).subtract(overtime, 'h').tz(this.location.timezone);
-                                console.log(overtime)
-                                console.log(conflictDuration)
-                                console.log(conflict.overtimeHours)
+                                // console.log(overtime)
+                                // console.log(conflictDuration)
+                                // console.log(conflict.overtimeHours)
                                 
                                 let duration = moment.duration(regularTimeEnd.diff(start));
                                 

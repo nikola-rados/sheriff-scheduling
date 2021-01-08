@@ -5,10 +5,13 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using SS.Api.helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.infrastructure.exceptions;
 using SS.Api.Models.DB;
+using SS.Api.services.scheduling;
 using SS.Common.helpers.extensions;
 using SS.Db.models;
 using SS.Db.models.scheduling;
@@ -23,9 +26,11 @@ namespace SS.Api.services.usermanagement
     {
         private ClaimsPrincipal User { get; }
         private SheriffDbContext Db { get; }
-        public SheriffService(SheriffDbContext db, IHttpContextAccessor httpContextAccessor = null)
+        private IConfiguration Configuration { get; }
+        public SheriffService(SheriffDbContext db, IConfiguration configuration, IHttpContextAccessor httpContextAccessor = null)
         {
             Db = db;
+            Configuration = configuration;
             User = httpContextAccessor?.HttpContext.User;
         }
 
@@ -98,15 +103,16 @@ namespace SS.Api.services.usermanagement
 
         public async Task<Sheriff> GetFilteredSheriffForTeams(Guid id)
         {
-            var fourWeeksAgo = DateTimeOffset.UtcNow.AddDays(-28);
+            var daysPrevious = int.Parse(Configuration.GetNonEmptyValue("DaysInPastToIncludeAwayLocationAndTraining"));
+            var minDateForAwayAndTraining = DateTimeOffset.UtcNow.AddDays(-daysPrevious);
             var sevenDaysFromNow = DateTimeOffset.UtcNow.AddDays(7);
 
             return await Db.Sheriff.AsNoTracking().AsSingleQuery()
-                .ApplyPermissionFilters(User, fourWeeksAgo, sevenDaysFromNow, Db)
+                .ApplyPermissionFilters(User, minDateForAwayAndTraining, sevenDaysFromNow, Db)
                 .Include(s=> s.HomeLocation)
-                .Include(s => s.AwayLocation.Where (al => al.EndDate >= fourWeeksAgo && al.ExpiryDate == null))
+                .Include(s => s.AwayLocation.Where (al => al.EndDate >= minDateForAwayAndTraining && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)
-                .Include(s => s.Leave.Where(l => l.EndDate >= fourWeeksAgo && l.ExpiryDate == null))
+                .Include(s => s.Leave.Where(l => l.EndDate >= minDateForAwayAndTraining && l.ExpiryDate == null))
                 .ThenInclude(l => l.LeaveType)
                 .Include(s => s.Training.Where(t => t.ExpiryDate == null))
                 .ThenInclude(t => t.TrainingType)
@@ -184,11 +190,11 @@ namespace SS.Api.services.usermanagement
 
         #region Sheriff Location
 
-        public async Task<SheriffAwayLocation> AddSheriffAwayLocation(SheriffAwayLocation awayLocation, bool overrideConflicts)
+        public async Task<SheriffAwayLocation> AddSheriffAwayLocation(ShiftService shiftService, SheriffAwayLocation awayLocation, bool overrideConflicts)
         {
             ValidateStartAndEndDates(awayLocation.StartDate, awayLocation.EndDate);
             await ValidateSheriffExists(awayLocation.SheriffId);
-            await ValidateNoOverlapAsync(awayLocation, overrideConflicts);
+            await ValidateNoOverlapAsync(shiftService, awayLocation, overrideConflicts);
 
             awayLocation.Location = await Db.Location.FindAsync(awayLocation.LocationId);
             awayLocation.Sheriff = await Db.Sheriff.FindAsync(awayLocation.SheriffId);
@@ -197,7 +203,7 @@ namespace SS.Api.services.usermanagement
             return awayLocation;
         }
 
-        public async Task<SheriffAwayLocation> UpdateSheriffAwayLocation(SheriffAwayLocation awayLocation, bool overrideConflicts)
+        public async Task<SheriffAwayLocation> UpdateSheriffAwayLocation(ShiftService shiftService, SheriffAwayLocation awayLocation, bool overrideConflicts)
         {
             ValidateStartAndEndDates(awayLocation.StartDate, awayLocation.EndDate);
             await ValidateSheriffExists(awayLocation.SheriffId);
@@ -208,7 +214,7 @@ namespace SS.Api.services.usermanagement
             if (savedAwayLocation.ExpiryDate.HasValue)
                 throw new BusinessLayerException($"{nameof(SheriffAwayLocation)} with the id: {awayLocation.Id} has been expired");
 
-            await ValidateNoOverlapAsync(awayLocation, overrideConflicts, awayLocation.Id);
+            await ValidateNoOverlapAsync(shiftService, awayLocation, overrideConflicts, awayLocation.Id);
 
             Db.Entry(savedAwayLocation).CurrentValues.SetValues(awayLocation);
             Db.Entry(savedAwayLocation).Property(x => x.SheriffId).IsModified = false;
@@ -232,11 +238,11 @@ namespace SS.Api.services.usermanagement
 
         #region Sheriff Leave
 
-        public async Task<SheriffLeave> AddSheriffLeave(SheriffLeave sheriffLeave, bool overrideConflicts)
+        public async Task<SheriffLeave> AddSheriffLeave(ShiftService shiftService, SheriffLeave sheriffLeave, bool overrideConflicts)
         {
             ValidateStartAndEndDates(sheriffLeave.StartDate, sheriffLeave.EndDate);
             await ValidateSheriffExists(sheriffLeave.SheriffId);
-            await ValidateNoOverlapAsync(sheriffLeave, overrideConflicts);
+            await ValidateNoOverlapAsync(shiftService, sheriffLeave, overrideConflicts);
 
             sheriffLeave.LeaveType = await Db.LookupCode.FindAsync(sheriffLeave.LeaveTypeId);
             sheriffLeave.Sheriff = await Db.Sheriff.FindAsync(sheriffLeave.SheriffId);
@@ -245,7 +251,7 @@ namespace SS.Api.services.usermanagement
             return sheriffLeave;
         }
 
-        public async Task<SheriffLeave> UpdateSheriffLeave(SheriffLeave sheriffLeave, bool overrideConflicts)
+        public async Task<SheriffLeave> UpdateSheriffLeave(ShiftService shiftService, SheriffLeave sheriffLeave, bool overrideConflicts)
         {
             ValidateStartAndEndDates(sheriffLeave.StartDate, sheriffLeave.EndDate);
             await ValidateSheriffExists(sheriffLeave.SheriffId);
@@ -257,7 +263,7 @@ namespace SS.Api.services.usermanagement
             if (savedLeave.ExpiryDate.HasValue)
                 throw new BusinessLayerException($"{nameof(SheriffLeave)} with the id: {sheriffLeave.Id} has been expired");
 
-            await ValidateNoOverlapAsync(sheriffLeave, overrideConflicts, sheriffLeave.Id);
+            await ValidateNoOverlapAsync(shiftService, sheriffLeave, overrideConflicts, sheriffLeave.Id);
 
             Db.Entry(savedLeave).CurrentValues.SetValues(sheriffLeave);
             Db.Entry(savedLeave).Property(x => x.SheriffId).IsModified = false;
@@ -282,11 +288,11 @@ namespace SS.Api.services.usermanagement
 
         #region Sheriff Training
 
-        public async Task<SheriffTraining> AddSheriffTraining(SheriffTraining sheriffTraining, bool overrideConflicts)
+        public async Task<SheriffTraining> AddSheriffTraining(ShiftService shiftService, SheriffTraining sheriffTraining, bool overrideConflicts)
         {
             ValidateStartAndEndDates(sheriffTraining.StartDate, sheriffTraining.EndDate);
             await ValidateSheriffExists(sheriffTraining.SheriffId);
-            await ValidateNoOverlapAsync(sheriffTraining, overrideConflicts);
+            await ValidateNoOverlapAsync(shiftService, sheriffTraining, overrideConflicts);
 
             sheriffTraining.Sheriff = await Db.Sheriff.FindAsync(sheriffTraining.SheriffId);
             sheriffTraining.TrainingType = await Db.LookupCode.FindAsync(sheriffTraining.TrainingTypeId);
@@ -295,7 +301,7 @@ namespace SS.Api.services.usermanagement
             return sheriffTraining;
         }
 
-        public async Task<SheriffTraining> UpdateSheriffTraining(SheriffTraining sheriffTraining, bool overrideConflicts)
+        public async Task<SheriffTraining> UpdateSheriffTraining(ShiftService shiftService, SheriffTraining sheriffTraining, bool overrideConflicts)
         {
             ValidateStartAndEndDates(sheriffTraining.StartDate, sheriffTraining.EndDate);
             await ValidateSheriffExists(sheriffTraining.SheriffId);
@@ -307,7 +313,7 @@ namespace SS.Api.services.usermanagement
             if (savedTraining.ExpiryDate.HasValue)
                 throw new BusinessLayerException($"{nameof(SheriffTraining)} with the id: {sheriffTraining.Id} has been expired");
 
-            await ValidateNoOverlapAsync(sheriffTraining, overrideConflicts, sheriffTraining.Id);
+            await ValidateNoOverlapAsync(shiftService, sheriffTraining, overrideConflicts, sheriffTraining.Id);
 
             Db.Entry(savedTraining).CurrentValues.SetValues(sheriffTraining);
             Db.Entry(savedTraining).Property(x => x.SheriffId).IsModified = false;
@@ -366,7 +372,7 @@ namespace SS.Api.services.usermanagement
                 throw new BusinessLayerException($"Sheriff with id: {sheriffId} does not exist.");
         }
 
-        private async Task ValidateNoOverlapAsync<T>(T data, bool overrideConflicts, int? updateOnlyId = null) where T : SheriffEvent
+        private async Task ValidateNoOverlapAsync<T>(ShiftService shiftService, T data, bool overrideConflicts, int? updateOnlyId = null) where T : SheriffEvent
         {
             var sheriffEventConflicts = new List<SheriffEvent>
             {
@@ -453,13 +459,7 @@ namespace SS.Api.services.usermanagement
                     }
                 }
 
-                foreach (var shift in shiftConflicts.Select(shiftConflict => Db.Shift.First(s => s.Id == shiftConflict.Id)))
-                    shift.ExpiryDate = DateTimeOffset.UtcNow;
-
-                var shiftConflictIds = shiftConflicts.SelectToList(sc => sc.Id);
-                var dutySlots = Db.DutySlot.Where(ds => ds.ShiftId != null && shiftConflictIds.Contains((int)ds.ShiftId));
-                foreach (var dutySlot in dutySlots)
-                    dutySlot.ExpiryDate = DateTimeOffset.UtcNow;
+                await shiftService.ExpireShifts(shiftConflicts.SelectToList(s => s.Id));
 
                 await Db.SaveChangesAsync();
             }

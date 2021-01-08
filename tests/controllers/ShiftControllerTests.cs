@@ -30,7 +30,7 @@ namespace tests.controllers
         public ShiftControllerTests() : base(false)
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db), environment.Configuration), Db)
+            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db, environment.Configuration), environment.Configuration), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -596,10 +596,12 @@ namespace tests.controllers
 
             shift.SheriffId = sheriffId;
             updatedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await ShiftController.UpdateShifts(shifts.Adapt<List<UpdateShiftDto>>()));
-            updatedShift = updatedShifts.First();
 
-            Assert.Equal(shiftDto.StartDate, updatedShift.StartDate);
-            Assert.Equal(shiftDto.EndDate, updatedShift.EndDate);
+            var firstShift = updatedShifts.OrderBy(s => s.StartDate).First();
+            var lastShift = updatedShifts.OrderByDescending(s => s.EndDate).First();
+
+            Assert.Equal(shiftDto.StartDate, firstShift.StartDate);
+            Assert.Equal(shiftDto.EndDate, lastShift.EndDate);
         }
 
 
@@ -642,15 +644,15 @@ namespace tests.controllers
             shiftDto.EndDate = DateTime.Now.AddDays(-(int)DateTime.Now.DayOfWeek - 5).AddYears(5); //Last week tuesday
             shiftDto.SheriffId = sheriffId2;
 
-            var importedShifts = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
+            var importedShiftsResponse = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
                 await ShiftController.ImportWeeklyShifts(50000, shiftDto.StartDate));
 
+            var importedShifts = importedShiftsResponse.Shifts.OrderBy(s => s.StartDate).ToList();
             Assert.NotNull(importedShifts);
-            Assert.True(importedShifts.Shifts.Count == 1);
-            var importedShift = importedShifts.Shifts.First();
-            Assert.Equal(shiftDto.StartDate.AddDays(7).DateTime,importedShift.StartDate.DateTime, TimeSpan.FromSeconds(10)); //This week monday
-            Assert.Equal(shiftDto.EndDate.AddDays(7).DateTime, importedShift.EndDate.DateTime, TimeSpan.FromSeconds(10)); //This week monday
-            Assert.Equal(sheriffId, importedShift.SheriffId);
+            Assert.True(importedShifts.Count == 3); // 3 due to splitting
+            Assert.Equal(shiftDto.StartDate.AddDays(7).DateTime, importedShifts.First().StartDate.DateTime, TimeSpan.FromSeconds(10)); //This week monday
+            Assert.Equal(shiftDto.EndDate.AddDays(7).DateTime, importedShifts.Last().EndDate.DateTime, TimeSpan.FromSeconds(10)); //This week monday
+            Assert.Equal(sheriffId, importedShifts.First().SheriffId);
         }
 
         [Fact]
@@ -710,7 +712,7 @@ namespace tests.controllers
             var conflict = conflicts.FirstOrDefault(s => s.End == shiftStartDate.AddHours(18));
             Assert.NotNull(conflict);
             //SHould have 7 hours of overtime.  12 -> 5 -> 6 <--> 9 -> 18 = 15 hours - 8 hours regular shift = 7 hours overtime. 
-            Assert.Equal(7.0, conflict.OvertimeHours);
+            Assert.Equal(7.0, conflicts.Sum(s=> s.OvertimeHours));
         }
 
         private async Task<int> CreateLocation()

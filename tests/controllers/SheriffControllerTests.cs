@@ -14,6 +14,9 @@ using tests.api.Helpers;
 using Xunit;
 using SS.Api.models.dto.generated;
 using SS.Api.services.usermanagement;
+using SS.Db.models.scheduling;
+using System.Linq;
+using SS.Api.services.scheduling;
 
 namespace tests.controllers
 {
@@ -28,7 +31,9 @@ namespace tests.controllers
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
             var httpContextAccessor = new HttpContextAccessor {HttpContext = HttpResponseTest.SetupHttpContext()};
-            _controller = new SheriffController(new SheriffService(Db, httpContextAccessor), new UserService(Db), environment.Configuration, Db)
+            var sheriffService = new SheriffService(Db, environment.Configuration, httpContextAccessor);
+            var shiftService = new ShiftService(Db,sheriffService, environment.Configuration);
+            _controller = new SheriffController(sheriffService, shiftService,new UserService(Db), environment.Configuration, Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -391,6 +396,78 @@ namespace tests.controllers
             var response5 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult5);
             Assert.Empty(response5.Training);
         }
+
+        [Fact]
+        public async Task SheriffOverrideConflictRemove()
+        {
+            var sheriffObject = await CreateSheriffUsingDbContext();
+
+            var newLocation = new Location { Name = "New PLace", AgencyId = "zfddf2342" };
+            await Db.Location.AddAsync(newLocation);
+            await Db.SaveChangesAsync();
+
+            var startDate = DateTimeOffset.UtcNow.Date.AddHours(1);
+            var endDate = startDate.AddHours(8);
+
+            var shift = new Shift
+            {
+                Id = 9000665,
+                StartDate = startDate,
+                EndDate = endDate,
+                LocationId = newLocation.Id,
+                Timezone = "America/Vancouver",
+                SheriffId = sheriffObject.Id
+            };
+
+            Db.Shift.Add(shift);
+
+            var duty = new Duty
+            {
+                LocationId = newLocation.Id,
+            };
+
+            Db.Duty.Add(duty);
+
+            await Db.SaveChangesAsync();
+
+            var dutySlot = new DutySlot
+            {
+                SheriffId = sheriffObject.Id,
+                LocationId = newLocation.Id,
+                StartDate = startDate,
+                EndDate = endDate,
+                DutyId = duty.Id
+            };
+
+            Db.DutySlot.Add(dutySlot);
+
+            var lookupCode = new LookupCode
+            {
+                Code = "zz4",
+                Description = "gg",
+                LocationId = newLocation.Id
+            };
+            await Db.LookupCode.AddAsync(lookupCode);
+
+            await Db.SaveChangesAsync();
+
+            var entity = new SheriffLeaveDto
+            {
+                LeaveTypeId = lookupCode.Id,
+                SheriffId = sheriffObject.Id,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+
+            Assert.True(Db.Shift.Any(s => s.ExpiryDate == null && s.Id == shift.Id));
+            Assert.True(Db.DutySlot.Any(ds => ds.ExpiryDate == null && ds.Id == dutySlot.Id));
+
+            await _controller.AddSheriffLeave(entity, true);
+
+            Assert.False(Db.Shift.Any(s => s.ExpiryDate == null && s.Id == shift.Id));
+            Assert.False(Db.DutySlot.Any(ds => ds.ExpiryDate == null && ds.Id == dutySlot.Id ));
+        }
+
 
         #region Helpers
 

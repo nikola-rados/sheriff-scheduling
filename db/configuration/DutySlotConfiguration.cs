@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using SS.DB.Configuration;
 using SS.Db.models.scheduling;
@@ -15,10 +12,11 @@ namespace SS.Db.configuration
             builder.Property(b => b.Id).HasIdentityOptions(startValue: 200);
 
             builder.HasOne(d => d.Sheriff).WithMany().OnDelete(DeleteBehavior.SetNull);
-            builder.HasOne(d => d.Shift).WithMany(d => d.DutySlots).HasForeignKey(m => m.ShiftId).OnDelete(DeleteBehavior.SetNull);
             builder.HasOne(d => d.Location).WithMany().OnDelete(DeleteBehavior.SetNull);
             builder.HasOne(d => d.Duty).WithMany(d => d.DutySlots).HasForeignKey(d => d.DutyId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(b => new { b.StartDate, b.EndDate });
 
             base.Configure(builder);
         }
