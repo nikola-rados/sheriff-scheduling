@@ -24,6 +24,7 @@ namespace SS.Api.Controllers
     public class AuthController : ControllerBase
     {
         private bool IsImpersonated { get; }
+        private double OvertimeHoursPerDay { get; }
         private ChesEmailService ChesEmailService { get; }
         private IConfiguration Configuration { get; }
         private SheriffDbContext Db { get; }
@@ -33,6 +34,7 @@ namespace SS.Api.Controllers
             ChesEmailService = chesEmailService;
             IsImpersonated = env.IsDevelopment() &&
                               configuration.GetNonEmptyValue("ByPassAuthAndUseImpersonatedUser").Equals("true");
+            OvertimeHoursPerDay = double.Parse(configuration.GetNonEmptyValue("OverTimeHoursPerDay"));
             Db = db;
         }
         /// <summary>
@@ -139,6 +141,7 @@ namespace SS.Api.Controllers
                 LastName = lastName,
                 HomeLocationId = homeLocationId,
                 IsImpersonated = IsImpersonated,
+                OverTimeHoursPerDay = OvertimeHoursPerDay,
                 DateTime.UtcNow
             });
         }
