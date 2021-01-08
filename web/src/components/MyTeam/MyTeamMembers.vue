@@ -310,7 +310,7 @@
             for(const myteaminfo of data)
             {                
                 const myteam = {} as teamMemberInfoType;
-                myteam.fullName = Vue.filter('capitalize')(myteaminfo.firstName) + ' ' + Vue.filter('capitalize')(myteaminfo.lastName);
+                myteam.fullName = Vue.filter('capitalizefirst')(myteaminfo.firstName) + ' ' + Vue.filter('capitalizefirst')(myteaminfo.lastName);
                 myteam.firstName = myteaminfo.firstName;
                 myteam.lastName = myteaminfo.lastName;
                 myteam.rank = myteaminfo.rank;
@@ -459,7 +459,7 @@
             user.idirUserName =  userJson.idirName;
             user.firstName = userJson.firstName;
             user.lastName = userJson.lastName;
-            user.fullName = Vue.filter('capitalize')(userJson.firstName) + ' ' + Vue.filter('capitalize')(userJson.lastName);
+            user.fullName = Vue.filter('capitalizefirst')(userJson.firstName) + ' ' + Vue.filter('capitalizefirst')(userJson.lastName);
             user.gender = gender[userJson.gender];
             user.rank = userJson.rank;
             user.email = userJson.email;
