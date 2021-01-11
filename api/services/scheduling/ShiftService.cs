@@ -376,7 +376,7 @@ namespace SS.Api.services.scheduling
             {
                 var hourDifference = shift.StartDate.HourDifference(shift.EndDate, shift.Timezone);
                 shift.EndDate = shift.StartDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, OvertimeHoursPerDay);
-                hourDifference -= OvertimeHoursPerDay;
+                hourDifference -= (shift.EndDate - shift.StartDate).TotalHours;
                 var lastEndDate = shift.EndDate;
                 while (hourDifference > 0)
                 {
