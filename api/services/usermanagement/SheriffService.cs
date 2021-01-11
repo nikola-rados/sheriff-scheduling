@@ -401,9 +401,9 @@ namespace SS.Api.services.usermanagement
                         var awayLocationTimezone = Db.Location.AsNoTracking()
                             .FirstOrDefault(al => al.Id == sheriffAwayLocation.LocationId)?.Timezone;
                         startDate = sheriffAwayLocation.StartDate.ConvertToTimezone(awayLocationTimezone);
-                        startDateFormatted = startDate.PrintFormatDateTime();
+                        startDateFormatted = startDate.PrintFormatDateTime(awayLocationTimezone);
                         endDateFormatted = sheriffAwayLocation.EndDate.ConvertToTimezone(awayLocationTimezone)
-                            .PrintFormatDateTime();
+                            .PrintFormatDateTime(awayLocationTimezone);
                     }
                     else
                     {
@@ -413,9 +413,9 @@ namespace SS.Api.services.usermanagement
                         var homeLocationTimezone = Db.Location.AsNoTracking()
                             .FirstOrDefault(al => al.Id == sheriffId.Value)?.Timezone;
                         startDate = eventConflict.StartDate.ConvertToTimezone(homeLocationTimezone);
-                        startDateFormatted = startDate.PrintFormatDateTime();
+                        startDateFormatted = startDate.PrintFormatDateTime(homeLocationTimezone);
                         endDateFormatted = eventConflict.EndDate.ConvertToTimezone(homeLocationTimezone)
-                            .PrintFormatDateTime();
+                            .PrintFormatDateTime(homeLocationTimezone);
                     }
                     conflictErrors.Add((startDate, $"Overlaps with existing {eventConflict.GetType().Name.ConvertCamelCaseToMultiWord()}: {startDateFormatted} to {endDateFormatted}"));
                 }
@@ -424,8 +424,8 @@ namespace SS.Api.services.usermanagement
                 {
                     var date = shiftConflict.StartDate.ConvertToTimezone(shiftConflict.Timezone).PrintFormatDate();
                     startDate = shiftConflict.StartDate.ConvertToTimezone(shiftConflict.Timezone);
-                    startDateFormatted = startDate.PrintFormatTime();
-                    endDateFormatted = shiftConflict.EndDate.ConvertToTimezone(shiftConflict.Timezone).PrintFormatTime();
+                    startDateFormatted = startDate.PrintFormatTime(shiftConflict.Timezone);
+                    endDateFormatted = shiftConflict.EndDate.ConvertToTimezone(shiftConflict.Timezone).PrintFormatTime(shiftConflict.Timezone);
                     conflictErrors.Add((startDate,
                         $"Overlaps with existing {nameof(Shift).ConvertCamelCaseToMultiWord()} @ {shiftConflict.Location.Name}: {date} {startDateFormatted} to {endDateFormatted}"));
                 }

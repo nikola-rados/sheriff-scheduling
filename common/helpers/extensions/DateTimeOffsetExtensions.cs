@@ -1,5 +1,6 @@
 ﻿using System;
 using NodaTime;
+using TimeZoneNames;
 
 namespace SS.Common.helpers.extensions
 {
@@ -52,8 +53,25 @@ namespace SS.Common.helpers.extensions
             return zoned.ToDateTimeOffset();
         }
 
-        public static string PrintFormatDateTime(this DateTimeOffset date) => date.ToString("ddd dd MMM yyyy HH:mmzz");
+        private static string GetTimezoneAbbrevation(DateTimeOffset date, string timezone)
+        {
+            var abbreviations = TZNames.GetAbbreviationsForTimeZone(timezone, "en-CA");
+            var abbreviation = date.IsDaylightSavings(timezone) ? abbreviations.Daylight : abbreviations.Standard;
+            return abbreviation;
+        }
+        private static bool IsDaylightSavings(this DateTimeOffset date, string timezone)
+        {
+            var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone];
+            var instant = Instant.FromDateTimeOffset(date);
+            var zoned = instant.InZone(locationTimeZone);
+            return zoned.IsDaylightSavingTime();
+        }
+
+        public static string PrintFormatDateTime(this DateTimeOffset date, string timezone)
+            => $"{date:ddd dd MMM yyyy HH:mm} {GetTimezoneAbbrevation(date, timezone)}";
+
         public static string PrintFormatDate(this DateTimeOffset date) => date.ToString("ddd dd MMM yyyy");
-        public static string PrintFormatTime(this DateTimeOffset date) => date.ToString("HH:mmzz");
+        public static string PrintFormatTime(this DateTimeOffset date, string timezone)
+            => $"{date:HH:mm} {GetTimezoneAbbrevation(date, timezone)}";
     }
 }
