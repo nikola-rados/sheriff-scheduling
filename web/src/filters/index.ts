@@ -57,6 +57,15 @@ Vue.filter('capitalize', function(str: string){
 	
 })
 
+Vue.filter('capitalizefirst', function(str: string){
+	
+	if(str)
+		return str.charAt(0).toUpperCase() + (str.slice(1));
+	else
+		return ''
+	
+})
+
 Vue.filter('truncate', function (text: string, stop: number) {
 	if(text)
 		return (stop+3 < text.length) ? text.slice(0, stop)+'...' : text

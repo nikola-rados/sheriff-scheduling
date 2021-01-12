@@ -44,8 +44,6 @@
                     :items="sheriffSchedules" 
                     :fields="fields"
                     small
-                    head-row-variant="primary"   
-                    bordered
                     fixed>
 
                     <template v-slot:table-colgroup>
@@ -61,7 +59,7 @@
                         </template>
 
                         <template v-slot:cell(myteam) = "data" >  
-                            <span style="font-size: 1rem;">{{data.item.myteam.name}}</span>
+                            <span style="font-size: 1.2rem;">{{data.item.myteam.name}}</span>
                             <div style="height:1rem;"                    
                                 v-if="data.item.myteam.homeLocation != location.name">
                                 <div class="m-0 p-0 text-jail"> 
@@ -73,7 +71,7 @@
                         </template>
                         
                         <template v-slot:cell() = "data">                     
-                            <b-card style="font-size: 1rem;" class="ml-auto" body-class="p-1" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
+                            <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
                                 <div v-if="event.type == 'Shift'">
                                     <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
                                     <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
@@ -157,13 +155,13 @@
 
         fields=[
             {key:'myteam', label:'Name', tdClass:'px-1 mx-0 align-middle', thClass:'text-center'},
-            {key:'Sun', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Mon', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Tue', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Wed', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Thu', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Fri', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'},
-            {key:'Sat', label:'', tdClass:'px-0 mx-0 align-middle', thStyle:'text-align: center;'}
+            {key:'Sun', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Mon', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Tue', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Wed', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Thu', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Fri', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'},
+            {key:'Sat', label:'', tdClass:'px-1 mx-0 align-middle', thStyle:'text-align: center;'}
         ]
 
         WSColors = {
@@ -186,7 +184,7 @@
 
         mounted() {
             this.isDistributeDataMounted=false;			
-			this.loadScheduleInformation(false, '');
+			//this.loadScheduleInformation(false, '');
             this.today = moment().tz(this.location.timezone).format();
         }
 
@@ -248,8 +246,8 @@
             for(const sheriffScheduleJson of sheriffsScheduleJson) {
                 const sheriffSchedule = {} as distributeScheduleInfoType;
                 sheriffSchedule.sheriffId = sheriffScheduleJson.sheriffId;                
-                sheriffSchedule.name = Vue.filter('capitalize')(sheriffScheduleJson.sheriff.lastName) 
-                                        + ', ' + Vue.filter('capitalize')(sheriffScheduleJson.sheriff.firstName);
+                sheriffSchedule.name = Vue.filter('capitalizefirst')(sheriffScheduleJson.sheriff.lastName) 
+                                        + ', ' + Vue.filter('capitalizefirst')(sheriffScheduleJson.sheriff.firstName);
                 sheriffSchedule.homeLocation = sheriffScheduleJson.sheriff.homeLocation.name;                                        
                 const isInLoanLocation = (sheriffScheduleJson.sheriff.homeLocation.id !=this.location.id)
                 sheriffSchedule.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffScheduleJson.conflicts) :this.extractSchedules(sheriffScheduleJson.conflicts, false);        
@@ -275,7 +273,7 @@
             let conflictsJsonAwayLocation: any[] = []
             const conflicts: scheduleInfoType[] = []
             for(const conflict of conflictsJson){ 
-                console.log(conflict) 
+                //console.log(conflict) 
                 conflict.start = moment(conflict.start).tz(this.location.timezone).format();
                 conflict.end = moment(conflict.end).tz(this.location.timezone).format();              
                 if(conflict.conflict !='AwayLocation' || conflict.locationId != this.location.id) continue;
@@ -467,8 +465,21 @@
         border: white;
     }
 
+    .table{
+        border: 2px solid;
+    }
+
+    .table >>> tr {
+       border: 3px solid;       
+    } 
+
+    .table >>> th {
+        border: 3px solid;
+        background-color: rgb(190, 211, 233);
+    }  
     .table >>> td {
         height: 2.5rem;
+        border: 3px solid;
     }   
 
 </style>

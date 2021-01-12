@@ -1,7 +1,7 @@
 <template>
 	<header class="app-header">
 		<b-navbar toggleable="lg" class="navbar navbar-expand-lg navbar-dark">    
-			<b-navbar-brand v-if="displayHeader" class="mt-1" href="https://www2.gov.bc.ca">
+			<b-navbar-brand v-if="displayHeader" class="my-0" href="https://www2.gov.bc.ca">
 					<img 
 							class="img-fluid d-none d-lg-block"          
 							src="../../public/images/bcid-logo-rev-en.svg"
@@ -19,7 +19,7 @@
 			</b-navbar-brand>
             <b-navbar-nav v-else style="height:3rem"/>
             
-			<b-navbar-nav v-if="displayHeader" class="mt-1 mx-5">
+			<b-navbar-nav v-if="displayHeader" class="my-0 mx-5">
 				<b-nav-item :disabled="!hasPermissionToViewDutyRosterPage" to="/duty-roster" ><div style="display: inline-block; white-space: nowrap;">Duty Roster</div></b-nav-item>         
                 <b-nav-item-dropdown text="Shift Schedule" dropdown :disabled="!hasPermissionToViewSchedulePages">
                     <b-dropdown-item v-if="hasPermissionToViewManageSchedule" to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
@@ -34,7 +34,7 @@
                     <b-dropdown-item to="/leave-training-types">Leave & Training Types</b-dropdown-item>
                 </b-nav-item-dropdown>
 			</b-navbar-nav>
-			<b-navbar-nav v-if="displayHeader" class="ml-5 mt-1 mr-5">
+			<b-navbar-nav v-if="displayHeader" class="ml-3 my-0 mr-3">
                 <b-input-group v-if="locationDataReady" class="mr-2 mt-1" style="height: 40px">
                     <b-input-group-prepend is-text>
                         <b-icon icon="globe"></b-icon>
@@ -52,18 +52,12 @@
                         </b-form-select-option>                  
                     </b-form-select>
                 </b-input-group>
-                <b-nav-item-dropdown right class="mb-3" menu-class="bg-info"  dropdown>
+                <b-nav-item-dropdown right class="my-0" menu-class="bg-info"  dropdown>
                     <template v-slot:button-content>
                         <b-icon-person-circle></b-icon-person-circle>
                     </template>
                     <b-dropdown-text class="text-primary"><b-icon-person/> {{userDetails.firstName}} {{userDetails.lastName}}</b-dropdown-text>
                     <b-dropdown-item-button variant="danger" @click="signout()"><b-icon-box-arrow-right/> Sign out</b-dropdown-item-button>
-                </b-nav-item-dropdown>
-                <b-nav-item-dropdown class="mb-3 mr-5" dropdown>
-                    <template v-slot:button-content>
-                        <b-icon-gear-fill></b-icon-gear-fill>
-                    </template>                        
-                    <b-dropdown-item-button>PlaceHolder</b-dropdown-item-button>
                 </b-nav-item-dropdown>
 			</b-navbar-nav>
 		</b-navbar>    
