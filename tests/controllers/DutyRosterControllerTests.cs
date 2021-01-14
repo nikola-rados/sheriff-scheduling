@@ -35,7 +35,7 @@ namespace tests.controllers
             var dutyRosterService = new DutyRosterService(Db, environment.Configuration,
                  shiftService, environment.LogFactory.CreateLogger<DutyRosterService>());
 
-            _controller = new DutyRosterController(dutyRosterService, Db)
+            _controller = new DutyRosterController(dutyRosterService, Db, environment.Configuration)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };

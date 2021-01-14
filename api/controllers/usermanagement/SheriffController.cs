@@ -30,13 +30,15 @@ namespace SS.Api.controllers.usermanagement
         public const string CouldNotFindSheriffEventError = "Couldn't find sheriff event.";
         private SheriffService SheriffService { get; }
         private ShiftService ShiftService { get; }
+        private DutyRosterService DutyRosterService { get; }
         private SheriffDbContext Db { get; }
         // ReSharper disable once InconsistentNaming
         private readonly long _uploadPhotoSizeLimitKB;
-        public SheriffController(SheriffService sheriffService, ShiftService shiftService, UserService userUserService, IConfiguration configuration, SheriffDbContext db) : base (userUserService)
+        public SheriffController(SheriffService sheriffService, DutyRosterService dutyRosterService, ShiftService shiftService, UserService userUserService, IConfiguration configuration, SheriffDbContext db) : base (userUserService)
         {
-            ShiftService = shiftService;
             SheriffService = sheriffService;
+            ShiftService = shiftService;
+            DutyRosterService = dutyRosterService;
             Db = db;
             _uploadPhotoSizeLimitKB = Convert.ToInt32(configuration.GetNonEmptyValue("UploadPhotoSizeLimitKB"));
         }
@@ -163,7 +165,7 @@ namespace SS.Api.controllers.usermanagement
             await CheckForAccessToSheriffByLocation(sheriffAwayLocationDto.SheriffId);
 
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
-            var createdSheriffAwayLocation = await SheriffService.AddSheriffAwayLocation(ShiftService, sheriffAwayLocation, overrideConflicts);
+            var createdSheriffAwayLocation = await SheriffService.AddSheriffAwayLocation(DutyRosterService, ShiftService, sheriffAwayLocation, overrideConflicts);
             return Ok(createdSheriffAwayLocation.Adapt<SheriffAwayLocationDto>());
         }
 
@@ -175,7 +177,7 @@ namespace SS.Api.controllers.usermanagement
             await CheckForAccessToSheriffByLocation<SheriffAwayLocation>(sheriffAwayLocationDto.Id);
 
             var sheriffAwayLocation = sheriffAwayLocationDto.Adapt<SheriffAwayLocation>();
-            var updatedSheriffAwayLocation = await SheriffService.UpdateSheriffAwayLocation(ShiftService, sheriffAwayLocation, overrideConflicts);
+            var updatedSheriffAwayLocation = await SheriffService.UpdateSheriffAwayLocation(DutyRosterService, ShiftService, sheriffAwayLocation, overrideConflicts);
             return Ok(updatedSheriffAwayLocation.Adapt<SheriffAwayLocationDto>());
         }
 
@@ -200,7 +202,7 @@ namespace SS.Api.controllers.usermanagement
             await CheckForAccessToSheriffByLocation(sheriffLeaveDto.SheriffId);
 
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
-            var createdSheriffLeave = await SheriffService.AddSheriffLeave(ShiftService, sheriffLeave, overrideConflicts);
+            var createdSheriffLeave = await SheriffService.AddSheriffLeave(DutyRosterService, ShiftService, sheriffLeave, overrideConflicts);
             return Ok(createdSheriffLeave.Adapt<SheriffLeaveDto>());
         }
 
@@ -212,7 +214,7 @@ namespace SS.Api.controllers.usermanagement
             await CheckForAccessToSheriffByLocation<SheriffLeave>(sheriffLeaveDto.Id);
 
             var sheriffLeave = sheriffLeaveDto.Adapt<SheriffLeave>();
-            var updatedSheriffLeave = await SheriffService.UpdateSheriffLeave(ShiftService, sheriffLeave, overrideConflicts);
+            var updatedSheriffLeave = await SheriffService.UpdateSheriffLeave(DutyRosterService, ShiftService, sheriffLeave, overrideConflicts);
             return Ok(updatedSheriffLeave.Adapt<SheriffLeaveDto>());
         }
 
@@ -237,7 +239,7 @@ namespace SS.Api.controllers.usermanagement
             await CheckForAccessToSheriffByLocation(sheriffTrainingDto.SheriffId);
 
             var sheriffTraining = sheriffTrainingDto.Adapt<SheriffTraining>();
-            var createdSheriffTraining = await SheriffService.AddSheriffTraining(ShiftService, sheriffTraining, overrideConflicts);
+            var createdSheriffTraining = await SheriffService.AddSheriffTraining(DutyRosterService, ShiftService, sheriffTraining, overrideConflicts);
             return Ok(createdSheriffTraining.Adapt<SheriffTrainingDto>());
         }
 
@@ -256,7 +258,7 @@ namespace SS.Api.controllers.usermanagement
                     throw new BusinessLayerException("No permission to edit training that has completed.");
             }
 
-            var updatedSheriffTraining = await SheriffService.UpdateSheriffTraining(ShiftService, sheriffTraining, overrideConflicts);
+            var updatedSheriffTraining = await SheriffService.UpdateSheriffTraining(DutyRosterService, ShiftService, sheriffTraining, overrideConflicts);
             return Ok(updatedSheriffTraining.Adapt<SheriffTrainingDto>());
         }
 
