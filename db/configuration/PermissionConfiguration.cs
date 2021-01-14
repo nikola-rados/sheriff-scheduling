@@ -42,7 +42,10 @@ namespace SS.Db.configuration
                 new Permission { Id = 36, Name = Permission.ExpireDuties, Description = "Expire Duties" },
                 new Permission { Id = 37, Name = Permission.EditIdir, Description = "Edit Idir" },
                 new Permission { Id = 38, Name = Permission.EditPastTraining, Description = "Edit Past Training" },
-                new Permission { Id = 39, Name = Permission.RemovePastTraining, Description = "Remove Past Training" }
+                new Permission { Id = 39, Name = Permission.RemovePastTraining, Description = "Remove Past Training" },
+                new Permission { Id = 40, Name = Permission.ViewDutyRosterInFuture, Description = "View DutyRoster in the future" },
+                new Permission { Id = 41, Name = Permission.ViewAllFutureShifts, Description = "View Shifts in the future (not time constrained)" },
+                new Permission { Id = 42, Name = Permission.ViewOtherProfiles, Description = "View other profiles (beside their own)" }
             );
             base.Configure(builder);
         }

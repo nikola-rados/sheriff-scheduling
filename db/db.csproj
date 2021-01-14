@@ -63,6 +63,7 @@
     <None Remove="migrations\20201212165816_UpdatePermissions_4.sql" />
     <None Remove="migrations\20201215005036_UpdatePermissions_5.sql" />
     <None Remove="migrations\20201221154933_UpdatePermissions_6.sql" />
+    <None Remove="migrations\20210114180437_UpdatePermissions_Final.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -79,6 +80,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="migrations\20201215005036_UpdatePermissions_5.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="migrations\20210114180437_UpdatePermissions_Final.sql">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="migrations\20201221154933_UpdatePermissions_6.sql">
