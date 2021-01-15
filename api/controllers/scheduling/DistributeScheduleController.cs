@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +8,6 @@ using Microsoft.Extensions.Configuration;
 using SS.Api.helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
-using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using SS.Common.helpers.extensions;
