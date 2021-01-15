@@ -1,7 +1,6 @@
 ﻿using SS.Api.services;
 using System;
 using System.Threading.Tasks;
-using JCCommon.Clients.LocationServices;
 using SS.Api.controllers;
 using SS.Api.Models.DB;
 using SS.Api.models.dto;

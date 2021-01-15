@@ -12,7 +12,6 @@ using SS.Db.models.auth;
 using SS.Db.models.sheriff;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using SS.Common.authorization;
 using SS.Db.models.audit;
 using SS.Db.models.audit.notmapped;

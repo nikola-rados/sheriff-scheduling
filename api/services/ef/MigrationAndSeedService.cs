@@ -40,7 +40,7 @@ namespace SS.Api.services.ef
                 var historyRepository = db.GetService<IHistoryRepository>();
 
                 var all = migrationsAssembly.Migrations.Keys;
-                var applied = historyRepository.GetAppliedMigrations().Select(r => r.MigrationId).ToList();
+                var applied = historyRepository.Exists() ? historyRepository.GetAppliedMigrations().Select(r => r.MigrationId).ToList() : new List<string>();
                 var pending = all.Except(applied).ToList();
 
                 Logger.LogInformation($"Pending {pending.Count} Migrations.");

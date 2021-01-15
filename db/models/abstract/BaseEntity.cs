@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Mapster;
-using Newtonsoft.Json;
 using SS.Db.models.auth;
 
 /// <summary>

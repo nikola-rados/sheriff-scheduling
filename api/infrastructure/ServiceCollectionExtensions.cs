@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Security.Claims;
@@ -29,7 +27,6 @@ using SS.Api.services;
 using SS.Api.services.jc;
 using SS.Api.services.scheduling;
 using SS.Api.services.usermanagement;
-using SS.Common.authorization;
 using BasicAuthenticationHeaderValue = SS.Api.helpers.BasicAuthenticationHeaderValue;
 
 namespace SS.Api.infrastructure

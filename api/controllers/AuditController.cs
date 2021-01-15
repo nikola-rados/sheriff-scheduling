@@ -6,7 +6,6 @@ using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SS.Api.infrastructure.authorization;
-using SS.Api.models;
 using SS.Api.models.dto;
 using SS.Api.models.dto.generated;
 using SS.Api.services.usermanagement;

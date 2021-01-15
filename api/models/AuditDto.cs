@@ -1,6 +1,5 @@
 using System;
 using SS.Api.models.dto.generated;
-using SS.Db.models.auth;
 
 namespace SS.Api.models.dto
 {
