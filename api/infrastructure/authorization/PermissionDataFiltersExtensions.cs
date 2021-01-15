@@ -22,6 +22,9 @@ namespace SS.Api.infrastructure.authorization
             var viewAssignedLocation = currentUser.HasPermission(Permission.ViewAssignedLocation);
             var viewHomeLocation = currentUser.HasPermission(Permission.ViewHomeLocation);
 
+            if (!currentUser.HasPermission(Permission.ViewOtherProfiles))
+                query = query.Where(q => q.Id == currentUserId);
+
             if (viewProvince) 
                 return query;
 

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
 using SS.Api.infrastructure.authorization;
-using SS.Api.infrastructure.exceptions;
 using SS.Api.models.dto;
 using SS.Api.models.dto.generated;
 using SS.Api.services;
