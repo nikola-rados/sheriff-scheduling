@@ -28,11 +28,16 @@ namespace SS.Api.services.jc
         public Task StartAsync(CancellationToken cancellationToken)
         {
             Logger.LogInformation($"Timed Background Service is starting with a period of {_checkForUpdate}.");
-            _timer = new Timer(DoWork, null, new TimeSpan(), _checkForUpdate);
+            _timer = new Timer(DoWorkWrapper, null, new TimeSpan(), _checkForUpdate);
             return Task.CompletedTask;
         }
 
-        private async void DoWork(object state)
+        private void DoWorkWrapper(object state)
+        {
+            _ = DoWork();
+        }
+
+        private async Task DoWork()
         {
             try
             {

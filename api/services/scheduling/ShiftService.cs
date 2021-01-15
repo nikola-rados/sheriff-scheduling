@@ -195,7 +195,6 @@ namespace SS.Api.services.scheduling
             var importedShifts = await shiftsToImport.Select(shift => Db.DetachedClone(shift)).ToListAsync();
             foreach (var shift in importedShifts)
             {
-                shift.SheriffId = shift.SheriffId;
                 shift.StartDate = shift.StartDate.TranslateDateIfDaylightSavings(timezone, 7);
                 shift.EndDate = shift.EndDate.TranslateDateIfDaylightSavings(timezone, 7);
             }
