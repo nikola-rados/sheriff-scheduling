@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SS.Api.helpers.extensions;
+using SS.Api.infrastructure.exceptions;
 using SS.Api.models.ches;
 
 namespace SS.Api.services
@@ -41,7 +42,7 @@ namespace SS.Api.services
 
                 var response = await HttpClient.SendAsync(requestMessage);
                 if (!response.IsSuccessStatusCode)
-                    throw new Exception($"While getting access_token for email - Received status code: {response.StatusCode}");
+                    throw new BadRequestException($"While getting access_token for email - Received status code: {response.StatusCode}");
 
                 var contents = await response.Content.ReadAsStringAsync();
                 var accessToken = JObject.Parse(contents)["access_token"]?.ToString();
@@ -84,7 +85,7 @@ namespace SS.Api.services
                     priority = "normal",
                     subject,
                     to,
-                    tag = new Guid()
+                    tag = Guid.NewGuid()
                 };
 
                 requestMessage.Content =
@@ -93,7 +94,7 @@ namespace SS.Api.services
                 var response = await HttpClient.SendAsync(requestMessage);
                 var contents = await response.Content.ReadAsStringAsync();
                 if (!response.IsSuccessStatusCode)
-                    throw new Exception($"While sending email - Received status code: {response.StatusCode} : {contents}");
+                    throw new BadRequestException($"While sending email - Received status code: {response.StatusCode} : {contents}");
 
                 Logger.LogInformation($"Email sent to {recipientEmail} successfully.");
             }

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using SS.Api.helpers;
 using SS.Api.helpers.extensions;
+using SS.Api.infrastructure.exceptions;
 using SS.Common.authorization;
 
 namespace SS.Api.infrastructure.authorization
@@ -22,7 +23,7 @@ namespace SS.Api.infrastructure.authorization
         public DevelopmentEnvironmentClaimsFilter(IConfiguration configuration, IWebHostEnvironment env)
         {
             if (!env.IsDevelopment())
-                throw new Exception("This is not a development environment.");
+                throw new ConfigurationException("This is not a development environment.");
             Configuration = configuration;
         }
 
