@@ -212,7 +212,13 @@
                         console.log(info)
                         this.extractTeamScheduleInfo(info);                        
                     }                                   
-                },err => {this.errorText = err;this.openErrorModal=true;this.isDistributeDataMounted=true;})            
+                },err => {
+                    this.errorText = err;
+                    this.openErrorModal=true;
+                    this.teamMembers = [];
+                    this.sheriffSchedules = [];
+                    this.isDistributeDataMounted=true;
+                })            
         }
 
         public extractTeamInfo (teamJson) {
