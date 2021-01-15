@@ -15,6 +15,7 @@ using SS.Common.helpers.extensions;
 using ss.db.models;
 using SS.Db.models.scheduling;
 using SS.Db.models.scheduling.notmapped;
+using Microsoft.Extensions.Logging;
 using SS.Db.models.sheriff;
 using tests.api.helpers;
 using tests.api.Helpers;
@@ -30,7 +31,11 @@ namespace tests.controllers
         public ShiftControllerTests() : base(false)
         {
             var environment = new EnvironmentBuilder("LocationServicesClient:Username", "LocationServicesClient:Password", "LocationServicesClient:Url");
-            ShiftController = new ShiftController(new ShiftService(Db, new SheriffService(Db, environment.Configuration), environment.Configuration), Db, environment.Configuration)
+            var shiftService = new ShiftService(Db, new SheriffService(Db, environment.Configuration),
+                environment.Configuration);
+            var dutyRosterService = new DutyRosterService(Db, environment.Configuration,
+                shiftService, environment.LogFactory.CreateLogger<DutyRosterService>());
+            ShiftController = new ShiftController(shiftService, dutyRosterService, Db, environment.Configuration)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };

@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using SS.Api.controllers.usermanagement;
 using SS.Api.models.dto;
-using SS.Api.services;
 using SS.Api.services.scheduling;
 using SS.Api.services.usermanagement;
 using SS.Db.models.auth;
 using tests.api.helpers;
 using tests.api.Helpers;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace tests.controllers
 {
@@ -31,7 +31,9 @@ namespace tests.controllers
             var httpContextAccessor = new HttpContextAccessor { HttpContext = HttpResponseTest.SetupHttpContext() };
             var sheriffService = new SheriffService(Db, environment.Configuration, httpContextAccessor);
             var shiftService = new ShiftService(Db, sheriffService, environment.Configuration);
-            _controller = new SheriffController(sheriffService, shiftService, new UserService(Db), environment.Configuration, Db)
+            var dutyRosterService = new DutyRosterService(Db, environment.Configuration,
+                shiftService, environment.LogFactory.CreateLogger<DutyRosterService>());
+            _controller = new SheriffController(sheriffService, dutyRosterService, shiftService, new UserService(Db), environment.Configuration, Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
