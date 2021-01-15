@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using SS.Api.controllers.scheduling;
 using SS.Api.Models.DB;
-using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
 using ss.db.models;
 using SS.Db.models.scheduling;

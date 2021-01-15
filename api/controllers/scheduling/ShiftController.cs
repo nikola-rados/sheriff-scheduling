@@ -48,18 +48,18 @@ namespace SS.Api.controllers.scheduling
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
             if (!User.HasPermission(Permission.ViewDutyRoster)) includeDuties = false;
 
-            if (!User.HasPermission(Permission.ViewDutyRosterInFuture))
+            var shifts = await ShiftService.GetShiftsForLocation(locationId, start, end, includeDuties);
+
+            if (!User.HasPermission(Permission.ViewAllFutureShifts))
             {
                 var location = await Db.Location.AsNoTracking().FirstOrDefaultAsync(l => l.Id == locationId);
                 var timezone = location.Timezone;
+                var restrictionDays = int.Parse(Configuration.GetNonEmptyValue("ViewShiftRestrictionDays"));
                 var currentDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone).DateOnly();
-                var restrictionHours = float.Parse(Configuration.GetNonEmptyValue("ViewDutyRosterRestrictionHours"));
-                var endDate = currentDate.TranslateDateForDaylightSavingsByHours(timezone, restrictionHours);
-                if (endDate < end)
-                    return Forbid();
+                var endDate = currentDate.TranslateDateIfDaylightSavings(timezone, restrictionDays + 1);
+                shifts = shifts.WhereToList(s => s.StartDate < endDate);
             }
 
-            var shifts = await ShiftService.GetShiftsForLocation(locationId, start, end, includeDuties);
             return Ok(shifts.Adapt<List<ShiftDto>>());
         }
 
@@ -126,6 +126,8 @@ namespace SS.Api.controllers.scheduling
 
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
 
+            var shiftAvailability = await ShiftService.GetShiftAvailability(start, end, locationId: locationId);
+
             if (!User.HasPermission(Permission.ViewAllFutureShifts))
             {
                 var location = await Db.Location.AsNoTracking().FirstOrDefaultAsync(l => l.Id == locationId);
@@ -133,13 +135,10 @@ namespace SS.Api.controllers.scheduling
                 var restrictionDays = int.Parse(Configuration.GetNonEmptyValue("ViewShiftRestrictionDays"));
                 var currentDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone).DateOnly();
                 var endDate = currentDate.TranslateDateIfDaylightSavings(timezone, restrictionDays + 1);
-                if (endDate < end)
-                    end = endDate;
-                if (start > end) 
-                    return Forbid();
+                foreach (var sa in shiftAvailability)
+                    sa.Conflicts = sa.Conflicts.WhereToList(c => c.Start < endDate);
             }
 
-            var shiftAvailability = await ShiftService.GetShiftAvailability(start, end, locationId: locationId);
             return Ok(shiftAvailability.Adapt<List<ShiftAvailabilityDto>>());
         }
     }

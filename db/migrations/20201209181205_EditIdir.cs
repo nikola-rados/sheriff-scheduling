@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace SS.Db.Migrations

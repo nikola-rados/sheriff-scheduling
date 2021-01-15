@@ -1,8 +1,6 @@
 ﻿using db.models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 //Thanks to PIMS for this. 
