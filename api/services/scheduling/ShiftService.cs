@@ -376,7 +376,7 @@ namespace SS.Api.services.scheduling
             {
                 var hourDifference = shift.StartDate.HourDifference(shift.EndDate, shift.Timezone);
                 shift.EndDate = shift.StartDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, OvertimeHoursPerDay);
-                hourDifference -= OvertimeHoursPerDay;
+                hourDifference -= (shift.EndDate - shift.StartDate).TotalHours;
                 var lastEndDate = shift.EndDate;
                 while (hourDifference > 0)
                 {
@@ -504,14 +504,14 @@ namespace SS.Api.services.scheduling
         private static string ConflictingSheriffAndSchedule(Sheriff sheriff, Shift shift)
         {
             shift.Timezone.GetTimezone().ThrowBusinessExceptionIfNull("Shift - Timezone was invalid.");
-            return $"{sheriff.LastName}, {sheriff.FirstName} has a shift {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatDate()} {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatTime()} to {shift.EndDate.ConvertToTimezone(shift.Timezone).PrintFormatTime()}";
+            return $"{sheriff.LastName}, {sheriff.FirstName} has a shift {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatDate()} {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatTime(shift.Timezone)} to {shift.EndDate.ConvertToTimezone(shift.Timezone).PrintFormatTime(shift.Timezone)}";
         }
 
         private static string PrintSheriffEventConflict<T>(Sheriff sheriff, DateTimeOffset start, DateTimeOffset end,
             string timezone)
         {
             timezone.GetTimezone().ThrowBusinessExceptionIfNull("SheriffEvent - Timezone was invalid.");
-            return $"{sheriff.LastName}, {sheriff.FirstName} has {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} {start.ConvertToTimezone(timezone).PrintFormatDateTime()} to {end.ConvertToTimezone(timezone).PrintFormatDateTime()}";
+            return $"{sheriff.LastName}, {sheriff.FirstName} has {typeof(T).Name.Replace("Sheriff", "").ConvertCamelCaseToMultiWord()} {start.ConvertToTimezone(timezone).PrintFormatDateTime(timezone)} to {end.ConvertToTimezone(timezone).PrintFormatDateTime(timezone)}";
         }
 
         #endregion String Helpers
