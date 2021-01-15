@@ -1,8 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations.Schema;
-using db.models;
 using Mapster;
-using Newtonsoft.Json;
 
 namespace SS.Db.models.auth.notmapped
 {

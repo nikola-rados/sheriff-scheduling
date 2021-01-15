@@ -42,6 +42,7 @@ namespace SS.Api.controllers.scheduling
         public async Task<ActionResult<List<DutyDto>>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
+            var duties = await DutyRosterService.GetDutiesForLocation(locationId, start, end);
 
             if (!User.HasPermission(Permission.ViewDutyRosterInFuture))
             {
@@ -50,11 +51,9 @@ namespace SS.Api.controllers.scheduling
                 var currentDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone).DateOnly();
                 var restrictionHours = float.Parse(Configuration.GetNonEmptyValue("ViewDutyRosterRestrictionHours"));
                 var endDate = currentDate.TranslateDateForDaylightSavingsByHours(timezone, restrictionHours);
-                if (endDate < end)
-                    return Forbid();
+                duties = duties.WhereToList(d => d.StartDate < endDate);
             }
 
-            var duties = await DutyRosterService.GetDutiesForLocation(locationId, start, end);
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 

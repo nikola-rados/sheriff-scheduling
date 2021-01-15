@@ -1,7 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
+﻿using System.ComponentModel.DataAnnotations;
 using db.models;
 using Mapster;
 
