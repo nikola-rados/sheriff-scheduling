@@ -437,8 +437,10 @@ namespace SS.Api.services.scheduling
                 }
             }
 
-            await ExpireShiftsAndDutySlots(expireShiftIds);
-            await UpdateShifts(dutyRosterService, adjustShifts);
+            if (expireShiftIds.Count > 0)
+                await ExpireShiftsAndDutySlots(expireShiftIds);
+            if (adjustShifts.Count > 0)
+                await UpdateShifts(dutyRosterService, adjustShifts);
 
             await Db.SaveChangesAsync();
         }
