@@ -9,6 +9,7 @@ export interface shiftInfoType {
     locationId: string;     
     sheriffId: string;
     comment?: string;
+    overtimeHours: number;
 }
 
 export interface distributeTeamMemberInfoType {        

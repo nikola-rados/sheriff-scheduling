@@ -25,7 +25,7 @@
 				</b-navbar-nav>
 
 				<b-navbar-nav class="mr-2">
-					<b-input-group class="mr-2 mt-1" style="height: 40px">
+					<b-input-group class="mr-2 my-0" style="height: 40px">
 						<b-input-group-prepend is-text>
 							<b-icon icon="person-fill"></b-icon>
 						</b-input-group-prepend>
@@ -46,19 +46,19 @@
 
 				<b-navbar-nav class="mr-2">
 					<b-nav-form>
-						<div v-if="hasPermissionToViewDutyRoster" :class="showWorkSectionChecked?'bg-success':''" :style="'border-radius:5px;'+(showWorkSectionChecked?'width: 6rem;':'width: 6rem;')">
+						<div v-if="hasPermissionToViewDutyRoster" :class="showWorkSectionChecked?'bg-success':''" :style="'border:1px solid green;border-radius:5px;'+(showWorkSectionChecked?'width: 8rem;':'width: 8rem;')">
 							<b-form-checkbox class="ml-2 my-1" v-model="showWorkSectionChecked" @change="getSchedule()" size="lg" switch>
-								{{viewStatus}}
+								<div class="text-white">{{viewStatus}}</div>
 							</b-form-checkbox>
 						</div>
-						<div v-b-tooltip.hover
+						<div v-b-tooltip.hover.noninteractive
 							title="Print Schedule">
 							<b-button 
 								style="max-height: 40px;" 
 								size="sm"
 								variant="white"						
 								@click="printSchedule()" 
-								class="my-2 ml-2">
+								class="my-0 ml-2">
 								<b-icon icon="printer-fill" font-scale="2.0" variant="white"/>
 							</b-button>
 						</div>
@@ -167,14 +167,18 @@
 					}
 				}`,
 				`.card {border: white;}`,
-				`td {height: 2.5rem;}`
+				`.table{border: 3px solid;}`,
+				`tr {border: 3px solid;}`,
+				`th {border: 3px solid black;}`,
+				`td {height: 2.5rem;border: 3px solid;}`
+
 			]
 			const pageToPrint = document.getElementById("pdf")
 			if(pageToPrint) pdfPage.print(pageToPrint, styles)
         }
 		
 		get viewStatus() {
-            if(this.showWorkSectionChecked) return 'WS';else return ''
+            if(this.showWorkSectionChecked) return 'WS';else return 'No WS'
         }		
 		
 		public dateChanged(event) {

@@ -367,7 +367,8 @@
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
                             endDate: slotTime.endTime,                        
-                            shiftId: null,
+                            isOvertime:true,
+                            //shiftId: null,
                             dutySlotId: null,
                         })
                     }
@@ -384,7 +385,8 @@
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
                             endDate: slotTime.endTime,                        
-                            shiftId: unionSelectedRangeAvail.slice(inx1,inx2).includes(1)? this.formData.shiftId: unionSelectedRangeAvail[inx1],
+                            //shiftId: unionSelectedRangeAvail.slice(inx1,inx2).includes(1)? this.formData.shiftId: unionSelectedRangeAvail[inx1],
+                            isOvertime: false,
                             dutySlotId: unionSelectedRangeAvail.slice(inx1,inx2).includes(1)? this.formData.dutySlotId:null,
                         })
                     }
@@ -400,8 +402,9 @@
                 const endTime =  moment(this.startOfDay).add(this.selectedEndTime).format();
                 const editedDutySlot: assignDutySlotsInfoType[] =[{
                     startDate: startTime,
-                    endDate: endTime,                        
-                    shiftId: isNotRequiredOrAvailable?null:shiftId,
+                    endDate: endTime, 
+                    isOvertime: false,                       
+                    //shiftId: isNotRequiredOrAvailable?null:shiftId,
                     dutySlotId: this.formData.dutySlotId,
                 }]
                 
@@ -444,11 +447,11 @@
                         return false;
                     }
 
-                    if(this.selectedSheriff?.sheriffId == dutyBlock.sheriffId && (selectedTimeBins.startBin == (dutyBlock.endTime-1)||selectedTimeBins.endBin == (dutyBlock.startTime-1)) ){
-                        this.errorMsg = "Please modify the duty of "+name +" instead."
-                        this.showErrorMsg = true; 
-                        return false;   
-                    }
+                    // if(this.selectedSheriff?.sheriffId == dutyBlock.sheriffId && (selectedTimeBins.startBin == (dutyBlock.endTime-1)||selectedTimeBins.endBin == (dutyBlock.startTime-1)) ){
+                    //     this.errorMsg = "Please modify the duty of "+name +" instead."
+                    //     this.showErrorMsg = true; 
+                    //     return false;   
+                    // }
                 }
             }
             return true            
