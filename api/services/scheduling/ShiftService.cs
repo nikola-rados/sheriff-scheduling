@@ -101,7 +101,7 @@ namespace SS.Api.services.scheduling
             return shifts;
         }
 
-        public async Task<List<Shift>> UpdateShifts(List<Shift> shifts)
+        public async Task<List<Shift>> UpdateShifts(DutyRosterService dutyRosterService, List<Shift> shifts)
         {
             var overlaps = await GetShiftConflicts(shifts);
             if (overlaps.Any()) throw new BusinessLayerException(overlaps.SelectMany(ol => ol.ConflictMessages).ToStringWithPipes());
@@ -139,10 +139,12 @@ namespace SS.Api.services.scheduling
 
             await CalculateOvertimeHoursForShifts(shifts);
 
+            await dutyRosterService.AdjustDutySlots(shifts);
+
             return await savedShifts.ToListAsync();
         }
 
-        public async Task ExpireShifts(List<int> ids)
+        public async Task ExpireShiftsAndDutySlots(List<int> ids)
         {
             var removedShifts = await Db.Shift.In(ids, s => s.Id).ToListAsync();
             foreach (var shift in removedShifts)
@@ -165,7 +167,6 @@ namespace SS.Api.services.scheduling
 
             await Db.SaveChangesAsync();
         }
-
 
         public async Task<ImportedShifts> ImportWeeklyShifts(int locationId, DateTimeOffset start)
         {
@@ -219,15 +220,9 @@ namespace SS.Api.services.scheduling
         /// <summary>
         /// This is used for Distribute Schedule, as well as the Shift Schedule page. 
         /// </summary>
-        public async Task<List<ShiftAvailability>> GetShiftAvailability(DateTimeOffset start, DateTimeOffset end, List<Guid> sheriffIds = null, int? locationId = null)
+        public async Task<List<ShiftAvailability>> GetShiftAvailability(DateTimeOffset start, DateTimeOffset end, int locationId)
         {
-            List<Sheriff> sheriffs;
-            if (sheriffIds != null)
-                sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityById(sheriffIds, start, end);
-            else if (locationId.HasValue)
-                sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId.Value, start, end);
-            else
-                throw new InvalidOperationException("GetShiftAvailability must include either a locationId or sheriffIds.");
+            var sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId, start, end);
 
             var shiftsForSheriffs = await GetShiftsForSheriffs(sheriffs.Select(s => s.Id), start, end);
 
@@ -368,7 +363,6 @@ namespace SS.Api.services.scheduling
             return overtimeHoursForDay;
         }
 
-
         private List<Shift> SplitLongShifts(List<Shift> shifts)
         {
             var shiftsToSplit = shifts.Where(s => s.StartDate.HourDifference(s.EndDate, s.Timezone) > OvertimeHoursPerDay).ToList();
@@ -395,7 +389,6 @@ namespace SS.Api.services.scheduling
             return shifts;
         }
 
-
         #region Add Shift
 
         private async Task AddShift(Shift shift)
@@ -408,6 +401,51 @@ namespace SS.Api.services.scheduling
         }
 
         #endregion Add Shift
+
+        #region Override
+
+        public async Task HandleShiftOverrides<T>(T data, DutyRosterService dutyRosterService, List<Shift> shiftConflicts) where T : SheriffEvent
+        {
+            var adjustShifts = new List<Shift>();
+            var expireShiftIds = new List<int>();
+
+            foreach (var shift in shiftConflicts)
+            {
+                if (data.StartDate <= shift.StartDate && data.EndDate >= shift.EndDate)
+                    expireShiftIds.Add(shift.Id);
+                else
+                {
+                    if (shift.StartDate < data.StartDate && shift.EndDate > data.EndDate)
+                    {
+                        var newShift = shift.Adapt<Shift>();
+                        newShift.Id = 0;
+                        newShift.StartDate = data.EndDate.ConvertToTimezone(data.Timezone);
+                        shift.EndDate = data.StartDate.ConvertToTimezone(data.Timezone);
+                        adjustShifts.Add(newShift);
+                        adjustShifts.Add(shift);
+                    }
+                    else if (shift.EndDate > data.EndDate)
+                    {
+                        shift.StartDate = data.EndDate.ConvertToTimezone(data.Timezone);
+                        adjustShifts.Add(shift);
+                    }
+                    else if (shift.StartDate < data.StartDate)
+                    {
+                        shift.EndDate = data.StartDate.ConvertToTimezone(data.Timezone);
+                        adjustShifts.Add(shift);
+                    }
+                }
+            }
+
+            if (expireShiftIds.Count > 0)
+                await ExpireShiftsAndDutySlots(expireShiftIds);
+            if (adjustShifts.Count > 0)
+                await UpdateShifts(dutyRosterService, adjustShifts);
+
+            await Db.SaveChangesAsync();
+        }
+        #endregion 
+
         #region Availability
 
         public async Task<List<ShiftConflict>> GetShiftConflicts(List<Shift> shifts)
