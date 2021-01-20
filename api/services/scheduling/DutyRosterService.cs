@@ -145,7 +145,7 @@ namespace SS.Api.services.scheduling
 
             var toDutySlotEnd = toDuty.EndDate;
 
-            //Might be cut even shorter from existing dutyslots with sheriffs in them. 
+            //Might be cut even shorter from existing DutySlots with sheriffs in them. 
             if (toDuty.DutySlots.Any(ds =>
                 toDutySlotStart < ds.EndDate && ds.StartDate < toDutySlotEnd && ds.SheriffId != null))
             {
@@ -204,6 +204,62 @@ namespace SS.Api.services.scheduling
             await Db.SaveChangesAsync();
         }
 
+        public async Task AdjustDutySlots(List<Shift> shifts)
+        {
+            var shiftAdjustments = shifts.SelectToList(s => new ShiftAdjustment
+                {SheriffId = s.SheriffId, Date = s.StartDate.ConvertToTimezone(s.Timezone).DateOnly(), Timezone = s.Timezone}).Distinct().ToList();
+
+            foreach (var shiftAdjustment in shiftAdjustments)
+            {
+                var endOfDayInTimezone = shiftAdjustment.Date.TranslateDateIfDaylightSavings(shiftAdjustment.Timezone, 1);
+
+                var dutySlotsForDay = await Db.DutySlot.Where(d =>
+                    d.ExpiryDate == null && d.SheriffId == shiftAdjustment.SheriffId &&
+                    shiftAdjustment.Date <= d.StartDate && endOfDayInTimezone >= d.EndDate).ToListAsync();
+
+                var shiftsForDay = await Db.Shift.AsNoTracking().Where(s =>
+                    s.ExpiryDate == null && s.SheriffId == shiftAdjustment.SheriffId &&
+                    shiftAdjustment.Date <= s.StartDate && endOfDayInTimezone >= s.EndDate).ToListAsync();
+
+                var shiftBuckets = shiftsForDay.GetShiftBuckets();
+
+                foreach (var dutySlot in dutySlotsForDay)
+                {
+                    var overlappingBuckets =
+                        shiftBuckets.Where(s => s.Start < dutySlot.EndDate && dutySlot.StartDate < s.End)
+                            .ToList();
+
+                    if (!overlappingBuckets.Any())
+                    {
+                       dutySlot.ExpiryDate = DateTimeOffset.UtcNow;
+                       continue;
+                    }
+
+                    DateTimeOffset minStartDate = dutySlot.StartDate;
+                    DateTimeOffset maxEndDate = dutySlot.EndDate;
+
+                    var newDutySlots = new List<DutySlot>();
+                    foreach (var overlappingBucket in overlappingBuckets)
+                    {
+                        var newDutySlot = Db.DetachedClone(dutySlot);
+                        newDutySlot.Id = 0;
+                        newDutySlot.StartDate = overlappingBucket.Start;
+                        newDutySlot.StartDate = newDutySlot.StartDate < minStartDate ? minStartDate : newDutySlot.StartDate;
+                        newDutySlot.EndDate = overlappingBucket.End;
+                        newDutySlot.EndDate = newDutySlot.EndDate > maxEndDate ? maxEndDate : newDutySlot.EndDate;
+                        newDutySlots.Add(newDutySlot);
+                    }
+
+                    dutySlot.StartDate = newDutySlots.First().StartDate;
+                    dutySlot.EndDate = newDutySlots.First().EndDate;
+
+                    await Db.DutySlot.AddRangeAsync(newDutySlots.Skip(1));
+                }
+            }
+
+            await Db.SaveChangesAsync();
+        }
+
         #region Helpers
 
         private async Task HandleShiftAdjustmentsAndOvertime(int locationId, DateTimeOffset targetDate, string timezone, IEnumerable<Guid?> sheriffsForDuties)
@@ -211,7 +267,7 @@ namespace SS.Api.services.scheduling
             var startRange = targetDate.ConvertToTimezone(timezone).DateOnly();
             var endRange = startRange.TranslateDateForDaylightSavingsByHours(timezone, 24);
 
-            var shiftExpansions = new List<ShiftExpansion>();
+            var shiftExpansions = new List<ShiftAdjustment>();
             foreach (var sheriff in sheriffsForDuties.Where(sheriff => sheriff != null))
             {
                 var shiftsForDay = await Db.Shift.Where(s =>
@@ -240,7 +296,7 @@ namespace SS.Api.services.scheduling
                         StartDate = latestShift.EndDate,
                         EndDate = latestDutySlot.EndDate
                     });
-                    shiftExpansions.Add(new ShiftExpansion { SheriffId = sheriff.Value, Date = earliestDutySlot.StartDate, Timezone = earliestShift.Timezone });
+                    shiftExpansions.Add(new ShiftAdjustment { SheriffId = sheriff.Value, Date = earliestDutySlot.StartDate, Timezone = earliestShift.Timezone });
                 }
 
                 if (earliestShift!.StartDate > earliestDutySlot?.StartDate)
@@ -253,7 +309,7 @@ namespace SS.Api.services.scheduling
                         StartDate = earliestDutySlot.StartDate,
                         EndDate = earliestShift.StartDate
                     });
-                    shiftExpansions.Add(new ShiftExpansion { SheriffId = sheriff.Value, Date = earliestDutySlot.StartDate, Timezone = earliestShift.Timezone });
+                    shiftExpansions.Add(new ShiftAdjustment { SheriffId = sheriff.Value, Date = earliestDutySlot.StartDate, Timezone = earliestShift.Timezone });
                 }
             }
 
@@ -324,7 +380,7 @@ namespace SS.Api.services.scheduling
             var startRange = targetDate.ConvertToTimezone(timezone);
             var endRange = startRange.DateOnly().TranslateDateForDaylightSavingsByHours(timezone, 24);
             
-            var shifts = await Db.Shift.Where(s =>
+            var shifts = await Db.Shift.AsNoTracking().Where(s =>
                 s.ExpiryDate == null &&
                 s.LocationId == locationId &&
                 s.SheriffId == sheriffId &&
@@ -332,16 +388,8 @@ namespace SS.Api.services.scheduling
                 s.StartDate < endRange)
                 .ToListAsync();
 
-            Shift previousShift = null;
-            DateTimeOffset endDate = default;
-            foreach (var shift in shifts.OrderBy(s => s.StartDate))
-            {
-                if (previousShift != null && previousShift.EndDate != shift.StartDate)
-                    break;
-                previousShift = shift;
-                endDate = shift.EndDate;
-            }
-            return endDate;
+            var firstShiftBucket = shifts.GetShiftBuckets().First();
+            return firstShiftBucket.End;
         }
 
         #region String Helpers

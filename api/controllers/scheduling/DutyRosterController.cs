@@ -4,10 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Mapster;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using SS.Api.helpers;
 using SS.Api.helpers.extensions;
 using SS.Api.infrastructure.authorization;
 using SS.Api.models.dto.generated;
 using SS.Api.services.scheduling;
+using SS.Common.helpers.extensions;
 using SS.Db.models;
 using SS.Db.models.auth;
 using SS.Db.models.scheduling;
@@ -22,10 +26,12 @@ namespace SS.Api.controllers.scheduling
         public const string CannotUpdateCrossLocationError = "Cannot update cross location.";
         private DutyRosterService DutyRosterService { get; }
         private SheriffDbContext Db { get; }
-        public DutyRosterController(DutyRosterService dutyRosterService, SheriffDbContext db)
+        private IConfiguration Configuration { get; }
+        public DutyRosterController(DutyRosterService dutyRosterService, SheriffDbContext db, IConfiguration configuration)
         {
             DutyRosterService = dutyRosterService;
             Db = db;
+            Configuration = configuration;
         }
 
         /// <summary>
@@ -36,8 +42,18 @@ namespace SS.Api.controllers.scheduling
         public async Task<ActionResult<List<DutyDto>>> GetDuties(int locationId, DateTimeOffset start, DateTimeOffset end)
         {
             if (!PermissionDataFiltersExtensions.HasAccessToLocation(User, Db, locationId)) return Forbid();
-
             var duties = await DutyRosterService.GetDutiesForLocation(locationId, start, end);
+
+            if (!User.HasPermission(Permission.ViewDutyRosterInFuture))
+            {
+                var location = await Db.Location.AsNoTracking().FirstOrDefaultAsync(l => l.Id == locationId);
+                var timezone = location.Timezone;
+                var currentDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone).DateOnly();
+                var restrictionHours = float.Parse(Configuration.GetNonEmptyValue("ViewDutyRosterRestrictionHours"));
+                var endDate = currentDate.TranslateDateForDaylightSavingsByHours(timezone, restrictionHours);
+                duties = duties.WhereToList(d => d.StartDate < endDate);
+            }
+
             return Ok(duties.Adapt<List<DutyDto>>());
         }
 

@@ -1,7 +1,4 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Data;
+﻿using System.ComponentModel.DataAnnotations;
 using db.models;
 using Mapster;
 
@@ -42,6 +39,9 @@ namespace SS.Db.models.auth
         public const string EditIdir = nameof(EditIdir);
         public const string EditPastTraining = nameof(EditPastTraining);
         public const string RemovePastTraining = nameof(RemovePastTraining);
+        public const string ViewDutyRosterInFuture = nameof(ViewDutyRosterInFuture);
+        public const string ViewAllFutureShifts = nameof(ViewAllFutureShifts);
+        public const string ViewOtherProfiles = nameof(ViewOtherProfiles);
 
         [Key]
         public int Id { get; set; }

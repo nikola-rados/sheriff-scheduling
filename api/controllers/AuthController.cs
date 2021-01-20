@@ -132,6 +132,9 @@ namespace SS.Api.Controllers
             var homeLocationId = HttpContext.User.FindFirst(CustomClaimTypes.HomeLocationId)?.Value;
             var firstName = HttpContext.User.FindFirst(CustomClaimTypes.FirstName)?.Value;
             var lastName = HttpContext.User.FindFirst(CustomClaimTypes.LastName)?.Value;
+
+            var viewShiftRestrictionDays = Configuration.GetNonEmptyValue("ViewShiftRestrictionDays");
+            var viewDutyRosterRestrictionHours = Configuration.GetNonEmptyValue("ViewDutyRosterRestrictionHours");
             return Ok(new
             {
                 Permissions = permissions,
@@ -142,6 +145,8 @@ namespace SS.Api.Controllers
                 HomeLocationId = homeLocationId,
                 IsImpersonated = IsImpersonated,
                 OverTimeHoursPerDay = OvertimeHoursPerDay,
+                ViewShiftRestrictionDays = viewShiftRestrictionDays,
+                ViewDutyRosterRestrictionHours = viewDutyRosterRestrictionHours,
                 DateTime.UtcNow
             });
         }

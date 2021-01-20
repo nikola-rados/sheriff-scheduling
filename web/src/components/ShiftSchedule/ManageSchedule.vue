@@ -146,7 +146,13 @@
                         console.log(response.data)
                         this.extractTeamAvailabilityInfo(response.data);                        
                     }                                   
-                },err => {this.errorText = err; this.openErrorModal=true; this.isManageScheduleDataMounted=true;})            
+                },err => {
+                    this.errorText = err;
+                    console.log(this.errorText) 
+                    this.openErrorModal=true; 
+                    this.shiftSchedules = [];
+                    this.isManageScheduleDataMounted=true;
+                })            
         }
 
         public headerDate() {

@@ -1,6 +1,5 @@
 ﻿using Mapster;
 using SS.Api.controllers.usermanagement;
-using SS.Api.services;
 using SS.Db.models.auth;
 using System.Collections.Generic;
 using System.Linq;
