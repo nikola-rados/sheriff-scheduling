@@ -24,7 +24,7 @@ namespace SS.Api.helpers.extensions
 
             if (!values.Any())
             {
-                return queryable.Take(0);
+                return queryable.Where(x => false);
             }
 
             var distinctValues = Bucketize(values);
