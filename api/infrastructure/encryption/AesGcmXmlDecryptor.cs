@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Text;
 using System.Xml.Linq;
+using SS.Api.infrastructure.exceptions;
 
 namespace SS.Api.infrastructure.encryption
 {
@@ -15,7 +16,7 @@ namespace SS.Api.infrastructure.encryption
             var options = services.GetRequiredService<AesGcmEncryptionOptions>();
             _key = Encoding.UTF8.GetBytes(options.Key);
             if (_key.Length != 32)
-                throw new Exception("Key length not 32 bytes (256 bits)");
+                throw new ConfigurationException("Key length not 32 bytes (256 bits)");
         }
 
         //It's possible CryptographicException can be thrown if the keys are changed. 

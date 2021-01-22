@@ -28,7 +28,7 @@ namespace SS.Api.services.scheduling
                 .Where(a => a.LocationId == locationId && (a.ExpiryDate == null || a.ExpiryDate > start))
                 .OrderBy(a => (int)a.LookupCode.Type)
                 .ThenBy(a => a.LookupCode.SortOrder.First().SortOrder)
-                .ThenBy(a => !a.LookupCode.SortOrder.Any())
+                .ThenBy(a => a.LookupCodeId)
                 .ToListAsync();
 
             //Filter out the date ranges outside of the database. 
