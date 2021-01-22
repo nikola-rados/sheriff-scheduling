@@ -4,7 +4,7 @@
             style="width:100%; height:3rem;" 
             bg-variant="white"            
             class="ml-2 my-0 p-0">
-                <b-col cols="9">
+                <b-col cols="9" @click="openMemberDetails(sheriffInfo.sheriffId)">
                     <b-row style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
                     <b-row style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
                     <b-row 
@@ -188,7 +188,96 @@
                  <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-shift-cancel-warning')"
                  >&times;</b-button>
             </template>
-        </b-modal>        
+        </b-modal>
+
+        <b-modal size="xl" v-model="showMemberDetails" id="bv-modal-team-member-details" header-class="bg-primary text-light">            
+            <template v-slot:modal-title>                
+                 <h2 class="mb-0 text-light"> Updating User Profile </h2>
+            </template>
+            <b-card v-if="isUserDataMounted" no-body style="user-select: none;">
+                <b-row>
+                    <b-col cols="3">
+                        <user-summary-template v-on:photoChange="photoChanged" :user="userToEdit" :editMode="true"/>
+                    </b-col>
+                    <b-col cols="9">
+                        <b-card no-body >
+                            <b-tabs  card v-model="tabIndex" @activate-tab="onTabChanged">
+                                <b-tab title="Identification">
+                                    <identification-tab 
+                                        :runMethod="identificationTabMethods"                                         
+                                        v-on:closeMemberDetails="closeMemberDetailWindow()" 
+                                        v-on:profileUpdated="getSheriffs()"
+                                        v-on:enableSave="enableSave()"   
+                                        v-on:changeTab="changeTab"                                     
+                                        :createMode="false" 
+                                        :editMode="true" />
+                                </b-tab>
+
+                                <b-tab title="Locations"> 
+                                    <location-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                   
+                                </b-tab>
+
+                                <b-tab title="Leaves">
+                                    <leave-tab 
+                                        v-on:change="getSheriffs()"
+                                        v-on:refresh="refreshProfile"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>                                    
+                                </b-tab>
+
+                                <b-tab title="Training"> 
+                                    <training-tab
+                                        v-on:refresh="refreshProfile"
+                                        v-on:change="getSheriffs()"/>
+                                </b-tab>
+
+                                <b-tab v-if="hasPermissionToAssignRoles" title="Roles" class="p-0">
+                                    <role-assignment-tab  v-on:change="getSheriffs()"
+                                        v-on:closeMemberDetails="closeProfileWindow()"/>
+                                </b-tab>
+
+                            </b-tabs>
+                        </b-card>
+                    </b-col>
+                </b-row>        
+            </b-card>
+            <template v-slot:modal-footer>
+                <b-button
+                    variant="secondary" 
+                    @click="closeProfileWindow()"                  
+                ><b-icon-x font-scale="1.5" style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-x>{{getCancelLabel}}</b-button>
+                <b-button     
+                    v-if="tabIndex<1"
+                    variant="success"
+                    :disabled="!hasPermissionToEditUsers || saving" 
+                    @click="saveMemberProfile()"
+                ><b-icon-check2 style="padding:0; vertical-align: middle; margin-right: 0.25rem;"></b-icon-check2>Save</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                 <b-button
+                  variant="outline-primary"
+                  class="text-light closeButton"
+                  @click="closeProfileWindow()"                  
+                  >
+                  &times;</b-button>
+            </template>           
+        </b-modal>
+
+        <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
+            <b-card class="h4 mx-2 py-2">
+				<span class="p-0">{{errorText}}</span>
+            </b-card>                        
+            <template v-slot:modal-footer>
+                <b-button variant="primary" @click="openErrorModal=false">Ok</b-button>
+            </template>            
+            <template v-slot:modal-header-close>                 
+                <b-button variant="outline-warning" class="text-light closeButton" @click="openErrorModal=false"
+                >&times;</b-button>
+            </template>
+        </b-modal> 
+
     </div>
 </template>
 
@@ -199,13 +288,31 @@
     const shiftState = namespace("ShiftScheduleInformation");
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
+    import "@store/modules/TeamMemberInformation";
+    const TeamMemberState = namespace("TeamMemberInformation");
     import ConflictsIcon from './ConflictsIcon.vue'
-    import { dayOptionsInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
+    import LocationTab from '@/components/MyTeam/Tabs/LocationTab.vue';
+    import LeaveTab from '@/components/MyTeam/Tabs/LeaveTab.vue';
+    import TrainingTab from '@/components/MyTeam/Tabs/TrainingTab.vue';
+    import RoleAssignmentTab from '@/components/MyTeam/Tabs/RoleAssignmentTab.vue';
+    import IdentificationTab from '@/components/MyTeam/Tabs/IdentificationTab.vue';
+    import UserSummaryTemplate from "@/components/MyTeam/Tabs/UserSummaryTemplate.vue";
+    import { dayOptionsInfoType, editedShiftInfoType, sheriffAvailabilityInfoType,shiftInfoType,shiftRangeInfoType } from '../../../types/ShiftSchedule';
     import moment from 'moment-timezone';
     import { locationInfoType, userInfoType } from '../../../types/common';
+    import { teamMemberInfoType } from '@/types/MyTeam';
+
+    enum gender {'Male'=0, 'Female', 'Other'}
+
     @Component({
         components: {
-            ConflictsIcon
+            ConflictsIcon,
+            RoleAssignmentTab,
+            UserSummaryTemplate,
+            IdentificationTab,
+            LocationTab,
+            LeaveTab,
+            TrainingTab
         }
     })
     export default class TeamMemberCard extends Vue {
@@ -222,10 +329,20 @@
         @Prop({required: true})
         public sheriffInfo!: sheriffAvailabilityInfoType;
 
+        @TeamMemberState.State
+        public userToEdit!: teamMemberInfoType;
+
+        @TeamMemberState.Action
+        public UpdateUserToEdit!: (userToEdit: teamMemberInfoType) => void
+
+        identificationTabMethods = new Vue();
+
         sheriffId = '';
 
         isDataMounted = false;
         hasPermissionToCreateShifts = false; 
+        hasPermissionToEditUsers = false;
+        hasPermissionToAssignRoles = false;
         fullName = '';
 
         halfUnavailStyle="background-image: linear-gradient(to bottom right, rgb(194, 39, 28),rgb(243, 232, 232), white);"
@@ -247,7 +364,18 @@
         allDaysSelected = false;
         weekDaysSelected = false;
 
-		dayOptions: dayOptionsInfoType[] = [];		
+        dayOptions: dayOptionsInfoType[] = [];
+
+        showMemberDetails = false;
+
+        tabIndex = 0;
+        isUserDataMounted = false;        
+        saving = false;
+        sectionHeader = '';
+        photokey = 0;
+        
+        newTabIndex = 0;
+        firstNavigation = true;
 
 		shiftError = false;
 		shiftErrorMsg = '';
@@ -255,11 +383,17 @@
         
         showCancelWarning = false;
         LoanedInDesc = '';
+
+        errorText='';
+		openErrorModal=false;
+
         
         mounted()
         {  
             this.isDataMounted = false;
             this.hasPermissionToCreateShifts = this.userDetails.permissions.includes("CreateAndAssignShifts");        
+            this.hasPermissionToEditUsers = this.userDetails.permissions.includes("EditUsers");
+            this.hasPermissionToAssignRoles = this.userDetails.permissions.includes("CreateAndAssignRoles");
             this.sheriffId = this.sheriffInfo.sheriffId;          
             this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
 
@@ -273,7 +407,6 @@
                 {name:'Sat', diff:6, fullday:false, conflicts:{Training: [], Leave: [], Loaned:[], AllShifts:[], Shift:[], overTimeShift:[], Unavailable:[]}}
             ];        
             this.extractConflicts();
-            //console.log(this.dayOptions[3].conflicts)
         }
 
         public extractConflicts() {
@@ -412,23 +545,23 @@
 		}
 
 		public ClearFormState(){
-                this.allDaysSelected = false;
-                this.weekDaysSelected = false;
-                this.selectedStartTime ='';
-                this.selectedEndTime = '';
-                this.selectedDays = [] ;				
-				this.selectedDayState = true;
-				this.startTimeState = true;
-                this.endTimeState = true;
-                this.shiftError = false;
-                this.shiftErrorMsg = '';
-                this.shiftErrorMsgDesc = '';
-                this.LoanedInDesc = '';
-                this.comment = '';
+            this.allDaysSelected = false;
+            this.weekDaysSelected = false;
+            this.selectedStartTime ='';
+            this.selectedEndTime = '';
+            this.selectedDays = [] ;				
+            this.selectedDayState = true;
+            this.startTimeState = true;
+            this.endTimeState = true;
+            this.shiftError = false;
+            this.shiftErrorMsg = '';
+            this.shiftErrorMsgDesc = '';
+            this.LoanedInDesc = '';
+            this.comment = '';
         }
         
         public getListOfDates(days){
-            const listOfDates: any[] = [];   
+            const listOfDates: editedShiftInfoType[] = [];   
 			for(const day of this.dayOptions) {
                 if(this.selectedDays.includes(day.diff)){
 
@@ -527,8 +660,114 @@
         
         public commentFormat(value) {
 			return value.slice(0,100);
-		}
+        }
 
+        public getSheriffs() {
+            this.$emit('change');
+        }
+        
+        public refreshProfile(userId){
+            this.closeProfileWindow();
+            this.openMemberDetails(userId);
+        }      
+
+        public openMemberDetails(userId){
+            this.loadUserDetails(userId);
+        }
+
+        public loadUserDetails(userId): void {
+            this.resetProfileWindowState();       
+            const url = 'api/sheriff/' + userId;
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){                                              
+                        this.extractUserInfo(response.data);
+                        this.isUserDataMounted = true;
+                        this.showMemberDetails=true;                                              
+                    }                    
+                },err => {
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }   
+                });
+        }
+
+        public extractUserInfo(userJson): void {            
+            const user = {} as teamMemberInfoType;            
+            user.idirUserName =  userJson.idirName;
+            user.firstName = userJson.firstName;
+            user.lastName = userJson.lastName;
+            user.fullName = Vue.filter('capitalizefirst')(userJson.firstName) + ' ' + Vue.filter('capitalizefirst')(userJson.lastName);
+            user.gender = gender[userJson.gender];
+            user.rank = userJson.rank;
+            user.email = userJson.email;
+            user.badgeNumber = userJson.badgeNumber;
+            user.id = userJson.id;
+            user.homeLocationId = userJson.homeLocationId;
+            user.homeLocationNm = userJson.homeLocation? userJson.homeLocation.name: '';
+            user.image = userJson['photoUrl']?userJson['photoUrl']:'';
+            if(userJson.homeLocation)
+                user.homeLocation  = {id: userJson.homeLocation.id, name: userJson.homeLocation.name, regionId: userJson.homeLocation.regionId, timezone: userJson.homeLocation.timezone};
+          
+            if(userJson.awayLocation && userJson.awayLocation.length>0)
+                user.awayLocation = userJson.awayLocation;
+
+            user.leave = userJson.leave;
+            user.training = userJson.training;
+            user.userRoles = userJson.roles
+            this.UpdateUserToEdit(user);  
+        }
+
+        public saveMemberProfile() {
+            this.saving = true; 
+            this.identificationTabMethods.$emit('saveMemberProfile');
+        }
+        
+        public enableSave() {
+            this.saving = false;
+        }
+
+        public closeProfileWindow(){            
+            if(this.tabIndex ==0)
+            {  
+                this.identificationTabMethods.$emit('closeProfileWindow');
+            }
+            else 
+                this.closeMemberDetailWindow()
+        }
+
+        public closeMemberDetailWindow(){            
+            this.showMemberDetails = false;           
+        }
+
+        public resetProfileWindowState(){
+            this.tabIndex = 0;
+            const user = {} as teamMemberInfoType;
+            this.UpdateUserToEdit(user);  
+        }
+
+        get getCancelLabel(){
+            if(this.tabIndex<1) return 'Cancel'; else return 'Close'
+        }
+
+        public photoChanged(id: string, image: string){   
+            console.log('photo changed')        
+        }
+
+        public onTabChanged(newTabIndex , prevTabIndex, bvEvt) {
+            this.newTabIndex = newTabIndex;            
+            if(prevTabIndex == 0 && this.firstNavigation) {
+                this.firstNavigation = false;
+                bvEvt.preventDefault();
+                this.identificationTabMethods.$emit('switchTab');   
+            }            
+        }
+
+        public changeTab(changingTab) {
+            if(changingTab) this.tabIndex = this.newTabIndex;
+            Vue.nextTick().then(()=>{this.firstNavigation = true;});
+        }
     }
 </script>
 

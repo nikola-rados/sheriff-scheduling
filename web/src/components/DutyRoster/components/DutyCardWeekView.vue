@@ -429,7 +429,7 @@
                     this.$emit('change', this.scrollPositions());                    
                 }, err=>{
                     const errMsg = err.response.data.error;
-                    console.log(err.response)
+                    //console.log(err.response)
                     this.deleteErrorMsg = errMsg;
                     this.deleteError = true;
                 });		
@@ -458,7 +458,6 @@
 		public closeEditDutyWindow(){
             this.closeDutySlotForm();
             this.UpdateDutyToBeEdited('');
-            console.log(this.selectedComments)
 			this.showEditDutyDetails = false;
 		}
 
@@ -493,7 +492,7 @@
             for(let day=0; day<7; day++){            
                 if(this.dutyRosterInfo[day]){
                     const dutyInfo = this.dutyRosterInfo[day];
-                    console.log(dutyInfo)
+                    //console.log(dutyInfo)
                     const dutyStartTime = moment(dutyInfo.startDate).tz(dutyInfo.timezone);
                     const startOfDay = moment(dutyStartTime).startOf("day");
                     const dutyDate = startOfDay.format();
@@ -764,7 +763,7 @@
                 const shifts = sheriff.shifts.filter(shift=>{if(shift.startDate.substring(0,10)==startOfDay.substring(0,10))return true}) 
                 let availability = Array(96).fill(0)
                 for(const shift of shifts){
-                    console.log(shift)
+                    //console.log(shift)
                     if(shift.overtimeHours==0){
                         const rangeBin = this.getTimeRangeBins(shift.startDate, shift.endDate, startOfDay, this.timezone);
                         availability = this.fillInArray(availability, shift.id , rangeBin.startBin,rangeBin.endBin);
@@ -936,10 +935,10 @@
 
         public updateComment(id: number, comment: string){
             const url = 'api/dutyroster/updatecomment?dutyId='+id+'&comment='+comment;
-            console.log(url)
+            //console.log(url)
             this.$http.put(url)
                 .then(response => {
-                    console.log(response)
+                    //console.log(response)
                     if(response.status == 204){
                         // Update the duty bar with name;
                         this.commentSaved = true;
@@ -949,7 +948,7 @@
                         this.assignDutyError = true;
                     }
                 }, err => {
-                    console.log(err.response)
+                    //console.log(err.response)
                     const errMsg = err.response.data.error? err.response.data.error: (err.response.data +'('+err.response.status +' '+err.response.statusText+')') ;
                     this.assignDutyErrorMsg = errMsg;
                     this.assignDutyError = true;
@@ -968,7 +967,7 @@
             const eltm = document.getElementById('dutyrosterteammember');
             const scrollTeamMember = eltm? eltm.scrollTop : 0;
 
-            console.log({scrollDuty: scrollDuty, scrollGauge: scrollGauge, scrollTeamMember:scrollTeamMember })
+            //console.log({scrollDuty: scrollDuty, scrollGauge: scrollGauge, scrollTeamMember:scrollTeamMember })
 
             return {scrollDuty: scrollDuty, scrollGauge: scrollGauge, scrollTeamMember:scrollTeamMember }
         }

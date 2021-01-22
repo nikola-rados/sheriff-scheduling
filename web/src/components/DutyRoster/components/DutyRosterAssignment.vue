@@ -711,7 +711,12 @@
 						if(response.data){
 							this.extractSubTypes(response.data);
 						}
-					},err => {this.errorText = err;this.openErrorModal=true;})
+					},err => {
+						this.errorText = err.response.statusText+' '+err.response.status + '  - ' + moment().format();
+						if (err.response.status != '401') {
+							this.openErrorModal=true;
+						}  
+					})
 			});
 		}
 

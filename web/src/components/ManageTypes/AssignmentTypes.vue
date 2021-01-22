@@ -149,11 +149,10 @@
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import "@store/modules/CommonInformation";
+    import moment from 'moment-timezone';
     const commonState = namespace("CommonInformation");
-
     import "@store/modules/ManageTypesInformation";
     const manageTypesState = namespace("ManageTypesInformation");
-
     import PageHeader from "@components/common/PageHeader.vue"; 
     import AddAssignmentForm from "../ManageTypes/AddAssignmentForm.vue"
     import {locationInfoType, userInfoType} from '../../types/common'; 
@@ -271,7 +270,6 @@
             Vue.nextTick(()=>{            
                 this.isAssignmentDataMounted = false;
                 const url = 'api/managetypes?codeType='+this.selectedAssignmentType.name +'&locationId='+this.location.id+'&showExpired='+this.expiredViewChecked;
-                //console.log(url)
                 this.$http.get(url)
                     .then(response => {
                         if(response.data){
@@ -279,7 +277,13 @@
                             this.extractAssignments(response.data);                        
                         }
                         this.isAssignmentDataMounted = true;
-                    },err => {this.errorText = err;this.openErrorModal=true;this.isAssignmentDataMounted=true;}) 
+                    },err => {
+                        this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                        if (err.response.status != '401') {
+                            this.openErrorModal=true;
+                        }  
+                        this.isAssignmentDataMounted=true;
+                    }) 
             });       
         }
 
