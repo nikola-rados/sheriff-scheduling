@@ -19,9 +19,8 @@
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import {commonInfoType, locationInfoType, sheriffRankInfoType, userInfoType} from './types/common';
-    import {sheriffRankJsonType, locationJsonType} from './types/common/jsonTypes'
+    import {sheriffRankJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";
-    import store from "./store";  
     const commonState = namespace("CommonInformation");
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
