@@ -70,8 +70,8 @@
                             </div>
                         </template>
                         
-                        <template v-slot:cell() = "data">                     
-                            <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in data.item[data.field.key]" :key="event.id + event.date + event.location">
+                        <template v-slot:cell() = "data">                   
+                            <b-card style="font-size: 1.1rem;" class="ml-auto" body-class="p-1" v-for="event in sortEvents(data.item[data.field.key])" :key="event.id + event.date + event.location">
                                 <div v-if="event.type == 'Shift'">
                                     <div v-if="event.workSection" :style="{float:'left',backgroundColor:event.workSectionColor, color:'white', width:'1.5rem', borderRadius:'15px',textAlign: 'center', margin:0}">{{event.workSection}}</div> 
                                     <div v-else style="float:left; background-color:white; color:white; width:1.5rem; border-radius:15px;text-align: center; margin:0; height:25px; "></div>
@@ -212,7 +212,13 @@
                         console.log(info)
                         this.extractTeamScheduleInfo(info);                        
                     }                                   
-                },err => {this.errorText = err;this.openErrorModal=true;this.isDistributeDataMounted=true;})            
+                },err => {
+                    this.errorText = err;
+                    this.openErrorModal=true;
+                    this.teamMembers = [];
+                    this.sheriffSchedules = [];
+                    this.isDistributeDataMounted=true;
+                })            
         }
 
         public extractTeamInfo (teamJson) {
@@ -369,6 +375,9 @@
             else return {WS:'', color:''};
         }
 
+        public sortEvents (events: any) {
+            return _.sortBy(events, "startTime");
+        }
         
         public extractSchedules(conflictsJson, onlyShedules){
 
