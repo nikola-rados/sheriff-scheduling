@@ -72,8 +72,9 @@ namespace SS.Api.services.scheduling
             savedAssignment.ExpiryDate = convertedTime.Date;
             savedAssignment.ExpiryReason = expiryReason;
 
-            var duties = await Db.Duty.Where(d => d.AssignmentId == savedAssignment.Id &&
-                                            d.StartDate >= convertedTime.Date)
+            var duties = await Db.Duty.Include(d => d.DutySlots)
+                .Where(d => d.AssignmentId == savedAssignment.Id &&
+                            d.StartDate >= convertedTime.Date)
                 .ToListAsync();
 
             duties.ForEach(d => d.ExpiryDate = DateTimeOffset.UtcNow);
