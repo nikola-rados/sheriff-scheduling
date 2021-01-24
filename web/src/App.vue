@@ -6,7 +6,7 @@
             <navigation-footer id="footer" v-if="displayFooter"/>
         </div>
         <div v-else>
-            <b-card v-if="errorText" border-variant="white" class="bg-warning">
+            <b-card v-if= "displayError && errorText" border-variant="white" class="bg-warning">
             {{errorText}}
             </b-card>
         </div>
@@ -19,11 +19,12 @@
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
     import {commonInfoType, locationInfoType, sheriffRankInfoType, userInfoType} from './types/common';
-    import {sheriffRankJsonType, locationJsonType} from './types/common/jsonTypes'
+    import {sheriffRankJsonType} from './types/common/jsonTypes'
     import "@store/modules/CommonInformation";
-    import store from "./store";  
     const commonState = namespace("CommonInformation");
     import * as _ from 'underscore';
+    import moment from 'moment-timezone';
+    
 
     @Component({
         components: {
@@ -68,11 +69,14 @@
 
         errorCode = 0;
         errorText = '';
+        displayError=false;
         isCommonDataReady= false;
         sheriffRankList: sheriffRankInfoType[] = []
         currentLocation;
        
         mounted() {
+            this.displayError = false;
+            this.errorText = '';
             this.isCommonDataReady = false; 
             //console.log(Vue.$cookies.get("logout"))           
             if (Vue.$cookies.isKey("logout"))
@@ -103,7 +107,12 @@
                             this.getAllLocations()  
                         }                      
                     } 
-                },err => this.errorText = err)
+                },err => {
+                    this.errorText = err + '  - ' + moment().format();
+                    if (this.errorText.indexOf('401') == -1) {                        
+                        this.displayError = true;
+                    }                    
+                }) 
         }
 
         public loadSheriffRankList(){  
@@ -120,7 +129,12 @@
                                 this.$router.push({path:'/duty-roster'})
                         }
                     }                   
-                },err => this.errorText = err)          
+                },err => {
+                    this.errorText = err + '  - ' + moment().format();
+                    if (this.errorText.indexOf('401') == -1) {                        
+                        this.displayError = true;
+                    }                    
+                })         
         }        
 
         public extractSheriffRankInfo(sheriffRankList){
@@ -143,7 +157,13 @@
                         this.extractLocationInfo(response.data, true);
                         this.getLocations();
                     }                   
-                },err => this.errorText = err) 
+                },err => {
+                    this.errorText = err + '  - ' + moment().format();
+                    if (this.errorText.indexOf('401') == -1) {                        
+                        this.displayError = true;
+                    }
+                    
+                })  
         }
         
         public getLocations() {
@@ -154,7 +174,12 @@
                         this.extractLocationInfo(response.data, false);
                         this.loadSheriffRankList();
                     }                   
-                },err => this.errorText = err) 
+                },err => {
+                    this.errorText = err + '  - ' + moment().format();
+                    if (this.errorText.indexOf('401') == -1) {                        
+                        this.displayError = true;
+                    }                    
+                }) 
         }
         
         public extractLocationInfo(locationListJson, allLocations: boolean){            

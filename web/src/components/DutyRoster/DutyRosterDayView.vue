@@ -62,7 +62,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Watch} from 'vue-property-decorator';
+    import { Component, Vue, Watch, Prop} from 'vue-property-decorator';
 
     import DutyCard from './components/DutyCard.vue'
     import SheriffFuelGauge from './components/SheriffFuelGauge.vue'
@@ -108,6 +108,9 @@
         @dutyState.Action
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
+        @Prop({required: true})
+        runMethod!: any;
+        
         isDutyRosterDataMounted = false;
         hasPermissionToAddAssignments = false;
 
@@ -157,6 +160,7 @@
         
         async mounted()
         {
+            this.runMethod.$on('getData', this.getData)        
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
             this.getData(this.scrollPositions);
@@ -201,7 +205,13 @@
                 this.getDutyRosters(),
                 this.getAssignments(),
                 this.getShifts()
-            ]).catch(err=>{this.errorText=err.response.statusText+' '+err.response.status; this.openErrorModal=true;this.isDutyRosterDataMounted=true;});
+            ]).catch(err=>{
+                this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format();
+                if (err.response.status != '401') {
+                    this.openErrorModal=true;
+                }                
+                this.isDutyRosterDataMounted=true;
+            });
 
             this.dutyRostersJson = response[0].data;
             this.dutyRosterAssignmentsJson = response[1].data;
