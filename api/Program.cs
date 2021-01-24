@@ -5,7 +5,7 @@ using SS.Api.services.ef;
 
 namespace SS.Api
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {

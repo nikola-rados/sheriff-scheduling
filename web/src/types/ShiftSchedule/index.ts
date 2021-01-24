@@ -12,6 +12,16 @@ export interface shiftInfoType {
     overtimeHours: number;
 }
 
+export interface editedShiftInfoType {
+    id: number;
+    startDate: string;
+    endDate: string;    
+    timezone: string;
+    locationId: number;     
+    sheriffId: string;
+    comment?: string;
+}
+
 export interface distributeTeamMemberInfoType {        
     sheriffId: string;
     name: string;
@@ -124,10 +134,7 @@ export interface scheduleInfoType {
     date:string; 
     startTime:string;
     endTime:string;
-    // startInMinutes:number;
-    // timeDuration: number; 
     type: string;
     workSection: string; 
     workSectionColor: string;
-    // fullday: boolean;   
 }

@@ -63,7 +63,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Watch} from 'vue-property-decorator';
+    import { Component, Vue, Watch, Prop} from 'vue-property-decorator';
 
     import DutyCardWeekView from './components/DutyCardWeekView.vue'
     import DutyRosterAssignment from './components/DutyRosterAssignment.vue'
@@ -77,7 +77,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {localTimeInfoType, locationInfoType, userInfoType } from '../../types/common';
+    import {locationInfoType, userInfoType } from '../../types/common';
     import { assignmentCardWeekInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
@@ -107,6 +107,9 @@
         @dutyState.Action
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
+        @Prop({required: true})
+        runMethod!: any;
+        
         isDutyRosterDataMounted = false;
         hasPermissionToAddAssignments = false;
 
@@ -147,6 +150,7 @@
 
         async mounted()
         {
+            this.runMethod.$on('getData', this.getData)
             this.isDutyRosterDataMounted = false;
             console.log('dayview dutyroster mounted')
             this.getData(this.scrollPositions);
@@ -183,7 +187,13 @@
                 this.getDutyRosters(),
                 this.getAssignments(),
                 this.getShifts()
-            ]).catch(err=>{this.errorText=err.response.statusText+' '+err.response.status; this.openErrorModal=true;this.isDutyRosterDataMounted=true;});
+            ]).catch(err=>{
+                this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                if (err.response.status != '401') {
+                    this.openErrorModal=true;
+                }   
+                this.isDutyRosterDataMounted=true;
+            });
 
             this.dutyRostersJson = response[0].data;
             this.dutyRosterAssignmentsJson = response[1].data;

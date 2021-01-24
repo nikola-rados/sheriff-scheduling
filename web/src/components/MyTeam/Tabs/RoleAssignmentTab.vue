@@ -219,7 +219,12 @@
                         this.rolesJson = response.data
                         this.extractRoles();                        
                     }                                   
-                },err => {this.errorText = err;this.openErrorModal=true;})
+                },err => {
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }  
+                })
         }
       
         public extractRoles(){
@@ -274,7 +279,12 @@
                         this.historicRolesJson = response.data
                         this.extractHistoricRoles();                        
                     }                                   
-                },err => {this.errorText = err;this.openErrorModal=true;})
+                },err => {
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }    
+                })
         }
 
         public extractHistoricRoles(){

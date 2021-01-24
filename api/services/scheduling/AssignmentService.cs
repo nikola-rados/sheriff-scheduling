@@ -28,7 +28,7 @@ namespace SS.Api.services.scheduling
                 .Where(a => a.LocationId == locationId && (a.ExpiryDate == null || a.ExpiryDate > start))
                 .OrderBy(a => (int)a.LookupCode.Type)
                 .ThenBy(a => a.LookupCode.SortOrder.First().SortOrder)
-                .ThenBy(a => !a.LookupCode.SortOrder.Any())
+                .ThenBy(a => a.LookupCodeId)
                 .ToListAsync();
 
             //Filter out the date ranges outside of the database. 
@@ -72,8 +72,9 @@ namespace SS.Api.services.scheduling
             savedAssignment.ExpiryDate = convertedTime.Date;
             savedAssignment.ExpiryReason = expiryReason;
 
-            var duties = await Db.Duty.Where(d => d.AssignmentId == savedAssignment.Id &&
-                                            d.StartDate >= convertedTime.Date)
+            var duties = await Db.Duty.Include(d => d.DutySlots)
+                .Where(d => d.AssignmentId == savedAssignment.Id &&
+                            d.StartDate >= convertedTime.Date)
                 .ToListAsync();
 
             duties.ForEach(d => d.ExpiryDate = DateTimeOffset.UtcNow);

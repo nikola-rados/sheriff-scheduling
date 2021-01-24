@@ -157,6 +157,7 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import moment from 'moment-timezone';
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation"); 
     import "@store/modules/TeamMemberInformation";
@@ -287,7 +288,13 @@
                         this.extractMyTeamFromSheriffs(response.data);                        
                     }
                     this.isMyTeamDataMounted = true;
-                },err => {this.errorText = err;this.openErrorModal=true;this.isMyTeamDataMounted=true;})
+                },err => {
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }     
+                    this.isMyTeamDataMounted=true;
+                })
         }
         
         public onTabChanged(newTabIndex , prevTabIndex, bvEvt) {
@@ -388,6 +395,7 @@
                 this.photokey++;
             }
         }
+
         public refreshProfile(userId){
             this.closeProfileWindow()
             this.openMemberDetails(userId)
@@ -451,7 +459,12 @@
                         this.isUserDataMounted = true;
                         this.showMemberDetails=true;                                              
                     }                    
-                },err => {this.errorText = err;this.openErrorModal=true;});
+                },err => {
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }   
+                });
         }
 
         public extractUserInfo(userJson): void {            
@@ -505,8 +518,8 @@
     }
 
     .form-group.required .label:after {
-  content:"*";
-  color:red;
-}
+        content:"*";
+        color:red;
+    }
 
 </style>
