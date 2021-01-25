@@ -129,6 +129,9 @@ namespace SS.Api.services
                     (codeType == null || lc.Type == codeType) &&
                     (locationId == null || lc.LocationId == null || lc.LocationId == locationId) &&
                     (showExpired || lc.ExpiryDate == null))
+                .OrderBy(a => (int)a.Type)
+                .ThenBy(a => a.SortOrder.First().SortOrder)
+                .ThenBy(a => a.Id)
                 .ToListAsync();
 
             lookupCodes.ForEach(lc => lc.SortOrderForLocation = lc.SortOrder.FirstOrDefault());
