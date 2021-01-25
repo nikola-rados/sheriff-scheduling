@@ -121,7 +121,7 @@
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");    
     import { locationInfoType } from '../../types/common';
-    import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,scheduleInfoType, weekScheduleInfoType, distributeScheduleInfoType, distributeTeamMemberInfoType } from '../../types/ShiftSchedule/index'
+    import { shiftRangeInfoType, scheduleInfoType, weekScheduleInfoType, distributeScheduleInfoType, distributeTeamMemberInfoType } from '../../types/ShiftSchedule/index'
     import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
     import moment from 'moment-timezone';
     import * as _ from 'underscore';
@@ -213,8 +213,10 @@
                         this.extractTeamScheduleInfo(info);                        
                     }                                   
                 },err => {
-                    this.errorText = err;
-                    this.openErrorModal=true;
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }      
                     this.teamMembers = [];
                     this.sheriffSchedules = [];
                     this.isDistributeDataMounted=true;

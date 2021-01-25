@@ -61,7 +61,6 @@
     const shiftState = namespace("ShiftScheduleInformation");
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import store from '../../store';
     import { locationInfoType } from '../../types/common';
     import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,conflictsInfoType } from '../../types/ShiftSchedule/index'
     import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
@@ -147,9 +146,10 @@
                         this.extractTeamAvailabilityInfo(response.data);                        
                     }                                   
                 },err => {
-                    this.errorText = err;
-                    console.log(this.errorText) 
-                    this.openErrorModal=true; 
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }      
                     this.shiftSchedules = [];
                     this.isManageScheduleDataMounted=true;
                 })            

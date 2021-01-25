@@ -141,6 +141,7 @@
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import moment from 'moment-timezone';
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
     import "@store/modules/ManageTypesInformation";
@@ -257,15 +258,19 @@
             Vue.nextTick(()=>{         
                 this.isLeaveTrainingDataMounted = false;
                 const url = 'api/managetypes?codeType='+this.selectedLeaveTrainingType.name+'&showExpired='+this.expiredViewChecked;
-                //console.log(url)
                 this.$http.get(url)
                     .then(response => {
                         if(response.data){
-                            // console.log(response.data)
                             this.extractLeaveTrainings(response.data);                        
                         }
                         this.isLeaveTrainingDataMounted = true;
-                    },err => {this.errorText = err;this.openErrorModal=true;this.isLeaveTrainingDataMounted=true;}) 
+                    },err => {
+                        this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                        if (err.response.status != '401') {
+                            this.openErrorModal=true;
+                        }   
+                        this.isLeaveTrainingDataMounted=true;
+                    }) 
             });       
         }
 

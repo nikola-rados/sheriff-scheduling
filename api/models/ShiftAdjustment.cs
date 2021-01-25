@@ -2,9 +2,9 @@
 
 namespace SS.Api.models
 {
-    public class ShiftAdjustment
+    public sealed class ShiftAdjustment
     {
-        protected bool Equals(ShiftAdjustment other)
+        public bool Equals(ShiftAdjustment other)
         {
             return SheriffId.Equals(other.SheriffId) && Date.Equals(other.Date) && Timezone == other.Timezone;
         }
