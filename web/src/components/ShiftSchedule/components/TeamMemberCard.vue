@@ -4,7 +4,7 @@
             style="width:100%; height:3rem;" 
             bg-variant="white"            
             class="ml-2 my-0 p-0">
-                <b-col cols="9" @click="openMemberDetails(sheriffInfo.sheriffId)">
+                <b-col cols="9" @click="openMemberDetails(sheriffInfo.sheriffId)" class="team-member-view">
                     <b-row style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</b-row>
                     <b-row style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</b-row>
                     <b-row 
@@ -779,6 +779,11 @@
 
     .custom-control-input{
         background-color: darkorange;
+    }
+
+    .team-member-view:hover{
+        cursor: pointer;
+        background-image: linear-gradient(to bottom right, rgb(200, 207, 91),rgb(243, 232, 232), white);     
     }
 
 </style>
