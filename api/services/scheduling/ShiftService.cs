@@ -476,7 +476,6 @@ namespace SS.Api.services.scheduling
 
 
             var sheriffIds = targetShifts.Select(ts => ts.SheriffId).Distinct().ToList();
-            var locationId = targetShifts.First().LocationId;
 
             var conflictingShifts = new List<Shift>();
             foreach (var ts in targetShifts)
@@ -486,7 +485,6 @@ namespace SS.Api.services.scheduling
                     .In(sheriffIds, s => s.SheriffId)
                     .Where(s =>
                         s.ExpiryDate == null &&
-                        s.LocationId == locationId &&
                         s.StartDate < ts.EndDate && ts.StartDate < s.EndDate
                     ).ToListAsync());
             }
