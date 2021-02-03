@@ -1,4 +1,4 @@
-import { shiftRangeInfoType, sheriffAvailabilityInfoType, shiftInfoType, distributeTeamMemberInfoType } from '@/types/ShiftSchedule';
+import { shiftRangeInfoType, sheriffAvailabilityInfoType, distributeTeamMemberInfoType } from '@/types/ShiftSchedule';
 import { VuexModule, Module, Mutation, Action } from 'vuex-module-decorators'
 
 @Module({

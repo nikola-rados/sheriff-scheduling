@@ -7,7 +7,7 @@
             v-on:dragstart="DragStart" 
             style="border-radius:5px"          
             :class="bgcolor+' p-1'">
-                <b-col v-if="!specialMember" @click="openMemberDetails(sheriffId)" class="b-0 p-0">
+                <b-col v-if="!specialMember" @click="openMemberDetails(sheriffId)" class="team-member-view">
                     <div style="font-size:11px; line-height: 16px;"># {{sheriffInfo.badgeNumber}}</div>
                     <div style="font-size:9px; line-height: 14px;">{{sheriffInfo.rank}}</div>
                     <div 
@@ -570,6 +570,16 @@
     .week-view-badge:hover{
         border: 2px solid rgb(255, 208, 0);
        
+    }
+
+    .team-member-view {
+        padding: 0 0 0 0;
+        border: 0 0 0 0;
+    }
+    
+    .team-member-view:hover{
+        cursor: pointer;
+        background-image: linear-gradient(to bottom right, rgb(200, 207, 91),rgb(243, 232, 232), white);
     }
 
 </style>
