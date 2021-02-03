@@ -208,11 +208,15 @@
                 if (conflict.conflict=="Scheduled" && conflict.locationId != this.location.id) continue;
                 if (conflict.conflict!="Scheduled" && onlyShedules) continue;
                 conflict.start = moment(conflict.start).tz(this.location.timezone).format();
-                conflict.end = moment(conflict.end).tz(this.location.timezone).format();               
+                conflict.end = moment(conflict.end).tz(this.location.timezone).format();                              
                 if(Vue.filter('isDateFullday')(conflict.start,conflict.end))
-                {               
+                {
+                    if (conflict.conflict=='AwayLocation' && this.location.timezone != conflict.location.timezone){
+                        conflict.start = moment(conflict.start).tz(conflict.location.timezone).format();
+                        conflict.end = moment(conflict.end).tz(conflict.location.timezone).format();
+                    }               
                     for(const dateIndex in this.headerDates){
-                        const date = this.headerDates[dateIndex]
+                        const date = this.headerDates[dateIndex]                        
                         if(date>=conflict.start && date<=conflict.end)
                         {
                             conflicts.push({
