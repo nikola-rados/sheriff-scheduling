@@ -222,6 +222,27 @@ namespace SS.Api.services.scheduling
         public async Task<List<ShiftAvailability>> GetShiftAvailability(DateTimeOffset start, DateTimeOffset end, int locationId)
         {
             var sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId, start, end);
+            
+            //Include sheriffs that have a shift, but their home location / away location doesn't match. 
+            //Grey out on the GUI if HomeLocationId and AwayLocation doesn't match.
+            var sheriffIdsFromShifts = await Db.Shift.AsNoTracking()
+                .Where(s => s.StartDate < end && start < s.EndDate && s.ExpiryDate == null &&
+                            s.LocationId == locationId)
+                .Select(s => s.SheriffId)
+                .ToListAsync();
+
+           var sheriffsOutOfLocationWithShiftIds = sheriffIdsFromShifts.Except(sheriffs.Select(s => s.Id));
+
+           //Note their AwayLocation, Leave, Training should be entirely empty, this is intentional.
+            var sheriffsOutOfLocationWithShift = await
+               Db.Sheriff.AsNoTracking()
+                   .Include(s => s.HomeLocation)
+                   .In(sheriffsOutOfLocationWithShiftIds,
+                       s => s.Id)
+                   .Where(s => s.IsEnabled)
+                   .ToListAsync();
+
+            sheriffs = sheriffs.Concat(sheriffsOutOfLocationWithShift).ToList();
 
             var shiftsForSheriffs = await GetShiftsForSheriffs(sheriffs.Select(s => s.Id), start, end);
 
@@ -507,7 +528,7 @@ namespace SS.Api.services.scheduling
                 var locationId = shift.LocationId;
                 var sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId, shift.StartDate, shift.EndDate, shift.SheriffId);
                 var sheriff = sheriffs.FirstOrDefault();
-                sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}:{shift.SheriffId}, they might not be active in location for the shift.");
+                sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}, they might not be active in location for the shift.");
                 var validationErrors = new List<string>();
                 validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId).Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
                 validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
