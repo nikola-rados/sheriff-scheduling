@@ -3,8 +3,8 @@
         <b-row  class="mx-0 mt-0 mb-5 p-0" cols="2" >
             <b-col class="m-0 p-0" cols="11" >
                 <duty-roster-header v-on:change="reloadDutyRosters" :runMethod="headerAddAssignment" />
-                <duty-roster-week-view v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
-                <duty-roster-day-view v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()"/>
+                <duty-roster-week-view :runMethod="dutyRosterWeekViewMethods" v-if="weekView" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()" />
+                <duty-roster-day-view :runMethod="dutyRosterDayViewMethods" v-if="!weekView&&headerReady" :key="updateDutyRoster" v-on:addAssignmentClicked="addAssignment" v-on:dataready="reloadMyTeam()"/>
                 
             </b-col>
             <b-col class="p-0 " cols="1"  style="overflow: auto;">
@@ -31,7 +31,7 @@
                         <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/> 
                     </div>                   
                     <div id="dutyrosterteammember" :style="{overflowX: 'hidden', overflowY: 'auto', height: getHeight}">
-                        <duty-roster-team-member-card v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
+                        <duty-roster-team-member-card v-on:change="updateDutyRosterPage()" v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
                     </div>
                 </b-card>
             </b-col>
@@ -57,9 +57,8 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import { localTimeInfoType } from '../../types/common';
-    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
-    import { shiftInfoType } from '../../types/ShiftSchedule';
-
+    import { dutyRangeInfoType, myTeamShiftInfoType} from '../../types/DutyRoster';
+    
     @Component({
         components: {
             DutyRosterHeader,
@@ -102,7 +101,9 @@
         gageHeight = 0;
         tableHeight = 0;
 
-        headerAddAssignment = new Vue();      
+        headerAddAssignment = new Vue();         
+        dutyRosterDayViewMethods = new Vue();
+        dutyRosterWeekViewMethods = new Vue();
 
         @Watch('displayFooter')
         footerChange() 
@@ -203,6 +204,14 @@
         public updateCurrentTimeCallBack() {
             this.updateCurrentTime();
             window.setTimeout(this.updateCurrentTime, 60000);
+        }
+
+        public updateDutyRosterPage() {
+            if (!this.weekView) {
+                this.dutyRosterDayViewMethods.$emit('getData');
+            } else {
+                this.dutyRosterWeekViewMethods.$emit('getData');
+            }
         }
 
     }

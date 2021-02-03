@@ -394,7 +394,7 @@ namespace SS.Api.services.scheduling
 
         #region String Helpers
         private static string ConflictingSheriffAndDutySlot(Sheriff sheriff, DutySlot dutySlot)
-            => $"Conflict - {nameof(Sheriff)}: {sheriff?.LastName}, {sheriff?.FirstName} - Existing {nameof(DutySlot)} conflicts: {dutySlot.StartDate.ConvertToTimezone(dutySlot.Timezone)} -> {dutySlot.EndDate.ConvertToTimezone(dutySlot.Timezone)}";
+            => $"Conflict - {nameof(Sheriff)}: {sheriff?.LastName}, {sheriff?.FirstName} - Existing {nameof(DutySlot)} conflicts: {dutySlot.StartDate.ConvertToTimezone(dutySlot.Timezone).PrintFormatDateTime(dutySlot.Timezone)} to {dutySlot.EndDate.ConvertToTimezone(dutySlot.Timezone).PrintFormatDateTime(dutySlot.Timezone)}";
 
         #endregion
 

@@ -159,12 +159,13 @@
 <script lang="ts">
     import { Component, Vue } from 'vue-property-decorator';
     import { namespace } from 'vuex-class';
+    import moment from 'moment-timezone';
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
     import * as _ from 'underscore';    
     import PageHeader from "@components/common/PageHeader.vue";  
     import {userInfoType} from '../../types/common';
-    import {permissionInfoType, roleInfoType, permissionOptionInfoType} from '../../types/MyTeam';
+    import {roleInfoType, permissionOptionInfoType} from '../../types/MyTeam';
     import {roleJsonType} from '../../types/MyTeam/jsonTypes';
 
 
@@ -237,7 +238,13 @@
                         // console.log(response.data)
                         this.extractRolesInfo(response.data);                        
                     }                    
-                },err => {this.errorText = err;this.openErrorModal=true;this.isRolesDataMounted = true;})
+                },err => {
+                    this.errorText = this.errorText=err.response.statusText+' '+err.response.status+ '  - ' + moment().format();
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }  
+                    this.isRolesDataMounted = true;
+                })
         }
 
         public extractRolesInfo(data: roleJsonType[])
@@ -283,7 +290,13 @@
                     if(response.data){
                         this.extractPermissions(response.data);                                               
                     }                    
-                },err => {this.errorText = err;this.openErrorModal=true;this.isRolesDataMounted = true;});
+                },err => {
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }  
+                    this.isRolesDataMounted = true;
+                });
         }
 
         public closeWarningWindow() {   
@@ -300,7 +313,13 @@
                     if(response.data){                        
                         this.extractRoleInfo(response.data);                 
                     }                    
-                },err => {this.errorText = err;this.openErrorModal=true;this.isRolesDataMounted = true;});
+                },err => {
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    } 
+                    this.isRolesDataMounted = true;
+                });
         }
 
         public extractRoleInfo(roleData){

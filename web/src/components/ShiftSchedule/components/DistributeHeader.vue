@@ -78,7 +78,7 @@
 	const shiftState = namespace("ShiftScheduleInformation");
 	import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-	import { distributeTeamMemberInfoType, importConflictMessageType, shiftInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
+	import { distributeTeamMemberInfoType, shiftRangeInfoType } from '../../../types/ShiftSchedule';
 	import { locationInfoType, userInfoType } from '../../../types/common';
 
 	import { Printd } from 'printd'
