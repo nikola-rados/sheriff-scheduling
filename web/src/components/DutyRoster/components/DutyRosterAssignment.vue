@@ -936,10 +936,13 @@
 				for(const dayIndexStr in this.weekDayNames){
 					const day = this.weekDayNames[dayIndexStr];
 					const dayIndex = Number(dayIndexStr)
+					const newStartDate = moment(startDate).add(dayIndex,'days').format();
+					const newEndDate = moment(endDate).add(dayIndex,'days').format();
+
 					if(this.assignment.assignmentDetail[day]){				
 						body.push({
-							startDate: moment(startDate).add(dayIndex,'days').format(), 
-							endDate: moment(endDate).add(dayIndex,'days').format(),
+							startDate: moment.tz(newStartDate, this.location.timezone).utc().format(), 
+							endDate: moment.tz(newEndDate, this.location.timezone).utc().format(),
 							locationId: this.location.id,
 							assignmentId: this.assignment.assignmentDetail.id,
 							timezone: this.location.timezone,
