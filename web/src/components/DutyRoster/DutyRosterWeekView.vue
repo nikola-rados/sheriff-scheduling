@@ -347,7 +347,7 @@
                 if(dutyRostersForThisAssignment.length>0){
                     let maximumRow = -2;
                     for(const dutydate of dutyWeekDates){
-                        const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => dutyRoster.startDate.substring(0,10) == dutydate)
+                        const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => moment(dutyRoster.startDate).tz(this.location.timezone).format().substring(0,10) == dutydate)
                         if(dutyRostersInOneDay.length > maximumRow) maximumRow = dutyRostersInOneDay.length;
                     }
 
@@ -373,7 +373,7 @@
                     }
 
                     for(const dutydateInx in dutyWeekDates){
-                        const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => dutyRoster.startDate.substring(0,10) == dutyWeekDates[dutydateInx])
+                        const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => moment(dutyRoster.startDate).tz(this.location.timezone).format().substring(0,10) == dutyWeekDates[dutydateInx])
                         for(const dutyRosterInOneDay of dutyRostersInOneDay){
                             for(let row=0; row<maximumRow; row++){
                                 //console.log(dutyRosterAssignment[row][dutydateInx])
