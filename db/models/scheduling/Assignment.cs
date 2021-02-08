@@ -91,7 +91,7 @@ namespace SS.Db.models.scheduling
                     default:
                         break;
                 }
-                dt = dt.TranslateDateIfDaylightSavings(Timezone, 1);
+                dt = dt.TranslateDateForDaylightSavings(Timezone, 1);
             }
             return false;
         }

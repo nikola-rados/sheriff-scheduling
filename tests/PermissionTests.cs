@@ -135,7 +135,8 @@ namespace tests
             var user = SetupClaimsPrincipal(new List<Claim>
             {
                 new Claim(CustomClaimTypes.HomeLocationId, "4"),
-                new Claim(CustomClaimTypes.Permission, Permission.ViewProvince)
+                new Claim(CustomClaimTypes.Permission, Permission.ViewProvince),
+                new Claim(CustomClaimTypes.Permission, Permission.ViewOtherProfiles)
             });
 
             var start = DateTimeOffset.UtcNow.Date;
@@ -149,6 +150,7 @@ namespace tests
             {
                 new Claim(CustomClaimTypes.HomeLocationId, "4"),
                 new Claim(CustomClaimTypes.Permission, Permission.ViewRegion),
+                new Claim(CustomClaimTypes.Permission, Permission.ViewOtherProfiles)
             });
 
             sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end, db).ToListAsync();
@@ -159,6 +161,7 @@ namespace tests
             {
                 new Claim(CustomClaimTypes.HomeLocationId, "4"),
                 new Claim(CustomClaimTypes.Permission, Permission.ViewAssignedLocation),
+                new Claim(CustomClaimTypes.Permission, Permission.ViewOtherProfiles)
             });
 
             sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end, db).ToListAsync();
@@ -169,6 +172,7 @@ namespace tests
             {
                 new Claim(CustomClaimTypes.HomeLocationId, "4"),
                 new Claim(CustomClaimTypes.Permission, Permission.ViewHomeLocation),
+                new Claim(CustomClaimTypes.Permission, Permission.ViewOtherProfiles)
             });
 
             sheriffs = await db.Sheriff.AsNoTracking().ApplyPermissionFilters(user, start, end, db).ToListAsync();

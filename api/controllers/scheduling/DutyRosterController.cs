@@ -50,7 +50,7 @@ namespace SS.Api.controllers.scheduling
                 var timezone = location.Timezone;
                 var currentDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone).DateOnly();
                 var restrictionHours = float.Parse(Configuration.GetNonEmptyValue("ViewDutyRosterRestrictionHours"));
-                var endDate = currentDate.TranslateDateForDaylightSavingsByHours(timezone, restrictionHours);
+                var endDate = currentDate.TranslateDateForDaylightSavings(timezone, hoursToShift: restrictionHours);
                 duties = duties.WhereToList(d => d.StartDate < endDate);
             }
 

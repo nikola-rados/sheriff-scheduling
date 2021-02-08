@@ -211,7 +211,7 @@ namespace SS.Api.services.scheduling
 
             foreach (var shiftAdjustment in shiftAdjustments)
             {
-                var endOfDayInTimezone = shiftAdjustment.Date.TranslateDateIfDaylightSavings(shiftAdjustment.Timezone, 1);
+                var endOfDayInTimezone = shiftAdjustment.Date.TranslateDateForDaylightSavings(shiftAdjustment.Timezone, 1);
 
                 var dutySlotsForDay = await Db.DutySlot.Where(d =>
                     d.ExpiryDate == null && d.SheriffId == shiftAdjustment.SheriffId &&
@@ -265,7 +265,7 @@ namespace SS.Api.services.scheduling
         private async Task HandleShiftAdjustmentsAndOvertime(int locationId, DateTimeOffset targetDate, string timezone, IEnumerable<Guid?> sheriffsForDuties)
         {
             var startRange = targetDate.ConvertToTimezone(timezone).DateOnly();
-            var endRange = startRange.TranslateDateForDaylightSavingsByHours(timezone, 24);
+            var endRange = startRange.TranslateDateForDaylightSavings(timezone, hoursToShift: 24);
 
             var shiftExpansions = new List<ShiftAdjustment>();
             foreach (var sheriff in sheriffsForDuties.Where(sheriff => sheriff != null))
@@ -378,7 +378,7 @@ namespace SS.Api.services.scheduling
         private async Task<DateTimeOffset> FindContinuousEndDateOverShifts(int locationId, Guid sheriffId, DateTimeOffset targetDate, string timezone)
         {
             var startRange = targetDate.ConvertToTimezone(timezone);
-            var endRange = startRange.DateOnly().TranslateDateForDaylightSavingsByHours(timezone, 24);
+            var endRange = startRange.DateOnly().TranslateDateForDaylightSavings(timezone, hoursToShift: 24);
             
             var shifts = await Db.Shift.AsNoTracking().Where(s =>
                 s.ExpiryDate == null &&

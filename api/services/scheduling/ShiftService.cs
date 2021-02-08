@@ -177,7 +177,7 @@ namespace SS.Api.services.scheduling
 
             //We need to adjust to their start of the week, because it can differ depending on the TZ! 
             var targetStartDate = start.ConvertToTimezone(timezone);
-            var targetEndDate = targetStartDate.TranslateDateIfDaylightSavings(timezone, 7);
+            var targetEndDate = targetStartDate.TranslateDateForDaylightSavings(timezone, 7);
 
             var sheriffsAvailableAtLocation = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId, targetStartDate, targetEndDate);
             var sheriffIds = sheriffsAvailableAtLocation.SelectDistinctToList(s => s.Id);
@@ -195,8 +195,8 @@ namespace SS.Api.services.scheduling
             var importedShifts = await shiftsToImport.Select(shift => Db.DetachedClone(shift)).ToListAsync();
             foreach (var shift in importedShifts)
             {
-                shift.StartDate = shift.StartDate.TranslateDateIfDaylightSavings(timezone, 7);
-                shift.EndDate = shift.EndDate.TranslateDateIfDaylightSavings(timezone, 7);
+                shift.StartDate = shift.StartDate.TranslateDateForDaylightSavings(timezone, 7);
+                shift.EndDate = shift.EndDate.TranslateDateForDaylightSavings(timezone, 7);
             }
 
             var overlaps = await GetShiftConflicts(importedShifts);
@@ -340,7 +340,7 @@ namespace SS.Api.services.scheduling
         public async Task<double> CalculateOvertimeHoursForSheriffOnDay(Guid? sheriffId, DateTimeOffset startDate, string timezone)
         {
             var startOfDayInTimezone = startDate.ConvertToTimezone(timezone).DateOnly();
-            var endOfDayInTimezone = startOfDayInTimezone.TranslateDateIfDaylightSavings(timezone, 1);
+            var endOfDayInTimezone = startOfDayInTimezone.TranslateDateForDaylightSavings(timezone, 1);
 
             var shiftsForSheriffOnDay = await Db.Shift.Where(s =>
                 s.ExpiryDate == null && s.SheriffId == sheriffId &&
@@ -389,7 +389,7 @@ namespace SS.Api.services.scheduling
             foreach (var shift in shiftsToSplit)
             {
                 var hourDifference = shift.StartDate.HourDifference(shift.EndDate, shift.Timezone);
-                shift.EndDate = shift.StartDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, OvertimeHoursPerDay);
+                shift.EndDate = shift.StartDate.TranslateDateForDaylightSavings(shift.Timezone, hoursToShift: OvertimeHoursPerDay);
                 hourDifference -= (shift.EndDate - shift.StartDate).TotalHours;
                 var lastEndDate = shift.EndDate;
                 while (hourDifference > 0)
@@ -398,7 +398,7 @@ namespace SS.Api.services.scheduling
                     var newShift = shift.Adapt<Shift>();
                     newShift.Id = 0;
                     newShift.StartDate = lastEndDate;
-                    newShift.EndDate = lastEndDate.TranslateDateForDaylightSavingsByHours(shift.Timezone, newShiftHours);
+                    newShift.EndDate = lastEndDate.TranslateDateForDaylightSavings(shift.Timezone, hoursToShift: newShiftHours);
                     if (newShift.EndDate.Subtract(newShift.StartDate).TotalSeconds < 60)
                         break;
                     shifts.Add(newShift);

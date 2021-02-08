@@ -54,7 +54,7 @@ namespace SS.Api.controllers.scheduling
                 if (!User.HasPermission(Permission.ViewAllFutureShifts))
                 {
                     var shiftRestrictionDays = int.Parse(Configuration.GetNonEmptyValue("ViewShiftRestrictionDays"));
-                    var endDateShift = currentDate.TranslateDateIfDaylightSavings(timezone, shiftRestrictionDays + 1);
+                    var endDateShift = currentDate.TranslateDateForDaylightSavings(timezone, shiftRestrictionDays + 1);
                     foreach (var sa in shiftsWithDuties)
                         sa.Conflicts = sa.Conflicts.WhereToList(c => c.Start < endDateShift);
                 }
@@ -64,7 +64,7 @@ namespace SS.Api.controllers.scheduling
                     var dutyRestrictionHours =
                         float.Parse(Configuration.GetNonEmptyValue("ViewDutyRosterRestrictionHours"));
                     var endDateDuties =
-                        currentDate.TranslateDateForDaylightSavingsByHours(timezone, dutyRestrictionHours);
+                        currentDate.TranslateDateForDaylightSavings(timezone, hoursToShift: dutyRestrictionHours);
                     foreach (var sa in shiftsWithDuties)
                         sa.Conflicts.WhereToList(c => c.Start > endDateDuties)
                             .ForEach(c => c.WorkSection = null);

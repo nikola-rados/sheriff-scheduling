@@ -152,7 +152,7 @@ namespace tests.controllers
             await Db.SaveChangesAsync();
 
             var startDate = DateTimeOffset.UtcNow.ConvertToTimezone("America/Edmonton");
-            var endDate = DateTimeOffset.UtcNow.TranslateDateIfDaylightSavings("America/Edmonton", 7);
+            var endDate = DateTimeOffset.UtcNow.TranslateDateForDaylightSavings("America/Edmonton", 7);
 
             //On awayLocation.
             var awayLocationSheriff = Guid.NewGuid();

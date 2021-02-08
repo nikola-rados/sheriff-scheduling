@@ -56,7 +56,7 @@ namespace SS.Api.controllers.scheduling
                 var timezone = location.Timezone;
                 var restrictionDays = int.Parse(Configuration.GetNonEmptyValue("ViewShiftRestrictionDays"));
                 var currentDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone).DateOnly();
-                var endDate = currentDate.TranslateDateIfDaylightSavings(timezone, restrictionDays + 1);
+                var endDate = currentDate.TranslateDateForDaylightSavings(timezone, restrictionDays + 1);
                 shifts = shifts.WhereToList(s => s.StartDate < endDate);
             }
 
@@ -134,7 +134,7 @@ namespace SS.Api.controllers.scheduling
                 var timezone = location.Timezone;
                 var restrictionDays = int.Parse(Configuration.GetNonEmptyValue("ViewShiftRestrictionDays"));
                 var currentDate = DateTimeOffset.UtcNow.ConvertToTimezone(timezone).DateOnly();
-                var endDate = currentDate.TranslateDateIfDaylightSavings(timezone, restrictionDays + 1);
+                var endDate = currentDate.TranslateDateForDaylightSavings(timezone, restrictionDays + 1);
                 foreach (var sa in shiftAvailability)
                     sa.Conflicts = sa.Conflicts.WhereToList(c => c.Start < endDate);
             }

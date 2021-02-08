@@ -21,29 +21,29 @@ namespace tests
 
             var beforeMarchChange = new DateTimeOffset(2020, 03, 7, 0, 0, 0, new TimeSpan());
             //Vancouver, Edmonton - Crossing March 8th, 2 am -1. Should shift. 
-            var adjustedDateTime = beforeMarchChange.TranslateDateIfDaylightSavings(vancouverTimeZone, 5);
+            var adjustedDateTime = beforeMarchChange.TranslateDateForDaylightSavings(vancouverTimeZone, 5);
             Assert.Equal(120 - 1, adjustedDateTime.Subtract(beforeMarchChange).TotalHours);
-            adjustedDateTime = beforeMarchChange.TranslateDateIfDaylightSavings(edmontonTimeZone, 5);
+            adjustedDateTime = beforeMarchChange.TranslateDateForDaylightSavings(edmontonTimeZone, 5);
             Assert.Equal(120 - 1, adjustedDateTime.Subtract(beforeMarchChange).TotalHours); 
             
             // Creston, Dawson Creek - Crossing March 8th, 2 am -1. NO shift.
-            adjustedDateTime = beforeMarchChange.TranslateDateIfDaylightSavings(dawsonCreekTimeZone, 5);
+            adjustedDateTime = beforeMarchChange.TranslateDateForDaylightSavings(dawsonCreekTimeZone, 5);
             Assert.Equal(120, adjustedDateTime.Subtract(beforeMarchChange).TotalHours);
-            adjustedDateTime = beforeMarchChange.TranslateDateIfDaylightSavings(crestonTimeZone, 5);
+            adjustedDateTime = beforeMarchChange.TranslateDateForDaylightSavings(crestonTimeZone, 5);
             Assert.Equal(120, adjustedDateTime.Subtract(beforeMarchChange).TotalHours);
 
             var beforeNovemberChange = new DateTimeOffset(2020, 10, 31, 0, 0, 0, new TimeSpan());
 
             //Vancouver, Edmonton - Crossing Nov 1st, 2 am +1. Should shift.
-            adjustedDateTime = beforeNovemberChange.TranslateDateIfDaylightSavings(vancouverTimeZone, 5);
+            adjustedDateTime = beforeNovemberChange.TranslateDateForDaylightSavings(vancouverTimeZone, 5);
             Assert.Equal(120 + 1, adjustedDateTime.Subtract(beforeNovemberChange).TotalHours);
-            adjustedDateTime = beforeNovemberChange.TranslateDateIfDaylightSavings(edmontonTimeZone, 5);
+            adjustedDateTime = beforeNovemberChange.TranslateDateForDaylightSavings(edmontonTimeZone, 5);
             Assert.Equal(120 + 1 , adjustedDateTime.Subtract(beforeNovemberChange).TotalHours);
 
             //Creston, Dawson Creek - Crossing Nov 1st, 2 am +1. NO shift.
-            adjustedDateTime = beforeNovemberChange.TranslateDateIfDaylightSavings(dawsonCreekTimeZone, 5);
+            adjustedDateTime = beforeNovemberChange.TranslateDateForDaylightSavings(dawsonCreekTimeZone, 5);
             Assert.Equal(120, adjustedDateTime.Subtract(beforeNovemberChange).TotalHours);
-            adjustedDateTime = beforeNovemberChange.TranslateDateIfDaylightSavings(crestonTimeZone, 5);
+            adjustedDateTime = beforeNovemberChange.TranslateDateForDaylightSavings(crestonTimeZone, 5);
             Assert.Equal(120, adjustedDateTime.Subtract(beforeNovemberChange).TotalHours);
         }
     }
