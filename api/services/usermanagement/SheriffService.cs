@@ -394,16 +394,18 @@ namespace SS.Api.services.usermanagement
             if (sheriffEventConflicts.All(sec => sec.Timezone == data.Timezone))
                 return sheriffEventConflicts;
 
-            if (data.EndDate.Hour == 23 && data.EndDate.Minute == 59)
-            {
-                data.EndDate = data.EndDate.TranslateDateForDaylightSavings(data.Timezone, hoursToShift: -1);
-                sheriffEventConflicts = sheriffEventConflicts.WhereToList(sec => (sec.StartDate < data.EndDate && data.StartDate < sec.EndDate));
-            }
-            if (data.StartDate.Hour == 0 && data.StartDate.Minute == 0)
-            {
-                data.StartDate = data.StartDate.TranslateDateForDaylightSavings(data.Timezone, hoursToShift: 1);
-                sheriffEventConflicts = sheriffEventConflicts.WhereToList(sec => (sec.StartDate < data.EndDate && data.StartDate < sec.EndDate));
-            }
+            data.StartDate = data.StartDate.ConvertToTimezone(data.Timezone);
+            data.EndDate = data.EndDate.ConvertToTimezone(data.Timezone);
+
+            var newStartDate = data.StartDate.Hour == 0 && data.StartDate.Minute == 0
+                ? data.StartDate.TranslateDateForDaylightSavings(data.Timezone, hoursToShift: 1)
+                : data.StartDate;
+
+            var newEndDate = data.EndDate.Hour == 23 && data.EndDate.Minute == 59
+                ? data.EndDate.TranslateDateForDaylightSavings(data.Timezone, hoursToShift: -1)
+                : data.EndDate;
+
+            sheriffEventConflicts = sheriffEventConflicts.WhereToList(sec => sec.StartDate < newEndDate && newStartDate < sec.EndDate);
 
             return sheriffEventConflicts;
         }
