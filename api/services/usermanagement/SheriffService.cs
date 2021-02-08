@@ -386,7 +386,7 @@ namespace SS.Api.services.usermanagement
         /// <summary>
         /// This is built for the case where we create an away location in -8 for say a day (00:00:00 to 23:59:00 PST),
         /// then immediately the day after schedule training in -7 (00:00:00 to 23:59:00 MST).
-        /// The two overlap, because the enddate for away location in PST is 00:59:00 MST.
+        /// The two overlap, because the EndDate for away location in PST is 00:59:00 MST.
         /// This same scenario could happen moving backwards in time. 00:00:00 in -7 is 23:00:00 in -8.
         /// </summary>
         private List<SheriffEvent> AllowDifferentTimezonesCloseTimeGap<T>(List<SheriffEvent> sheriffEventConflicts, T data) where T : SheriffEvent
