@@ -375,12 +375,40 @@ namespace SS.Api.services.usermanagement
                 sal.SheriffId == data.SheriffId && (sal.StartDate < data.EndDate && data.StartDate < sal.EndDate) &&
                 sal.ExpiryDate == null).ToListAsync();
 
+            sheriffEventConflicts = AllowDifferentTimezonesCloseTimeGap(sheriffEventConflicts, data);
+
             if (!overrideConflicts)
                 DisplayConflicts(data.SheriffId, sheriffEventConflicts, shiftConflicts);
             else
                 await OverrideConflicts(data, dutyRosterService, shiftService, sheriffEventConflicts, shiftConflicts);
         }
 
+        /// <summary>
+        /// This is built for the case where we create an away location in -8 for say a day (00:00:00 to 23:59:00 PST),
+        /// then immediately the day after schedule training in -7 (00:00:00 to 23:59:00 MST).
+        /// The two overlap, because the EndDate for away location in PST is 00:59:00 MST.
+        /// This same scenario could happen moving backwards in time. 00:00:00 in -7 is 23:00:00 in -8.
+        /// </summary>
+        private List<SheriffEvent> AllowDifferentTimezonesCloseTimeGap<T>(List<SheriffEvent> sheriffEventConflicts, T data) where T : SheriffEvent
+        {
+            if (sheriffEventConflicts.All(sec => sec.Timezone == data.Timezone))
+                return sheriffEventConflicts;
+
+            data.StartDate = data.StartDate.ConvertToTimezone(data.Timezone);
+            data.EndDate = data.EndDate.ConvertToTimezone(data.Timezone);
+
+            var newStartDate = data.StartDate.Hour == 0 && data.StartDate.Minute == 0
+                ? data.StartDate.TranslateDateForDaylightSavings(data.Timezone, hoursToShift: 1)
+                : data.StartDate;
+
+            var newEndDate = data.EndDate.Hour == 23 && data.EndDate.Minute == 59
+                ? data.EndDate.TranslateDateForDaylightSavings(data.Timezone, hoursToShift: -1)
+                : data.EndDate;
+
+            sheriffEventConflicts = sheriffEventConflicts.WhereToList(sec => sec.StartDate < newEndDate && newStartDate < sec.EndDate);
+
+            return sheriffEventConflicts;
+        }
 
         private void DisplayConflicts(Guid sheriffId, List<SheriffEvent> sheriffEventConflicts, List<Shift> shiftConflicts)
         {

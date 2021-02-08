@@ -34,12 +34,12 @@ namespace tests.db
             Assert.True(assignment.HasAtLeastOneDayOverlap(targetDate, targetDate));
 
             //Loop of dates case 
-            Assert.True(assignment.HasAtLeastOneDayOverlap(targetDate.TranslateDateIfDaylightSavings(timezone,-1), targetDate.TranslateDateIfDaylightSavings(timezone, 1)));
+            Assert.True(assignment.HasAtLeastOneDayOverlap(targetDate.TranslateDateForDaylightSavings(timezone,-1), targetDate.TranslateDateForDaylightSavings(timezone, 1)));
 
             //Adhoc case
-            var adhocAssignment = new Assignment { Timezone = "America/Vancouver", AdhocStartDate = targetDate, AdhocEndDate = targetDate.TranslateDateIfDaylightSavings(timezone, 5), Monday= true, Tuesday= true, Wednesday = true, Thursday = true, Friday = true, Saturday = true, Sunday = true};
-            Assert.True(adhocAssignment.HasAtLeastOneDayOverlap(targetDate, targetDate.TranslateDateIfDaylightSavings(timezone, 1)));
-            Assert.False(adhocAssignment.HasAtLeastOneDayOverlap(targetDate.TranslateDateIfDaylightSavings(timezone, 40), targetDate.TranslateDateIfDaylightSavings(timezone, 50)));
+            var adhocAssignment = new Assignment { Timezone = "America/Vancouver", AdhocStartDate = targetDate, AdhocEndDate = targetDate.TranslateDateForDaylightSavings(timezone, 5), Monday= true, Tuesday= true, Wednesday = true, Thursday = true, Friday = true, Saturday = true, Sunday = true};
+            Assert.True(adhocAssignment.HasAtLeastOneDayOverlap(targetDate, targetDate.TranslateDateForDaylightSavings(timezone, 1)));
+            Assert.False(adhocAssignment.HasAtLeastOneDayOverlap(targetDate.TranslateDateForDaylightSavings(timezone, 40), targetDate.TranslateDateForDaylightSavings(timezone, 50)));
 
             var daylightSavingsAssignment = new Assignment
             {

@@ -6,26 +6,13 @@ namespace SS.Common.helpers.extensions
 {
     public static class DateTimeExtensions
     {
-        public static DateTimeOffset TranslateDateIfDaylightSavings(this DateTimeOffset date, string timezone, int daysToShift)
+        public static DateTimeOffset TranslateDateForDaylightSavings(this DateTimeOffset date, string timezone, int daysToShift = 0, double hoursToShift = 0)
         {
             var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone];
-
             var instant = Instant.FromDateTimeOffset(date);
             var zoned = instant.InZone(locationTimeZone);
             var movedZoned = zoned.Plus(Duration.FromDays(daysToShift));
-
-            if (movedZoned.Offset != zoned.Offset)
-                movedZoned = movedZoned.PlusHours(zoned.Offset.ToTimeSpan().Hours - movedZoned.Offset.ToTimeSpan().Hours);
-            return movedZoned.ToDateTimeOffset();
-        }
-
-        public static DateTimeOffset TranslateDateForDaylightSavingsByHours(this DateTimeOffset date, string timezone, double hoursToShift)
-        {
-            var locationTimeZone = DateTimeZoneProviders.Tzdb[timezone];
-
-            var instant = Instant.FromDateTimeOffset(date);
-            var zoned = instant.InZone(locationTimeZone);
-            var movedZoned = zoned.Plus(Duration.FromHours(hoursToShift));
+            movedZoned = movedZoned.Plus(Duration.FromHours(hoursToShift));
 
             if (movedZoned.Offset != zoned.Offset)
                 movedZoned = movedZoned.PlusHours(zoned.Offset.ToTimeSpan().Hours - movedZoned.Offset.ToTimeSpan().Hours);

@@ -130,7 +130,7 @@ namespace SS.Api.services
                     (locationId == null || lc.LocationId == null || lc.LocationId == locationId) &&
                     (showExpired || lc.ExpiryDate == null))
                 .OrderBy(a => (int)a.Type)
-                .ThenBy(a => a.SortOrder.First().SortOrder)
+                .ThenBy(a => a.SortOrder.FirstOrDefault().SortOrder)
                 .ThenBy(a => a.Id)
                 .ToListAsync();
 

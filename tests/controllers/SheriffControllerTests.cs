@@ -470,6 +470,67 @@ namespace tests.controllers
             Assert.False(Db.DutySlot.Any(ds => ds.ExpiryDate == null && ds.Id == dutySlot.Id ));
         }
 
+        [Fact]
+        public async Task SheriffEventTimeTest()
+        {
+            await SheriffEventTimeTestHelper("2025-01-01", "2025-01-02", "2024-12-31");
+        }
+
+        [Fact]
+        public async Task SheriffEventTimeTestDSTStart()
+        {
+            await SheriffEventTimeTestHelper("2025-03-08", "2025-03-09", "2025-03-07");
+        }
+
+        [Fact]
+        public async Task SheriffEventTimeTestDSTEnd()
+        {
+            await SheriffEventTimeTestHelper("2025-11-02", "2025-11-03", "2025-11-01");
+        }
+
+        private async Task SheriffEventTimeTestHelper(string awayLocationDate, string trainingDate, string trainingDate2)
+        {
+            var sheriffObject = await CreateSheriffUsingDbContext();
+
+            var newLocation = new Location { Name = "New PLace", AgencyId = "zfddf2342" };
+            await Db.Location.AddAsync(newLocation);
+            var edmontonTimezoneLocation = new Location { Name = "CranbrookExample", AgencyId = "zfddf52342", Timezone = "America/Edmonton" };
+            await Db.Location.AddAsync(edmontonTimezoneLocation);
+            await Db.SaveChangesAsync();
+
+            var sheriffAwayLocation = new SheriffAwayLocation
+            {
+                Timezone = "America/Vancouver",
+                StartDate = DateTimeOffset.Parse($"{awayLocationDate} 00:00:00 -8"),
+                EndDate = DateTimeOffset.Parse($"{awayLocationDate} 23:59:00 -8"),
+                SheriffId = sheriffObject.Id,
+                LocationId = edmontonTimezoneLocation.Id
+            };
+
+            var result0 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddSheriffAwayLocation(sheriffAwayLocation.Adapt<SheriffAwayLocationDto>()));
+
+            var sheriffTraining = new SheriffTraining
+            {
+                Timezone = "America/Edmonton",
+                StartDate = DateTimeOffset.Parse($"{trainingDate} 00:00:00 -7"),
+                EndDate = DateTimeOffset.Parse($"{trainingDate} 23:59:00 -7"),
+                SheriffId = sheriffObject.Id
+            };
+
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddSheriffTraining(sheriffTraining.Adapt<SheriffTrainingDto>()));
+
+            var sheriffTraining2 = new SheriffTraining
+            {
+                Timezone = "America/Edmonton",
+                StartDate = DateTimeOffset.Parse($"{trainingDate2} 00:00:00 -7"),
+                EndDate = DateTimeOffset.Parse($"{trainingDate2} 23:59:00 -7"),
+                SheriffId = sheriffObject.Id
+            };
+
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
+                await _controller.AddSheriffTraining(sheriffTraining2.Adapt<SheriffTrainingDto>()));
+        }
+
 
         #region Helpers
 
