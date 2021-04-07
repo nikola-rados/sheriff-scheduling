@@ -501,14 +501,23 @@
 
 		public determineExpired(){
 			const currentTime = this.dutyRangeInfo.endDate
-			
-			if (this.assignment.assignmentDetail && this.assignment.assignmentDetail.expiryDate) {
-				const expiryDate = moment(this.assignment.assignmentDetail.expiryDate).tz(this.location.timezone)
-				if (expiryDate.isBefore(currentTime)) return true;
-				return false;
-			} else {
-				return false;
-			}			
+			const currentDay = moment(currentTime).tz(this.location.timezone).day();
+
+			if (this.assignment.assignmentDetail) {
+				if (currentDay == 0 && !this.assignment.assignmentDetail.sunday) return true;
+				if (currentDay == 1 && !this.assignment.assignmentDetail.monday) return true;
+				if (currentDay == 2 && !this.assignment.assignmentDetail.tuesday) return true;
+				if (currentDay == 3 && !this.assignment.assignmentDetail.wednesday)	return true;
+				if (currentDay == 4 && !this.assignment.assignmentDetail.thursday) return true;
+				if (currentDay == 5 && !this.assignment.assignmentDetail.friday) return true;
+				if (currentDay == 6 && !this.assignment.assignmentDetail.saturday) return true;
+				if (this.assignment.assignmentDetail.expiryDate) {
+					const expiryDate = moment(this.assignment.assignmentDetail.expiryDate).tz(this.location.timezone)
+					if (expiryDate.isBefore(currentTime)) return true;
+					return false;
+				} 
+			}
+			return false;
 		}
 		
 		public confirmDeleteAssignment(){
