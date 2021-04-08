@@ -37,7 +37,7 @@ namespace SS.Api.services.scheduling
                 .Where(d => d.LocationId == locationId &&
                             d.StartDate < end &&
                             start < d.EndDate &&
-                            (d.ExpiryDate == null || d.ExpiryDate > start) &&
+                            d.ExpiryDate == null &&
                             d.AssignmentId != null)
                 .Select(d => d.AssignmentId)
                 .ToListAsync();
