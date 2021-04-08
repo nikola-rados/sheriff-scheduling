@@ -31,8 +31,19 @@ namespace SS.Api.services.scheduling
                 .ThenBy(a => a.LookupCodeId)
                 .ToListAsync();
 
+            //Ensure we include assignments that have duties within this time range. 
+            var assignmentsWithDuties = await Db.Duty.AsNoTracking()
+                .Include(d => d.Assignment)
+                .Where(d => d.LocationId == locationId &&
+                            d.StartDate < end &&
+                            start < d.EndDate &&
+                            (d.ExpiryDate == null || d.ExpiryDate > start) &&
+                            d.AssignmentId != null)
+                .Select(d => d.AssignmentId)
+                .ToListAsync();
+
             //Filter out the date ranges outside of the database. 
-            var filteredAssignments = assignment.WhereToList(a => a.HasAtLeastOneDayOverlap(start, end));
+            var filteredAssignments = assignment.WhereToList(a => assignmentsWithDuties.Any(ad => ad == a.Id) || a.HasAtLeastOneDayOverlap(start, end));
             filteredAssignments.ForEach(lc => lc.LookupCode.SortOrderForLocation = lc.LookupCode.SortOrder.FirstOrDefault());
             return filteredAssignments;
         }
