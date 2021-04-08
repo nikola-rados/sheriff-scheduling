@@ -528,11 +528,31 @@ namespace SS.Api.services.scheduling
                 var locationId = shift.LocationId;
                 var sheriffs = await SheriffService.GetSheriffsForShiftAvailabilityForLocation(locationId, shift.StartDate, shift.EndDate, shift.SheriffId);
                 var sheriff = sheriffs.FirstOrDefault();
-                sheriff.ThrowBusinessExceptionIfNull($"Couldn't find active {nameof(Sheriff)}, they might not be active in location for the shift.");
                 var validationErrors = new List<string>();
-                validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId).Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
-                validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
-                validationErrors.AddRange(sheriff.Training.Select(aw => PrintSheriffEventConflict<SheriffTraining>(aw.Sheriff, aw.StartDate, aw.EndDate, aw.Timezone)));
+                if (sheriff == null)
+                {
+                    var unavailableSheriff =
+                        await Db.Sheriff.AsNoTracking().FirstOrDefaultAsync(s => s.Id == shift.SheriffId);
+                    validationErrors.Add($"{unavailableSheriff?.LastName}, {unavailableSheriff?.FirstName} is not active in this location for {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatDate()} {shift.StartDate.ConvertToTimezone(shift.Timezone).PrintFormatTime(shift.Timezone)} to {shift.EndDate.ConvertToTimezone(shift.Timezone).PrintFormatTime(shift.Timezone)}");
+                }
+                else
+                {
+                    validationErrors.AddRange(sheriff!.AwayLocation.Where(aw => aw.LocationId != shift.LocationId)
+                        .Select(aw => PrintSheriffEventConflict<SheriffAwayLocation>(aw.Sheriff,
+                            aw.StartDate,
+                            aw.EndDate,
+                            aw.Timezone)));
+                    validationErrors.AddRange(sheriff.Leave.Select(aw => PrintSheriffEventConflict<SheriffLeave>(
+                        aw.Sheriff,
+                        aw.StartDate,
+                        aw.EndDate,
+                        aw.Timezone)));
+                    validationErrors.AddRange(sheriff.Training.Select(aw => PrintSheriffEventConflict<SheriffTraining>(
+                        aw.Sheriff,
+                        aw.StartDate,
+                        aw.EndDate,
+                        aw.Timezone)));
+                }
 
                 if (validationErrors.Any())
                     sheriffEventConflicts.Add(new ShiftConflict
