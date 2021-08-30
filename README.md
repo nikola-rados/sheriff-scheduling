@@ -1,4 +1,4 @@
-[![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](<https://github.com/bcgov/sheriff-scheduling/>
+[![Lifecycle:Stable](https://img.shields.io/badge/Lifecycle-Stable-97ca00)](<https://github.com/bcgov/sheriff-scheduling/>)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 # Sheriff Scheduling
