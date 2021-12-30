@@ -79,8 +79,20 @@
                                 </div>
                                 <div class="text-center" v-else-if="event.type == 'Unavailable' && event.startTime.length>0">Unavailable {{event.startTime}} - {{event.endTime}}</div>
                                 <div class="text-center ml-3" v-else-if="event.type == 'Unavailable' && event.startTime.length==0">Unavailable</div>
-                                <div class="text-center" v-else>                                    
-                                    <b-badge v-if="event.type == 'Leave'" class="bg-primary">Leave</b-badge>       
+                                <div class="text-center" v-else>
+                                    <div style="display:inline;" class="text-white" v-if="event.type == 'Leave'">
+                                        <div v-if="event.subType.toUpperCase().includes('SPL')" class="bg-spl-leave badge">Leave</div>
+                                        <div v-else-if="event.subType.toUpperCase().includes('A/L')" class="bg-a-l-leave badge">Leave</div>
+                                        <div v-else-if="event.subType.toUpperCase().includes('MED/DENTAL')" class="bg-med-dental-leave badge">Leave</div>
+                                        <div v-else-if="event.subType.toUpperCase().includes('STIIP')" class="bg-stiip-leave badge">Leave</div>
+                                        <div v-else-if="event.subType.toUpperCase().includes('CTO')" class="bg-cto-leave badge">Leave</div>
+                                        <div v-else-if="event.subType.toUpperCase().includes('LWOP')" class="bg-lwop-leave badge">Leave</div>
+                                        <div v-else-if="event.subType.toUpperCase().includes('BEREAVEMENT')" class="bg-bereavement-leave badge">Leave</div>
+                                        <div v-else-if="event.subType.toUpperCase().includes('TRAINING')" class="bg-training-leave badge">Leave</div>
+                                        <div v-else-if="event.subType.toUpperCase().includes('OVERTIME')" class="bg-overtime-leave badge">Leave</div>
+                                        <div v-else  class="bg-primary badge">Leave</div>
+                                    </div>                                    
+                                          
                                     <b-badge v-if="event.type == 'Training'" class="bg-primary" >Training</b-badge>
                                     <b-badge class="bg-primary"><b-icon-box-arrow-left v-if="event.type == 'Loaned'" font-scale="1.5"/></b-badge>
                                     <span v-if="event.startTime"> {{event.startTime}} - {{event.endTime}}</span>
@@ -377,7 +389,7 @@
             else return {WS:'', color:''};
         }
 
-        public sortEvents (events: any) {
+        public sortEvents (events: any) {            
             return _.sortBy(events, "startTime");
         }
         
@@ -403,7 +415,8 @@
                                 date:date, 
                                 startTime:'', 
                                 endTime:'',
-                                type:this.getConflictsType(conflict), 
+                                type:this.getConflictsType(conflict),
+                                subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'',
                                 workSection: this.getWorkSection(conflict).WS,
                                 workSectionColor: this.getWorkSection(conflict).color
                             })        
@@ -427,7 +440,8 @@
                                 date:this.headerDates[dateIndex], 
                                 startTime:Vue.filter('beautify-time')(conflict.start), 
                                 endTime:Vue.filter('beautify-time')(conflict.end), 
-                                type:this.getConflictsType(conflict), 
+                                type:this.getConflictsType(conflict),                                
+                                subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'', 
                                 workSection:this.getWorkSection(conflict).WS,
                                 workSectionColor: this.getWorkSection(conflict).color
                             })        
@@ -445,7 +459,8 @@
                                 date:this.headerDates[dateIndex], 
                                 startTime:Vue.filter('beautify-time')(conflict.start), 
                                 endTime:Vue.filter('beautify-time')(midnight.format()),
-                                type:this.getConflictsType(conflict), 
+                                type:this.getConflictsType(conflict),
+                                subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'', 
                                 workSection:this.getWorkSection(conflict).WS,
                                 workSectionColor: this.getWorkSection(conflict).color
                             })
@@ -456,7 +471,8 @@
                                 date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
                                 startTime:'00:00', 
                                 endTime:Vue.filter('beautify-time')(conflict.end),
-                                type:this.getConflictsType(conflict), 
+                                type:this.getConflictsType(conflict),
+                                subType: (this.getConflictsType(conflict)=='Leave' && conflict.sheriffEventType)?conflict.sheriffEventType:'', 
                                 workSection:this.getWorkSection(conflict).WS,
                                 workSectionColor: this.getWorkSection(conflict).color
                             })        

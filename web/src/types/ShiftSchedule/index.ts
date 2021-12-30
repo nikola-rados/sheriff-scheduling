@@ -135,6 +135,7 @@ export interface scheduleInfoType {
     startTime:string;
     endTime:string;
     type: string;
+    subType?: string;
     workSection: string; 
     workSectionColor: string;
 }
