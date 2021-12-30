@@ -67,7 +67,7 @@
             DutyRosterWeekView
         }
     })
-    export default class DutyRoster extends Vue {
+    export default class ManageDutyRoster extends Vue {
 
         @commonState.State
         public localTime!: localTimeInfoType;

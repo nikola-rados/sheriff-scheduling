@@ -217,7 +217,7 @@
             this.dutyRosterAssignmentsJson = response[1].data;
             const shiftsData = response[2].data
 
-            // console.log(this.dutyRostersJson)
+            console.log(this.dutyRostersJson)
             // console.log(this.dutyRosterAssignmentsJson)
             // console.log(shiftsData)
 
