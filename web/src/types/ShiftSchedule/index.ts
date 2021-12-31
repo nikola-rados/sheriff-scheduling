@@ -94,13 +94,13 @@ export interface dayOptionsInfoType {
     diff: number;
     fullday: boolean; 
     conflicts: {
-        Training: conflictsInfoType[],
-        Leave: conflictsInfoType[],
-        Loaned: conflictsInfoType[],
-        AllShifts:conflictsInfoType[], 
-        Shift: conflictsInfoType[],
-        overTimeShift: conflictsInfoType[],
-        Unavailable: conflictsInfoType[]
+        Training: conflictsInfoType[];
+        Leave: conflictsInfoType[];
+        Loaned: conflictsInfoType[];
+        AllShifts:conflictsInfoType[]; 
+        Shift: conflictsInfoType[];
+        overTimeShift: conflictsInfoType[];
+        Unavailable: conflictsInfoType[];
     }
 }
 

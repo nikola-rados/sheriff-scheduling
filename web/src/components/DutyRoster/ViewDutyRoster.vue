@@ -1,38 +1,26 @@
 <template>
-    <b-card bg-variant="white" class="home" no-body>        
-        <schedule-header v-on:change="loadScheduleInformation()" />           
-            <b-overlay opacity="0.6" :show="!isManageScheduleDataMounted">
-                <template #overlay>
-                    <loading-spinner :inline="true"/>
-                </template>    
-                <b-table
-                    :key="updateTable"
-                    :items="shiftSchedules" 
-                    :fields="fields"
-                    small
-                    head-row-variant="primary"   
-                    bordered
-                    fixed>
-                        <template v-slot:table-colgroup>
-                            <col style="width:8.5rem;">                            
-                        </template>
-                        <template v-slot:head() = "data" >
-                            <span class="text">{{data.column}}</span> <span> {{data.label}}</span>
-                        </template>
-                        <template v-slot:head(myteam) = "data" >  
-                            <span>{{data.label}}</span>
-                        </template>
-                        <template v-slot:cell()="data" >
-                            <schedule-card :sheriffId="data.item.myteam.sheriffId" :scheduleInfo=" data.value"/>
-                        </template>
-                        <template v-slot:cell(myteam) = "data" > 
-                            <team-member-card v-on:change="loadScheduleInformation()" :sheriffInfo=data.item.myteam />
-                        </template>
-                </b-table>
-                <div v-if="!isManageScheduleDataMounted && this.shiftSchedules.length == 0" style="min-height:115.6px;">
-                </div>
-            </b-overlay>
-        <b-card><br></b-card>
+    <b-card bg-variant="white" class="home" no-body>             
+                  
+        <b-overlay opacity="0.6" :show="!isViewDutyDataMounted">
+            <template #overlay>
+                <loading-spinner :inline="true"/>
+            </template>   
+            <b-card class="text-center bg-primary">
+                <b-card-text class="text-white h2">{{today | beautify-date-time-weekday}}</b-card-text>
+            </b-card> 
+            <b-table
+                :key="updateTable"
+                :items="displayedDuties" 
+                :fields="fields"
+                small
+                head-row-variant="primary"   
+                bordered
+                striped
+                fixed>                      
+            </b-table>
+            
+        </b-overlay>
+       
 
         <b-modal v-model="openErrorModal" header-class="bg-warning text-light">
             <b-card class="h4 mx-2 py-2">
@@ -53,409 +41,171 @@
 
 <script lang="ts">
     import { Component, Vue, Watch } from 'vue-property-decorator';
-    import { namespace } from "vuex-class";
-    // import ScheduleCard from './components/ScheduleCard.vue'
-    // import TeamMemberCard from './components/TeamMemberCard.vue'
-    // import ScheduleHeader from './components/ScheduleHeader.vue'
-    import "@store/modules/ShiftScheduleInformation";   
-    const shiftState = namespace("ShiftScheduleInformation");
+    import { namespace } from "vuex-class";   
+   
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
     import { locationInfoType } from '../../types/common';
-    import { sheriffAvailabilityInfoType, shiftRangeInfoType, weekShiftInfoType,conflictsInfoType } from '../../types/ShiftSchedule/index'
-    import { sheriffsAvailabilityJsonType } from '../../types/ShiftSchedule/jsonTypes';
+   
     import moment from 'moment-timezone';
     import * as _ from 'underscore';
+    import { attachedDutyInfoType, viewDutyInfoType } from '@/types/DutyRoster';
+    import { teamMemberJsonType } from '@/types/MyTeam/jsonTypes';
 
-    @Component({
-        components: {
-            // ScheduleCard,
-            // TeamMemberCard,
-            // ScheduleHeader
-        }
-    })
+    @Component
     export default class ViewDutyRoster extends Vue {
 
         @commonState.State
         public location!: locationInfoType;
 
-        @shiftState.State
-        public shiftRangeInfo!: shiftRangeInfoType;
-
-        @shiftState.Action
-        public UpdateSelectedShifts!: (newSelectedShifts: string[]) => void
-
-        @shiftState.State
-        public sheriffsAvailabilityInfo!: sheriffAvailabilityInfoType[];
-
-        @shiftState.Action
-        public UpdateSheriffsAvailabilityInfo!: (newSheriffsAvailabilityInfo: sheriffAvailabilityInfoType[]) => void
-
-        isManageScheduleDataMounted = false;
-        headerDates: string[] = [];
-        numberOfheaderDates = 7;
+        isViewDutyDataMounted = false;       
         updateTable=0;
-
+        numberOfRecords = 0;
+        numberOfRecordsPerPage = 3;
+        maxPages = 1;
+        pageIndex = 0;
+        displayedDuties: viewDutyInfoType[] = [];
+        sortedDuties: viewDutyInfoType[] = [];
+        duties: viewDutyInfoType[] = [];
+        dutiesJson: attachedDutyInfoType[] =[];
+        sheriffsJson: teamMemberJsonType[] = [];
         errorText =''
-        openErrorModal=false
-        
+        openErrorModal=false;  
+        today = '';      
 
         fields=[
-            {key:'myteam', label:'My Team', tdClass:'px-0 mx-0', thClass:'text-center'},
-            {key:'Sun', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Mon', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Tue', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Wed', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Thu', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Fri', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Sat', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'}
-        ]
-
-        shiftSchedules: weekShiftInfoType[] =[];
+            {key:'displayName', label:'Name',             tdClass:'text-center', thClass:'text-center'},
+            {key:'startTime',   label:'Start',            tdClass:'text-center', thClass:'text-center'},
+            {key:'endTime',     label:'End',              tdClass:'text-center', thClass:'text-center'},
+            {key:'assignment',  label:'Assignment',       tdClass:'text-center', thClass:'text-center'},
+            {key:'note',        label:'Note',             tdClass:'text-center', thClass:'text-center'}
+        ]        
 
         @Watch('location.id', { immediate: true })
         locationChange()
         {
-            if (this.isManageScheduleDataMounted) {
-                this.loadScheduleInformation() 
-                //console.log('watch')               
+            if (this.isViewDutyDataMounted) {
+                this.getData();
             }            
         } 
 
-        // mounted()
-        // {                       
-        //     //this.loadScheduleInformation();
-        //     console.log('mount manage')
-        // }
+        mounted()
+        {
+            this.numberOfRecords = 0;
+            this.numberOfRecordsPerPage = 3;
+            this.maxPages = 1;
+            this.pageIndex = 0;
+            window.setTimeout(this.updateCurrentDutiesCallBack, 1000);                                              
+                     
+        }
 
-        public loadScheduleInformation() {
+        public updateCurrentDutiesCallBack() {
 
-            this.UpdateSelectedShifts([]);
-            this.isManageScheduleDataMounted=false;
+            if (this.pageIndex == 0){
+                this.getData();
+            } else {
+                this.displayDutyInformation();
+            }
+            
+            window.setTimeout(this.updateCurrentDutiesCallBack, 60000);
+        }
 
-            this.headerDate();
+        public getData() {            
+            
+            this.today = moment().tz(this.location.timezone).format();
 
-            const endDate = moment.tz(this.shiftRangeInfo.endDate, this.location.timezone).endOf('day').utc().format();
-            const startDate = moment.tz(this.shiftRangeInfo.startDate, this.location.timezone).startOf('day').utc().format();
+            const endDate = moment.tz(moment().format().substring(0,10), this.location.timezone).endOf('day').utc().format();
+            const startDate = moment.tz(moment().format().substring(0,10), this.location.timezone).startOf('day').utc().format();
 
-            const url = 'api/shift/shiftavailability?locationId='+this.location.id+'&start='+startDate+'&end='+endDate;
+            const url = 'api/dutyroster?locationId='+this.location.id+'&start='+startDate+'&end='+endDate;
+        
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
-                        this.extractTeamAvailabilityInfo(response.data);                        
-                    }                                   
+                        this.dutiesJson = response.data;    
+                        this.getTeamData();                    
+                    }
+                    
                 },err => {
                     this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
                     if (err.response.status != '401') {
                         this.openErrorModal=true;
-                    }      
-                    this.shiftSchedules = [];
-                    this.isManageScheduleDataMounted=true;
-                })            
+                    }     
+                    this.isViewDutyDataMounted=true;
+                })              
         }
 
-        public headerDate() {
-            this.headerDates = [];
-            for(let dayOffset=0; dayOffset<this.numberOfheaderDates; dayOffset++)
-            {
-                const date= moment(this.shiftRangeInfo.startDate).add(dayOffset,'days').format();
-                this.headerDates.push(date);
-                this.fields[dayOffset+1].label = ' ' + Vue.filter('beautify-date')(date);
-            }
-            //console.log(this.headerDates)
-        }
-
-        public extractTeamAvailabilityInfo(sheriffsAvailabilityJson: sheriffsAvailabilityJsonType[]) {
-
-           // const sheriffsAvailability: sheriffAvailabilityInfoType[] = [];
-            this.shiftSchedules = [];
-            
-            for(const sheriffAvailabilityJson of sheriffsAvailabilityJson) {
-                const sheriffAvailability = {} as sheriffAvailabilityInfoType;
-                sheriffAvailability.sheriffId = sheriffAvailabilityJson.sheriffId;
-                sheriffAvailability.firstName = sheriffAvailabilityJson.sheriff.firstName;
-                sheriffAvailability.lastName = sheriffAvailabilityJson.sheriff.lastName;
-                sheriffAvailability.badgeNumber = sheriffAvailabilityJson.sheriff.badgeNumber;
-                sheriffAvailability.rank = sheriffAvailabilityJson.sheriff.rank;
-                sheriffAvailability.homeLocation= {id: sheriffAvailabilityJson.sheriff.homeLocation.id, name: sheriffAvailabilityJson.sheriff.homeLocation.name}
-                const isInLoanLocation = (sheriffAvailabilityJson.sheriff.homeLocation.id !=this.location.id)
-                sheriffAvailability.conflicts =isInLoanLocation? this.extractInLoanLocationConflicts(sheriffAvailabilityJson.conflicts) :this.extractConflicts(sheriffAvailabilityJson.conflicts, false);        
-                //sheriffsAvailability.push(sheriffAvailability)
-               // console.log(isInLoanLocation)
-                
-                this.shiftSchedules.push({
-                    myteam: sheriffAvailability,
-                    Sun: sheriffAvailability.conflicts.filter(conflict=>{if(conflict.dayOffset ==0) return true}),
-                    Mon: sheriffAvailability.conflicts.filter(conflict=>{if(conflict.dayOffset ==1) return true}),
-                    Tue: sheriffAvailability.conflicts.filter(conflict=>{if(conflict.dayOffset ==2) return true}),
-                    Wed: sheriffAvailability.conflicts.filter(conflict=>{if(conflict.dayOffset ==3) return true}),
-                    Thu: sheriffAvailability.conflicts.filter(conflict=>{if(conflict.dayOffset ==4) return true}),
-                    Fri: sheriffAvailability.conflicts.filter(conflict=>{if(conflict.dayOffset ==5) return true}),
-                    Sat: sheriffAvailability.conflicts.filter(conflict=>{if(conflict.dayOffset ==6) return true})
-                })
-            }
-            //this.UpdateSheriffsAvailabilityInfo(sheriffsAvailability);
-            this.isManageScheduleDataMounted = true;
-            this.updateTable++;
-        }
-
-        public extractConflicts(conflictsJson, onlyShedules){
-
-            const conflicts: conflictsInfoType[] = []
-
-            for(const conflict of conflictsJson){
-                if (conflict.conflict=="Scheduled" && conflict.locationId != this.location.id) continue;
-                if (conflict.conflict!="Scheduled" && onlyShedules) continue;
-                conflict.start = moment(conflict.start).tz(this.location.timezone).format();
-                conflict.end = moment(conflict.end).tz(this.location.timezone).format();                              
-                if(Vue.filter('isDateFullday')(conflict.start,conflict.end))
-                {
-                    if (conflict.conflict=='AwayLocation' && this.location.timezone != conflict.location.timezone){
-                        conflict.start = moment(conflict.start).tz(conflict.location.timezone).format();
-                        conflict.end = moment(conflict.end).tz(conflict.location.timezone).format();
-                    }               
-                    for(const dateIndex in this.headerDates){
-                        const date = this.headerDates[dateIndex]                        
-                        if(date>=conflict.start && date<=conflict.end)
-                        {
-                            conflicts.push({
-                                id:conflict.shiftId? conflict.shiftId:0,
-                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                dayOffset: Number(dateIndex), 
-                                date:date, 
-                                startTime:'', 
-                                endTime:'',
-                                startInMinutes:0, 
-                                timeDuration:0, 
-                                type:this.getConflictsType(conflict), 
-                                fullday: true,
-                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'' ,
-                                comment: conflict.comment? conflict.comment :''
-                            })        
-                        }                       
+        public getTeamData() {             
+            const url = 'api/sheriff';
+            this.$http.get(url)
+                .then(response => {
+                    if(response.data){
+                        this.sheriffsJson = response.data;    
+                        this.extractTeamDutyInfo();                    
                     }
-                }
-                else{
                     
-                    for(const dateIndex in this.headerDates){
-                        const date = this.headerDates[dateIndex].substring(0,10);
-                        const nextDate = moment(this.headerDates[dateIndex]).add(1,'days').format().substring(0,10);
-                        if(date == conflict.start.substring(0,10) && date == conflict.end.substring(0,10))
-                        {  
-                            const start = moment(conflict.start)
-                            const end = moment(conflict.end)
+                },err => {
+                    this.errorText=err.response.statusText+' '+err.response.status + '  - ' + moment().format(); 
+                    if (err.response.status != '401') {
+                        this.openErrorModal=true;
+                    }     
+                    this.isViewDutyDataMounted=true;
+                })
+        }      
 
-                            //console.log(conflict)
-                            
-                            if (conflict.conflict == "Scheduled" && conflict.overtimeHours !=0) {
-                                
-                                const conflictDuration = moment.duration(end.diff(start)).asHours();
-                                const overtime = (conflictDuration <= conflict.overtimeHours)? conflictDuration : conflict.overtimeHours
-                                const regularTimeEnd = moment(conflict.end).subtract(overtime, 'h').tz(this.location.timezone);
-                                // console.log(overtime)
-                                // console.log(conflictDuration)
-                                // console.log(conflict.overtimeHours)
-                                
-                                let duration = moment.duration(regularTimeEnd.diff(start));
-                                
-                                const regularShift = {
-                                    id:conflict.shiftId? conflict.shiftId:0,
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex), 
-                                    date:this.headerDates[dateIndex], 
-                                    startTime:Vue.filter('beautify-time')(conflict.start), 
-                                    endTime:Vue.filter('beautify-time')(regularTimeEnd.format()), 
-                                    startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
-                                    timeDuration:duration.asMinutes(), 
-                                    type:this.getConflictsType(conflict), 
-                                    fullday:false,
-                                    comment: conflict.comment? conflict.comment :''
-                                }
+        public extractTeamDutyInfo() {             
 
-                                duration = moment.duration(end.diff(regularTimeEnd))
+            this.duties = []; 
 
-                                const overTimeShift = {
-                                    id:conflict.shiftId? conflict.shiftId:0,
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex), 
-                                    date:this.headerDates[dateIndex], 
-                                    startTime:Vue.filter('beautify-time')(regularTimeEnd.format()), 
-                                    endTime:Vue.filter('beautify-time')(conflict.end), 
-                                    startInMinutes:moment.duration(regularTimeEnd.diff(moment(regularTimeEnd.format()).startOf('day'))).asMinutes(),
-                                    timeDuration:duration.asMinutes(), 
-                                    type:'overTimeShift', 
-                                    fullday:false,
-                                    comment: conflict.comment? conflict.comment :''
-                                }
-                                // console.log(regularShift)
-                                if(conflictDuration > conflict.overtimeHours)conflicts.push(regularShift);
-                                conflicts.push(overTimeShift);                                
+            for(const dutyJson of this.dutiesJson) {
+                
+                const dutyData = {} as viewDutyInfoType;
 
-                            } else {
-                                const duration = moment.duration(end.diff(start));//duration.asMinutes()
-                                conflicts.push({
-                                id:conflict.shiftId? conflict.shiftId:0,
-                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                dayOffset: Number(dateIndex), 
-                                date:this.headerDates[dateIndex], 
-                                startTime:Vue.filter('beautify-time')(conflict.start), 
-                                endTime:Vue.filter('beautify-time')(conflict.end), 
-                                startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
-                                timeDuration:duration.asMinutes(), 
-                                type:this.getConflictsType(conflict), 
-                                fullday:false,
-                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
-                                comment: conflict.comment? conflict.comment :''
-                                }) 
-
-                            }   
-                        }else if(date == conflict.start.substring(0,10) && nextDate == conflict.end.substring(0,10))
-                        {  
-                            const start = moment(conflict.start)
-                            const midnight = moment(conflict.start).endOf('day')
-                            const end = moment(conflict.end)
-                            const durationStart = moment.duration(midnight.diff(start));
-                            const durationEnd = moment.duration(end.diff(midnight));
-                            conflicts.push({
-                                id:conflict.shiftId? conflict.shiftId:0,
-                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                dayOffset: Number(dateIndex), 
-                                date:this.headerDates[dateIndex], 
-                                startTime:Vue.filter('beautify-time')(conflict.start), 
-                                endTime:Vue.filter('beautify-time')(midnight.format()), 
-                                startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
-                                timeDuration:durationStart.asMinutes(), 
-                                type:this.getConflictsType(conflict), 
-                                fullday:false,
-                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
-                                comment: conflict.comment? conflict.comment :'' 
-                            })
-                            conflicts.push({
-                                id:conflict.shiftId? conflict.shiftId:0,
-                                location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                dayOffset: Number(dateIndex)+1, 
-                                date:moment(this.headerDates[dateIndex]).add(1,'day').format(), 
-                                startTime:'00:00', 
-                                endTime:Vue.filter('beautify-time')(conflict.end), 
-                                startInMinutes:0,
-                                timeDuration:durationEnd.asMinutes(), 
-                                type:this.getConflictsType(conflict), 
-                                fullday:false,
-                                sheriffEventType:conflict.sheriffEventType?conflict.sheriffEventType:'',
-                                comment: conflict.comment? conflict.comment :'' 
-                            })        
-                        }                       
+                for (const dutySlot of dutyJson.dutySlots){
+                    if (!dutySlot.isNotAvailable && !dutySlot.isNotRequired && dutySlot.sheriffId){
+                        const sheriff = this.sheriffsJson.filter(sheriff => {if (sheriff.id == dutySlot.sheriffId) return true})[0];
+                        dutyData.firstName = sheriff.firstName;
+                        dutyData.lastName = sheriff.lastName;
+                        dutyData.rank = sheriff.rank;
+                        dutyData.displayName = Vue.filter('capitalizefirst')(sheriff.lastName) + ', ' + Vue.filter('capitalizefirst')(sheriff.firstName);
+                        dutyData.sheriffId = sheriff.id;
+                        dutyData.assignment =  dutyJson.assignment.lookupCode.code + (dutyJson.assignment.name?(' (' + dutyJson.assignment.name + ')'):'');
+                        dutyData.startTime = Vue.filter('beautify-time')(moment(dutySlot.startDate).tz(this.location.timezone).format());
+                        dutyData.endTime = Vue.filter('beautify-time')(moment(dutySlot.endDate).tz(this.location.timezone).format());
+                        dutyData.note = dutyJson.comment?dutyJson.comment:'';
+                        this.duties.push(dutyData);
                     }
-                } 
-            }
-            //console.log(conflicts)
-
-            return conflicts
-        } 
-
-        public extractInLoanLocationConflicts(conflictsJson){
-            let conflictsJsonAwayLocation: any[] = []
-            const conflicts: conflictsInfoType[] = []
-            for(const conflict of conflictsJson){  
-                conflict.start = moment(conflict.start).tz(this.location.timezone).format();
-                conflict.end = moment(conflict.end).tz(this.location.timezone).format();              
-                if(conflict.conflict !='AwayLocation' || conflict.locationId != this.location.id) continue;
-                conflict['startDay']=conflict.start.substring(0,10);
-                conflict['endDay']=conflict.end.substring(0,10);
-                conflictsJsonAwayLocation.push(conflict);
-            }
-            conflictsJsonAwayLocation = _.sortBy(conflictsJsonAwayLocation,'start')
-
-            for(const dateIndex in this.headerDates){
-                const date = this.headerDates[dateIndex]
-                const day = date.substring(0,10);
-                let numberOfConflictsPerDay = 0;
-                let previousConflictEndDate = moment(date).startOf('day').format();
-                for(const conflict of conflictsJsonAwayLocation){
-
-                    if(day>=conflict.startDay && day<=conflict.endDay)
-                    { 
-                        numberOfConflictsPerDay++;
-                        if(Vue.filter('isDateFullday')(conflict.start,conflict.end)){                            
-                            break;
-                        } else {
-                            console.log(conflict)                            
-                            numberOfConflictsPerDay++;
-                            //console.log( numberOfConflictsPerDay)
-                            const start = moment(previousConflictEndDate)
-                            const end = moment(conflict.start)
-                            const duration = moment.duration(end.diff(start)).asMinutes();
-                            if(duration>5)
-                                conflicts.push({
-                                    id:'0',
-                                    location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
-                                    dayOffset: Number(dateIndex), 
-                                    date:date, 
-                                    startTime:Vue.filter('beautify-time')(previousConflictEndDate), 
-                                    endTime:Vue.filter('beautify-time')(conflict.start), 
-                                    startInMinutes:moment.duration(start.diff(moment(conflict.start).startOf('day'))).asMinutes(),
-                                    timeDuration:duration, 
-                                    type:'Unavailable', 
-                                    fullday:false
-                                })
-                            previousConflictEndDate = conflict.end;  
-                        }
-                    }   
                 }
-
-                if( numberOfConflictsPerDay == 0){
-                    conflicts.push({
-                        id:'0',
-                        location:'',
-                        dayOffset: Number(dateIndex), 
-                        date:date, 
-                        startTime:'', 
-                        endTime:'',
-                        startInMinutes:0, 
-                        timeDuration:0, 
-                        type:'Unavailable', 
-                        fullday: true
-                    })
-                } else if( numberOfConflictsPerDay > 1){
-                    // console.warn('start_end_now')                    
-                    // console.log(previousConflictEndDate)
-                    // console.log(date)
-                    const start = moment(previousConflictEndDate)
-                    const end = moment(date).endOf('day')
-                    const duration = moment.duration(end.diff(start)).asMinutes();
-                    // console.log(start)
-                    // console.log(end)
-                    // console.log(duration)
-                    if(duration>5)
-                        conflicts.push({
-                            id:'0',
-                            location: '',
-                            dayOffset: Number(dateIndex), 
-                            date:date, 
-                            startTime:Vue.filter('beautify-time')(previousConflictEndDate), 
-                            endTime:Vue.filter('beautify-time')(end.format()), 
-                            startInMinutes:moment.duration(start.diff(moment(previousConflictEndDate).startOf('day'))).asMinutes(),
-                            timeDuration:duration, 
-                            type:'Unavailable', 
-                            fullday:false
-                        })
-                }
+                
             }
-            const shifts = this.extractConflicts(conflictsJson, true);
-
-            for (const shift of shifts) {
-                conflicts.push(shift);
-            }
-
-            return conflicts
+            
+            this.numberOfRecords = this.duties.length;
+            this.maxPages = Math.ceil(this.numberOfRecords / this.numberOfRecordsPerPage);          
+            this.displayDutyInformation();            
         }
 
-        public getConflictsType(conflict){
-            if(conflict.conflict =='AwayLocation') return 'Loaned'
-            else if(conflict.conflict =='Scheduled') return 'Shift'
-            else return conflict.conflict
-        }        
+        public displayDutyInformation(){
+
+            this.sortedDuties = _.sortBy(this.duties,'displayName');
+            this.getRecordsToDisplay(this.pageIndex * this.numberOfRecordsPerPage);        
+            
+            this.updateTable ++;
+            this.isViewDutyDataMounted = true;
+
+        }
+
+        public getRecordsToDisplay(startIndex: number){
+
+            this.displayedDuties = this.sortedDuties.slice(startIndex, startIndex + this.numberOfRecordsPerPage);
+
+            if (this.maxPages > this.pageIndex + 1) {
+                this.pageIndex ++;
+
+            } else {               
+                this.pageIndex = 0;
+            }
+
+        }
 
     }
 </script>

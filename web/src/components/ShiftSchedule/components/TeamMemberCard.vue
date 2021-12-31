@@ -456,13 +456,13 @@
 		}
 
 		public AddShift() {
-			console.log('adding shift')
+			//console.log('adding shift')
 			this.isShiftDataMounted = true;
             this.showShiftDetails = true;
         }
         
         public saveShift() {
-            console.log('saving')            
+            //console.log('saving')            
             this.shiftError = false;
 			let requiredError = false;
 			

@@ -162,7 +162,7 @@
         {
             this.runMethod.$on('getData', this.getData)        
             this.isDutyRosterDataMounted = false;
-            console.log('dayview dutyroster mounted')
+            //console.log('dayview dutyroster mounted')
             this.getData(this.scrollPositions);
             window.addEventListener('resize', this.getWindowHeight);
             this.getWindowHeight()
@@ -217,7 +217,7 @@
             this.dutyRosterAssignmentsJson = response[1].data;
             const shiftsData = response[2].data
 
-            console.log(this.dutyRostersJson)
+            //console.log(this.dutyRostersJson)
             // console.log(this.dutyRosterAssignmentsJson)
             // console.log(shiftsData)
 

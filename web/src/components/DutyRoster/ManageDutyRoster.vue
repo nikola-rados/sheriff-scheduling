@@ -128,8 +128,8 @@
         
         public reloadDutyRosters(type){
             this.isDutyRosterDataMounted = false;
-            console.log(type)
-            console.log('reload dutyroster')                
+            // console.log(type)
+            // console.log('reload dutyroster')                
             this.updateCurrentTime();
             if(type=='Day'){
                 this.weekView = false

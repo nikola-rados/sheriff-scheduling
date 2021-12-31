@@ -150,13 +150,13 @@
 		}		
 		
 		public getSchedule() {
-			console.log(this.showWorkSectionChecked);
-			console.log(this.selectedTeamMember);
+			// console.log(this.showWorkSectionChecked);
+			// console.log(this.selectedTeamMember);
 			Vue.nextTick(()=>this.$emit('change', this.showWorkSectionChecked, this.selectedTeamMember.sheriffId))
 		}
 
 		public printSchedule() { 
-			console.log('print')
+			//console.log('print')
 			//this.$htmlToPaper('pdf');
 			const pdfPage: Printd = new Printd()
 			const styles = [				

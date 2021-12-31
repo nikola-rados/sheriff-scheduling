@@ -33,13 +33,13 @@ export interface commonInfoType {
 }
 
 export interface sheriffRankInfoType {
-    id: number,
-    name: string
+    id: number;
+    name: string;
 }
 
 export interface localTimeInfoType {
-    timeString: string,
-    timeSlot: number,
-    dayOfWeek: number,
-    isTodayInView: boolean
+    timeString: string;
+    timeSlot: number;
+    dayOfWeek: number;
+    isTodayInView: boolean;
 }

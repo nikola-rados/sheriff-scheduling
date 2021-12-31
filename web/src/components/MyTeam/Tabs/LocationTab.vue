@@ -266,7 +266,7 @@
         }
 
         public editLocation(data){
-            console.log('edit location')
+            //console.log('edit location')
             //console.log(data)
             if(this.addNewLocationForm){
                 location.href = '#addLocationForm'
@@ -308,7 +308,7 @@
                     this.locationErrorMsg = errMsg;                    
                     this.locationErrorMsgDesc = errMsg;
                     if (errMsg.toLowerCase().includes("overlaps")) {
-                        console.log("overlap")
+                        //console.log("overlap")
                         this.overlappingList = this.locationErrorMsg.split('||');
                         this.locationToSave = body;
                         this.create = iscreate;

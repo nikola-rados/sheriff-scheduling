@@ -38,7 +38,7 @@ async function checkPermission(to: any, from: any, next: any) {
 		await store.state.CommonInformation.userDetails;
 		await waitFor(() => {
 			const userPermissions = store.state.CommonInformation.userDetails.permissions;
-			if(to.name == "DustyRoster") {
+			if(to.name == "ManageDutyRoster" || to.name == "ViewDutyRoster") {
 				if (userPermissions.includes("ViewDutyRoster")){        
 					next();	
 				} else {
@@ -87,7 +87,7 @@ const routes: Array<RouteConfig> = [
 	},
 	{
 		path: '/manage-duty-roster',
-		name: 'ManageDustyRoster',
+		name: 'ManageDutyRoster',
 		beforeEnter: checkPermission,
 		component: ManageDutyRoster    
 	},

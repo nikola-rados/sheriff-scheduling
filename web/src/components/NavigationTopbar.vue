@@ -20,8 +20,7 @@
             <b-navbar-nav v-else style="height:3rem"/>
             
 			<b-navbar-nav v-if="displayHeader" class="my-0 mx-5">
-				<!-- <b-nav-item :disabled="!hasPermissionToViewDutyRosterPage" to="/duty-roster" ><div style="display: inline-block; white-space: nowrap;">Duty Roster</div></b-nav-item>          -->
-                <b-nav-item-dropdown text="Duty Roster" dropdown :disabled="!hasPermissionToViewDutyRosterPage">
+				<b-nav-item-dropdown text="Duty Roster" dropdown :disabled="!hasPermissionToViewDutyRosterPage">
                     <b-dropdown-item to="/manage-duty-roster">Manage Duties</b-dropdown-item>
                     <b-dropdown-item to="/view-duty-roster">View Duties</b-dropdown-item>
                 </b-nav-item-dropdown>

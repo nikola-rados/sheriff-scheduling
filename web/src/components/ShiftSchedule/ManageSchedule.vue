@@ -380,7 +380,7 @@
                         if(Vue.filter('isDateFullday')(conflict.start,conflict.end)){                            
                             break;
                         } else {
-                            console.log(conflict)                            
+                            //console.log(conflict)                            
                             numberOfConflictsPerDay++;
                             //console.log( numberOfConflictsPerDay)
                             const start = moment(previousConflictEndDate)

@@ -76,8 +76,8 @@ export interface awayLocationInfoType{
     locationId: number|null;
     startDate: string;
     endDate: string;
-    sheriffId: string,
-    concurrencyToken?: number,
+    sheriffId: string;
+    concurrencyToken?: number;
     comment?: string;      
 }
 
@@ -100,7 +100,7 @@ export interface userLeaveInfoType{
     leaveTypeId: number|null;
     leaveName?: string;
     leaveType?: leaveInfoType;
-    comment: string,
+    comment: string;
     isFullDay: boolean;
     startDate: string;
     endDate: string;    

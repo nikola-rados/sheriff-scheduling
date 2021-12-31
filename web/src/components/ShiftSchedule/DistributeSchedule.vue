@@ -201,7 +201,7 @@
         }
 
         public loadScheduleInformation(includeWS: boolean, sheriffId: string) {
-            console.log(includeWS)
+            //console.log(includeWS)
             
             this.isDistributeDataMounted=false;
             this.headerDate();
