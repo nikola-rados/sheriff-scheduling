@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Watch, Emit } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
 

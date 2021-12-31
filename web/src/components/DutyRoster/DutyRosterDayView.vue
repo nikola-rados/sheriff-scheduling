@@ -77,7 +77,7 @@
     import "@store/modules/DutyRosterInformation";   
     const dutyState = namespace("DutyRosterInformation");
 
-    import {localTimeInfoType, locationInfoType, userInfoType } from '../../types/common';
+    import {locationInfoType, userInfoType } from '../../types/common';
     import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 

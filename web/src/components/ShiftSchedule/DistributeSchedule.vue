@@ -259,8 +259,7 @@
         }
 
         public extractTeamScheduleInfo(sheriffsScheduleJson: sheriffsAvailabilityJsonType[]) {
-
-            const sheriffsSchedule: distributeScheduleInfoType[] = [];
+            
             this.sheriffSchedules = [];
             
             for(const sheriffScheduleJson of sheriffsScheduleJson) {
@@ -430,9 +429,7 @@
                         const nextDate = moment(this.headerDates[dateIndex]).add(1,'days').format().substring(0,10);
                         if(date == conflict.start.substring(0,10) && date == conflict.end.substring(0,10))
                         {  
-                            const start = moment(conflict.start)
-                            const end = moment(conflict.end)
-                            const duration = moment.duration(end.diff(start));//duration.asMinutes()                            
+                                                                                  
                             schedules.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
                                 location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
@@ -447,11 +444,7 @@
                             })        
                         } else if(date == conflict.start.substring(0,10) && nextDate == conflict.end.substring(0,10))
                         {  
-                            const start = moment(conflict.start)
-                            const midnight = moment(conflict.start).endOf('day')
-                            const end = moment(conflict.end)
-                            const durationStart = moment.duration(midnight.diff(start));
-                            const durationEnd = moment.duration(end.diff(midnight));
+                            const midnight = moment(conflict.start).endOf('day');                                                        
                             schedules.push({
                                 id:conflict.shiftId? conflict.shiftId:0,
                                 location:conflict.conflict=='AwayLocation'?conflict.location.name:'',
