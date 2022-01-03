@@ -104,7 +104,7 @@
                                 
                             <template v-slot:cell(title)="data" >
                                 <div
-                                    :style="(data.value=='Not Available'||data.value=='Not Required')?'color:'+data.item.color:''"
+                                    :style="(data.value=='Not Available'||data.value=='Not Required'||data.value=='Closed')?'color:'+data.item.color:''"
                                     v-b-tooltip.hover.right                                
                                     :title="data.item.title>20? data.item.title:''">
                                     {{data.item.title | truncate(20)}}</div>
@@ -522,10 +522,10 @@
                         
                         unassignedArray = this.fillInArray(unassignedArray,0,assignedDutyBin.startBin, assignedDutyBin.endBin);
                         const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==dutySlot.sheriffId)return true})[0];
-                        const isOvertime = this.getOverTime(dutySlot.shiftId, dutySlot.isNotAvailable, dutySlot.isNotRequired, dutySlot.isOvertime);                    
-                        const isNotRequiredOrAvailable = (dutySlot.isNotAvailable || dutySlot.isNotRequired)
-                        const isNotRequiredOrAvailableTitle = dutySlot.isNotRequired? 'Not Required':'Not Available'
-                        const isNotRequiredOrAvailableSheriffId = dutySlot.isNotRequired? '00000-00000-11111':'00000-00000-22222'
+                        const isOvertime = this.getOverTime(dutySlot.shiftId, dutySlot.isNotAvailable, dutySlot.isNotRequired,dutySlot.isClosed, dutySlot.isOvertime);                    
+                        const isNotRequiredOrAvailable = (dutySlot.isNotAvailable || dutySlot.isNotRequired || dutySlot.isClosed)
+                        const isNotRequiredOrAvailableTitle = dutySlot.isNotRequired? 'Not Required':(dutySlot.isClosed?'Closed':'Not Available')
+                        const isNotRequiredOrAvailableSheriffId = dutySlot.isNotRequired? '00000-00000-11111':(dutySlot.isClosed?'00000-00000-33333':'00000-00000-22222')
 
                         this.dutyBlocks.push({
                             id: 'dutySlot'+dutySlot.id+'i'+dutyInfo.id+'D'+day+'n'+id++, 
@@ -535,9 +535,9 @@
                             borderLeft: assignedBins.borderLeft,
                             borderRight: assignedBins.borderRight,                            
                             
-                            color: this.getDutyColor(this.dutyRosterInfo.type.colorCode, dutySlot.isNotAvailable,dutySlot.isNotRequired, isOvertime),
+                            color: this.getDutyColor(this.dutyRosterInfo.type.colorCode, dutySlot.isNotAvailable,dutySlot.isNotRequired, dutySlot.isClosed, isOvertime),
                             height: '2/6',
-                            title: this.getTitle(sheriff,dutySlot.isNotAvailable,dutySlot.isNotRequired),
+                            title: this.getTitle(sheriff,dutySlot.isNotAvailable,dutySlot.isNotRequired,dutySlot.isClosed),
                             lastName: isNotRequiredOrAvailable? isNotRequiredOrAvailableTitle: (sheriff? Vue.filter('capitalize')(sheriff.lastName):''),
                             firstName: isNotRequiredOrAvailable? '' : (sheriff? Vue.filter('capitalize')(sheriff.firstName):''),
                             sheriffId: isNotRequiredOrAvailable? isNotRequiredOrAvailableSheriffId: (sheriff? sheriff.sheriffId: ''),
@@ -562,7 +562,7 @@
 
                         const unassignedBin = this.getArrayRangeBins(this.unassignedArray[unassignInx]);
                         const bins = this.convert12h24hView(unassignedBin);
-                        const unassignedSlotTime = this.convertTimeRangeBinsToTime(startOfDay, unassignedBin.startBin, unassignedBin.endBin, this.timezone);
+                        const unassignedSlotTime = this.convertTimeRangeBinsToTime(startOfDay, unassignedBin.startBin, unassignedBin.endBin);
                         this.dutyBlocks.push({
                             id:'dutySlot'+dutyInfo.id+'D'+day+'n'+unassignInx,
 
@@ -640,22 +640,24 @@
             }
         }
 
-        public getDutyColor(color, isNotAvailable, isNotRequired, isOverTime) {
+        public getDutyColor(color, isNotAvailable, isNotRequired, isClosed, isOverTime) {
             if(isOverTime) return '#e85a0e';
             else if(isNotRequired) return  '#28a745';
             else if(isNotAvailable) return '#dc3545';
+            else if (isClosed) return '#adb5bd';
             else return color;
         }
 
-        public getTitle(sheriff,isNotAvailable,isNotRequired){
+        public getTitle(sheriff,isNotAvailable,isNotRequired, isClosed){
             if(isNotAvailable) return 'Not Available';
             else if(isNotRequired) return  'Not Required';
+            else if(isClosed) return  'Closed';
             else if(sheriff) return Vue.filter('capitalize')(sheriff.lastName)+', '+Vue.filter('capitalize')(sheriff.firstName);
             else return ' ';
         }
 
-        public getOverTime(shiftId, isNotAvailable, isNotRequired, isOverTime) {
-            if(isNotRequired || isNotAvailable) return  false;
+        public getOverTime(shiftId, isNotAvailable, isNotRequired, isClosed, isOverTime) {
+            if(isNotRequired || isNotAvailable || isClosed) return  false;
             else if(isOverTime) return true;
             else return false;
         }
@@ -674,7 +676,7 @@
                 if(this.dutyRosterInfo[dutySlotDay].dutySlots.length > 0) return
 
                 const sheriffId = cardid.slice(7)
-                if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'){                    
+                if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'||sheriffId=='00000-00000-33333'){                    
                     const editedDutySlots: assignDutySlotsInfoType[] =[{
                         startDate: this.dutyRosterInfo[dutySlotDay].startDate,
                         endDate: this.dutyRosterInfo[dutySlotDay].endDate,
@@ -713,7 +715,7 @@
                         discontinuity[inx1]=0
                         if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
     
-                        const slotTime = this.convertTimeRangeBinsToTime(this.dutyWeekDates[dutySlotDay], inx1, inx2, this.timezone)
+                        const slotTime = this.convertTimeRangeBinsToTime(this.dutyWeekDates[dutySlotDay], inx1, inx2)
                         editedDutySlots.push({
                             startDate: slotTime.startTime,
                             endDate: slotTime.endTime, 
@@ -732,7 +734,7 @@
                         this.assignDutyError = true;
                     }else{                       
                         const timeRangeBins = this.getArrayRangeBins(unassignedArray);
-                        const slotTime = this.convertTimeRangeBinsToTime(this.dutyWeekDates[dutySlotDay], timeRangeBins.startBin, timeRangeBins.endBin, this.timezone);
+                        const slotTime = this.convertTimeRangeBinsToTime(this.dutyWeekDates[dutySlotDay], timeRangeBins.startBin, timeRangeBins.endBin);
                         this.overTimeTimeRangeDate.startTime = slotTime.startTime
                         this.overTimeTimeRangeDate.endTime = slotTime.endTime
                         this.overTimeTimeRangeDate.day = dutySlotDay
@@ -824,7 +826,7 @@
             })
         }
 
-        public convertTimeRangeBinsToTime(dutyDate, startBin, endBin, timezone: string){            
+        public convertTimeRangeBinsToTime(dutyDate, startBin, endBin){            
             const startTime = moment(dutyDate).add(startBin*15, 'minutes').format();
             const endTime = moment(dutyDate).add(endBin*15, 'minutes').format();
             return( {startTime: startTime, endTime:endTime } )
@@ -844,12 +846,16 @@
                 const dutyInfo = this.dutyRosterInfo[day];
                 let isNotRequired = false;
                 let isNotAvailable = false;
+                let isClosed = false;
                 if(sheriffId=='00000-00000-11111'){
                     sheriffId = null;
                     isNotRequired = true;
                 }else if(sheriffId=='00000-00000-22222'){
                     sheriffId = null;
                     isNotAvailable = true;
+                }else if(sheriffId=='00000-00000-33333'){
+                    sheriffId = null;
+                    isClosed = true;
                 }
                 
                 const dutySlots: dutySlotInfoType[] = [];
@@ -870,6 +876,7 @@
                             timezone: dutyInfo.timezone,
                             isNotRequired: isNotRequired,
                             isNotAvailable: isNotAvailable,
+                            isClosed: isClosed,
                             isOvertime: dutySlot.isOvertime
                         })
                     
@@ -889,6 +896,7 @@
                         timezone: dutySlot.timezone,
                         isNotRequired: dutySlot.isNotRequired,
                         isNotAvailable: dutySlot.isNotAvailable,
+                        isClosed: isClosed,
                         isOvertime: dutySlot.isOvertime                           
                     })                    
                 }

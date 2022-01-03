@@ -162,7 +162,7 @@
                 const dutyData = {} as viewDutyInfoType;
 
                 for (const dutySlot of dutyJson.dutySlots){
-                    if (!dutySlot.isNotAvailable && !dutySlot.isNotRequired && dutySlot.sheriffId){
+                    if (!dutySlot.isNotAvailable && !dutySlot.isNotRequired && !dutySlot.isClosed && dutySlot.sheriffId){
                         const sheriff = this.sheriffsJson.filter(sheriff => {if (sheriff.id == dutySlot.sheriffId) return true})[0];
                         dutyData.firstName = sheriff.firstName;
                         dutyData.lastName = sheriff.lastName;

@@ -28,7 +28,8 @@
                             </b-button>
                         </b-card-header>
                         <duty-roster-team-member-card :sheriffInfo="memberNotRequired" :weekView="weekView"/>
-                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/> 
+                        <duty-roster-team-member-card :sheriffInfo="memberNotAvailable" :weekView="weekView"/>
+                        <duty-roster-team-member-card :sheriffInfo="memberIsClosed" :weekView="weekView"/>  
                     </div>                   
                     <div id="dutyrosterteammember" :style="{overflowX: 'hidden', overflowY: 'auto', height: getHeight}">
                         <duty-roster-team-member-card v-on:change="updateDutyRosterPage()" v-for="member in shiftAvailabilityInfo" :key="member.sheriffId" :sheriffInfo="member" :weekView="weekView"/>
@@ -89,6 +90,7 @@
 
         memberNotRequired = { sheriffId: '00000-00000-11111' } as myTeamShiftInfoType;
         memberNotAvailable = { sheriffId: '00000-00000-22222' } as myTeamShiftInfoType;
+        memberIsClosed = { sheriffId: '00000-00000-33333' } as myTeamShiftInfoType;
         
         isDutyRosterDataMounted = false;
         updateDutyRoster = 0;

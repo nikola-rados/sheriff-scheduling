@@ -83,7 +83,7 @@
 
                 </b-col>
                 <b-col class="m-0 p-0" v-else>
-                    <div class="text-center text-white" style="font-size:13px;">{{fullName}}</div>
+                    <div class="text-center" style="font-size:13px;">{{fullName}}</div>
                 </b-col>
         </div>
 
@@ -297,11 +297,15 @@
             this.sheriffId = this.sheriffInfo.sheriffId; 
             if(this.sheriffId== '00000-00000-11111'){
                 this.fullName = 'Not Required'
-                this.bgcolor='bg-success mb-2'
+                this.bgcolor='bg-success text-white mb-2'
                 this.specialMember = true
             } else if(this.sheriffId== '00000-00000-22222'){
                 this.fullName = 'Not Available'
-                this.bgcolor='bg-danger'
+                this.bgcolor='bg-danger text-white mb-2'
+                this.specialMember = true
+            }else if(this.sheriffId== '00000-00000-33333'){
+                this.fullName = 'Closed'
+                this.bgcolor='bg-bright text-dark h2 my-2 py-2'
                 this.specialMember = true
             }else{      
                 this.fullName = this.sheriffInfo.lastName +', '+this.sheriffInfo.firstName;
@@ -347,7 +351,7 @@
                     if(filteredDuties.length>0) {
                          
                         let availability = this.getAvailability(filteredShifts, schedule.date)
-                        const duties = this.getSheriffDuties(filteredDuties, schedule.date) 
+                        const duties = this.getSheriffDuties(filteredDuties) 
                         availability = this.subtractUnionOfArrays(availability,duties) 
                         //console.log(availability)
                         //console.log(duties)
@@ -400,7 +404,7 @@
             return availability            
         }
 
-        public getSheriffDuties(dutiesDetail,startOfDay){
+        public getSheriffDuties(dutiesDetail){
     
                 //console.log(dutiesDetail)
                 let duties = Array(96).fill(0)

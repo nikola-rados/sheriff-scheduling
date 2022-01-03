@@ -154,6 +154,7 @@ export interface dutySlotInfoType {
     timezone: string;
     isNotRequired: boolean;
     isNotAvailable: boolean;
+    isClosed: boolean;
     isOvertime: boolean;
 }
 
