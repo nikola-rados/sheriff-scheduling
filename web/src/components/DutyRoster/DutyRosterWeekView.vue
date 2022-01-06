@@ -152,7 +152,7 @@
         {
             this.runMethod.$on('getData', this.getData)
             this.isDutyRosterDataMounted = false;
-            console.log('dayview dutyroster mounted')
+            //console.log('dayview dutyroster mounted')
             this.getData(this.scrollPositions);
             window.addEventListener('resize', this.getWindowHeight);
             this.getWindowHeight()

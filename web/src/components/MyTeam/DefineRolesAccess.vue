@@ -502,7 +502,7 @@
         }        
 
         public removeRole(role: roleInfoType, index: number) {
-            console.log(role)
+            //console.log(role)
             this.roleToDelete = role;
             this.indexToDelete = index;            
             this.confirmDelete=true;      

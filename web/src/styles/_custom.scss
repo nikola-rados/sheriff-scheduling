@@ -31,22 +31,26 @@ $grays: map-merge(
   $grays
 );
 
-$blue:    #1b4f86 !default;
-$blue-100:#007bff !default;
-$indigo:  #6610f2 !default;
-$purple:  #6f42c1 !default;
-$pink:    #e83e8c !default;
-$red:     #dc3545 !default;
-$orange:  #fd7e14 !default;
-$yellow:  #ffc107 !default;
-$green:   #28a745 !default;
-$teal:    #20c997 !default;
-$cyan:    #17a2b8 !default;
-$court:   #189fd4 !default;
-$jail:    #A22BB9 !default;
-$escort:  #ffb007 !default;
-$other:   #7a4528 !default;
-$select:  #e6d9e2 !default;
+$blue:      #1b4f86 !default;
+$blue-100:  #007bff !default;
+$indigo:    #6610f2 !default;
+$purple:    #6f42c1 !default;
+$purple-100:#6e42c1dc !default;
+$pink:      #e83e8c !default;
+$red:       #dc3545 !default;
+$brown:     #b46d47 !default;
+$orange:    #fd7e14 !default;
+$yellow:    #ffc107 !default;
+$yellow-100:#ffee07 !default;
+$green:     #28a745 !default;
+$green-100: #33b652 !default;
+$teal:      #20c997 !default;
+$cyan:      #17a2b8 !default;
+$court:     #189fd4 !default;
+$jail:      #A22BB9 !default;
+$escort:    #ffb007 !default;
+$other:     #7a4528 !default;
+$select:    #e6d9e2 !default;
 
 
 $colors: () !default;
@@ -83,19 +87,29 @@ $theme-colors: () !default;
 // stylelint-disable-next-line scss/dollar-variable-default
 $theme-colors: map-merge(
   (
-    "primary":    $primary,
-    "secondary":  $secondary,
-    "success":    $success,
-    "info":       $info,
-    "warning":    $warning,
-    "danger":     $danger,
-    "light":      $light,
-    "dark":       $dark,
-    "court":      $court,
-    "jail":       $jail,
-    "escort":     $escort,
-    "other":      $other,
-    "select":     $select
+    "primary":           $primary,
+    "secondary":         $secondary,
+    "success":           $success,
+    "info":              $info,
+    "warning":           $warning,
+    "danger":            $danger,
+    "light":             $light,
+    "dark":              $dark,
+    "court":             $court,
+    "jail":              $jail,
+    "escort":            $escort,
+    "other":             $other,
+    "select":            $select,
+    "spl-leave":         $yellow-100,
+    "lwop-leave":        $purple-100,
+    "med-dental-leave":  $orange,
+    "stiip-leave":       $red,
+    "a-l-leave":         $blue-100,
+    "cto-leave":         $green-100,
+    "bereavement-leave": $gray-600,
+    "overtime-leave":    $gray-400,
+    "training-leave":    $brown
+
   ),
   $theme-colors
 );

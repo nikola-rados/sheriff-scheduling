@@ -383,7 +383,7 @@
                         this.trainingErrorMsg = errMsg;
                         this.trainingErrorMsgDesc = errMsg;
                         if (errMsg.toLowerCase().includes("overlaps")) {
-                            console.log("overlap")
+                            //console.log("overlap")
                             this.overlappingList = this.trainingErrorMsg.split('||');
                             this.trainingToSave = body;
                             this.create = iscreate;

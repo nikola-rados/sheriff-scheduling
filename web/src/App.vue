@@ -126,7 +126,7 @@
                         {                              
                             this.isCommonDataReady = true;
                             if(this.$route.name == 'Home')
-                                this.$router.push({path:'/duty-roster'})
+                                this.$router.push({path:'/manage-duty-roster'})
                         }
                     }                   
                 },err => {

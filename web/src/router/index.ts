@@ -3,7 +3,8 @@ import VueResource from 'vue-resource'
 import Home from '@components/Home.vue'
 import Logout from '@components/Logout.vue'
 import RequestAccess from '@components/RequestAccess.vue'
-import DutyRoster from '@components/DutyRoster/DutyRoster.vue'
+import ManageDutyRoster from '@components/DutyRoster/ManageDutyRoster.vue'
+import ViewDutyRoster from '@components/DutyRoster/ViewDutyRoster.vue'
 import ManageSchedule from '@components/ShiftSchedule/ManageSchedule.vue'
 import DistributeSchedule from '@components/ShiftSchedule/DistributeSchedule.vue'
 import MyTeamMembers from '@components/MyTeam/MyTeamMembers.vue'
@@ -37,7 +38,7 @@ async function checkPermission(to: any, from: any, next: any) {
 		await store.state.CommonInformation.userDetails;
 		await waitFor(() => {
 			const userPermissions = store.state.CommonInformation.userDetails.permissions;
-			if(to.name == "DustyRoster") {
+			if(to.name == "ManageDutyRoster" || to.name == "ViewDutyRoster") {
 				if (userPermissions.includes("ViewDutyRoster")){        
 					next();	
 				} else {
@@ -47,19 +48,19 @@ async function checkPermission(to: any, from: any, next: any) {
 				if (userPermissions.includes("ViewProvince") || userPermissions.includes("ViewRegion") || userPermissions.includes("ViewHomeLocation") || userPermissions.includes("ViewAssignedLocation")){        
 					displayFooter(to, from, next);	
 				} else {
-					next({ path: "/duty-roster" });
+					next({ path: "/manage-duty-roster" });
 				}
 			} else {
 				if (userPermissions.includes(to.meta.requiredPermission)){
 					displayFooter(to, from, next);	
 				} else {
-					next({ path: "/duty-roster" });
+					next({ path: "/manage-duty-roster" });
 				}
 			}
 		})  
 
 	} catch(e) {
-		next({ path: "/duty-roster" });
+		next({ path: "/manage-duty-roster" });
 	}
 
 }
@@ -85,10 +86,16 @@ const routes: Array<RouteConfig> = [
 		component: RequestAccess
 	},
 	{
-		path: '/duty-roster',
-		name: 'DustyRoster',
+		path: '/manage-duty-roster',
+		name: 'ManageDutyRoster',
 		beforeEnter: checkPermission,
-		component: DutyRoster    
+		component: ManageDutyRoster    
+	},
+	{
+		path: '/view-duty-roster',
+		name: 'ViewDutyRoster',
+		beforeEnter: checkPermission,
+		component: ViewDutyRoster    
 	},
 	{    
 		path: '/manage-shift-schedule',

@@ -353,7 +353,7 @@
 		importConflictFields = [{key:"ConflictFieldName", tdClass: 'border-top my-2', label: "Field Name"}]
 
 		mounted() {
-			console.log('header')
+			//console.log('header')
 
 			this.hasPermissionToImportShifts = this.userDetails.permissions.includes("ImportShifts");
 			this.hasPermissionToExpireShifts = this.userDetails.permissions.includes("ExpireShifts");
@@ -526,7 +526,7 @@
 			for (const shift of this.shiftsToEdit) {							
 				const newStartDate = this.completeDate(shift.startDate,this.selectedStartTime);
 				const newEndDate = this.completeDate(shift.endDate,this.selectedEndTime);
-				console.log(shift)
+				//console.log(shift)
 				const editedShift: shiftInfoType = {
 					id: shift.id,
 					startDate: newStartDate,

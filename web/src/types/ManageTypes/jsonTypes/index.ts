@@ -1,5 +1,4 @@
 import { sortOrderForLocationJsonType } from '@/types/common/jsonTypes';
-import {} from '../../common';
 
 export interface lookupCodeJsonType {
     code: string;

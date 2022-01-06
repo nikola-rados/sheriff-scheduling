@@ -1,6 +1,3 @@
-import {} from '../common';
-import {} from '../DutyRoster/jsonTypes';
-
 export interface assignmentTypeInfoType {
     code: string;
     concurrencyToken?: number;

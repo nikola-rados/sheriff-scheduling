@@ -22,16 +22,16 @@ export interface myTeamShiftInfoType {
 }
 
 export interface dutiesDetailInfoType{
-    id: number , 
-    startBin: number, 
-    endBin: number,
-    name: string,
-    colorCode: string,
-    color: string,
-    type: string,
-    code: string,
-    startTime?: string, 
-    endTime?: string,
+    id: number ; 
+    startBin: number; 
+    endBin: number;
+    name: string;
+    colorCode: string;
+    color: string;
+    type: string;
+    code: string;
+    startTime?: string; 
+    endTime?: string;
 }
 
 export interface assignmentInfoType {
@@ -134,76 +134,89 @@ export interface assignmentCardTypeInfoType {
 }
 
 export interface assignDutyInfoType {
-    id: number,
-    startDate: string,
-    endDate: string,
-    locationId: number,
-    assignmentId: number,
-    dutySlots: dutySlotInfoType[],
-    timezone: string,
-    comment?: string
+    id: number;
+    startDate: string;
+    endDate: string;
+    locationId: number;
+    assignmentId: number;
+    dutySlots: dutySlotInfoType[];
+    timezone: string;
+    comment?: string;
 }
 
 export interface dutySlotInfoType {
-    id: number|null,                        
-    startDate: string,
-    endDate: string,
-    dutyId: number,
-    sheriffId: string|null,
-    shiftId: number|null,
-    timezone: string,
-    isNotRequired: boolean,
-    isNotAvailable: boolean,
-    isOvertime: boolean
+    id: number|null;                        
+    startDate: string;
+    endDate: string;
+    dutyId: number;
+    sheriffId: string|null;
+    shiftId: number|null;
+    timezone: string;
+    isNotRequired: boolean;
+    isNotAvailable: boolean;
+    isOvertime: boolean;
 }
 
 export interface dutyBlockInfoType {
-    color: string,
-    endTime: number,
-    endTimeString: string,
-    height: string,
-    id: string,
-    firstName: string,
-    lastName: string,
-    sheriffId: string,
-    startTime: number,
-    startTimeString: string,
-    title: string,
-    timezone: string,
-    shiftId: number|null,
-    dutySlotId: number|null,
-    note: string,
+    color: string;
+    endTime: number;
+    endTimeString: string;
+    height: string;
+    id: string;
+    firstName: string;
+    lastName: string;
+    sheriffId: string;
+    startTime: number;
+    startTimeString: string;
+    title: string;
+    timezone: string;
+    shiftId: number|null;
+    dutySlotId: number|null;
+    note: string;
+}
+
+export interface viewDutyInfoType {       
+    id: string;
+    firstName: string;
+    lastName: string;
+    rank: string;
+    displayName: string;
+    sheriffId: string;    
+    startTime: string;
+    endTime: string;
+    assignment: string;       
+    note: string;
 }
 
 export interface dutyBlockWeekInfoType {
-    color: string,
-    endTime: number,
-    endTimeString: string,
-    height: string,
-    id: string,
-    firstName: string,
-    lastName: string,
-    sheriffId: string,
-    startTime: number,
-    startTimeString: string,
-    title: string,
-    timezone: string,
-    shiftId: number|null,
-    dutySlotId: number|null,
-    note: string,
-    day:number,
-    dutyId:number,
-    dutyDate:string,
-    fullDutyStartTime: string,
-    fullDutyEndTime: string,
-    borderLeft: string,
-    borderRight: string,
-    comment: string
+    color: string;
+    endTime: number;
+    endTimeString: string;
+    height: string;
+    id: string;
+    firstName: string;
+    lastName: string;
+    sheriffId: string;
+    startTime: number;
+    startTimeString: string;
+    title: string;
+    timezone: string;
+    shiftId: number|null;
+    dutySlotId: number|null;
+    note: string;
+    day:number;
+    dutyId:number;
+    dutyDate:string;
+    fullDutyStartTime: string;
+    fullDutyEndTime: string;
+    borderLeft: string;
+    borderRight: string;
+    comment: string;
 }
 
 export interface assignDutySlotsInfoType{
-    startDate: string,
-    endDate: string,
-    isOvertime:boolean,
-    dutySlotId: number|null,    
+    startDate: string;
+    endDate: string;
+    isOvertime:boolean;
+    dutySlotId: number|null;    
 }
