@@ -456,13 +456,13 @@
 		}
 
 		public AddShift() {
-			console.log('adding shift')
+			//console.log('adding shift')
 			this.isShiftDataMounted = true;
             this.showShiftDetails = true;
         }
         
         public saveShift() {
-            console.log('saving')            
+            //console.log('saving')            
             this.shiftError = false;
 			let requiredError = false;
 			
@@ -560,7 +560,7 @@
             this.comment = '';
         }
         
-        public getListOfDates(days){
+        public getListOfDates(){
             const listOfDates: editedShiftInfoType[] = [];   
 			for(const day of this.dayOptions) {
                 if(this.selectedDays.includes(day.diff)){
@@ -613,7 +613,7 @@
         }
 
 		public createShift() {
-            const body = this.getListOfDates(this.selectedDays);
+            const body = this.getListOfDates();
             if(!body || (body && body.length==0)) return
             const url = 'api/shift';
             this.$http.post(url, body )

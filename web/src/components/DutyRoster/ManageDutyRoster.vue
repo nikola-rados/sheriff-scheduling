@@ -40,7 +40,7 @@
 </template>
 
 <script lang="ts">
-    import { Component, Vue, Watch, Emit } from 'vue-property-decorator';
+    import { Component, Vue, Watch } from 'vue-property-decorator';
     import DutyRosterHeader from './components/DutyRosterHeader.vue'
     import DutyRosterTeamMemberCard from './components/DutyRosterTeamMemberCard.vue'
 
@@ -67,7 +67,7 @@
             DutyRosterWeekView
         }
     })
-    export default class DutyRoster extends Vue {
+    export default class ManageDutyRoster extends Vue {
 
         @commonState.State
         public localTime!: localTimeInfoType;
@@ -128,8 +128,8 @@
         
         public reloadDutyRosters(type){
             this.isDutyRosterDataMounted = false;
-            console.log(type)
-            console.log('reload dutyroster')                
+            // console.log(type)
+            // console.log('reload dutyroster')                
             this.updateCurrentTime();
             if(type=='Day'){
                 this.weekView = false

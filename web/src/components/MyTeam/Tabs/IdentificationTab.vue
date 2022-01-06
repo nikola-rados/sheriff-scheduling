@@ -310,7 +310,7 @@ export default class IdentificationTab extends Vue {
 
         } else {
             this.$emit('enableSave');
-            console.log('Error required')
+            //console.log('Error required')
         }             
     }
 

@@ -150,13 +150,13 @@
 		}		
 		
 		public getSchedule() {
-			console.log(this.showWorkSectionChecked);
-			console.log(this.selectedTeamMember);
+			// console.log(this.showWorkSectionChecked);
+			// console.log(this.selectedTeamMember);
 			Vue.nextTick(()=>this.$emit('change', this.showWorkSectionChecked, this.selectedTeamMember.sheriffId))
 		}
 
 		public printSchedule() { 
-			console.log('print')
+			//console.log('print')
 			//this.$htmlToPaper('pdf');
 			const pdfPage: Printd = new Printd()
 			const styles = [				
@@ -170,7 +170,17 @@
 				`.table{border: 3px solid;}`,
 				`tr {border: 3px solid;}`,
 				`th {border: 3px solid black;}`,
-				`td {height: 2.5rem;border: 3px solid;}`
+				`td {height: 2.5rem;border: 3px solid;}`,
+				`.bg-spl-leave {background-color: #ffee07;}`,
+				`.bg-a-l-leave {background-color: #007bff;}`,
+				`.bg-med-dental-leave {background-color: #fd7e14;}`,
+				`.bg-stiip-leave {background-color: #dc3545;}`,
+				`.bg-cto-leave {background-color: #33b652;}`,
+				`.bg-lwop-leave {background-color: #6e42c1dc;}`,
+				`.bg-bereavement-leave {background-color: #6c757d;}`,
+				`.bg-training-leave {background-color: #b46d47;}`,
+				`.bg-overtime-leave {background-color: #ced4da;}`,
+				`.bg-primary {background-color: #1b4f86;}`
 
 			]
 			const pageToPrint = document.getElementById("pdf")

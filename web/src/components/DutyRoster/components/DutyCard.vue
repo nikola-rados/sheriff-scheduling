@@ -685,7 +685,7 @@
                 dutySlotId:null
             }]
 
-            console.log(editedDutySlots)
+            //console.log(editedDutySlots)
 
             this.assignDuty(this.overTimeSheriffId, editedDutySlots, false);
         }
@@ -839,7 +839,7 @@
 
         public updateComment(){
             const url = 'api/dutyroster/updatecomment?dutyId='+this.dutyId+'&comment='+this.selectedComment.comment;
-            console.log(url)
+            //console.log(url)
             this.$http.put(url)
                 .then(response => {
                     console.log(response)
