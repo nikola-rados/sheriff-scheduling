@@ -61,7 +61,7 @@
         isViewDutyDataMounted = false;       
         updateTable=0;
         numberOfRecords = 0;
-        numberOfRecordsPerPage = 3;
+        numberOfRecordsPerPage = 10;
         maxPages = 1;
         pageIndex = 0;
         displayedDuties: viewDutyInfoType[] = [];
@@ -92,7 +92,7 @@
         mounted()
         {
             this.numberOfRecords = 0;
-            this.numberOfRecordsPerPage = 3;
+            this.numberOfRecordsPerPage = 10;
             this.maxPages = 1;
             this.pageIndex = 0;
             window.setTimeout(this.updateCurrentDutiesCallBack, 1000);                                              
