@@ -14,6 +14,7 @@ namespace SS.Api.models.dto.generated
         public bool IsNotRequired { get; set; }
         public bool IsNotAvailable { get; set; }
         public bool IsOvertime { get; set; }
+        public bool IsClosed { get; set; }
         public uint ConcurrencyToken { get; set; }
     }
 }
