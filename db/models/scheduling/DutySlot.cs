@@ -34,6 +34,7 @@ namespace SS.Db.models.scheduling
         public bool IsNotRequired { get; set; }
         public bool IsNotAvailable { get; set; }
         public bool IsOvertime { get; set; }
+        public bool IsClosed { get;set;}
         [NotMapped]
         [ExcludeFromAddAndUpdateDto]
         public LookupCode AssignmentLookupCode => Duty?.Assignment?.LookupCode;
