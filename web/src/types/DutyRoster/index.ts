@@ -181,6 +181,7 @@ export interface viewDutyInfoType {
     firstName: string;
     lastName: string;
     rank: string;
+    rankOrder: number;
     displayName: string;
     sheriffId: string;    
     startTime: string;

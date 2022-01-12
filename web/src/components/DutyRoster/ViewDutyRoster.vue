@@ -16,7 +16,16 @@
                 head-row-variant="primary"   
                 bordered
                 striped
-                fixed>                      
+                fixed>  
+
+                <template v-slot:cell(displayName) = "data" >
+                    <span style="font-size:12px; line-height: 14px; text-align: center;">{{data.item.rank}}</span>
+                    <span 
+                        style="font-size:14px; line-height: 16px; font-weight: bold; text-transform: Capitalize; display: block;">
+                        {{data.value}}
+                    </span>
+                </template>
+
             </b-table>
             
         </b-overlay>
@@ -45,7 +54,7 @@
    
     import "@store/modules/CommonInformation";
     const commonState = namespace("CommonInformation");
-    import { locationInfoType } from '../../types/common';
+    import { commonInfoType, locationInfoType } from '../../types/common';
    
     import moment from 'moment-timezone';
     import * as _ from 'underscore';
@@ -58,7 +67,11 @@
         @commonState.State
         public location!: locationInfoType;
 
-        isViewDutyDataMounted = false;       
+        @commonState.State
+        public commonInfo!: commonInfoType;
+
+        isViewDutyDataMounted = false;    
+        maxRank = 1000;   
         updateTable=0;
         numberOfRecords = 0;
         numberOfRecordsPerPage = 10;
@@ -107,7 +120,7 @@
                 this.displayDutyInformation();
             }
             
-            window.setTimeout(this.updateCurrentDutiesCallBack, 60000);
+            window.setTimeout(this.updateCurrentDutiesCallBack, 10000);
         }
 
         public getData() {            
@@ -167,6 +180,7 @@
                         dutyData.firstName = sheriff.firstName;
                         dutyData.lastName = sheriff.lastName;
                         dutyData.rank = sheriff.rank;
+                        dutyData.rankOrder = this.getRankOrder(dutyData.rank)[0]?this.getRankOrder(dutyData.rank)[0].id:0;
                         dutyData.displayName = Vue.filter('capitalizefirst')(sheriff.lastName) + ', ' + Vue.filter('capitalizefirst')(sheriff.firstName);
                         dutyData.sheriffId = sheriff.id;
                         dutyData.assignment =  dutyJson.assignment.lookupCode.code + (dutyJson.assignment.name?(' (' + dutyJson.assignment.name + ')'):'');
@@ -186,12 +200,24 @@
 
         public displayDutyInformation(){
 
-            this.sortedDuties = _.sortBy(this.duties,'displayName');
+            this.sortedDuties = _.chain(this.duties)
+                                .sortBy(duty =>{return (duty.lastName? duty.lastName.toUpperCase() : '')})
+                                .sortBy(duty =>{return (duty.rankOrder? duty.rankOrder : this.maxRank + 1)})
+                                .value()
+
             this.getRecordsToDisplay(this.pageIndex * this.numberOfRecordsPerPage);        
             
             this.updateTable ++;
             this.isViewDutyDataMounted = true;
 
+        }      
+
+        public getRankOrder(rankName: string) {
+            return this.commonInfo.sheriffRankList.filter(rank => {
+                if (rank.name == rankName) {
+                    return true;
+                }
+            })
         }
 
         public getRecordsToDisplay(startIndex: number){
