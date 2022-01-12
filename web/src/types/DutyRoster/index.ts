@@ -154,6 +154,7 @@ export interface dutySlotInfoType {
     timezone: string;
     isNotRequired: boolean;
     isNotAvailable: boolean;
+    isClosed: boolean;
     isOvertime: boolean;
 }
 
@@ -180,6 +181,7 @@ export interface viewDutyInfoType {
     firstName: string;
     lastName: string;
     rank: string;
+    rankOrder: number;
     displayName: string;
     sheriffId: string;    
     startTime: string;

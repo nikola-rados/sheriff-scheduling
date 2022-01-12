@@ -229,6 +229,17 @@
                 duties: Array(96).fill(0),
                 dutiesDetail: []
             })
+            this.notAvailableNotRequired.push({
+                sheriffId: '00000-00000-33333',
+                shifts: [],
+                badgeNumber: 0,
+                firstName: ' ',
+                lastName: 'CLOSED',
+                rank: '',
+                availability: Array(96).fill(1),
+                duties: Array(96).fill(0),
+                dutiesDetail: []
+            })
         }
 
         public extractFormInfo(){
@@ -370,7 +381,7 @@
             
             if(this.selectedSheriff){
                 const sheriffId = this.selectedSheriff.sheriffId
-                const isNotRequiredOrAvailable = (sheriffId =='00000-00000-11111' || sheriffId =='00000-00000-22222')
+                const isNotRequiredOrAvailable = (sheriffId =='00000-00000-11111' || sheriffId =='00000-00000-22222' || sheriffId =='00000-00000-33333')
 
                 let sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
                                
