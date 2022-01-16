@@ -32,18 +32,14 @@ $grays: map-merge(
 );
 
 $blue:      #1b4f86 !default;
-$blue-100:  #007bff !default;
 $indigo:    #6610f2 !default;
 $purple:    #6f42c1 !default;
-$purple-100:#6e42c1dc !default;
 $pink:      #e83e8c !default;
 $red:       #dc3545 !default;
 $brown:     #b46d47 !default;
 $orange:    #fd7e14 !default;
 $yellow:    #ffc107 !default;
-$yellow-100:#ffee07 !default;
 $green:     #28a745 !default;
-$green-100: #33b652 !default;
 $teal:      #20c997 !default;
 $cyan:      #17a2b8 !default;
 $court:     #189fd4 !default;
@@ -51,7 +47,34 @@ $jail:      #A22BB9 !default;
 $escort:    #ffb007 !default;
 $other:     #7a4528 !default;
 $select:    #e6d9e2 !default;
-
+$spl-leave:                #ffee07 !default;
+$spl-leave-header:         #beb203 !default;
+$lwop-leave:               #6e42c1dc !default;
+$lwop-leave-header:        #581fc2 !default;
+$med-dental-leave:         #fd7e14 !default;
+$med-dental-leave-header:  #ac530b !default;
+$stiip-leave:              #dc3545 !default;
+$stiip-leave-header:       #b10012 !default;
+$a-l-leave:                #007bff !default;
+$a-l-leave-header:         #004b9b !default;
+$cto-leave:                #33b652 !default;
+$cto-leave-header:         #00771c !default;
+$bereavement-leave:        #6c757d !default;
+$bereavement-leave-header: #32383d !default;
+$training-leave:           #ced4da !default;
+$training-leave-header:    #7d8185 !default;
+$overtime-leave:           #b46d47 !default;
+$overtime-leave-header:    #773e1f !default;
+$unavailable-schedule:     #CFCFCF !default;
+$unavailable-schedule-header:#868686 !default;
+$shift:                      #BEF2F7 !default;
+$shift-header:               #004567 !default;
+$overtime-shift:             #e85a0e !default;
+$overtime-shift-header:      #004567 !default;
+$default-shift:             #FFEEDD !default;
+$default-shift-header:      #F94567 !default;
+$selected-shift:             #F7F54F !default;
+$selected-shift-header:      #F94567 !default;
 
 $colors: () !default;
 // stylelint-disable-next-line scss/dollar-variable-default
@@ -103,15 +126,35 @@ $theme-colors: map-merge(
     "escort":            $escort,
     "other":             $other,
     "select":            $select,
-    "spl-leave":         $yellow-100,
-    "lwop-leave":        $purple-100,
-    "med-dental-leave":  $orange,
-    "stiip-leave":       $red,
-    "a-l-leave":         $blue-100,
-    "cto-leave":         $green-100,
-    "bereavement-leave": $gray-600,
-    "overtime-leave":    $gray-400,
-    "training-leave":    $brown
+    "spl-leave":         $spl-leave,
+    "lwop-leave":        $lwop-leave,
+    "med-dental-leave":  $med-dental-leave,
+    "stiip-leave":       $stiip-leave,
+    "a-l-leave":         $a-l-leave,
+    "cto-leave":         $cto-leave,
+    "bereavement-leave": $bereavement-leave,
+    "overtime-leave":    $overtime-leave,
+    "training-leave":    $training-leave,
+    "spl-leave-header":         $spl-leave-header,
+    "lwop-leave-header":        $lwop-leave-header,
+    "med-dental-leave-header":  $med-dental-leave-header,
+    "stiip-leave-header":       $stiip-leave-header,
+    "a-l-leave-header":         $a-l-leave-header,
+    "cto-leave-header":         $cto-leave-header,
+    "bereavement-leave-header": $bereavement-leave-header,
+    "overtime-leave-header":    $overtime-leave-header,
+    "training-leave-header":    $training-leave-header,
+    "unavailable-schedule":     $unavailable-schedule,
+    
+    "unavailable-schedule-header": $unavailable-schedule-header,
+    "shift":                       $shift,
+    "shift-header":                $shift-header,
+    "overtime-shift":              $overtime-shift,
+    "overtime-shift-header":       $overtime-shift-header,
+    "default-shift":               $default-shift,
+    "default-shift-header":        $default-shift-header,
+    "selected-shift":              $selected-shift,
+    "selected-shift-header":       $selected-shift-header
 
   ),
   $theme-colors

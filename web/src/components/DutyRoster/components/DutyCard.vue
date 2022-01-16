@@ -379,9 +379,17 @@
         }
 
         public getDutyName(){
-            if (this.dutyRosterInfo)
-                return Vue.filter('capitalize')(this.dutyRosterInfo.type.name +' - '+this.dutyRosterInfo.code) +' ('+this.dutyRosterInfo.name+')'; 
-            else return '';
+            
+            let assignmentName = '';
+            if (this.dutyRosterInfo){                
+                if (this.dutyRosterInfo.name){
+                    assignmentName = Vue.filter('capitalize')(this.dutyRosterInfo.type.name +' - '+this.dutyRosterInfo.code) +' ('+this.dutyRosterInfo.name+')';
+                } else {
+                    assignmentName = Vue.filter('capitalize')(this.dutyRosterInfo.type.name +' - '+this.dutyRosterInfo.code);
+                }                
+            } 
+
+            return assignmentName;
         }
 
         public editDuty(){			
@@ -793,7 +801,7 @@
                         timezone: dutySlot.timezone,
                         isNotRequired: dutySlot.isNotRequired,
                         isNotAvailable: dutySlot.isNotAvailable,
-                        isClosed: isClosed,
+                        isClosed: dutySlot.isClosed,
                         isOvertime: dutySlot.isOvertime                           
                     })                    
                 }
