@@ -5,8 +5,11 @@
             <template #overlay>
                 <loading-spinner :inline="true"/>
             </template>   
-            <b-card class="text-center bg-primary">
-                <b-card-text class="text-white h2">{{today | beautify-date-time-weekday}}</b-card-text>
+            <b-card class="bg-primary">
+                <b-row style="padding: 0; margin: 0;">                
+                    <b-col cols="8" style="padding: 0; margin: 0;" class="text-right text-white h2">{{today | beautify-date-time-weekday}}</b-col>
+                    <b-col cols="4" style="padding: 0; margin: 0;" class="text-right text-white h2">{{currentPage}} / {{maxPages}}</b-col>
+                </b-row>               
             </b-card> 
             <b-table
                 :key="updateTable"
@@ -76,6 +79,7 @@
         numberOfRecords = 0;
         numberOfRecordsPerPage = 10;
         maxPages = 1;
+        currentPage = 1;
         pageIndex = 0;
         displayedDuties: viewDutyInfoType[] = [];
         sortedDuties: viewDutyInfoType[] = [];
@@ -108,19 +112,21 @@
             this.numberOfRecordsPerPage = 10;
             this.maxPages = 1;
             this.pageIndex = 0;
-            window.setTimeout(this.updateCurrentDutiesCallBack, 1000);                                              
-                     
+            this.currentPage = 1;
+            window.setTimeout(this.updateCurrentDutiesCallBack, 1000); 
         }
 
         public updateCurrentDutiesCallBack() {
 
             if (this.pageIndex == 0){
+                this.currentPage = 1;
                 this.getData();
             } else {
+                this.currentPage = this.pageIndex + 1;
                 this.displayDutyInformation();
             }
             
-            window.setTimeout(this.updateCurrentDutiesCallBack, 10000);
+            window.setTimeout(this.updateCurrentDutiesCallBack, 7000);
         }
 
         public getData() {            
@@ -228,7 +234,8 @@
                 this.pageIndex ++;
 
             } else {               
-                this.pageIndex = 0;
+                this.pageIndex = 0;               
+                
             }
 
         }

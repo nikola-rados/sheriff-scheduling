@@ -4,10 +4,11 @@
             v-for="block in scheduleBlocks"
             :key="block.key"
             :id="'schCard'+block.key"
-            :style="{ border: '1px solid white', backgroundColor: scheduleColor(block).body, float:'left', position: 'relative', left:block.startTime+'%', width:block.timeDuration+'%', height:'3rem'}"
+            :class="'m-0 p-0 ' +scheduleColorClass(block).body"
+            :style="{ border: '1px solid white', float:'left', position: 'relative', left:block.startTime+'%', width:block.timeDuration+'%', height:'3rem'}"
             no-body>
-                <span v-if="blockSize(block)>30" @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%"> 
-                    <h6 class="m-0 mb-1 p-0" :style="{ backgroundColor:scheduleColor(block).header, color: 'white', textAlign: 'center', fontSize:'10px', lineHeight: '16px' }"
+                <span v-if="blockSize(block)>40" @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%"> 
+                    <h6 :class="'m-0 mb-1 p-0 ' + scheduleColorClass(block).header" :style="{ color: 'white', textAlign: 'center', fontSize:'10px', lineHeight: '16px' }"
                         v-b-tooltip.hover.html="'<b>'+block.title + ' ' + block.timeStamp+' </b>'+(block.comment?'<br/><b class=\' px-1 bg-info \'>'+block.comment+'</b>':'')">
                         <font-awesome-icon v-if="block.title.includes('Loaned')" style="transform: rotate(180deg); font-size: .55rem;"  icon="sign-out-alt" /> 
                         <font-awesome-icon v-if="block.title=='Leave'" style="font-size: .55rem;"  icon="suitcase"/> 
@@ -21,7 +22,8 @@
                 <span v-else @mousedown="cardSelected(block)" @dblclick="selectOnlyCard(block)" style="height:100%">
                     <h6 
                         v-b-tooltip.hover.html="'<b>'+block.title + ' ' + block.timeStamp+' </b>'+(block.comment?'<br/><b class=\' px-1 bg-info \'>'+block.comment+'</b>':'')"
-                        :style="'background-color:'+scheduleColor(block).header+'; color:white; text-align: center; font-size:6px; line-height: 16px;'">
+                        :class="scheduleColorClass(block).header"
+                        :style="'color:white; text-align: center; font-size:6px; line-height: 16px;'">
                         ...<b-icon-chat-square-text-fill v-if="block.comment" font-scale="0.9" class="ml-1" />
                     </h6>                    
                 </span>
@@ -75,7 +77,7 @@
             const sortedScheduleInfo: conflictsInfoType[] = _.sortBy(this.scheduleInfo,'startInMinutes')
            
             this.scheduleBlocks = []
-            let widthOtherElements =0;
+            let widthOtherElements =0;           
             for(const schedule of sortedScheduleInfo){
                 if(schedule.startTime){
 
@@ -86,11 +88,12 @@
                         timeDuration: schedule.timeDuration * 5 /72,
                         timeStamp: (schedule.type == 'Leave' || schedule.type == 'Training')?schedule.sheriffEventType + ': ' + schedule.startTime +'-'+schedule.endTime:schedule.startTime +'-'+schedule.endTime,
                         title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: (schedule.type=='overTimeShift'? 'Shift':schedule.type),
-                        color: this.getScheduleColor(schedule.type).body, //unused now
-                        originalColor: this.getScheduleColor(schedule.type).body, //unused now
-                        headerColor: this.getScheduleColor(schedule.type).header, //unused now
+                        color: this.getScheduleColorClass(schedule.type).body, //unused now
+                        originalColor: this.getScheduleColorClass(schedule.type).body, //unused now
+                        headerColor: this.getScheduleColorClass(schedule.type).header, //unused now
                         selected: false,
                         type: schedule.type,
+                        subType: (schedule.type =='Leave' && schedule.sheriffEventType)?schedule.sheriffEventType:'',                                
                         comment: schedule.comment
                     })
                     widthOtherElements += (schedule.timeDuration * 5 /72);
@@ -104,11 +107,12 @@
                         timeDuration: 100,
                         timeStamp: (schedule.type == 'Leave' || schedule.type == 'Training')?schedule.sheriffEventType + ': Full Day': 'Full Day',
                         title:schedule.type=='Loaned'? 'Loaned to ' + schedule.location: schedule.type,
-                        color: this.getScheduleColor(schedule.type).body, //unused now
-                        originalColor: this.getScheduleColor(schedule.type).body, //unused now
-                        headerColor: this.getScheduleColor(schedule.type).header, //unused now
+                        color: this.getScheduleColorClass(schedule.type).body, //unused now
+                        originalColor: this.getScheduleColorClass(schedule.type).body, //unused now
+                        headerColor: this.getScheduleColorClass(schedule.type).header, //unused now
                         selected: false, //unused now
                         type: schedule.type,
+                        subType: (schedule.type =='Leave' && schedule.sheriffEventType)?schedule.sheriffEventType:'',
                         comment: schedule.comment
                     })
                 }                    
@@ -134,18 +138,36 @@
             }
         }
 
-        public getScheduleColor(block) {
-            let color = {body:'#FFEEDD' , header:'#F94567'};
-            if(block.type=='Unavailable') color = {body:'#CFCFCF' , header:'#868686'}
-            else if(block.type=='Shift') color = {body:'#BEF2F7' , header:'#004567'}
-            else if (block.type=='overTimeShift') color = {body:'#e85a0e' , header:'#004567'}
-            if (block.id != null && this.selectedShifts.includes(block.id)) color.body ='#F7F54F';
+        public getScheduleColorClass(block) {            
+            let color = this.getLeaveColorClass(block)
+            if(block.type=='Unavailable') color = {body:'bg-unavailable-schedule' , header:'bg-unavailable-schedule-header'}
+            else if(block.type=='Shift') color = {body:'bg-shift' , header:'bg-shift-header'}
+            else if (block.type=='overTimeShift') color = {body:'bg-overtime-shift' , header:'bg-overtime-shift-header'}
+            if (block.id != null && this.selectedShifts.includes(block.id)) color.body ='bg-selected-shift';
             return color;
         }
 
         //Wrapper function, the markup wouldn't bind to getScheduleColor. 
-        public scheduleColor(block){
-            return this.getScheduleColor(block);
+        public scheduleColorClass(block){            
+            return this.getScheduleColorClass(block);
+        }
+
+        public getLeaveColorClass(block) {
+            let color = {body:'bg-default-shift' , header:'bg-default-shift-header'};
+            if (block.type=='Leave' && block.subType != ''){
+                if(block.subType.toUpperCase().includes('SPL')) color = {body:'bg-spl-leave', header:'bg-spl-leave-header'}
+                if(block.subType.toUpperCase().includes('A/L')) color = {body:'bg-a-l-leave' , header:'bg-a-l-leave-header'}
+                if(block.subType.toUpperCase().includes('MED/DENTAL')) color = {body:'bg-med-dental-leave' , header:'bg-med-dental-leave-header'}
+                if(block.subType.toUpperCase().includes('STIIP')) color = {body:'bg-stiip-leave' , header:'bg-stiip-leave-header'}
+                if(block.subType.toUpperCase().includes('CTO')) color = {body:'bg-cto-leave' , header:'bg-cto-leave-header'}
+                if(block.subType.toUpperCase().includes('LWOP')) color = {body:'bg-lwop-leave' , header:'bg-lwop-leave-header'}
+                if(block.subType.toUpperCase().includes('BEREAVEMENT')) color = {body:'bg-bereavement-leave' , header:'bg-bereavement-leave-header'}
+                if(block.subType.toUpperCase().includes('TRAINING')) color = {body:'bg-training-leave' , header:'bg-training-leave-header'}
+                if(block.subType.toUpperCase().includes('OVERTIME')) color = {body:'bg-overtime-leave' , header:'bg-overtime-leave-header'}               
+
+            }
+            
+            return color;
         }
 
         public blockSize(block){
