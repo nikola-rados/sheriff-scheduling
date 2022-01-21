@@ -181,7 +181,7 @@
                 const dutyData = {} as viewDutyInfoType;
 
                 for (const dutySlot of dutyJson.dutySlots){
-                    if (!dutySlot.isNotAvailable && !dutySlot.isNotRequired && !dutySlot.isClosed && dutySlot.sheriffId){
+                    if (!dutySlot.isNotAvailable && !dutySlot.isNotRequired && !dutySlot.isClosed && dutySlot.sheriffId && !this.isFinished(dutySlot.endDate)){
                         const sheriff = this.sheriffsJson.filter(sheriff => {if (sheriff.id == dutySlot.sheriffId) return true})[0];
                         dutyData.firstName = sheriff.firstName;
                         dutyData.lastName = sheriff.lastName;
@@ -224,6 +224,18 @@
                     return true;
                 }
             })
+        }
+
+        public isFinished(dutySlotEndDate){
+
+            let isFinished = false;
+            const endTime = moment(dutySlotEndDate).tz(this.location.timezone).format();
+            if (this.today < endTime) {               
+                isFinished = false;
+            } else {                
+                isFinished = true;                
+            }
+            return isFinished;
         }
 
         public getRecordsToDisplay(startIndex: number){
