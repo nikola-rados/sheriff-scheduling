@@ -142,7 +142,7 @@
             this.$http.get(url)
                 .then(response => {
                     if(response.data){
-                        console.log(response.data)
+                        //console.log(response.data)
                         this.extractTeamAvailabilityInfo(response.data);                        
                     }                                   
                 },err => {
