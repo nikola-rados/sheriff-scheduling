@@ -25,6 +25,7 @@ using SS.Api.infrastructure.encryption;
 using SS.Api.infrastructure.middleware;
 using SS.Api.services.ef;
 using SS.Db.models;
+using Microsoft.Extensions.Logging;
 
 namespace SS.Api
 {
@@ -44,6 +45,15 @@ namespace SS.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddLogging(options =>
+            {
+                options.AddConsole(c =>
+                {
+                    c.DisableColors = true;
+                    c.TimestampFormat = "[yyyy-MM-dd HH:mm:ss.fff] ";
+                });
+            });
+
             services.AddSingleton<MigrationAndSeedService>();
             services.AddScoped<IClaimsTransformation, ClaimsTransformer>();
 
