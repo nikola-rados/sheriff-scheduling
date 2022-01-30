@@ -1,7 +1,7 @@
 <template>
 	<header class="app-header">
 		<b-navbar toggleable="lg" class="navbar navbar-expand-lg navbar-dark">    
-			<b-navbar-brand v-if="displayHeader" class="my-0" href="https://www2.gov.bc.ca">
+			<b-navbar-brand v-if="displayHeader" class="my-0">
 					<img 
 							class="img-fluid d-none d-lg-block"          
 							src="../../public/images/bcid-logo-rev-en.svg"
