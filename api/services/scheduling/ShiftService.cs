@@ -67,13 +67,7 @@ namespace SS.Api.services.scheduling
                         shift.StartDate < ds.EndDate)
                     .ToList();
 
-            //TODO - Average of the ranks
-            return shifts.OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff?.Rank?.FirstOrDefault()?.Rank)
-                ?.SortOrder.FirstOrDefault()
-                ?.SortOrder)
-            .ThenBy(s => s.Sheriff.LastName)
-            .ThenBy(s => s.Sheriff.FirstName)
-            .ToList();
+            return shifts.ToList();
         }
 
         public async Task<List<int>> GetShiftsLocations(List<int> ids) =>
@@ -318,15 +312,7 @@ namespace SS.Api.services.scheduling
                 Sheriff = s,
                 SheriffId = s.Id,
                 Conflicts = allShiftConflicts.WhereToList(asc => asc.SheriffId == s.Id)
-            })
-                //TODO - Average of the ranks
-                .OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff.Rank?.FirstOrDefault()?.Rank)
-                    ?.SortOrder.FirstOrDefault()
-                    ?.SortOrder
-                ) 
-                .ThenBy(s => s.Sheriff.LastName)
-                .ThenBy(s => s.Sheriff.FirstName)
-                .ToList();
+            }).ToList();
         }
 
         #region Helpers
