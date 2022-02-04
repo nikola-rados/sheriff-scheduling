@@ -9,10 +9,10 @@ namespace SS.Api.models.dto.generated
     {
         public Gender Gender { get; set; }
         public string BadgeNumber { get; set; }
-        public string Rank { get; set; }
         public List<SheriffAwayLocationDto> AwayLocation { get; set; }
         public List<SheriffLeaveDto> Leave { get; set; }
         public List<SheriffTrainingDto> Training { get; set; }
+        public List<SheriffRankDto> Rank { get; set; }
         public string PhotoUrl { get; set; }
         public DateTimeOffset LastPhotoUpdate { get; set; }
         public Guid Id { get; set; }

@@ -106,6 +106,7 @@ namespace SS.Api.services.usermanagement
                 .ThenInclude(t => t.TrainingType)
                 .Include(s => s.UserRoles)
                 .ThenInclude(ur => ur.Role)
+                .Include(s => s.Rank)
                 .SingleOrDefaultAsync(s => s.Id == id);
         }
 
@@ -176,6 +177,7 @@ namespace SS.Api.services.usermanagement
             await Db.Set<T>().AsNoTracking().FirstOrDefaultAsync(sal => sal.Id == id);
         #endregion
 
+        //In the future, we need to move these to their own services.
         #region Sheriff Location
 
         public async Task<SheriffAwayLocation> AddSheriffAwayLocation(DutyRosterService dutyRosterService, ShiftService shiftService, SheriffAwayLocation awayLocation, bool overrideConflicts)
@@ -266,7 +268,7 @@ namespace SS.Api.services.usermanagement
         {
             var sheriffLeave = await Db.SheriffLeave.FindAsync(id);
             sheriffLeave.ThrowBusinessExceptionIfNull(
-                $"{nameof(SheriffLeave)} with the id: {sheriffLeave.Id} could not be found. ");
+                $"{nameof(SheriffLeave)} with the id: {id} could not be found. ");
             sheriffLeave.ExpiryDate = DateTimeOffset.UtcNow;
             sheriffLeave.ExpiryReason = expiryReason;
             await Db.SaveChangesAsync();

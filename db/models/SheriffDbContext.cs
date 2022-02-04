@@ -48,6 +48,7 @@ namespace SS.Db.models
         public virtual DbSet<UserRole> UserRole { get; set; }
         public virtual DbSet<Permission> Permission { get; set; }
         public virtual DbSet<Role> Role { get; set; }
+        public virtual DbSet<SheriffRank> SheriffRank { get;set;}
 
         #region Scheduling
         public virtual DbSet<Shift> Shift { get; set; }

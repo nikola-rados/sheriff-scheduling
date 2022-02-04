@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using SS.Db.models.scheduling;
 using System.Linq;
 using SS.Api.services.scheduling;
+using SS.Api.controllers.usermanagement.sheriff;
 
 namespace tests.controllers
 {
@@ -24,6 +25,10 @@ namespace tests.controllers
     {
         #region Variables
         private readonly SheriffController _controller;
+        private readonly SheriffAwayLocationController _sheriffAwayLocationController;
+        private readonly SheriffLeaveController _sheriffLeaveController;
+        private readonly SheriffTrainingController _sheriffTrainingController;
+
 
         #endregion Variables
 
@@ -36,6 +41,20 @@ namespace tests.controllers
             var shiftService = new ShiftService(Db,sheriffService, environment.Configuration);
             var dutyRosterService = new DutyRosterService(Db, environment.Configuration, shiftService, environment.LogFactory.CreateLogger<DutyRosterService>());
             _controller = new SheriffController(sheriffService, dutyRosterService, shiftService,new UserService(Db), environment.Configuration, Db)
+            {
+                ControllerContext = HttpResponseTest.SetupMockControllerContext()
+            };
+            _sheriffAwayLocationController = new SheriffAwayLocationController(sheriffService, dutyRosterService, shiftService, new UserService(Db), Db)
+            {
+                ControllerContext = HttpResponseTest.SetupMockControllerContext()
+            };
+
+            _sheriffLeaveController = new SheriffLeaveController(sheriffService, dutyRosterService, shiftService, new UserService(Db), Db)
+            {
+                ControllerContext = HttpResponseTest.SetupMockControllerContext()
+            };
+
+            _sheriffTrainingController = new SheriffTrainingController(sheriffService, dutyRosterService, shiftService, new UserService(Db), Db)
             {
                 ControllerContext = HttpResponseTest.SetupMockControllerContext()
             };
@@ -208,7 +227,7 @@ namespace tests.controllers
             };
 
             //Add
-            var controllerResult = await _controller.AddSheriffAwayLocation(sheriffAwayLocation);
+            var controllerResult = await _sheriffAwayLocationController.AddSheriffAwayLocation(sheriffAwayLocation);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
             Assert.Equal(sheriffAwayLocation.LocationId, response.Location.Id);
@@ -232,7 +251,7 @@ namespace tests.controllers
             Detach();
 
             //Update
-            var controllerResult3 = await _controller.UpdateSheriffAwayLocation(updateSheriffAwayLocation);
+            var controllerResult3 = await _sheriffAwayLocationController.UpdateSheriffAwayLocation(updateSheriffAwayLocation);
             var response3 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult3);
 
             Assert.Equal(response3.StartDate, updateSheriffAwayLocation.StartDate);
@@ -242,7 +261,7 @@ namespace tests.controllers
             Detach();
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffAwayLocation(response.Id, "hello");
+            var controllerResult4 = await _sheriffAwayLocationController.RemoveSheriffAwayLocation(response.Id, "hello");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult6 = await _controller.GetSheriffForTeam(sheriffObject.Id);
@@ -288,7 +307,7 @@ namespace tests.controllers
             };
 
             //Add
-            var controllerResult = await _controller.AddSheriffLeave(entity);
+            var controllerResult = await _sheriffLeaveController.AddSheriffLeave(entity);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
             Assert.Equal(entity.LeaveTypeId, response.LeaveType.Id);
@@ -313,7 +332,7 @@ namespace tests.controllers
             updateSheriffLeave.Id = response.Id;
 
             //Update
-            var controllerResult3 = await _controller.UpdateSheriffLeave(updateSheriffLeave);
+            var controllerResult3 = await _sheriffLeaveController.UpdateSheriffLeave(updateSheriffLeave);
             var response3 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult3);
 
             Assert.Equal(response3.StartDate, updateSheriffLeave.StartDate);
@@ -322,7 +341,7 @@ namespace tests.controllers
             Assert.Equal(response3.LeaveTypeId, updateSheriffLeave.LeaveTypeId);
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffLeave(updateSheriffLeave.Id, "expired");
+            var controllerResult4 = await _sheriffLeaveController.RemoveSheriffLeave(updateSheriffLeave.Id, "expired");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult5 = await _controller.GetSheriffForTeam(sheriffObject.Id);
@@ -369,7 +388,7 @@ namespace tests.controllers
             };
 
             //Add
-            var controllerResult = await _controller.AddSheriffTraining(entity);
+            var controllerResult = await _sheriffTrainingController.AddSheriffTraining(entity);
             var response = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult);
 
             Detach();
@@ -382,7 +401,7 @@ namespace tests.controllers
             updateSheriffTraining.Id = response.Id;
 
             //Update
-            var controllerResult3 = await _controller.UpdateSheriffTraining(updateSheriffTraining);
+            var controllerResult3 = await _sheriffTrainingController.UpdateSheriffTraining(updateSheriffTraining);
             var response3 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(controllerResult3);
 
             Assert.Equal(response3.StartDate, updateSheriffTraining.StartDate);
@@ -391,7 +410,7 @@ namespace tests.controllers
             Assert.Equal(response3.TrainingTypeId, updateSheriffTraining.TrainingTypeId);
 
             //Remove
-            var controllerResult4 = await _controller.RemoveSheriffTraining(updateSheriffTraining.Id, "expired");
+            var controllerResult4 = await _sheriffTrainingController.RemoveSheriffTraining(updateSheriffTraining.Id, "expired");
             HttpResponseTest.CheckForNoContentResponse(controllerResult4);
 
             var controllerResult5 = await _controller.GetSheriffForTeam(sheriffObject.Id);
@@ -464,7 +483,7 @@ namespace tests.controllers
             Assert.True(Db.Shift.Any(s => s.ExpiryDate == null && s.Id == shift.Id));
             Assert.True(Db.DutySlot.Any(ds => ds.ExpiryDate == null && ds.Id == dutySlot.Id));
 
-            await _controller.AddSheriffLeave(entity, true);
+            await _sheriffLeaveController.AddSheriffLeave(entity, true);
 
             Assert.False(Db.Shift.Any(s => s.ExpiryDate == null && s.Id == shift.Id));
             Assert.False(Db.DutySlot.Any(ds => ds.ExpiryDate == null && ds.Id == dutySlot.Id ));
@@ -507,7 +526,7 @@ namespace tests.controllers
                 LocationId = edmontonTimezoneLocation.Id
             };
 
-            var result0 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddSheriffAwayLocation(sheriffAwayLocation.Adapt<SheriffAwayLocationDto>()));
+            var result0 = HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _sheriffAwayLocationController.AddSheriffAwayLocation(sheriffAwayLocation.Adapt<SheriffAwayLocationDto>()));
 
             var sheriffTraining = new SheriffTraining
             {
@@ -517,7 +536,7 @@ namespace tests.controllers
                 SheriffId = sheriffObject.Id
             };
 
-            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _controller.AddSheriffTraining(sheriffTraining.Adapt<SheriffTrainingDto>()));
+            HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(await _sheriffTrainingController.AddSheriffTraining(sheriffTraining.Adapt<SheriffTrainingDto>()));
 
             var sheriffTraining2 = new SheriffTraining
             {
@@ -528,7 +547,7 @@ namespace tests.controllers
             };
 
             HttpResponseTest.CheckForValid200HttpResponseAndReturnValue(
-                await _controller.AddSheriffTraining(sheriffTraining2.Adapt<SheriffTrainingDto>()));
+                await _sheriffTrainingController.AddSheriffTraining(sheriffTraining2.Adapt<SheriffTrainingDto>()));
         }
 
 
