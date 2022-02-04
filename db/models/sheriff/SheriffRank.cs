@@ -15,6 +15,7 @@ namespace SS.Db.models.sheriff
         public int Id { get; set; }
         public Guid SheriffId { get; set; }
         [ExcludeFromAddAndUpdateDto]
+        [AdaptIgnore]
         public virtual Sheriff Sheriff { get; set; }
         public string Rank { get;set;}
         public DateTimeOffset EffectiveDate { get; set; }
