@@ -69,6 +69,7 @@ namespace SS.Api.infrastructure
             services.AddScoped<RoleService>();
             services.AddScoped<UserService>();
             services.AddScoped<SheriffService>();
+            services.AddScoped<SheriffRankService>();
             services.AddScoped<ShiftService>();
             services.AddScoped<DutyRosterService>();
             services.AddScoped<AssignmentService>();

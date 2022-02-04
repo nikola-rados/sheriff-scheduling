@@ -10,7 +10,10 @@ namespace SS.Api.helpers.extensions
         //Include AwayLocation/Training/Leave that is within a date range. 
         public static IQueryable<Sheriff> IncludeSheriffEventsBetweenDates(this IQueryable<Sheriff> query, DateTimeOffset startDate, DateTimeOffset endDate)
         {
-            return query.Include(s => s.AwayLocation.Where(al =>
+            return query
+                .Include(s => s.Rank.Where(r => 
+                    r.EffectiveDate < endDate && (startDate < r.ExpiryDate || r.ExpiryDate == null)))
+                .Include(s => s.AwayLocation.Where(al =>
                     (al.StartDate < endDate && startDate < al.EndDate)
                     && al.ExpiryDate == null))
                 .ThenInclude(al => al.Location)

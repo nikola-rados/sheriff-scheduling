@@ -42,6 +42,7 @@ namespace SS.Api.services.scheduling
             var shifts = await Db.Shift.AsSingleQuery().AsNoTracking()
                 .Include(s=> s.Location)
                 .Include(s => s.Sheriff)
+                .ThenInclude(s => s.Rank.Where(r => r.EffectiveDate < end && (start < r.ExpiryDate || r.ExpiryDate == null)))
                 .Include(s => s.AnticipatedAssignment)
                 .Where(s => s.LocationId == locationId && s.ExpiryDate == null &&
                             s.StartDate < end && start < s.EndDate)
@@ -66,7 +67,8 @@ namespace SS.Api.services.scheduling
                         shift.StartDate < ds.EndDate)
                     .ToList();
 
-            return shifts.OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff?.Rank)
+            //TODO - Average of the ranks
+            return shifts.OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff?.Rank?.FirstOrDefault()?.Rank)
                 ?.SortOrder.FirstOrDefault()
                 ?.SortOrder)
             .ThenBy(s => s.Sheriff.LastName)
@@ -308,6 +310,7 @@ namespace SS.Api.services.scheduling
                 .Include(s => s.SortOrder)
                 .ToListAsync();
 
+    
             return sheriffs.SelectToList(s => new ShiftAvailability
             {
                 Start = start,
@@ -316,9 +319,11 @@ namespace SS.Api.services.scheduling
                 SheriffId = s.Id,
                 Conflicts = allShiftConflicts.WhereToList(asc => asc.SheriffId == s.Id)
             })
-                .OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff.Rank)
+                //TODO - Average of the ranks
+                .OrderBy(s => lookupCode.FirstOrDefault(so => so.Code == s.Sheriff.Rank?.FirstOrDefault()?.Rank)
                     ?.SortOrder.FirstOrDefault()
-                    ?.SortOrder) 
+                    ?.SortOrder
+                ) 
                 .ThenBy(s => s.Sheriff.LastName)
                 .ThenBy(s => s.Sheriff.FirstName)
                 .ToList();

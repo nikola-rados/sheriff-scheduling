@@ -20,7 +20,8 @@ namespace SS.Common.attributes.mapping
         {
             IgnoreAttributes = new[]
             {
-                typeof(ExcludeFromAddAndUpdateDtoAttribute)
+                typeof(ExcludeFromAddAndUpdateDtoAttribute),
+                typeof(ExcludeFromUpdateDtoAttribute)
             };
             MapType = MapType.MapToTarget;
             ShallowCopyForSameType = true;

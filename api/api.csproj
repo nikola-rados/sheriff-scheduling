@@ -43,7 +43,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="5.6.3" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="controllers\usermanagement\" />
     <Folder Include="models\dto\generated\" />
   </ItemGroup>
   <ItemGroup>
