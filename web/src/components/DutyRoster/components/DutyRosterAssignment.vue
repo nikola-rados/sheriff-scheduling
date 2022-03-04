@@ -564,7 +564,6 @@
 
 		public startDatePicked(){
 			if(this.initialStartDate){
-				//console.log('startDate')
 				this.initialStartDate=false
 			}else if(!this.initialEndDate){
 				this.toggleAllDays(false);
@@ -581,7 +580,6 @@
 
 		public endDatePicked(){
 			if(this.initialEndDate){
-				//console.log('endDate')
 				this.initialEndDate=false
 			}else if (!this.initialStartDate) {
 				this.toggleAllDays(false);
@@ -752,12 +750,7 @@
 
 		public saveAssignment() {
 			let requiredError = false;
-			// if (!this.assignmentToEdit.name) {
-			// 	this.nameState = false;
-			// 	requiredError = true;
-			// } else {
-			// 	this.nameState = true;
-			// }
+		
 			if (!this.assignmentToEditType) {
 				this.selectedTypeState = false;
 				requiredError = true;

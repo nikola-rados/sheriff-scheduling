@@ -3,7 +3,7 @@
         <loading-spinner v-if="!isDutyRosterDataMounted" />
         <b-table 
             v-else              
-            :items="dutyRosterAssignments" 
+            :items="dutyRosterAssignmentsWeek" 
             :fields="fields"
             sort-by="assignment"
             small
@@ -78,7 +78,7 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import {locationInfoType, userInfoType } from '../../types/common';
-    import { assignmentCardWeekInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
+    import { assignmentCardWeekInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType, selectedDutyCardInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component({
@@ -107,13 +107,23 @@
         @dutyState.Action
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
+        @dutyState.Action
+        public UpdateSelectedDuties!: (newSelectedDuties: selectedDutyCardInfoType[]) => void
+
+        @dutyState.State
+        dutyRosterAssignmentsWeek!: assignmentCardWeekInfoType[];
+
+        @dutyState.Action
+        UpdateDutyRosterAssignmentsWeek!: (newDutyRosterAssignmentsWeek: assignmentCardWeekInfoType[]) => void
+
+
         @Prop({required: true})
         runMethod!: any;
         
         isDutyRosterDataMounted = false;
         hasPermissionToAddAssignments = false;
 
-        dutyRosterAssignments: assignmentCardWeekInfoType[] = [];
+       
 
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
@@ -152,7 +162,6 @@
         {
             this.runMethod.$on('getData', this.getData)
             this.isDutyRosterDataMounted = false;
-            //console.log('dayview dutyroster mounted')
             this.getData(this.scrollPositions);
             window.addEventListener('resize', this.getWindowHeight);
             this.getWindowHeight()
@@ -173,11 +182,6 @@
             const secondHeader =  document.getElementById("dutyRosterNav")?.offsetHeight || 0;
             const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
             const bottomHeight = gageHeight;
-            // console.log('DutyRosterWeek - Window: ' + this.windowHeight)
-            // console.log('DutyRosterWeek - Top: ' + topHeaderHeight)
-            // console.log('DutyRosterWeek - SecondHeader: ' + secondHeader)
-            // console.log('DutyRosterWeek - BottomHeight: ' + bottomHeight)
-            // console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
             this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader+1)
         }
 
@@ -199,6 +203,9 @@
             this.dutyRosterAssignmentsJson = response[1].data;
 
             const shiftsData = response[2].data
+
+            this.UpdateSelectedDuties([]);
+
             Vue.nextTick(() => {
                 this.extractTeamShiftInfo(shiftsData);                        
                 this.extractAssignmentsInfo(this.dutyRosterAssignmentsJson);  
@@ -232,11 +239,9 @@
             for(const dutyRoster of this.dutyRostersJson)                
                     allDutySlots.push(...dutyRoster.dutySlots)
            
-            //console.log(allDutySlots)
             for(const shiftJson of shiftsJson)
             {
-                //console.log(shiftJson)
-                
+               
 
                 const availabilityInfo = {} as myTeamShiftInfoType;
                 const shiftInfo = {} as shiftInfoType;
@@ -257,30 +262,22 @@
 
 
                 for(const duty of dutySlots){
-                    //console.log(duty)
                     const color = this.getType(duty.assignmentLookupCode.type)
                     const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
                     const dutyArray = this.fillInArray(Array(96).fill(0), 1 , dutyRangeBin.startBin,dutyRangeBin.endBin);
-
-                    // console.log(dutyRangeBin)
-                    // console.log(rangeBin)
-                    // console.log(this.unionArrays(dutyArray,shiftArray))
                     
                     if( this.sumOfArrayElements(this.unionArrays(dutyArray,shiftArray))>0){
-
-                        //console.log('____IN__')
                     
                         if(shiftInfo.overtimeHours>0){
                             const dutyRosterIndex = this.dutyRostersJson.findIndex(dutyroster=>{if(dutyroster.id == duty.dutyId)return true}) 
                             const dutySlotIndex = this.dutyRostersJson[dutyRosterIndex].dutySlots.findIndex(dutyslot=>{if(dutyslot.id == duty.id)return true})
 
-                            //console.log(this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex])
                             this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex].isOvertime = true
                         } 
 
                         if(index!= -1){
                             const duplicateIndex =this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(dupDuty=>{if(dupDuty.startBin==dutyRangeBin.startBin && dupDuty.endBin==dutyRangeBin.endBin && dupDuty.id==duty.id)return true})
-                            //console.log(duplicateIndex)
+
                             if(duplicateIndex != -1) continue;
                         }  
                         
@@ -297,22 +294,14 @@
                             code: duty.assignmentLookupCode.code
                         })
                     }
-                    //console.log(dutiesDetail)
-                }
 
+                }
                 
                 if (index != -1) {
-                    // if(this.shiftAvailabilityInfo[index].sheriffId =='96d3a24e-506a-4e98-a15a-b9e4f33f499c'){
-                    //                     console.log(this.shiftAvailabilityInfo[index].dutiesDetail)
-                    //                     console.log(shiftInfo.startDate)
-                    //                     }
-
-                    //const indexSimilarDuties = this.shiftAvailabilityInfo[index].dutiesDetail.findIndex(dutydetail=> {if(dutydetail.startTime && dutydetail.startTime.substring(0,10)==shiftInfo.startDate.substring(0,10))return true})
-                    //console.log(indexSimilarDuties)
+                   
                     this.shiftAvailabilityInfo[index].duties = [];
                     this.shiftAvailabilityInfo[index].availability = [];
                     this.shiftAvailabilityInfo[index].shifts.push(shiftInfo);
-                    //if(indexSimilarDuties<0)
                     this.shiftAvailabilityInfo[index].dutiesDetail.push(...dutiesDetail);
                 } else {
                     availabilityInfo.shifts = [shiftInfo];
@@ -327,7 +316,7 @@
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
             }
-            //console.log(this.shiftAvailabilityInfo)
+
             this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);            
         }
 
@@ -335,14 +324,14 @@
             const dutyWeekDates: string[] = []
             for(let day=0; day<7; day++)
                 dutyWeekDates.push(moment(this.dutyRangeInfo.startDate).add(day,'days').format().substring(0,10))                
-            //console.log(dutyWeekDates)
 
-            this.dutyRosterAssignments =[]
+
+            const dutyRosterAssignments: assignmentCardWeekInfoType[] =[]
             let sortOrder = 0;
             for(const assignment of assignments){
                 sortOrder++;
                 const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                //console.log(dutyRostersForThisAssignment)
+
                
                 if(dutyRostersForThisAssignment.length>0){
                     let maximumRow = -2;
@@ -376,7 +365,7 @@
                         const dutyRostersInOneDay = dutyRostersForThisAssignment.filter(dutyRoster => moment(dutyRoster.startDate).tz(this.location.timezone).format().substring(0,10) == dutyWeekDates[dutydateInx])
                         for(const dutyRosterInOneDay of dutyRostersInOneDay){
                             for(let row=0; row<maximumRow; row++){
-                                //console.log(dutyRosterAssignment[row][dutydateInx])
+
                                 if(!dutyRosterAssignment[row][dutydateInx]){
                                     dutyRosterAssignment[row][dutydateInx] = dutyRosterInOneDay;
                                     break;
@@ -384,27 +373,10 @@
                             }
                         }
                     }
-                    // for(const rosterInx in dutyRostersForThisAssignment){
-                    //     const dutyRosterForThisAssignment= dutyRostersForThisAssignment[rosterInx];
-                    //     console.log(dutyRosterForThisAssignment)
-                    //     const index = this.dutyRosterAssignments.findIndex(dutyRoster => dutyRoster.startDate == dutyRosterForThisAssignment.startDate)
-                
-                    //     // if (index != -1) {
-                    //     //     this.dutyRosterAssignments.push({
-                    //     //         assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
-                    //     //         assignmentDetail: assignment,
-                    //     //         name:assignment.name,
-                    //     //         code:assignment.lookupCode.code,
-                    //     //         type: this.getType(assignment.lookupCode.type),
-                    //     //         attachedDuty: dutyRosterForThisAssignment,
-                    //     //         FTEnumber: Number(rosterInx),
-                    //     //         totalFTE: dutyRostersForThisAssignment.length
-                    //     //     })
-                    //     // }
-                    // }
-                    this.dutyRosterAssignments.push(...dutyRosterAssignment)
+
+                    dutyRosterAssignments.push(...dutyRosterAssignment)
                 }else{                
-                    this.dutyRosterAssignments.push({
+                    dutyRosterAssignments.push({
                         assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
                         assignmentDetail: assignment,
                         name:assignment.name,
@@ -423,8 +395,8 @@
                 }
             }
 
-            //console.log(this.dutyRosterAssignments)
-
+           this.UpdateDutyRosterAssignmentsWeek(dutyRosterAssignments) 
+           
            this.isDutyRosterDataMounted = true;
            this.$emit('dataready');
 
@@ -455,10 +427,6 @@
         public fillInArray(array, fillInNum, startBin, endBin){
             return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
         }
-
-        // public addArrays(arrayA, arrayB){
-        //     return arrayA.map((arr,index) =>{return arr+arrayB[index]});
-        // }
 
         public sumOfArrayElements(arrayA){
             return arrayA.reduce((acc, arr) => acc + (arr>0?1:0), 0)

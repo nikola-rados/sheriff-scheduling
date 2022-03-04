@@ -174,6 +174,7 @@ export interface dutyBlockInfoType {
     shiftId: number|null;
     dutySlotId: number|null;
     note: string;
+    border: string;
 }
 
 export interface viewDutyInfoType {       
@@ -214,6 +215,7 @@ export interface dutyBlockWeekInfoType {
     borderLeft: string;
     borderRight: string;
     comment: string;
+    border: string;
 }
 
 export interface assignDutySlotsInfoType{
@@ -221,4 +223,9 @@ export interface assignDutySlotsInfoType{
     endDate: string;
     isOvertime:boolean;
     dutySlotId: number|null;    
+}
+
+export interface selectedDutyCardInfoType {
+    blockId: string;
+    assignment: string;    
 }

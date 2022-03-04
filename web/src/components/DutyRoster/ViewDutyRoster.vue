@@ -88,7 +88,10 @@
         sheriffsJson: teamMemberJsonType[] = [];
         errorText =''
         openErrorModal=false;  
-        today = '';      
+        today = ''; 
+        
+        timeHandle1
+        timeHandle2
 
         fields=[
             {key:'displayName', label:'Name',             tdClass:'text-center', thClass:'text-center'},
@@ -113,7 +116,12 @@
             this.maxPages = 1;
             this.pageIndex = 0;
             this.currentPage = 1;
-            window.setTimeout(this.updateCurrentDutiesCallBack, 1000); 
+            this.timeHandle1 = window.setTimeout(this.updateCurrentDutiesCallBack, 1000); 
+        }
+
+        beforeDestroy() {
+            clearTimeout(this.timeHandle1);
+            clearTimeout(this.timeHandle2);                    
         }
 
         public updateCurrentDutiesCallBack() {
@@ -126,7 +134,7 @@
                 this.displayDutyInformation();
             }
             
-            window.setTimeout(this.updateCurrentDutiesCallBack, 7000);
+            this.timeHandle2 = window.setTimeout(this.updateCurrentDutiesCallBack, 7000);
         }
 
         public getData() {            
@@ -200,7 +208,8 @@
             }
             
             this.numberOfRecords = this.duties.length;
-            this.maxPages = Math.ceil(this.numberOfRecords / this.numberOfRecordsPerPage);          
+            this.maxPages = Math.ceil(this.numberOfRecords / this.numberOfRecordsPerPage);
+            if(this.maxPages == 0) this.maxPages =1;          
             this.displayDutyInformation();            
         }
 
