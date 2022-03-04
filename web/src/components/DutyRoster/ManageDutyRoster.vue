@@ -103,6 +103,9 @@
         gageHeight = 0;
         tableHeight = 0;
 
+        timeHandle1
+        timeHandle2
+
         headerAddAssignment = new Vue();         
         dutyRosterDayViewMethods = new Vue();
         dutyRosterWeekViewMethods = new Vue();
@@ -119,13 +122,16 @@
         mounted()
         {
             this.isDutyRosterDataMounted = false;
-            window.setTimeout(this.updateCurrentTimeCallBack, 1000);
+            this.timeHandle1 = window.setTimeout(this.updateCurrentTimeCallBack, 1000);
             window.addEventListener('resize', this.getWindowHeight);
             this.getWindowHeight()
         }
 
+
         beforeDestroy() {
             window.removeEventListener('resize', this.getWindowHeight);
+            clearTimeout(this.timeHandle1);
+            clearTimeout(this.timeHandle2);
         }
         
         public reloadDutyRosters(type){
@@ -205,7 +211,7 @@
 
         public updateCurrentTimeCallBack() {
             this.updateCurrentTime();
-            window.setTimeout(this.updateCurrentTime, 60000);
+            this.timeHandle2 = window.setTimeout(this.updateCurrentTime, 60000);
         }
 
         public updateDutyRosterPage() {

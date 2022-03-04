@@ -78,7 +78,7 @@
     const dutyState = namespace("DutyRosterInformation");
 
     import {locationInfoType, userInfoType } from '../../types/common';
-    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType} from '../../types/DutyRoster';
+    import { assignmentCardInfoType, attachedDutyInfoType, dutyRangeInfoType, myTeamShiftInfoType, dutiesDetailInfoType, selectedDutyCardInfoType} from '../../types/DutyRoster';
     import { shiftInfoType } from '../../types/ShiftSchedule';
 
     @Component({
@@ -108,13 +108,22 @@
         @dutyState.Action
         public UpdateShiftAvailabilityInfo!: (newShiftAvailabilityInfo: myTeamShiftInfoType[]) => void
 
+        @dutyState.State
+        public dutyRosterAssignments!: assignmentCardInfoType[];
+
+        @dutyState.Action
+        public UpdateDutyRosterAssignments!: (newDutyRosterAssignments: assignmentCardInfoType[]) => void
+
+        @dutyState.Action
+        public UpdateSelectedDuties!: (newSelectedDuties: selectedDutyCardInfoType[]) => void
+
         @Prop({required: true})
         runMethod!: any;
         
         isDutyRosterDataMounted = false;
         hasPermissionToAddAssignments = false;
 
-        dutyRosterAssignments: assignmentCardInfoType[] = [];
+        
 
         dutyRostersJson: attachedDutyInfoType[] = [];
         dutyRosterAssignmentsJson;
@@ -216,6 +225,8 @@
             this.dutyRostersJson = response[0].data;
             this.dutyRosterAssignmentsJson = response[1].data;
             const shiftsData = response[2].data
+
+            this.UpdateSelectedDuties([])
 
             //console.log(this.dutyRostersJson)
             // console.log(this.dutyRosterAssignmentsJson)
@@ -342,7 +353,7 @@
 
         public extractAssignmentsInfo(assignments){
 
-            this.dutyRosterAssignments =[]
+            const dutyRosterAssignments: assignmentCardInfoType[] =[]
             let sortOrder = 0;
             for(const assignment of assignments){
                 sortOrder++;
@@ -351,7 +362,7 @@
                
                if(dutyRostersForThisAssignment.length>0){
                     for(const rosterInx in dutyRostersForThisAssignment){
-                        this.dutyRosterAssignments.push({
+                        dutyRosterAssignments.push({
                             assignment:('00' + sortOrder).slice(-3)+'FTE'+('0'+ rosterInx).slice(-2) ,
                             assignmentDetail: assignment,
                             name:assignment.name,
@@ -363,7 +374,7 @@
                         })
                     }
                 }else{                
-                    this.dutyRosterAssignments.push({
+                    dutyRosterAssignments.push({
                         assignment:('00' + sortOrder).slice(-3)+'FTE00' ,
                         assignmentDetail: assignment,
                         name:assignment.name,
@@ -375,6 +386,8 @@
                     })
                 }
             }
+
+            this.UpdateDutyRosterAssignments(dutyRosterAssignments)
 
             this.isDutyRosterDataMounted = true;
             this.$emit('dataready')

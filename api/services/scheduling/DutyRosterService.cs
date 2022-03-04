@@ -22,6 +22,7 @@ namespace SS.Api.services.scheduling
         private ShiftService ShiftService { get; }
         private double OvertimeHoursPerDay { get; }
         private ILogger<DutyRosterService> Logger { get; }
+
         public DutyRosterService(SheriffDbContext db, IConfiguration configuration, ShiftService shiftService, ILogger<DutyRosterService> logger)
         {
             Db = db;
@@ -33,7 +34,7 @@ namespace SS.Api.services.scheduling
         public async Task<List<Duty>> GetDutiesForLocation(int locationId, DateTimeOffset start, DateTimeOffset end) =>
             await Db.Duty.AsSingleQuery().AsNoTracking()
                 .Include(d => d.DutySlots.Where(ds => ds.ExpiryDate == null))
-                .Include(d=> d.Location)
+                .Include(d => d.Location)
                 .Include(d => d.Assignment)
                 .ThenInclude(d => d.LookupCode)
                 .Where(d => d.LocationId == locationId &&
@@ -41,7 +42,6 @@ namespace SS.Api.services.scheduling
                             start < d.EndDate &&
                             d.ExpiryDate == null)
                 .ToListAsync();
-
 
         public async Task<List<int>> GetDutiesLocations(List<int> ids) =>
             await Db.Duty.AsNoTracking().In(ids, d => d.Id).Select(d => d.LocationId).Distinct().ToListAsync();
@@ -51,7 +51,7 @@ namespace SS.Api.services.scheduling
 
         /// <summary>
         /// This just creates, there is no assignment of slots. The team has agreed it's just created with the defaults initially.
-        /// Creating a Duty with no slots, doesn't require any validation rules. 
+        /// Creating a Duty with no slots, doesn't require any validation rules.
         /// </summary>
         public async Task<List<Duty>> AddDuties(List<Duty> duties)
         {
@@ -70,14 +70,14 @@ namespace SS.Api.services.scheduling
         }
 
         /// <summary>
-        ///  This can be used to add / update / remove slots. 
+        ///  This can be used to add / update / remove slots.
         /// </summary>
         public async Task<List<Duty>> UpdateDuties(List<Duty> duties, bool overrideValidation)
         {
             if (!duties.Any()) throw new BusinessLayerException("Didn't provide any duties.");
 
             await CheckForDutySlotOverlap(duties, overrideValidation);
-            
+
             var dutyIds = duties.SelectToList(duty => duty.Id);
             var savedDuties = Db.Duty.AsSingleQuery()
                 .Include(d => d.DutySlots)
@@ -103,7 +103,7 @@ namespace SS.Api.services.scheduling
                     dutySlot.Duty = null;
                     dutySlot.Sheriff = null;
                     dutySlot.Location = null;
-                    
+
                     if (savedDutySlot == null)
                         await Db.DutySlot.AddAsync(dutySlot);
                     else
@@ -139,13 +139,13 @@ namespace SS.Api.services.scheduling
             if (fromDutySlot.StartDate == fromDutySlot.EndDate)
                 Db.DutySlot.Remove(fromDutySlot);
 
-            var toDuty = await Db.Duty.Include(d=> d.DutySlots).FirstOrDefaultAsync(d => d.Id == toDutyId);
+            var toDuty = await Db.Duty.Include(d => d.DutySlots).FirstOrDefaultAsync(d => d.Id == toDutyId);
             if (!(toDutySlotStart < toDuty.EndDate && toDuty.StartDate < toDutySlotStart))
                 throw new BusinessLayerException("Duty doesn't have room. You may need to adjust the duty.");
 
             var toDutySlotEnd = toDuty.EndDate;
 
-            //Might be cut even shorter from existing DutySlots with sheriffs in them. 
+            //Might be cut even shorter from existing DutySlots with sheriffs in them.
             if (toDuty.DutySlots.Any(ds =>
                 toDutySlotStart < ds.EndDate && ds.StartDate < toDutySlotEnd && ds.SheriffId != null))
             {
@@ -207,7 +207,7 @@ namespace SS.Api.services.scheduling
         public async Task AdjustDutySlots(List<Shift> shifts)
         {
             var shiftAdjustments = shifts.SelectToList(s => new ShiftAdjustment
-                {SheriffId = s.SheriffId, Date = s.StartDate.ConvertToTimezone(s.Timezone).DateOnly(), Timezone = s.Timezone}).Distinct().ToList();
+            { SheriffId = s.SheriffId, Date = s.StartDate.ConvertToTimezone(s.Timezone).DateOnly(), Timezone = s.Timezone }).Distinct().ToList();
 
             foreach (var shiftAdjustment in shiftAdjustments)
             {
@@ -231,8 +231,8 @@ namespace SS.Api.services.scheduling
 
                     if (!overlappingBuckets.Any())
                     {
-                       dutySlot.ExpiryDate = DateTimeOffset.UtcNow;
-                       continue;
+                        dutySlot.ExpiryDate = DateTimeOffset.UtcNow;
+                        continue;
                     }
 
                     DateTimeOffset minStartDate = dutySlot.StartDate;
@@ -285,7 +285,6 @@ namespace SS.Api.services.scheduling
                 var earliestDutySlot = dutySlotsForSheriffOnDay.FirstOrDefault(ds => ds.StartDate == dutySlotsForSheriffOnDay.Min(ds2 => ds2.StartDate));
                 var latestDutySlot = dutySlotsForSheriffOnDay.FirstOrDefault(ds => ds.EndDate == dutySlotsForSheriffOnDay.Max(ds2 => ds2.EndDate));
 
-    
                 if (latestShift!.EndDate < latestDutySlot?.EndDate)
                 {
                     await Db.Shift.AddAsync(new Shift
@@ -324,7 +323,7 @@ namespace SS.Api.services.scheduling
             }
         }
 
-        //There might be a way to make this more generic and reuse it. I think overlapping shifts and DutySlot overlapping is a very similar process. 
+        //There might be a way to make this more generic and reuse it. I think overlapping shifts and DutySlot overlapping is a very similar process.
         public async Task CheckForDutySlotOverlap(List<Duty> duties, bool overrideValidation)
         {
             if (overrideValidation) return;
@@ -343,7 +342,9 @@ namespace SS.Api.services.scheduling
         {
             var dutySlots = duties.SelectMany(s => s.DutySlots).ToList();
             if (dutySlots.Any(a =>
-                dutySlots.Any(b => a != b && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId)))
+                dutySlots.Any(b => {
+                    return (a.SheriffId != null && b.SheriffId != null && !AreDutiesEqual(a, b) && b.StartDate < a.EndDate && a.StartDate < b.EndDate && a.SheriffId == b.SheriffId);
+                })))
                 throw new BusinessLayerException($"{nameof(DutySlot)} provided overlap with themselves.");
 
             var sheriffIds = dutySlots.Select(ts => ts.SheriffId).Where(sId => sId != null).Distinct().ToList();
@@ -363,11 +364,22 @@ namespace SS.Api.services.scheduling
 
             conflictingDutySlots = conflictingDutySlots.Distinct().WhereToList(s =>
                 dutySlots.Any(ts =>
-                    ts.ExpiryDate == null && s.Id != ts.Id && ts.StartDate < s.EndDate && s.StartDate < ts.EndDate && ts.SheriffId == s.SheriffId) && 
+                    ts.ExpiryDate == null && s.Id != ts.Id && ts.StartDate < s.EndDate && s.StartDate < ts.EndDate && ts.SheriffId == s.SheriffId) &&
                 dutySlots.All(ts => ts.Id != s.Id)
             );
 
             return conflictingDutySlots;
+        }
+
+        private bool AreDutiesEqual(DutySlot a, DutySlot b)
+        {
+            return (
+             (b.SheriffId == a.SheriffId) &&
+             (a.StartDate == b.StartDate) &&
+             (a.EndDate == b.EndDate) &&
+             (a.Id == b.Id) &&
+             (a.DutyId == b.DutyId)
+             );
         }
 
         private DateTimeOffset RoundUp(DateTimeOffset dt, TimeSpan d)
@@ -379,7 +391,7 @@ namespace SS.Api.services.scheduling
         {
             var startRange = targetDate.ConvertToTimezone(timezone);
             var endRange = startRange.DateOnly().TranslateDateForDaylightSavings(timezone, hoursToShift: 24);
-            
+
             var shifts = await Db.Shift.AsNoTracking().Where(s =>
                 s.ExpiryDate == null &&
                 s.LocationId == locationId &&
@@ -393,12 +405,12 @@ namespace SS.Api.services.scheduling
         }
 
         #region String Helpers
+
         private static string ConflictingSheriffAndDutySlot(Sheriff sheriff, DutySlot dutySlot)
             => $"Conflict - {nameof(Sheriff)}: {sheriff?.LastName}, {sheriff?.FirstName} - Existing {nameof(DutySlot)} conflicts: {dutySlot.StartDate.ConvertToTimezone(dutySlot.Timezone).PrintFormatDateTime(dutySlot.Timezone)} to {dutySlot.EndDate.ConvertToTimezone(dutySlot.Timezone).PrintFormatDateTime(dutySlot.Timezone)}";
 
-        #endregion
+        #endregion String Helpers
 
-
-        #endregion
+        #endregion Helpers
     }
 }

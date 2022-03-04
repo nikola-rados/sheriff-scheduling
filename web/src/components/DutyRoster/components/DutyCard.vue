@@ -2,11 +2,11 @@
     <div class="grid">
         <div v-for="i in 96" :key="i" :style="{backgroundColor: '#F9F9F9', gridColumnStart: i,gridColumnEnd:(i+1), gridRow:'1/7'}"></div>       
         <div
-            @click="editDuty()"
+            @click="editDuty($event, block.id)"
             v-for="block in dutyBlocks" 
             :key="block.id"
             :id="block.id"
-            :style="{gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
+            :style="{border:block.border, gridColumnStart: block.startTime, gridColumnEnd:block.endTime, gridRow:block.height,  backgroundColor: block.color, fontSize:'9px', textAlign: 'center', margin:0, padding:0  }"
             v-b-tooltip.hover.noninteractive="block.title? block.title:''" 
             @dragover.prevent
             @drop.prevent="drop" >
@@ -36,10 +36,10 @@
                 <h2 class="mb-0 text-light">Assign Duty Issues</h2>                   
             </template>            
             <template v-slot:modal-footer>
-                <b-button variant="primary" @click="$bvModal.hide('bv-modal-assign-duty-error')">Ok</b-button>
+                <b-button variant="primary" @click="closeErrorModal">Ok</b-button>
             </template>            
             <template v-slot:modal-header-close>                 
-                <b-button variant="outline-warning" class="text-light closeButton" @click="$bvModal.hide('bv-modal-assign-duty-error')"
+                <b-button variant="outline-warning" class="text-light closeButton" @click="closeErrorModal"
                 >&times;</b-button>
             </template>
         </b-modal>
@@ -159,7 +159,7 @@
                                         :fullDutyEndTime="fullDutyEndTime"
                                         :startOfDay="dutyDate"
                                         :timezone="dutyTimezone" 
-                                        v-on:submit="assignDuty" 
+                                        v-on:submit="assignDutyOverPopup" 
                                         v-on:cancel="closeDutySlotForm" />
                                 </b-card>
                             </template>
@@ -267,7 +267,7 @@
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
     import AddDutySlotForm from './AddDutySlotForm.vue'
-    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
+    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType, selectedDutyCardInfoType } from '../../../types/DutyRoster';
     import {localTimeInfoType, userInfoType} from '../../../types/common';
 
     import { namespace } from "vuex-class";
@@ -300,6 +300,15 @@
 
         @dutyState.Action
         public UpdateDutyToBeEdited!: (newDutyToBeEdited: string) => void
+
+        @dutyState.State
+        public selectedDuties!: selectedDutyCardInfoType[];
+
+        @dutyState.Action
+        public UpdateSelectedDuties!: (newSelectedDuties: selectedDutyCardInfoType[]) => void
+
+        @dutyState.State
+        public dutyRosterAssignments!: assignmentCardInfoType[];
 
         dutyBlocks: dutyBlockInfoType[] = []; 
 
@@ -365,7 +374,6 @@
 
         mounted()
         {
-            //console.log(this.dutyRosterInfo)
             this.hasPermissionToEditDuty = this.userDetails.permissions.includes("EditDuties");
             this.hasPermissionToExpireDuty = this.userDetails.permissions.includes("ExpireDuties");    
             this.hasPermissionToAddAssignDuty = this.userDetails.permissions.includes("CreateAndAssignDuties");
@@ -392,11 +400,29 @@
             return assignmentName;
         }
 
-        public editDuty(){			
-			this.isDutyDataMounted = false;
-            this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
-            this.showEditDutyDetails = true;
-            this.isDutyDataMounted = true;
+        public editDuty(e?, blkId?){
+            
+            if(e?.ctrlKey == true){
+                const block = this.dutyBlocks.filter(blk => blk.id==blkId)
+
+                const index = this.selectedDuties?.findIndex(duty => {return ((duty.blockId == blkId)&&(duty.assignment==this.dutyRosterInfo.assignment))});
+                const selectedDuties = this.selectedDuties;
+                if(index > -1){
+                    selectedDuties.splice(index,1)
+                    block[0].border = '0px'
+                } 
+                else {
+                    selectedDuties.push({blockId:blkId, assignment:this.dutyRosterInfo.assignment})
+                    block[0].border='4px solid yellow'
+                }                               
+                this.UpdateSelectedDuties(selectedDuties)
+            }
+            else{			
+                this.isDutyDataMounted = false;
+                this.UpdateDutyToBeEdited(this.dutyRosterInfo.assignment);
+                this.showEditDutyDetails = true;
+                this.isDutyDataMounted = true;
+            }
         }
 
         public confirmDeleteDuty(){
@@ -437,6 +463,12 @@
             this.confirmUnassign = true;
         }
 
+        public assignDutyOverPopup(sheriffId,  editedDutySlotsInfo, unassignSheriff){
+            const body: assignDutyInfoType[] =[]
+            body.push(this.assignDuty(sheriffId, editedDutySlotsInfo, unassignSheriff, this.dutyRosterInfo));        
+            this.postModifiedDutyRosters(body)
+        }
+
         public unassignDutySlot(){
             this.confirmUnassign = false;
             if(this.dutySlotToUnassign){
@@ -446,7 +478,9 @@
                     isOvertime:false,
                     dutySlotId:this.dutySlotToUnassign.dutySlotId
                 }]
-                this.assignDuty(this.dutySlotToUnassign.sheriffId, editedDutySlots, true);        
+                const body: assignDutyInfoType[] =[]
+                body.push(this.assignDuty(this.dutySlotToUnassign.sheriffId, editedDutySlots, true, this.dutyRosterInfo));        
+                this.postModifiedDutyRosters(body)
             }
         }
 
@@ -529,11 +563,12 @@
                         timezone: dutySlot.timezone, 
                         shiftId: dutySlot.shiftId, 
                         dutySlotId: dutySlot.id,
-                        note: isOvertime? 'Overtime' :''
+                        note: isOvertime? 'Overtime' :'',
+                        border:'0px'
                     })                
                 }
 
-                this.extractUnassignedArrays(unassignedArray);
+                this.unassignedArray = this.extractUnassignedArrays(unassignedArray);
 
                 for(const unassignInx in this.unassignedArray){
         
@@ -554,7 +589,8 @@
                         timezone: '',
                         shiftId: null,
                         dutySlotId: null,
-                        note: ''
+                        note: '',
+                        border:'0px'
                     })                
                 }
 
@@ -572,6 +608,7 @@
         }
 
         public extractUnassignedArrays(unassignedArray){
+            const newUnassignedArray: number[][] = []
             let startBin = 0;
             for(let valueInx=0; valueInx<unassignedArray.length; valueInx++){
 
@@ -580,9 +617,25 @@
                 if((unassignedArray[valueInx]>0 && valueInx==(unassignedArray.length-1))||(unassignedArray[valueInx]>0 && unassignedArray[valueInx+1]==0)){
 
                     const array = this.fillInArray(Array(96).fill(0),1, startBin, valueInx+1)
-                    this.unassignedArray.push(array)
+                    newUnassignedArray.push(array)
                 } 
             }
+            return newUnassignedArray
+        }
+
+        public extractOthersUnassignedArray(dutyInfo){
+            
+            const dutyStartTime = moment(dutyInfo.startDate).tz(dutyInfo.timezone);
+            const startOfDay = moment(dutyStartTime).startOf("day");
+            const dutyBin = this.getTimeRangeBins(dutyInfo.startDate, dutyInfo.endDate, startOfDay, dutyInfo.timezone);                
+            let unassignedArray = this.fillInArray(Array(96).fill(0),1,dutyBin.startBin, dutyBin.endBin); 
+              
+            for(const dutySlot of dutyInfo.dutySlots){                
+                const assignedDutyBin = this.getTimeRangeBins(dutySlot.startDate, dutySlot.endDate,startOfDay, dutySlot.timezone)
+                unassignedArray = this.fillInArray(unassignedArray,0,assignedDutyBin.startBin, assignedDutyBin.endBin);                                
+            }
+
+            return this.extractUnassignedArrays(unassignedArray);
         }
 
         public getDutyColor(color, isNotAvailable, isNotRequired, isClosed, isOverTime) {
@@ -609,6 +662,7 @@
         
         public drop(event: any) 
         {
+            const bodyArray: assignDutyInfoType[] = []
 
             if(event.target.id){
                 const cardid = event.dataTransfer.getData('text');
@@ -617,73 +671,118 @@
                     this.moveSheriff(fromDutySlotId,this.dutyId,this.localTime.timeString)
                     return
                 }
-                const blockId: string = event.target.id;
-                const unassignedBlockId = Number(blockId.substring(blockId.indexOf('n')+1));
-
-                if(unassignedBlockId>=1000) return
-
                 const sheriffId = cardid.slice(7)
-
-                const unassignedArray = this.unassignedArray[unassignedBlockId]
-
-                if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'||sheriffId=='00000-00000-33333'){
-                    const timeRangeBins = this.getArrayRangeBins(unassignedArray);
-                    const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
-                    const editedDutySlots: assignDutySlotsInfoType[] =[{
-                        startDate: timeRangeDate.startTime,
-                        endDate: timeRangeDate.endTime,
-                        isOvertime:false,
-                        dutySlotId:null
-                    }]
-                    this.assignDuty(sheriffId, editedDutySlots, false);
-                    return
-                }
-
-                const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
-                const availability = sheriff.availability
-                const duties = sheriff.duties          
-
-                const unionUnassignAvail = this.unionArrays(unassignedArray, availability)
+                let specialCases = false
+                if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'||sheriffId=='00000-00000-33333')
+                    specialCases = true
                 
-                if(this.sumOfArrayElements(unionUnassignAvail)>0){
-
-                    const editedDutySlots: assignDutySlotsInfoType[] =[]
-
-                    const discontinuity = this.findDiscontinuity(unionUnassignAvail);
-                    const iterationNum = Math.floor((this.sumOfArrayElements(discontinuity) +1)/2);
-
-                    for(let i=0; i< iterationNum; i++){
-                        const inx1 = discontinuity.indexOf(1)
-                        let inx2 = discontinuity.indexOf(2)
-                        discontinuity[inx1]=0
-                        if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
-                        const slotTime = this.convertTimeRangeBinsToTime(this.dutyDate, inx1, inx2)
-                        editedDutySlots.push({
-                            startDate: slotTime.startTime,
-                            endDate: slotTime.endTime,                        
-                            //shiftId: unionUnassignAvail[inx1],
-                            isOvertime:false,
-                            dutySlotId: null,
-                        })
-                    }
-
-                    this.assignDuty(sheriffId, editedDutySlots, false)
+                if(this.selectedDuties.length>0){
                     
-                }else{
-                    const unionUnassignDuties = this.unionArrays(unassignedArray, duties)
-                    if(this.sumOfArrayElements(unionUnassignDuties)>0){
-                        this.assignDutyErrorMsg = "This team member is already assigned to conflicting duties.";
-                        this.assignDutyError = true;
-                    }else{
-                        const timeRangeBins = this.getArrayRangeBins(unassignedArray);
-                        this.overTimeTimeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
-                        this.overTimeSheriffId = sheriffId;
-                        this.assignDutyError = false;
-                        this.assignDutyErrorMsg = '';
-                        this.confirmAssignOverTimeDuty = true;
+                    const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
+                    let availability = specialCases? Array(96).fill(1): sheriff.availability
+                    
+                    for(const duty of this.selectedDuties){
+
+                        const dutyRosterInfo = this.dutyRosterAssignments.filter(dutyRoster =>dutyRoster.assignment==duty.assignment)[0]
+                        const dutyInfo = dutyRosterInfo.attachedDuty;
+                        const editedDutySlots = this.getEditedDutySlots(duty.blockId, sheriffId, dutyInfo, availability)
+                        
+                        if(dutyInfo && editedDutySlots){
+                            const dutyStartTime = moment(dutyInfo.startDate).tz(dutyInfo.timezone);
+                            const startOfDay = moment(dutyStartTime).startOf("day");
+                            const startDate = editedDutySlots[0].startDate
+                            const endDate =  editedDutySlots[0].endDate
+                            const dutyBin = this.getTimeRangeBins(startDate, endDate, startOfDay, dutyInfo.timezone);
+                                                  
+                            availability = specialCases? Array(96).fill(1):this.fillInArray(availability, 0, dutyBin.startBin, dutyBin.endBin)
+
+                            const body = this.assignDuty(sheriffId, editedDutySlots, false, dutyRosterInfo);
+                            bodyArray.push(body)
+                        }
+                    }
+                    this.postModifiedDutyRosters(bodyArray)
+                }
+                else{
+                    const editedDutySlots = this.getEditedDutySlots(event.target.id, sheriffId, null, null)
+                    if(editedDutySlots){
+                        const body = this.assignDuty(sheriffId, editedDutySlots, false, this.dutyRosterInfo);
+                        bodyArray.push(body)
+                         this.postModifiedDutyRosters(bodyArray)
                     }
                 }
             }
+        }
+
+
+        public getEditedDutySlots(targetId: string, sheriffId: string, dutyInfo, newAvailability)
+        {   
+            const blockId: string = targetId;
+            const unassignedBlockId = Number(blockId.substring(blockId.indexOf('n')+1));
+
+            if(unassignedBlockId>=1000) return null
+
+            const unassignedArray2D = dutyInfo? this.extractOthersUnassignedArray(dutyInfo) : this.unassignedArray
+            const unassignedArray = unassignedArray2D[unassignedBlockId]
+
+            if(sheriffId=='00000-00000-11111'||sheriffId=='00000-00000-22222'||sheriffId=='00000-00000-33333'){
+                const timeRangeBins = this.getArrayRangeBins(unassignedArray);
+                const timeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
+                const editedDutySlots: assignDutySlotsInfoType[] =[{
+                    startDate: timeRangeDate.startTime,
+                    endDate: timeRangeDate.endTime,
+                    isOvertime:false,
+                    dutySlotId:null
+                }]
+                return editedDutySlots
+            }
+
+            const sheriff = this.shiftAvailabilityInfo.filter(sheriff=>{if(sheriff.sheriffId==sheriffId)return true})[0];
+            const availability = newAvailability? newAvailability :sheriff.availability
+            const duties = sheriff.duties  
+    
+            const unionUnassignAvail = this.unionArrays(unassignedArray, availability)
+            
+            if(this.sumOfArrayElements(unionUnassignAvail)>0){
+
+                const editedDutySlots: assignDutySlotsInfoType[] =[]
+
+                const discontinuity = this.findDiscontinuity(unionUnassignAvail);
+                const iterationNum = Math.floor((this.sumOfArrayElements(discontinuity) +1)/2);
+
+                for(let i=0; i< iterationNum; i++){
+                    const inx1 = discontinuity.indexOf(1)
+                    let inx2 = discontinuity.indexOf(2)
+                    discontinuity[inx1]=0
+                    if(inx2>=0) discontinuity[inx2]=0; else inx2=discontinuity.length 
+                    const slotTime = this.convertTimeRangeBinsToTime(this.dutyDate, inx1, inx2)
+                    editedDutySlots.push({
+                        startDate: slotTime.startTime,
+                        endDate: slotTime.endTime,                        
+                        //shiftId: unionUnassignAvail[inx1],
+                        isOvertime:false,
+                        dutySlotId: null,
+                    })
+                }
+
+                return editedDutySlots
+                
+            }else if(newAvailability){
+                return null
+            }else{
+                const unionUnassignDuties = this.unionArrays(unassignedArray, duties)
+                if(this.sumOfArrayElements(unionUnassignDuties)>0){
+                    this.assignDutyErrorMsg = "This team member is already assigned to conflicting duties.";
+                    this.assignDutyError = true;
+                }else{
+                    const timeRangeBins = this.getArrayRangeBins(unassignedArray);
+                    this.overTimeTimeRangeDate = this.convertTimeRangeBinsToTime(this.dutyDate, timeRangeBins.startBin, timeRangeBins.endBin);
+                    this.overTimeSheriffId = sheriffId;
+                    this.assignDutyError = false;
+                    this.assignDutyErrorMsg = '';
+                    this.confirmAssignOverTimeDuty = true;
+                }
+            }
+            
         }
 
         public confirmedAssignOverTimeDuty() {
@@ -695,9 +794,8 @@
                 dutySlotId:null
             }]
 
-            //console.log(editedDutySlots)
-
-            this.assignDuty(this.overTimeSheriffId, editedDutySlots, false);
+            const body = this.assignDuty(this.overTimeSheriffId, editedDutySlots, false, this.dutyRosterInfo);
+            this.postModifiedDutyRosters([body])
         }
 
         public unionArrays(arrayA, arrayB){
@@ -745,10 +843,10 @@
             return( {startBin: startBin, endBin:endBin } )
         }
 
-        public assignDuty(sheriffId: string|null, editedDutySlots: assignDutySlotsInfoType[], unassignSheriff: boolean ) {
+        public assignDuty(sheriffId: string|null, editedDutySlots: assignDutySlotsInfoType[], unassignSheriff: boolean, dutyRosterInfo: assignmentCardInfoType ) {
 
-            if(this.dutyRosterInfo.attachedDuty){
-                const dutyInfo = this.dutyRosterInfo.attachedDuty;
+            if(dutyRosterInfo.attachedDuty){
+                const dutyInfo = dutyRosterInfo.attachedDuty;
                 let isNotRequired = false;
                 let isNotAvailable = false;
                 let isClosed = false;
@@ -806,19 +904,27 @@
                     })                    
                 }
                 
-                const body: assignDutyInfoType[] = [
-                    {
-                        id: dutyInfo.id,
-                        startDate: dutyInfo.startDate,
-                        endDate: dutyInfo.endDate,
-                        locationId: dutyInfo.locationId,
-                        assignmentId: dutyInfo.assignmentId,
-                        dutySlots: dutySlots,
-                        timezone: dutyInfo.timezone,
-                        comment: dutyInfo.comment
-                    }
-                ];
-                
+                const body: assignDutyInfoType = 
+                {
+                    id: dutyInfo.id,
+                    startDate: dutyInfo.startDate,
+                    endDate: dutyInfo.endDate,
+                    locationId: dutyInfo.locationId,
+                    assignmentId: dutyInfo.assignmentId,
+                    dutySlots: dutySlots,
+                    timezone: dutyInfo.timezone,
+                    comment: dutyInfo.comment
+                };
+                return body 
+            }else
+                return {} as assignDutyInfoType
+        }
+
+        public postModifiedDutyRosters(body: assignDutyInfoType[]){
+            
+            this.UpdateSelectedDuties([]);
+            
+            if(body?.length>0){
                 const url = 'api/dutyroster';
                 this.$http.put(url, body )
                     .then(response => {
@@ -850,15 +956,14 @@
                     const errMsg = err.response.data.error;
                     this.assignDutyErrorMsg = errMsg;
                     this.assignDutyError = true;
+                    this.extractDuty()
                 })
         }
 
         public updateComment(){
             const url = 'api/dutyroster/updatecomment?dutyId='+this.dutyId+'&comment='+this.selectedComment.comment;
-            //console.log(url)
             this.$http.put(url)
                 .then(response => {
-                    console.log(response)
                     if(response.status == 204){
                         // Update the duty bar with name;
                         this.commentSaved = true;
@@ -872,6 +977,7 @@
                     const errMsg = err.response.data.error? err.response.data.error: (err.response.data +'('+err.response.status +' '+err.response.statusText+')') ;
                     this.assignDutyErrorMsg = errMsg;
                     this.assignDutyError = true;
+                    this.extractDuty()
                 })
         }
 
@@ -888,6 +994,11 @@
             const scrollTeamMember = eltm? eltm.scrollTop : 0;
 
             return {scrollDuty: scrollDuty, scrollGauge: scrollGauge, scrollTeamMember:scrollTeamMember }
+        }
+
+        public closeErrorModal(){
+            this.assignDutyError = false
+            this.$emit('change', this.scrollPositions());
         }
 
     }
