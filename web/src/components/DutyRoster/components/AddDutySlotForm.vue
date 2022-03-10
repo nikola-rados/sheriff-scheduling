@@ -657,8 +657,9 @@
 
             this.reassignStartTimeState = true
             this.reassignEndTimeState = true
-            const startTime = this.selectedDuty?.attachedDuty?.startDate? this.selectedDuty.attachedDuty.startDate.substring(11,16) : ''
-            const endTime = this.selectedDuty?.attachedDuty?.endDate? this.selectedDuty.attachedDuty.endDate.substring(11,16) : ''
+            const timezone = this.selectedDuty?.attachedDuty?.timezone? this.selectedDuty.attachedDuty.timezone : this.timezone
+            const startTime = this.selectedDuty?.attachedDuty?.startDate? moment(this.selectedDuty.attachedDuty.startDate).tz(timezone).format("HH:mm") : ''            
+            const endTime = this.selectedDuty?.attachedDuty?.endDate? moment(this.selectedDuty.attachedDuty.endDate).tz(timezone).format("HH:mm") : ''
             this.reassignStartTime = (this.selectedEndTime > startTime) ? this.autoCompleteTime(this.selectedEndTime): startTime
             this.reassignEndTime = endTime
 
@@ -676,20 +677,22 @@
             this.reassignStartTime = this.autoCompleteTime(this.reassignStartTime)
             this.reassignEndTime = this.autoCompleteTime(this.reassignEndTime)
 
+            const timezone = this.selectedDuty?.attachedDuty?.timezone? this.selectedDuty.attachedDuty.timezone : this.timezone
+
             if(this.reassignStartTime >= this.reassignEndTime){                
                 this.errorMsg = "The Reassigned End Time is before or equal to the Start Time."
                 this.showErrorMsg = true;
                 return true
             }
 
-            const dutyStartTime = this.selectedDuty?.attachedDuty?.startDate? this.selectedDuty.attachedDuty.startDate.substring(11,16) : ''            
+            const dutyStartTime = this.selectedDuty?.attachedDuty?.startDate? moment(this.selectedDuty.attachedDuty.startDate).tz(timezone).format("HH:mm") : ''
             if(dutyStartTime > this.reassignStartTime){
                 this.errorMsg = `The Reassigned Start Time is before the duty's Start time (${dutyStartTime}).`
                 this.showErrorMsg = true;
                 return true
             }
 
-            const dutyEndTime = this.selectedDuty?.attachedDuty?.endDate? this.selectedDuty.attachedDuty.endDate.substring(11,16) : ''
+            const dutyEndTime =  this.selectedDuty?.attachedDuty?.endDate? moment(this.selectedDuty.attachedDuty.endDate).tz(timezone).format("HH:mm") : ''
             if(dutyEndTime < this.reassignEndTime){
                 this.errorMsg = `The Reassigned End Time is after the duty's End time (${dutyEndTime}).`
                 this.showErrorMsg = true;
