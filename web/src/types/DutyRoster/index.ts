@@ -70,7 +70,8 @@ export interface assignmentCardInfoType {
     code: string;
     name: string;
     totalFTE: number;
-    type: assignmentCardTypeInfoType;    
+    type: assignmentCardTypeInfoType;
+    fullname?: string;    
 }
 
 export interface assignmentCardWeekInfoType {
@@ -228,4 +229,9 @@ export interface assignDutySlotsInfoType{
 export interface selectedDutyCardInfoType {
     blockId: string;
     assignment: string;    
+}
+
+export interface allEditingDutySlotsInfoType{
+    selectedDuty: null | assignmentCardInfoType;
+    editedDutySlot:  assignDutySlotsInfoType;    
 }

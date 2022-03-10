@@ -267,7 +267,7 @@
     import * as _ from 'underscore';
     import moment from 'moment-timezone';
     import AddDutySlotForm from './AddDutySlotForm.vue'
-    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType, selectedDutyCardInfoType } from '../../../types/DutyRoster';
+    import {dutySlotInfoType, assignDutySlotsInfoType, assignDutyInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType, selectedDutyCardInfoType, allEditingDutySlotsInfoType } from '../../../types/DutyRoster';
     import {localTimeInfoType, userInfoType} from '../../../types/common';
 
     import { namespace } from "vuex-class";
@@ -463,9 +463,16 @@
             this.confirmUnassign = true;
         }
 
-        public assignDutyOverPopup(sheriffId,  editedDutySlotsInfo, unassignSheriff){
+        public assignDutyOverPopup(sheriffId,  allEditingDutySlotsInfo: allEditingDutySlotsInfoType[], unassignSheriff){
             const body: assignDutyInfoType[] =[]
-            body.push(this.assignDuty(sheriffId, editedDutySlotsInfo, unassignSheriff, this.dutyRosterInfo));        
+            for(const editingDutySlot of allEditingDutySlotsInfo){
+
+                const dutyRosterInfo = editingDutySlot.selectedDuty? editingDutySlot.selectedDuty : this.dutyRosterInfo;
+                const editedDutySlotsInfo = [editingDutySlot.editedDutySlot];
+
+                body.push(this.assignDuty(sheriffId, editedDutySlotsInfo, unassignSheriff, dutyRosterInfo ));        
+            }
+
             this.postModifiedDutyRosters(body)
         }
 
