@@ -171,7 +171,7 @@
         {
             this.runMethod.$on('getData', this.getData)        
             this.isDutyRosterDataMounted = false;
-            //console.log('dayview dutyroster mounted')
+
             this.getData(this.scrollPositions);
             window.addEventListener('resize', this.getWindowHeight);
             this.getWindowHeight()
@@ -196,11 +196,6 @@
             const footerHeight = document.getElementById("footer")?.offsetHeight || 0;
             const gageHeight = (document.getElementsByClassName("fixed-bottom")[0] as HTMLElement)?.offsetHeight || 0;
             const bottomHeight = this.displayFooter ? footerHeight : gageHeight;
-            // console.log('DutyRosterDay - Window: ' + this.windowHeight)
-            // console.log('DutyRosterDay - Top: ' + topHeaderHeight)
-            // console.log('DutyRosterDay - SecondHeader: ' + secondHeader)
-            // console.log('DutyRosterDay - BottomHeight: ' + bottomHeight)
-            // console.log('New height: ' + (this.windowHeight - topHeaderHeight - bottomHeight - secondHeader))
             this.tableHeight = (topHeaderHeight + bottomHeight + secondHeader)
         }
 
@@ -227,10 +222,6 @@
             const shiftsData = response[2].data
 
             this.UpdateSelectedDuties([])
-
-            //console.log(this.dutyRostersJson)
-            // console.log(this.dutyRosterAssignmentsJson)
-            // console.log(shiftsData)
 
             Vue.nextTick(() => {
                 this.extractTeamShiftInfo(shiftsData);                        
@@ -261,10 +252,8 @@
             for(const dutyRoster of this.dutyRostersJson)            
                 allDutySlots.push(...dutyRoster.dutySlots)              
 
-            // console.log(allDutySlots)
             for(const shiftJson of shiftsJson)
             {
-                //console.log(shiftJson)
                 const availabilityInfo = {} as myTeamShiftInfoType;
                 const shiftInfo = {} as shiftInfoType;
                 shiftInfo.id = shiftJson.id;
@@ -275,28 +264,25 @@
                 shiftInfo.locationId = shiftJson.locationId;
                 shiftInfo.overtimeHours = shiftJson.overtimeHours
                 const rangeBin = this.getTimeRangeBins(shiftInfo.startDate, shiftInfo.endDate, this.location.timezone);
-//console.log(shiftInfo.overtimeHours)
+
                 const dutySlots = allDutySlots.filter(dutyslot=>{if(dutyslot.sheriffId==shiftInfo.sheriffId)return true})
-//console.log(dutySlots)
+
                 let duties = Array(96).fill(0)
                 const dutiesDetail: dutiesDetailInfoType[] = [];
                 const shiftArray = this.fillInArray(Array(96).fill(0), 1 , rangeBin.startBin,rangeBin.endBin)
                 for(const duty of dutySlots){
-                    //console.log(duty)
+
                     const color = this.getType(duty.assignmentLookupCode.type)
                     const dutyRangeBin = this.getTimeRangeBins(duty.startDate, duty.endDate, this.location.timezone);
                     const dutyArray = this.fillInArray(Array(96).fill(0), 1 , dutyRangeBin.startBin,dutyRangeBin.endBin)
 
-                    //console.log(dutyRangeBin)
-                    //console.log(rangeBin)
-                    //console.log(this.unionArrays(dutyArray,shiftArray))
+
                     if( this.sumOfArrayElements(this.unionArrays(dutyArray,shiftArray))>0){
-                        //console.log('__in__')
+
                         if(shiftInfo.overtimeHours>0){
                             const dutyRosterIndex = this.dutyRostersJson.findIndex(dutyroster=>{if(dutyroster.id == duty.dutyId)return true}) 
                             const dutySlotIndex = this.dutyRostersJson[dutyRosterIndex].dutySlots.findIndex(dutyslot=>{if(dutyslot.id == duty.id)return true})
-
-                            //console.log(this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex])
+                            
                             this.dutyRostersJson[dutyRosterIndex].dutySlots[dutySlotIndex].isOvertime = true
                         }                        
 
@@ -310,7 +296,7 @@
                             type: duty.assignmentLookupCode.type,
                             code: duty.assignmentLookupCode.code
                         })
-                        //console.log(dutiesDetail)
+
                         duties = this.fillInArray(duties, duty.id , dutyRangeBin.startBin,dutyRangeBin.endBin)
                     }
                 }
@@ -347,8 +333,7 @@
                     this.shiftAvailabilityInfo.push(availabilityInfo);
                 }
             }
-            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo); 
-            //console.log(this.shiftAvailabilityInfo)           
+            this.UpdateShiftAvailabilityInfo(this.shiftAvailabilityInfo);           
         }
 
         public extractAssignmentsInfo(assignments){
@@ -358,7 +343,6 @@
             for(const assignment of assignments){
                 sortOrder++;
                 const dutyRostersForThisAssignment: attachedDutyInfoType[] = this.dutyRostersJson.filter(dutyroster=>{if(dutyroster.assignmentId == assignment.id)return true}) 
-                //console.log(dutyRostersForThisAssignment)
                
                if(dutyRostersForThisAssignment.length>0){
                     for(const rosterInx in dutyRostersForThisAssignment){
@@ -410,7 +394,7 @@
 
             if(el[1]){
                 el[1].scrollLeft = (scrollSize*0.5425);
-                //el[1].scrollTop = this.scrollPositions.scrollGauge;
+
             }
 
             const eltm = document.getElementById('dutyrosterteammember');
@@ -429,10 +413,6 @@
         public fillInArray(array, fillInNum, startBin, endBin){
             return array.map((arr,index) =>{if(index>=startBin && index<endBin) return fillInNum; else return arr;});
         }
-
-        // public addArrays(arrayA, arrayB){
-        //     return arrayA.map((arr,index) =>{return arr+arrayB[index]});
-        // }
 
         public unionArrays(arrayA, arrayB){
             return arrayA.map((arr,index) =>{return arr*arrayB[index]});

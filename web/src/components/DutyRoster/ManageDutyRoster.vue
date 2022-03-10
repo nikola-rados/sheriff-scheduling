@@ -211,7 +211,7 @@
 
         public updateCurrentTimeCallBack() {
             this.updateCurrentTime();
-            this.timeHandle2 = window.setTimeout(this.updateCurrentTime, 60000);
+            this.timeHandle2 = window.setTimeout(this.updateCurrentTimeCallBack, 60000);
         }
 
         public updateDutyRosterPage() {

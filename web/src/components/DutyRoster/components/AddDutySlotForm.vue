@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div>        
         <b-table-simple small borderless class="m-0 p-0">
             <b-tbody >
                 <b-tr >
@@ -56,6 +56,7 @@
                                     <b-form-input
                                         v-model="selectedEndTime"
                                         @click="endTimeState=true;showErrorMsg=false;"
+                                        @change="reassignDutyChanged"
                                         size="sm"
                                         type="text"
                                         autocomplete="off"
@@ -86,7 +87,62 @@
                             </b-td>	
                         </b-tr>
                     </b-td>                   
-                </b-tr>   
+                </b-tr>
+                <b-tr v-if="!reassign">
+                    <b-button @click="reassign=true;" size="sm" variant="warning" style="margin:0 0.7rem; width:165% !important">Reassign <b-icon-arrow-left-right  font-scale="0.99" class="ml-2" /></b-button>
+                </b-tr>
+                <b-tr v-else class="bg-warning">
+                    <b-form-group style="margin: 0.25rem 0 0 0.5rem;width: 15rem">                            
+                        <label class="h6 m-0 p-0">Reassign <b class="text-danger">{{selectedSheriff.lastName|capitalize}}, {{selectedSheriff.firstName|capitalize}}</b> to <span class="text-danger">*</span></label>
+                        <b-form-select 
+                            size="sm"
+                            @change="reassignDutyChanged"
+                            v-model="selectedDuty"
+                            :state = "dutyState?null:false">
+                                <b-form-select-option
+                                    v-for="duty,inx in dutyList"
+                                    :key="inx"
+                                    :style="{color:duty.type.colorCode}"
+                                    :value="duty">                                        
+                                            {{duty.fullname}}
+                                </b-form-select-option>
+                        </b-form-select>
+                    </b-form-group>
+                    <b-td class="bg-warning">
+                        <b-td class="bg-warning">
+                            <b-form-group style="margin: 0.25rem 0 0 0; width: 5rem">
+                                <label class="h6 m-0 p-0">From<span class="text-danger">*</span></label>
+                                <b-form-input
+                                    v-model="reassignStartTime"
+                                    @click="reassignStartTimeState=true;showErrorMsg=false;"
+                                    size="sm"
+                                    type="text"
+                                    autocomplete="off"
+                                    @paste.prevent
+                                    :formatter="timeFormat"
+                                    placeholder="HH:MM"
+                                    :state = "reassignStartTimeState?null:false"
+                                ></b-form-input>
+                            </b-form-group>
+                        </b-td>
+                        <b-td class="bg-warning">
+                            <b-form-group style="margin: 0.25rem 0 0 0; width: 5rem;">
+                                <label class="h6 m-0 p-0">To<span class="text-danger">*</span></label>
+                                <b-form-input
+                                    v-model="reassignEndTime"
+                                    @click="reassignEndTimeState=true;showErrorMsg=false;"
+                                    size="sm"
+                                    type="text"
+                                    autocomplete="off"
+                                    @paste.prevent
+                                    :formatter="timeFormat"
+                                    placeholder="HH:MM"
+                                    :state = "reassignEndTimeState?null:false"
+                                ></b-form-input>
+                            </b-form-group>
+                        </b-td>
+                    </b-td>	
+                </b-tr>                
             </b-tbody>
         </b-table-simple>  
 
@@ -126,7 +182,7 @@
 
 <script lang="ts">
     import { Component, Vue, Prop } from 'vue-property-decorator';
-    import {assignDutySlotsInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
+    import {allEditingDutySlotsInfoType, assignDutySlotsInfoType, assignmentCardInfoType, dutyBlockInfoType, myTeamShiftInfoType } from '../../../types/DutyRoster';
     import { namespace } from 'vuex-class';
     import "@store/modules/DutyRosterInformation";
     import { shiftInfoType } from '../../../types/ShiftSchedule';
@@ -138,6 +194,9 @@
 
         @dutyState.State
         public shiftAvailabilityInfo!: myTeamShiftInfoType[];
+
+        @dutyState.State
+        public dutyRosterAssignments!: assignmentCardInfoType[];
 
         @Prop({required: true})
         formData!: dutyBlockInfoType;
@@ -166,15 +225,28 @@
         selectedEndTime = '';
         endTimeState = true; 
 
+        reassignStartTime = '';
+        reassignStartTimeState = true;
+
+        reassignEndTime = '';
+        reassignEndTimeState = true; 
+
         originalSheriff = {} as myTeamShiftInfoType | undefined;       
         originalStartTime = '';
         originalEndTime = '';
 
         errorMsg = ''
         showErrorMsg = false;
+        reassign = false;
 
         confirmAssignOverTimeDuty = false;
         editedDutySlots: assignDutySlotsInfoType[] = [];
+
+        reassignEditedDutySlot = {} as assignDutySlotsInfoType
+
+        dutyList: assignmentCardInfoType[] = []
+        selectedDuty = {} as assignmentCardInfoType
+        dutyState = true
 
         formDataId = '0';
         showCancelWarning = false;
@@ -183,8 +255,10 @@
         
         mounted()
         { 
+            this.reassign = false;
             this.addNotAvailableNotRequired();
             this.clearSelections();
+            this.extractDuties();
             if(this.formData.id) {
                 this.extractFormInfo();
             }               
@@ -236,6 +310,22 @@
               
             this.originalStartTime = this.selectedStartTime = this.formData.startTimeString;            
             this.originalEndTime = this.selectedEndTime = this.formData.endTimeString;
+        }
+
+        
+        public extractDuties(){
+            this.dutyList = []
+            for(const dutyRosterAssignment of this.dutyRosterAssignments){
+                if(dutyRosterAssignment.attachedDuty){
+                    const duty = dutyRosterAssignment;
+                    duty['fullname']= Vue.filter('capitalize')(duty.type.name) +
+                        (duty.code? '-'+duty.code:'') +
+                        (duty.name?' ('+duty.name+') ':'')+
+                        (duty.FTEnumber>0?' slot_'+(duty.FTEnumber+1):'');
+                    this.dutyList.push(duty) 
+                }
+            }
+
         }
 
         public autoCompleteTime(time){
@@ -318,12 +408,20 @@
                 this.showErrorMsg = true;
                 requiredError = true;
             } 
+
+            if(this.reassign && this.selectedDuty.FTEnumber != undefined){ 
+                this.reassignStartTimeState = true
+                this.reassignEndTimeState = true               
+                requiredError = this.checkReassignConflicts()
+            }
             
             if (!requiredError) {
                    
                 this.sheriffState  = true;                    
                 this.endTimeState   = true;
                 this.startTimeState = true;
+                this.reassignStartTimeState = true
+                this.reassignEndTimeState = true
 
                 const selectedTimeBins = this.getTimeRangeBins(this.selectedStartTime, this.selectedEndTime, this.startOfDay, this.timezone)
 
@@ -411,15 +509,26 @@
 
                 const startTime = moment(this.startOfDay).add(this.selectedStartTime).format();
                 const endTime =  moment(this.startOfDay).add(this.selectedEndTime).format();
-                const editedDutySlot: assignDutySlotsInfoType[] =[{
+                const editedDutySlot: assignDutySlotsInfoType ={
                     startDate: startTime,
                     endDate: endTime, 
-                    isOvertime: false,                       
-                    //shiftId: isNotRequiredOrAvailable?null:shiftId,
+                    isOvertime: false,  
                     dutySlotId: this.formData.dutySlotId,
+                }
+
+                const allEditingDutySlots: allEditingDutySlotsInfoType[] = [{
+                    selectedDuty: null,
+                    editedDutySlot: editedDutySlot
                 }]
+
+                if(this.reassignEditedDutySlot.startDate && this.reassignEditedDutySlot.endDate){
+                    allEditingDutySlots.push({
+                        selectedDuty: this.selectedDuty,
+                        editedDutySlot:this.reassignEditedDutySlot
+                    })
+                }
                 
-                this.$emit('submit',this.selectedSheriff?this.selectedSheriff.sheriffId:0, editedDutySlot , false);  
+                this.$emit('submit',this.selectedSheriff?this.selectedSheriff.sheriffId:0, allEditingDutySlots , false);  
             }
         }
 
@@ -542,6 +651,87 @@
             const startTime = moment(dutyDate).add(startBin*15, 'minutes').format();
             const endTime = moment(dutyDate).add(endBin*15, 'minutes').format();
             return( {startTime: startTime, endTime:endTime } )
+        }
+
+        public reassignDutyChanged(){
+
+            this.reassignStartTimeState = true
+            this.reassignEndTimeState = true
+            const startTime = this.selectedDuty?.attachedDuty?.startDate? this.selectedDuty.attachedDuty.startDate.substring(11,16) : ''
+            const endTime = this.selectedDuty?.attachedDuty?.endDate? this.selectedDuty.attachedDuty.endDate.substring(11,16) : ''
+            this.reassignStartTime = (this.selectedEndTime > startTime) ? this.autoCompleteTime(this.selectedEndTime): startTime
+            this.reassignEndTime = endTime
+
+            if(this.reassignStartTime > this.reassignEndTime){
+                this.reassignStartTimeState = false
+                this.reassignEndTimeState = false
+            }
+        }
+
+        public checkReassignConflicts(){
+            
+            this.reassignStartTimeState = false
+            this.reassignEndTimeState = false
+
+            this.reassignStartTime = this.autoCompleteTime(this.reassignStartTime)
+            this.reassignEndTime = this.autoCompleteTime(this.reassignEndTime)
+
+            if(this.reassignStartTime >= this.reassignEndTime){                
+                this.errorMsg = "The Reassigned End Time is before or equal to the Start Time."
+                this.showErrorMsg = true;
+                return true
+            }
+
+            const dutyStartTime = this.selectedDuty?.attachedDuty?.startDate? this.selectedDuty.attachedDuty.startDate.substring(11,16) : ''            
+            if(dutyStartTime > this.reassignStartTime){
+                this.errorMsg = `The Reassigned Start Time is before the duty's Start time (${dutyStartTime}).`
+                this.showErrorMsg = true;
+                return true
+            }
+
+            const dutyEndTime = this.selectedDuty?.attachedDuty?.endDate? this.selectedDuty.attachedDuty.endDate.substring(11,16) : ''
+            if(dutyEndTime < this.reassignEndTime){
+                this.errorMsg = `The Reassigned End Time is after the duty's End time (${dutyEndTime}).`
+                this.showErrorMsg = true;
+                return true
+            }
+            
+
+            const reassignedDutyBin = this.getTimeRangeBins(this.reassignStartTime, this.reassignEndTime, this.startOfDay, this.timezone)
+            const reassignArray = this.fillInArray(Array(96).fill(0), 1, reassignedDutyBin.startBin, reassignedDutyBin.endBin)
+
+            for(const dutySlot of this.selectedDuty?.attachedDuty?.dutySlots){
+
+                const timezone = dutySlot.timezone
+                const start = moment(dutySlot.startDate).tz(timezone)
+                const startTime = moment(dutySlot.startDate).tz(timezone).format("HH:mm")
+                const endTime = moment(dutySlot.endDate).tz(timezone).format("HH:mm")
+                const startOfDay = moment(start).startOf("day");
+                const occupiedDutyBin = this.getTimeRangeBins(startTime, endTime, startOfDay, timezone)
+                const occupiedArray = this.fillInArray(Array(96).fill(0), 1, occupiedDutyBin.startBin, occupiedDutyBin.endBin)
+                const conflictArray = this.unionArrays(reassignArray, occupiedArray)
+                if(this.sumOfArrayElements(conflictArray)>0){
+                    this.errorMsg = `The reassign range has conflict with another sheriff (${startTime} to ${endTime}).`
+                    this.showErrorMsg = true;
+                    return true
+                }
+
+     
+            }
+
+            if(this.selectedDuty?.attachedDuty?.id){
+                const reassignStartTime = moment(this.startOfDay).add(this.reassignStartTime).format();
+                const reassignEndTime =  moment(this.startOfDay).add(this.reassignEndTime).format();
+                this.reassignEditedDutySlot =
+                {
+                    startDate: reassignStartTime,
+                    endDate: reassignEndTime, 
+                    isOvertime: false,                                       
+                    dutySlotId: null ,
+                }
+
+            }
+            return false
         }
     }
 </script>
