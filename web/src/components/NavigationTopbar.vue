@@ -20,23 +20,20 @@
             <b-navbar-nav v-else style="height:3rem"/>
             
 			<b-navbar-nav v-if="displayHeader" class="my-0 mx-5">
-				<b-nav-item-dropdown text="Duty Roster" dropdown :disabled="!hasPermissionToViewDutyRosterPage">
-                    <b-dropdown-item to="/manage-duty-roster">Manage Duties</b-dropdown-item>
-                    <b-dropdown-item to="/view-duty-roster">View Duties</b-dropdown-item>
+                <b-nav-item-dropdown text="Menu" dropdown>
+                    <b-dropdown-item to="/manage-duty-roster" :disabled="!hasPermissionToViewDutyRosterPage">Manage Duties</b-dropdown-item>
+                    <b-dropdown-item to="/view-duty-roster" :disabled="!hasPermissionToViewDutyRosterPage">View Duties</b-dropdown-item>
+                    <b-dropdown-divider></b-dropdown-divider>
+                    <b-dropdown-item v-if="hasPermissionToViewManageSchedule" to="/manage-shift-schedule" :disabled="!hasPermissionToViewSchedulePages">Manage Shift Schedule</b-dropdown-item>
+                    <b-dropdown-item v-if="hasPermissionToViewDistributeSchedule" to="/distribute-shift-schedule" :disabled="!hasPermissionToViewSchedulePages">Distribute Shift Schedule</b-dropdown-item>
+                    <b-dropdown-divider></b-dropdown-divider>
+                    <b-dropdown-item v-if="hasPermissionToViewProfilePage" to="/team-members" :disabled="!hasPermissionToViewTeamPages">My Team Members</b-dropdown-item>
+                    <b-dropdown-item v-if="hasPermissionToViewRolesPage" to="/define-roles-access" :disabled="!hasPermissionToViewTeamPages">Define Roles & Access</b-dropdown-item>
+                    <b-dropdown-divider></b-dropdown-divider>
+                    <b-dropdown-item to="/assignment-types" :disabled="!hasPermissionToEditManageTypes">Assignment Types</b-dropdown-item>
+                    <b-dropdown-item to="/leave-training-types" :disabled="!hasPermissionToEditManageTypes">Leave & Training Types</b-dropdown-item>
                 </b-nav-item-dropdown>
-                <b-nav-item-dropdown text="Shift Schedule" dropdown :disabled="!hasPermissionToViewSchedulePages">
-                    <b-dropdown-item v-if="hasPermissionToViewManageSchedule" to="/manage-shift-schedule">Manage Schedule</b-dropdown-item>
-                    <b-dropdown-item v-if="hasPermissionToViewDistributeSchedule" to="/distribute-shift-schedule">Distribute Schedule</b-dropdown-item>
-                </b-nav-item-dropdown>
-                <b-nav-item-dropdown text="My Team" dropdown :disabled="!hasPermissionToViewTeamPages">
-                    <b-dropdown-item v-if="hasPermissionToViewProfilePage" to="/team-members">My Team Members</b-dropdown-item>
-                    <b-dropdown-item v-if="hasPermissionToViewRolesPage" to="/define-roles-access">Define Roles & Access</b-dropdown-item>
-                </b-nav-item-dropdown>
-                <b-nav-item-dropdown text="Manage Types" dropdown :disabled="!hasPermissionToEditManageTypes">
-                    <b-dropdown-item to="/assignment-types">Assignment Types</b-dropdown-item>
-                    <b-dropdown-item to="/leave-training-types">Leave & Training Types</b-dropdown-item>
-                </b-nav-item-dropdown>
-			</b-navbar-nav>
+            </b-navbar-nav>
 			<b-navbar-nav v-if="displayHeader" class="ml-3 my-0 mr-3">
                 <b-input-group v-if="locationDataReady" class="mr-2 mt-1" style="height: 40px">
                     <b-input-group-prepend is-text>

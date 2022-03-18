@@ -129,12 +129,10 @@
         // }
 
         public loadScheduleInformation() {
-
             this.UpdateSelectedShifts([]);
             this.isManageScheduleDataMounted=false;
 
             this.headerDate();
-
             const endDate = moment.tz(this.shiftRangeInfo.endDate, this.location.timezone).endOf('day').utc().format();
             const startDate = moment.tz(this.shiftRangeInfo.startDate, this.location.timezone).startOf('day').utc().format();
 
