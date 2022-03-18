@@ -25,7 +25,6 @@
                         <b-icon icon="globe"></b-icon>
                     </template>
                     <b-dropdown-item 
-                        style="width:auto;"
                         v-for="location in locationList"
                         :key="location.id"                  
                         :value="location"
@@ -163,6 +162,7 @@
 <style scoped>   
 
     ul >>> .dropdown-menu {
-        width: 250px;
+        width: auto;
+        position: absolute;
     }
 </style>
