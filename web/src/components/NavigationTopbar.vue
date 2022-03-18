@@ -20,25 +20,22 @@
             <b-navbar-nav v-else style="height:3rem"/>
             
 			<b-navbar-nav v-if="displayHeader" class="ml-3 my-0 mr-3">
-                <b-input-group v-if="locationDataReady" class="mr-2 mt-1" style="height: 40px">
-                    <b-input-group-prepend is-text>
+                <b-nav-item-dropdown right class="my-0" menu-class="bg-info" dropdown>
+                    <template v-slot:button-content>
                         <b-icon icon="globe"></b-icon>
-                    </b-input-group-prepend>
-                    <b-form-select
-                        style="height: 100%;"
-                        v-model="selectedLocation"                
-                        :disabled="disableLocationChange"
-                        @change="UpdateLocation(selectedLocation)"                
-                        >
-                        <b-form-select-option
+                    </template>
+                    <b-dropdown-item 
+                        style="width:auto;"
                         v-for="location in locationList"
                         :key="location.id"                  
-                        :value="location">{{location.name}}
-                        </b-form-select-option>                  
-                    </b-form-select>
-                </b-input-group>
+                        :value="location"
+                        :disabled="disableLocationChange"
+                        @click="UpdateLocation(location)">
+                        {{ location.name }}
+                    </b-dropdown-item>
+                </b-nav-item-dropdown>
 
-                <b-nav-item-dropdown right class="my-0" menu-class="bg-info"  dropdown>
+                <b-nav-item-dropdown right class="my-0" menu-class="bg-info" dropdown>
                     <template v-slot:button-content>
                         <b-icon-list></b-icon-list>
                     </template>
@@ -164,6 +161,6 @@
 <style scoped>   
 
     ul >>> .dropdown-menu {
-        width: 250px !important;
+        width: 250px;
     }
 </style>
