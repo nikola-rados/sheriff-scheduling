@@ -34,7 +34,9 @@
                         {{ location.name }}
                     </b-dropdown-item>
                 </b-nav-item-dropdown>
+            </b-navbar-nav>
 
+            <b-navbar-nav v-if="displayHeader" class="ml-3 my-0 mr-3">
                 <b-nav-item-dropdown right class="my-0" menu-class="bg-info" dropdown>
                     <template v-slot:button-content>
                         <b-icon-list></b-icon-list>
