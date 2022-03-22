@@ -9,8 +9,8 @@
                     :key="updateTable"
                     :items="shiftSchedules" 
                     :fields="fields"
-                    small
                     head-row-variant="primary"   
+                    sticky-header
                     bordered
                     fixed>
                         <template v-slot:table-colgroup>
@@ -101,14 +101,14 @@
         
 
         fields=[
-            {key:'myteam', label:'My Team', tdClass:'px-0 mx-0', thClass:'text-center'},
-            {key:'Sun', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Mon', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Tue', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Wed', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Thu', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Fri', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'},
-            {key:'Sat', label:'', tdClass:'px-0 mx-0', thStyle:'text-align: center;'}
+            {key:'myteam', label:'My Team', tdClass:'px-0 mx-0', thClass:'text-align: center;width:194px', stickyColumn: true},
+            {key:'Sun', label:'', tdClass: 'schedule-cell'},
+            {key:'Mon', label:'', tdClass: 'schedule-cell'},
+            {key:'Tue', label:'', tdClass: 'schedule-cell'},
+            {key:'Wed', label:'', tdClass: 'schedule-cell'},
+            {key:'Thu', label:'', tdClass: 'schedule-cell'},
+            {key:'Fri', label:'', tdClass: 'schedule-cell'},
+            {key:'Sat', label:'', tdClass: 'schedule-cell'}
         ]
 
         shiftSchedules: weekShiftInfoType[] =[];
@@ -467,6 +467,11 @@
 
     .card {
         border: white;
+    }
+
+    .schedule-cell {
+        text-align: center;
+        width: 194px;
     }
 
 </style>
