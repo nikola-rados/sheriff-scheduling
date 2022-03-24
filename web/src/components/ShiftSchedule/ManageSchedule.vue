@@ -1,6 +1,6 @@
 <template>
     <b-card bg-variant="white" class="home" no-body>        
-        <schedule-header v-on:change="loadScheduleInformation()" />           
+        <schedule-header v-on:change="loadScheduleInformation()" />
             <b-overlay opacity="0.6" :show="!isManageScheduleDataMounted">
                 <template #overlay>
                     <loading-spinner :inline="true"/>
@@ -9,9 +9,10 @@
                     :key="updateTable"
                     :items="shiftSchedules" 
                     :fields="fields"
-                    head-row-variant="primary"   
-                    sticky-header
+                    head-row-variant="primary"
+                    sticky-header="550px"
                     bordered
+                    no-border-collapse
                     fixed>
                         <template v-slot:table-colgroup>
                             <col style="width:8.5rem;">                            
@@ -46,8 +47,6 @@
                 >&times;</b-button>
             </template>
         </b-modal>
-
-           
     </b-card>
 </template>
 
@@ -471,7 +470,7 @@
 
     .schedule-cell {
         text-align: center;
-        width: 194px;
+        width: 195px;
     }
 
 </style>
