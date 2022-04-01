@@ -9,7 +9,7 @@
 # NAMESPACE_NAME=01a527
 # IMAGE_NAMESPACE=01a527-tools
 # MEMORY_LIMIT=512Mi
-APPLICATION_DOMAIN=representation-grant-schema-dev.apps.silver.devops.gov.bc.ca
+APPLICATION_DOMAIN=sheriff-scheduling-schema-dev.apps.silver.devops.gov.bc.ca
 # DATABASE_SERVICE_NAME=db
 TAG_NAME=dev
 # DATABASE_DEPLOYMENT_NAME=db

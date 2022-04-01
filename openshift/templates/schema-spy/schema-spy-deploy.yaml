@@ -195,7 +195,7 @@ parameters:
     displayName: App Name
     description: App Name
     required: true
-    value: representation-grant
+    value: sheriff-scheduling
   - name: ROLE
     displayName: Role
     description: Role
@@ -206,7 +206,7 @@ parameters:
     displayName: Namespace Name
     description: The base namespace name for the project.
     required: true
-    value: 583dbf
+    value: 01a527
 
   - name: IMAGE_NAMESPACE
     displayName: Image Namespace
@@ -214,7 +214,7 @@ parameters:
     description:
       The namespace of the OpenShift project containing the imagestream for
       the application.
-    value: 583dbf-tools
+    value: 01a527-tools
   - name: MEMORY_LIMIT
     displayName: Memory Limit
     required: true
@@ -225,7 +225,7 @@ parameters:
     description:
       The exposed hostname that will route to the Django service, if left
       blank a value will be defaulted.
-    value: "family-law-act-schema-dev.apps.silver.devops.gov.bc.ca"
+    value: "sheriff-scheduling-schema-dev.apps.silver.devops.gov.bc.ca"
   - name: DATABASE_SERVICE_NAME
     displayName: Database Service Name
     required: true
